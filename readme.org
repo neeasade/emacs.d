@@ -1,0 +1,3 @@
+* neeasade's emacs configuration
+
+The meat and potatoes are in `lisp/theworld.el`. `init.el` pulls and composes from the functions defined there. Spacemacs inspired, everything is littered with TODOs, evil user.
