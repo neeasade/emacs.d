@@ -34,6 +34,7 @@
 
   (straight-use-package 'use-package)
   (setq straight-use-package-by-default t)
+  (setq straight-cache-autoloads t)
   )
 
 (defun neeasade/load (targets)
@@ -96,11 +97,11 @@
   ;; persistent session:
   ;; note: (desktop-clear) to clean/kill everything.
   (load-settings 'desktop
-                 '(
-    restore-eager 5
-    auto-save-timeout 30
-    path (list "~/.emacs.d")
-    )
+    '(
+       restore-eager 5
+       auto-save-timeout 30
+       path (list "~/.emacs.d")
+       )
     )
 
   (desktop-save-mode 1)
@@ -517,7 +518,7 @@ current major mode."
 
 (defun neeasade/feebleline()
   ;; todo
-  (load "~/.emacs.d/lisp/ref/feebleline.el")
+  (load "~/.emacs.d/lib/feebleline.el")
   )
 
 (defun neeasade/window-management()
@@ -697,7 +698,7 @@ current major mode."
 
 (defun neeasade/target-process()
   (if enable-tp?
-    (load "~/.emacs.d/lisp/ref/targetprocess.el")
+    (load "~/.emacs.d/lib/targetprocess.el")
     )
   )
 
@@ -735,8 +736,8 @@ current major mode."
 
     ;; counsel-rg is crashing emacs on windows
     ;; (can't C-g/esc, can't send USR2 on windows)
-    (toggle-debug-on-error nil)
-    (toggle-debug-on-quit nil)
+    ;; (toggle-debug-on-error nil)
+    ;; (toggle-debug-on-quit nil)
     )
 
   (use-package ranger
@@ -1469,6 +1470,8 @@ current major mode."
 
 ;; todo: consider https://www.reddit.com/r/emacs/comments/8hpyp5/tip_how_to_execute_a_bash_function_when_saving_a/
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
+;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
+;; todo: consider https://github.com/raxod502/prescient.el
 
 (provide 'theworld)
 
