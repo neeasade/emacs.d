@@ -49,7 +49,7 @@
   (use-package general)
   (use-package rg)
   (use-package dash)
-  (load "~/.emacs.d/lisp/helpers.el")
+  (eval-and-compile (load "~/.emacs.d/lisp/helpers.el"))
   )
 
 (defun neeasade/interactive()

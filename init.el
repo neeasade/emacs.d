@@ -2,11 +2,10 @@
 ;;; commentary:
 ;;; code:
 
-(load "~/.emacs.d/lisp/theworld.el")
+(eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
 ;; (init-use-package)
 (init-straight)
-
 
 (defun neeasade/core()
   (neeasade/load
