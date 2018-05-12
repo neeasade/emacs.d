@@ -2,6 +2,10 @@
 (setq sys/linux? (eq system-type 'gnu/linux))
 (setq enable-tp? sys/windows?)
 
+(defun neeasade/homefile(path)
+  (concat (getenv "HOME") "/" path)
+  )
+
 (defun mapcar* (f &rest xs)
   "MAPCAR for multiple sequences F XS."
   (if (not (memq nil xs))

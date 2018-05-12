@@ -1446,10 +1446,67 @@ current major mode."
   (use-package lsp-javascript-flow)
   )
 
-;; todo: consider https://www.reddit.com/r/emacs/comments/8hpyp5/tip_how_to_execute_a_bash_function_when_saving_a/
+(defun neeasade/search-engines()
+  (use-package engine-mode
+    :config
+    (defengine amazon
+      "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=%s"
+      :keybinding "a")
+
+    (defengine duckduckgo
+      "https://duckduckgo.com/?q=%s"
+      :keybinding "d")
+
+    (defengine github
+      "https://github.com/search?ref=simplesearch&q=%s"
+      :keybinding "g")
+
+    (defengine google-images
+      "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
+      :keybinding "i")
+
+    (defengine google-maps
+      "http://maps.google.com/maps?q=%s"
+      :keybinding "m"
+      :docstring "Mappin' it up.")
+
+    (defengine stack-overflow
+      "https://stackoverflow.com/search?q=%s"
+      :keybinding "s")
+
+    (defengine wikipedia
+      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+      :keybinding "w"
+      :docstring "Searchin' the wikis.")
+
+    (defengine youtube
+      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
+      :keybinding "y")
+    (engine-mode t))
+  )
+
+(defun neeasade/filehooks()
+  (defvar *afilename-cmd*
+    ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
+    `((,(neeasade/homefile ".Xresources") . "xrdb -merge ~/.Xresources")
+       (,(neeasade/homefile ".Xmodmap") . "xmodmap ~/.Xmodmap"))
+    "File association list with their respective command.")
+
+  (defun my/cmd-after-saved-file ()
+    "Execute a command after saved a specific file."
+    (setq filenames (mapcar 'car *afilename-cmd*))
+    (dolist (file filenames)
+      (let ((cmd (cdr (assoc file *afilename-cmd*))))
+        (if (file-exists-p file)
+          (when (equal (buffer-file-name) file)
+            (shell-command cmd))
+          (error "No such file %s" file)))))
+
+  (add-hook 'after-save-hook 'my/cmd-after-saved-file)
+  )
+
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
-;; todo: consider https://github.com/raxod502/prescient.el
 
 (provide 'theworld)
 
