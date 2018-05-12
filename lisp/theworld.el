@@ -37,11 +37,11 @@
   (setq straight-cache-autoloads t)
   )
 
-(defun neeasade/load (targets)
-  (mapc (lambda(target)
-          (funcall (intern (concat "neeasade/" (prin1-to-string target))))
-          )
-    targets)
+(defmacro neeasade/load (&rest targets)
+  `(mapc (lambda(target)
+           (funcall (intern (concat "neeasade/" (prin1-to-string target))))
+           )
+     ',targets)
   )
 
 (defun neeasade/helpers()
@@ -96,12 +96,10 @@
 
   ;; persistent session:
   ;; note: (desktop-clear) to clean/kill everything.
-  (load-settings 'desktop
-    '(
-       restore-eager 5
-       auto-save-timeout 30
-       path (list "~/.emacs.d")
-       )
+  (setq-ns 'desktop
+    restore-eager 5
+    auto-save-timeout 30
+    path (list "~/.emacs.d")
     )
 
   (desktop-save-mode 1)
@@ -280,22 +278,20 @@
 (defun neeasade/company()
   (use-package company
     :config
-    (load-settings 'company
-      '(
-         idle-delay (if sys/windows? 1 0)
-         selection-wrap-around t
-         tooltip-align-annotations t
-         dabbrev-downcase nil
-         dabbrev-ignore-case t
-         tooltip-align-annotations t
-         tooltip-margin 2
-         global-modes '(not
-                         org-mode
-                         shell-mode
-                         circe-chat-mode
-                         circe-channel-mode
-                         )
-         )
+    (setq-ns 'company
+      idle-delay (if sys/windows? 1 0)
+      selection-wrap-around t
+      tooltip-align-annotations t
+      dabbrev-downcase nil
+      dabbrev-ignore-case t
+      tooltip-align-annotations t
+      tooltip-margin 2
+      global-modes '(not
+                      org-mode
+                      shell-mode
+                      circe-chat-mode
+                      circe-channel-mode
+                      )
       )
 
     (use-package company-flx
@@ -496,12 +492,11 @@ current major mode."
   (use-package spaceline
     :config
     (require 'spaceline-config)
-    (load-settings 'powerline
-      '(
-         scale (string-to-number (get-resource "Emacs.powerlinescale"))
-         height (spacemacs/compute-powerline-height)
-         default-separator (get-resource "Emacs.powerline")
-         ))
+    (setq-ns 'powerline
+      scale (string-to-number (get-resource "Emacs.powerlinescale"))
+      height (spacemacs/compute-powerline-height)
+      default-separator (get-resource "Emacs.powerline")
+      )
 
     ;; todo sync modeline background color?
     ;; other option is remove off color section/pick explicitly
@@ -512,6 +507,7 @@ current major mode."
 
     (spaceline-spacemacs-theme)
     (spaceline-toggle-minor-modes-off)
+    (spaceline-toggle-evil-state-off)
     (spaceline-compile)
     )
   )
@@ -537,69 +533,68 @@ current major mode."
                 :files ("lisp/*.el" "contrib/lisp/*.el"))
 
     :config
-    (load-settings 'org
-      '(
-         directory "~/org/projects"
-         agenda-files (list org-directory)
-         default-notes-file  "~/org/notes.org"
-         default-diary-file  "~/org/diary.org"
-         default-habits-file  "~/org/habits.org"
+    (setq-ns 'org
+      directory "~/org/projects"
+      agenda-files (list org-directory)
+      default-notes-file  "~/org/notes.org"
+      default-diary-file  "~/org/diary.org"
+      default-habits-file  "~/org/habits.org"
 
-         ellipsis "…"
-         startup-indented t
-         startup-folded t
+      ellipsis "…"
+      startup-indented t
+      startup-folded t
 
 
-         ;; days before expiration where a deadline becomes active
-         deadline-warn-days 14
-         todo-keywords
-         '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-            (sequence "WAITING(w@/!)" "INACTIVE(i@/!)" "|" "CANCELLED(c@/!)" "MEETING"))
+      ;; days before expiration where a deadline becomes active
+      deadline-warn-days 14
+      todo-keywords
+      '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+         (sequence "WAITING(w@/!)" "INACTIVE(i@/!)" "|" "CANCELLED(c@/!)" "MEETING"))
 
-         blank-before-new-entry '((heading . t) (plainlist-item . nil))
-         tag-alist '(
-                      ("test" . ?t)
-                      ("endtest" . ?e)
-                      )
+      blank-before-new-entry '((heading . t) (plainlist-item . nil))
+      tag-alist '(
+                   ("test" . ?t)
+                   ("endtest" . ?e)
+                   )
 
-         ;; clock
-         clock-x11idle-program-name "x11idle"
-         clock-idle-time 5
-         clock-sound nil
-         pomodoro-play-sounds nil
-         pomodoro-keep-killed-pomodoro-time t
-         pomodoro-ask-upon-killing nil
+      ;; clock
+      clock-x11idle-program-name "x11idle"
+      clock-idle-time 5
+      clock-sound nil
+      pomodoro-play-sounds nil
+      pomodoro-keep-killed-pomodoro-time t
+      pomodoro-ask-upon-killing nil
 
-         ;; capture
-         capture-templates
-         '(("t" "todo" entry (file org-default-notes-file)
-             "* TODO %?\n%u\n%a\n" :clock-in t :clock-resume t)
+      ;; capture
+      capture-templates
+      '(("t" "todo" entry (file org-default-notes-file)
+          "* TODO %?\n%u\n%a\n" :clock-in t :clock-resume t)
 
-            ("b" "Blank" entry (file org-default-notes-file)
-              "* %?\n%u")
+         ("b" "Blank" entry (file org-default-notes-file)
+           "* %?\n%u")
 
-            ("m" "Meeting" entry (file org-default-notes-file)
-              "* MEETING with %? :MEETING:\n%t" :clock-in t :clock-resume t)
+         ("m" "Meeting" entry (file org-default-notes-file)
+           "* MEETING with %? :MEETING:\n%t" :clock-in t :clock-resume t)
 
-            ("d" "Diary" entry (file+datetree org-default-diary-file)
-              "* %?\n%U\n" :clock-in t :clock-resume t)
+         ("d" "Diary" entry (file+datetree org-default-diary-file)
+           "* %?\n%U\n" :clock-in t :clock-resume t)
 
-            ("D" "Daily Log" entry (file "~/org/daily-log.org")
-              "* %u %?\n*Summary*: \n\n*Problem*: \n\n*Insight*: \n\n*Tomorrow*: " :clock-in t :clock-resume t)
+         ("D" "Daily Log" entry (file "~/org/daily-log.org")
+           "* %u %?\n*Summary*: \n\n*Problem*: \n\n*Insight*: \n\n*Tomorrow*: " :clock-in t :clock-resume t)
 
-            ("i" "Idea" entry (file org-default-notes-file)
-              "* %? :IDEA: \n%u" :clock-in t :clock-resume t)
+         ("i" "Idea" entry (file org-default-notes-file)
+           "* %? :IDEA: \n%u" :clock-in t :clock-resume t)
 
-            ("n" "Next Task" entry (file+headline org-default-notes-file "Tasks")
-              "** NEXT %? \nDEADLINE: %t")
-            )
+         ("n" "Next Task" entry (file+headline org-default-notes-file "Tasks")
+           "** NEXT %? \nDEADLINE: %t")
+         )
 
-         ;; current file or any of the agenda-files, max 9 levels deep
-         refile-targets '(
-                           (nil :maxlevel . 9)
-                           (org-agenda-files :maxlevel . 9)
-                           )
-         ))
+      ;; current file or any of the agenda-files, max 9 levels deep
+      refile-targets '(
+                        (nil :maxlevel . 9)
+                        (org-agenda-files :maxlevel . 9)
+                        )
+      )
     )
 
   (defun neeasade/org-open-url()
@@ -823,13 +818,11 @@ current major mode."
 
   (defun emms-start()
     (require 'emms-player-mpd)
-    (load-settings 'emms-player-mpd
-      '(
-         server-name "localhost"
-         server-port "6600"
-         music-directory "~/Music"
-         ;; server-password "mypassword"
-         )
+    (setq-ns 'emms-player-mpd
+      server-name "localhost"
+      server-port "6600"
+      music-directory "~/Music"
+      ;; server-password "mypassword"
       )
 
     (add-to-list 'emms-info-functions 'emms-info-mpd)
@@ -929,18 +922,16 @@ current major mode."
     (setq magit-repository-directories (list "~/git"))
     ;; https://magit.vc/manual/magit/Performance.html
     (if sys/windows?
-      (load-settings 'magit
-        '(
-           ;; diff perf
-           diff-highlight-indentation nil
-           diff-highlight-trailing nil
-           diff-paint-whitespace nil
-           diff-highlight-hunk-body nil
-           diff-refine-hunk nil
+      (setq-ns 'magit
+        ;; diff perf
+        diff-highlight-indentation nil
+        diff-highlight-trailing nil
+        diff-paint-whitespace nil
+        diff-highlight-hunk-body nil
+        diff-refine-hunk nil
 
-           ;;
-           refresh-status-buffer nil
-           )
+        ;;
+        refresh-status-buffer nil
         )
 
       ;; don't show diff when committing --
@@ -1177,8 +1168,7 @@ current major mode."
     :init
     (add-hook 'twittering-edit-mode-hook (lambda () (flyspell-mode)))
     :config
-    ;; todo: this should be quoted
-    (load-settings 'twittering
+    (setq-ns 'twittering
       use-master-password t
       icon-mode t
       use-icon-storage t

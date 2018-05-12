@@ -5,23 +5,22 @@
 (defun mapcar* (f &rest xs)
   "MAPCAR for multiple sequences F XS."
   (if (not (memq nil xs))
-      (cons (apply f (mapcar 'car xs))
+    (cons (apply f (mapcar 'car xs))
 	    (apply 'mapcar* f (mapcar 'cdr xs)))))
 
-;; a namespace variable setting function
-(defun load-settings(namespace lst)
-  "Set dotspacemacs- prefixed variable values from a list."
+;; setq namespace
+(defmacro setq-ns (namespace &rest lst)
   (require 'seq)
-  (mapcar*
-   (lambda (pair)
-     (let ((key (car pair))
-	   (value (car (cdr pair))))
-       (set
-        (intern (concat (prin1-to-string namespace) "-" (prin1-to-string key)))
-        (eval value)
-        )))
-   (seq-partition lst 2)
-   ))
+  `(mapcar*
+     (lambda (pair)
+       (let ((key (car pair))
+              (value (car (cdr pair))))
+         (set
+           (intern (concat (prin1-to-string ,namespace) "-" (prin1-to-string key)))
+           (eval value)
+           )))
+     (seq-partition ',lst 2)
+     ))
 
 (defun get-resource (name)
   "Get X resource value, with a fallback value NAME."
