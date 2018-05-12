@@ -1449,40 +1449,28 @@ current major mode."
 (defun neeasade/search-engines()
   (use-package engine-mode
     :config
-    (defengine amazon
-      "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=%s"
-      :keybinding "a")
 
-    (defengine duckduckgo
-      "https://duckduckgo.com/?q=%s"
-      :keybinding "d")
+    ;; bind spc s 'hotkey' to a search url with a label
+    (defmacro bind-search (label url hotkey)
+      `(progn
+         (defengine ,label ,url)
+         (neeasade/bind
+           (concat "s" ,hotkey) (intern (concat "engine/search-" (prin1-to-string ',label)))
+           )
+         )
+      )
 
-    (defengine github
-      "https://github.com/search?ref=simplesearch&q=%s"
-      :keybinding "g")
-
-    (defengine google-images
-      "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-      :keybinding "i")
-
-    (defengine google-maps
-      "http://maps.google.com/maps?q=%s"
-      :keybinding "m"
-      :docstring "Mappin' it up.")
-
-    (defengine stack-overflow
-      "https://stackoverflow.com/search?q=%s"
-      :keybinding "s")
-
-    (defengine wikipedia
-      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
-      :keybinding "w"
-      :docstring "Searchin' the wikis.")
-
-    (defengine youtube
-      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
-      :keybinding "y")
-    (engine-mode t))
+    (bind-search amazon "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=%s" "a")
+    (bind-search amazon "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=%s" "a")
+    (bind-search duckduckgo "https://duckduckgo.com/?q=%s" "d")
+    (bind-search github "https://github.com/search?ref=simplesearch&q=%s" "g")
+    (bind-search google-images "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s" "i")
+    (defengine google-maps "http://maps.google.com/maps?q=%s" "m")
+    (bind-search stack-overflow "https://stackoverflow.com/search?q=%s" "s")
+    (bind-search wikipedia "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s" "w")
+    (bind-search youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s" "y")
+    (engine-mode t)
+    )
   )
 
 (defun neeasade/filehooks()
