@@ -96,7 +96,7 @@
 
   ;; persistent session:
   ;; note: (desktop-clear) to clean/kill everything.
-  (setq-ns 'desktop
+  (setq-ns desktop
     restore-eager 5
     auto-save-timeout 30
     path (list "~/.emacs.d")
@@ -278,7 +278,7 @@
 (defun neeasade/company()
   (use-package company
     :config
-    (setq-ns 'company
+    (setq-ns company
       idle-delay (if sys/windows? 1 0)
       selection-wrap-around t
       tooltip-align-annotations t
@@ -292,10 +292,6 @@
                       circe-chat-mode
                       circe-channel-mode
                       )
-      )
-
-    (use-package company-flx
-      ;; :config (company-flx-mode +1)
       )
 
     ;; TODO: investigate tab handling like VS completely
@@ -492,7 +488,7 @@ current major mode."
   (use-package spaceline
     :config
     (require 'spaceline-config)
-    (setq-ns 'powerline
+    (setq-ns powerline
       scale (string-to-number (get-resource "Emacs.powerlinescale"))
       height (spacemacs/compute-powerline-height)
       default-separator (get-resource "Emacs.powerline")
@@ -533,7 +529,7 @@ current major mode."
                 :files ("lisp/*.el" "contrib/lisp/*.el"))
 
     :config
-    (setq-ns 'org
+    (setq-ns org
       directory "~/org/projects"
       agenda-files (list org-directory)
       default-notes-file  "~/org/notes.org"
@@ -697,37 +693,36 @@ current major mode."
     )
   )
 
-;; bindings, ivy, counsel, alerts, which-key
 (defun neeasade/interface()
   ;; todo: into occur/search buffer solution for better finding when don't know what we're looking for
-
-  (defun dynamic-ivy-height()
-    (setq ivy-height (/ (window-total-size) 2))
-    ;; (setq ivy-fixed-height-minibuffer t)
-    (setq ivy-fixed-height-minibuffer (/ (window-total-size) 2))
-    )
-
-  ;; ref: http://oremacs.com/2016/01/06/ivy-flx/
-  ;; (use-package flx)
-  (dynamic-ivy-height)
-  (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
-
   (use-package ivy
     :config
-    (setq ivy-re-builders-alist
-      '((ivy-switch-buffer . ivy--regex-plus)
-         (t . ivy--regex-fuzzy)))
+    (setq-ns ivy
+      re-builders-alist '((ivy-switch-buffer . ivy--regex-plus) (t . ivy--regex-fuzzy))
+      initial-inputs-alist nil
+      fixed-height-minibuffer t
+      )
 
-    (setq ivy-initial-inputs-alist nil)
+    (defun dynamic-ivy-height()
+      (setq ivy-height (/ (window-total-size) 2)))
+
+    (dynamic-ivy-height)
+    (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
+
     (ivy-mode 1)
+
+    (straight-use-package '(prescient :host github :repo "raxod502/prescient.el"))
+    (ivy-prescient-mode)
     )
 
   ;; counsel
   (use-package counsel
     :config
-    (setq counsel-grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s")
-    (setq counsel-rg-base-command "rg -i -M 120 --no-heading --line-number --color never %s .")
-    (setq counsel-ag-base-command "ag --vimgrep --nocolor --nogroup %s")
+    (setq-ns counsel
+      grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
+      rg-base-command "rg -i -M 120 --no-heading --line-number --color never %s ."
+      ag-base-command "ag --vimgrep --nocolor --nogroup %s"
+      )
 
     ;; counsel-rg is crashing emacs on windows
     ;; (can't C-g/esc, can't send USR2 on windows)
@@ -736,13 +731,9 @@ current major mode."
     )
 
   (use-package ranger
-    :init
-    (setq ranger-override-dired t)
+    :init (setq ranger-override-dired t)
     :config
-    (setq ranger-show-literal nil
-      ranger-show-hidden t
-      )
-
+    (setq-ns ranger-show literal nil hidden t)
     (neeasade/bind "d" 'deer)
     )
 
@@ -766,12 +757,9 @@ current major mode."
 
     ;; Applications
     "a" '(:ignore t :which-key "Applications")
-    "ar" 'ranger
-    "ad" 'dired
 
     "b" '(:ignore t :which-key "Buffers")
     "bd" '(kill-buffer nil)
-    "bs" '(switch-to-buffer (get-buffer-create "*scratch*"))
     )
 
   (use-package alert
@@ -783,10 +771,10 @@ current major mode."
 
   (use-package which-key
     :config
-    (setq
-      which-key-sort-order 'which-key-key-order-alpha
-      which-key-idle-delay 2.5
-      which-key-side-window-max-width 0.33
+    (setq-ns which-key
+      sort-order 'which-key-key-order-alpha
+      idle-delay 2.5
+      side-window-max-width 0.33
       )
     (which-key-setup-side-window-right-bottom)
     (which-key-mode)
@@ -818,7 +806,7 @@ current major mode."
 
   (defun emms-start()
     (require 'emms-player-mpd)
-    (setq-ns 'emms-player-mpd
+    (setq-ns emms-player-mpd
       server-name "localhost"
       server-port "6600"
       music-directory "~/Music"
@@ -922,7 +910,7 @@ current major mode."
     (setq magit-repository-directories (list "~/git"))
     ;; https://magit.vc/manual/magit/Performance.html
     (if sys/windows?
-      (setq-ns 'magit
+      (setq-ns magit
         ;; diff perf
         diff-highlight-indentation nil
         diff-highlight-trailing nil
@@ -1168,7 +1156,7 @@ current major mode."
     :init
     (add-hook 'twittering-edit-mode-hook (lambda () (flyspell-mode)))
     :config
-    (setq-ns 'twittering
+    (setq-ns twittering
       use-master-password t
       icon-mode t
       use-icon-storage t
