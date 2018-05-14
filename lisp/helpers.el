@@ -2,7 +2,16 @@
 (setq sys/linux? (eq system-type 'gnu/linux))
 (setq enable-tp? sys/windows?)
 
-(defun neeasade/homefile(path)
+(defmacro neeasade/shell-exec(command)
+  "trim the newline from shell exec"
+  `(replace-regexp-in-string "\n$" ""
+     (shell-command-to-string ,command)))
+
+;; hostname command exists on windows as well
+(setq neeasade/home? (string= (neeasade/shell-exec "hostname") "littleapple"))
+
+;; todo: on windows this should be USERPROFILE
+(defun neeasade/homefile (path)
   (concat (getenv "HOME") "/" path)
   )
 
@@ -45,9 +54,8 @@
     (if (executable-find "xrq")
       (let ((result
               ;; shell-command-to-string appends newline
-              (replace-regexp-in-string "\n$" ""
-                (shell-command-to-string
-                  (concat "xrq '" name "' 2>/dev/null")))))
+              (neeasade/shell-exec (concat "xrq '" name "' 2>/dev/null"))
+              ))
         (if (string= result "")
           ;; we didn't find it in xrdb.
           default
@@ -58,12 +66,11 @@
 
 ;; wrap passwordstore
 (defun pass (key)
-  (replace-regexp-in-string
-    "\n$" ""
-    (shell-command-to-string
-      (if sys/windows?
-        (concat "pprint.bat " key)
-        (concat "pass " key " 2>/dev/null"))))
+  (neeasade/shell-exec
+    (if sys/windows?
+      (concat "pprint.bat " key)
+      (concat "pass " key " 2>/dev/null"))
+    )
   )
 
 (defun reload-init()
@@ -118,12 +125,12 @@
   "Install dash DOCSET if dashdocs enabled."
 
   (if (bound-and-true-p neeasade-dashdocs)
-	(if (helm-dash-docset-installed-p docset)
-	  (message (format "%s docset is already installed!" docset))
-	  (progn (message (format "Installing %s docset..." docset))
-		(helm-dash-install-docset (subst-char-in-string ?\s ?_ docset)))
-	  )
-	)
+    (if (helm-dash-docset-installed-p docset)
+      (message (format "%s docset is already installed!" docset))
+      (progn (message (format "Installing %s docset..." docset))
+        (helm-dash-install-docset (subst-char-in-string ?\s ?_ docset)))
+      )
+    )
   )
 
 ;; todo: have the above do something like this
@@ -151,3 +158,4 @@
     (eww url)
     )
   )
+

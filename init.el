@@ -17,13 +17,12 @@
    shell
    eshell
    interactive
+   git
+   org
    ))
 
 (defun neeasade/extra()
   (neeasade/load
-   org
-   git
-
    company
    flycheck
    jump
@@ -36,13 +35,20 @@
    latex
 
    target-process
-   emms
-   pdf
-   ledger
-   ))
+   )
+
+  (when neeasade/home?
+    (neeasade/load
+     emms
+     pdf
+     ledger))
+  )
 
 (defun neeasade/communication()
-  (neeasade/load irc slack twitter email))
+  (when neeasade/home?
+	(neeasade/load irc slack twitter email)
+	)
+  )
 
 (defun neeasade/development()
   (neeasade/load
@@ -52,20 +58,20 @@
    nix
    javascript
    typescript
-   terraform
    markdown
-   sql
-   jekyll
-   plantuml
-   ))
+   ;; terraform
+   ;; sql
+   ;; jekyll
+   ;; plantuml
+   )
 
-(defun neeasade/windows()
-  ;; TODO: windows-scripts layer from spacemacs
-  (neeasade/load autohotkey))
+  (when sys/windows?
+    (neeasade/load autohotkey)
+    )
+  )
 
+;; liftoff
 (neeasade/load core extra communication development style)
-
-(if sys/windows? (neeasade/load '(windows)))
 
 ;; Emacs is terribly slow on windows
 (neeasade/toggle-bloat-global sys/linux?)

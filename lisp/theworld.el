@@ -1350,7 +1350,11 @@ current major mode."
 
   (use-package shell-pop
     :config
-    (setq shell-pop-window-position "top")
+    (setq-ns shell-pop
+      window-position "top"
+      window-size 33 ;; percent
+      full-span t
+      )
     )
 
   (neeasade/bind-mode '(shell)
