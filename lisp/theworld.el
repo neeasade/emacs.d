@@ -96,10 +96,11 @@
 
   ;; persistent session:
   ;; note: (desktop-clear) to clean/kill everything.
+  (make-directory "~/.emacs.desktop" t)
   (setq-ns desktop
     restore-eager 5
     auto-save-timeout 30
-    path (list "~/.emacs.d")
+    path (list "~/.emacs.desktop")
     )
 
   (desktop-save-mode 1)
@@ -141,8 +142,29 @@
 (defun neeasade/elisp()
   (load "~/.emacs.d/vendor/le-eval-and-insert-results.el")
 
+  ;; todo: move this to helpers
+  (defun current-line-empty-p ()
+    (save-excursion
+      (beginning-of-line)
+      (looking-at "[[:space:]]*$")))
+
   (neeasade/install-dashdoc "Emacs Lisp")
   (setq lisp-indent-function 'common-lisp-indent-function)
+  (defun neeasade/smart-elisp-eval()
+    "eval total sexp by paragraph (jump ahead if not on blank line) or region if selected"
+    (interactive)
+    (if (use-region-p)
+      ;; change this func, region doesn't matter
+      (le::eval-and-insert-results)
+      (progn
+        (when (not (current-line-empty-p))
+          ;; todo: ] keybind func
+          )
+        (le::eval-and-insert-results)
+        )
+      )
+    )
+
   (neeasade/bind-leader-mode
     'emacs-lisp
     "er" 'eval-region
@@ -188,6 +210,15 @@
     :config
     (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
     (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt)
+    )
+
+  (use-package evil-goggles
+    :config
+    (setq evil-goggles-duration 0.100)
+    (setq evil-goggles-pulse t)
+    ;; fun visual vim mode
+    ;; todo: consider some sort of coding presentation mode func
+    ;; (evil-goggles-mode 0)
     )
 
   ;; todo: checkout https://github.com/cute-jumper/evil-embrace.el
@@ -518,7 +549,7 @@ current major mode."
     :config
     ;; width . height
     (setq zoom-size '(0.58 . 0.618))
-    (zoom-mode t)
+    (zoom-mode nil)
     )
   )
 
@@ -738,7 +769,6 @@ current major mode."
     )
 
   (neeasade/bind
-    "'"   'shell-pop
     "/"   'counsel-rg
     "TAB" '(switch-to-other-buffer :which-key "prev buffer")
     "SPC" 'counsel-M-x
@@ -1015,6 +1045,8 @@ current major mode."
     )
 
   ;; (add-function :after (symbol-function 'smart-jump-go) #'evil-scroll-line-to-center)
+  ;; todo:
+  ;; (advice-add #'neeasade/org-set-active :after #'tp-set-active)
   )
 
 (defun neeasade/irc()
@@ -1335,9 +1367,11 @@ current major mode."
   )
 
 (defun neeasade/shell()
+  ;; consider arrow function here
+  ;; https://superuser.com/questions/139815/how-do-you-run-the-previous-command-in-emacs-shell
   (if sys/windows?
     (progn
-      (setq shell-file-name
+      (setq explicit-shell-file-name
         (concat (getenv "USERPROFILE")
           "\\scoop\\apps\\git-with-openssh\\current\\usr\\bin\\bash.exe"
           ))
@@ -1350,11 +1384,31 @@ current major mode."
 
   (use-package shell-pop
     :config
+
+    ;; https://github.com/kyagi/shell-pop-el/issues/51
+    (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
+
     (setq-ns shell-pop
       window-position "top"
       window-size 33 ;; percent
       full-span t
       )
+
+    (neeasade/bind "'" 'shell-pop)
+
+    ;; interactive shell-pop bound to spc t index shell
+    (defun makepop(index)
+      (let ((funcname (intern (concat "shell-pop-" (number-to-string index)))))
+        (eval `(progn
+                 (defun ,funcname () (interactive) (shell-pop ,index))
+                 (neeasade/bind ,(concat "t" (number-to-string index)) ',funcname)
+                 )
+          )
+        )
+      )
+
+    ;; give us 1-9
+    (mapc 'makepop (number-sequence 1 9))
     )
 
   (neeasade/bind-mode '(shell)
@@ -1427,6 +1481,7 @@ current major mode."
   (neeasade/install-dashdoc "LaTeX")
 
   ;; todo: this doesn't build?
+  ;; ref: https://github.com/raxod502/straight.el/issues/240
   ;; (use-package company-auctex)
   )
 
