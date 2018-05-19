@@ -938,8 +938,9 @@ current major mode."
   (use-package magit
     :config
     (setq magit-repository-directories (list "~/git"))
+
     ;; https://magit.vc/manual/magit/Performance.html
-    (if sys/windows?
+    (when sys/windows?
       (setq-ns magit
         ;; diff perf
         diff-highlight-indentation nil
@@ -1369,16 +1370,17 @@ current major mode."
 (defun neeasade/shell()
   ;; consider arrow function here
   ;; https://superuser.com/questions/139815/how-do-you-run-the-previous-command-in-emacs-shell
-  (if sys/windows?
-    (progn
-      (setq explicit-shell-file-name
-        (concat (getenv "USERPROFILE")
-          "\\scoop\\apps\\git-with-openssh\\current\\usr\\bin\\bash.exe"
-          ))
-
-      (setq explicit-bash.exe-args '("--login" "-i"))
-      )
+  (when sys/linux?
+    (setq explicit-shell-file-name (getenv "SHELL"))
     )
+
+  (when sys/windows?
+    (setq explicit-shell-file-name (neeasade/shell-exec "where bash"))
+    (setq explicit-bash.exe-args '("--login" "-i"))
+    )
+
+  ;; https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
+  (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
 
   (use-package shx :config (shx-global-mode 1))
 
@@ -1412,6 +1414,7 @@ current major mode."
     )
 
   (neeasade/bind-mode '(shell)
+    ;; todo: winner-undo/unshell pop
     "d" 'deer
     )
 
@@ -1428,6 +1431,10 @@ current major mode."
     :keymaps '(ranger)
     "s" 'shell-pop
     )
+
+  ;; only for term, ansi term
+  ;; https://github.com/hlissner/emacs-doom-themes/issues/54
+  (setq ansi-term-color-vector [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white])
   )
 
 (defun neeasade/eshell()
