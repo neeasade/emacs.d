@@ -49,6 +49,8 @@
   (use-package general)
   (use-package rg)
   (use-package dash)
+  ;; todo: reconsider request at this level?
+  (use-package request)
   (eval-and-compile (load "~/.emacs.d/lisp/helpers.el"))
   )
 

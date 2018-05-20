@@ -8,7 +8,7 @@
      (shell-command-to-string ,command)))
 
 ;; hostname command exists on windows as well
-(setq neeasade/home? (string= (neeasade/shell-exec "hostname") "littleapple"))
+(setq neeasade/home? (string= (neeasade/shell-exec "hostname") "erasmus"))
 
 ;; todo: on windows this should be USERPROFILE
 (defun neeasade/homefile (path)

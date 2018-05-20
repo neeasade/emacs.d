@@ -99,6 +99,22 @@ buffer is not visiting a file."
     )
   )
 
+(defun neeasade/buffercurl()
+  (interactive)
+  (use-package simpleclip)
+
+  (request
+    (simpleclip-get-contents)
+    :type "GET"
+    :parser 'buffer-string
+    :success (function*
+               (lambda (&key data &allow-other-keys)
+                 (interactive)
+                 (insert data)
+                 )
+               )
+    )
+  )
 
 (neeasade/bind
   ;; reconsider these, moved from w -> q for query
