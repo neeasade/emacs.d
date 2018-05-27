@@ -134,10 +134,13 @@
   (neeasade/bind
     "js" (lambda() (interactive) (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el"))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
+    "ju" 'browse-url
 
     "tw" 'whitespace-mode
     "tn" 'linum-mode
     "tl" 'toggle-truncate-lines
+    ;; todo: make a toggle
+    ;; "tm" (lambda() (interactive) (setq mode-line-format nil))
     )
   )
 
@@ -349,7 +352,10 @@
     )
 
   (use-package smartparens
-    :config (smartparens-global-mode)
+    :init
+    :config
+    (add-to-list 'sp-ignore-modes-list 'circe-channel-mode)
+    (smartparens-global-mode)
     )
 
   ;; from https://github.com/syl20bnr/spacemacs/blob/bd7ef98e4c35fd87538dd2a81356cc83f5fd02f3/layers/%2Bdistributions/spacemacs-bootstrap/config.el
@@ -478,6 +484,10 @@ current major mode."
   (set-face-attribute 'vertical-border
     nil :foreground (face-attribute 'font-lock-comment-face :foreground))
 
+  (set-face-attribute 'circe-server-face
+    nil :foreground (face-attribute 'font-lock-comment-face :foreground))
+  ;; circe-server-face
+
   ;; this doesn't persist across new frames even though the docs say it should
   (set-face-attribute 'fringe nil :background nil)
   (add-hook 'after-make-frame-functions
@@ -546,12 +556,19 @@ current major mode."
   (load "~/.emacs.d/lib/feebleline.el")
   )
 
-(defun neeasade/window-management()
+(defun neeasade/zoom()
   (use-package zoom
     :config
-    ;; width . height
+    (setq zoom-size '(80 . 24))
     (setq zoom-size '(0.58 . 0.618))
-    (zoom-mode nil)
+    (zoom-mode 1)
+    )
+  )
+
+(defun neasade/dimmer()
+  (use-package dimmer
+    :config (setq dimmer-fraction 0.5)
+    (dimmer-mode)
     )
   )
 
@@ -1062,7 +1079,14 @@ current major mode."
            :host "irc.freenode.net"
            :tls t
            :nickserv-password ,(pass "freenode")
-           :channels (:after-auth "#bspwm")
+           :channels (:after-auth "#bspwm" "#qutebrowser")
+           )
+         ("Nixers"
+           :nick "neeasade"
+           :host "irc.unix.chat"
+           :port (6667 . 6697)
+           :tls t
+           :channels ("#unix")
            )
          ("Rizon"
            :nick "neeasade"
@@ -1096,8 +1120,9 @@ current major mode."
 
   (defun connect-all-irc()
     (interactive)
-    (circe-maybe-connect "Freenode")
-    (circe-maybe-connect "Rizon")
+    (mapcar
+      '(lambda (network) (circe-maybe-connect (car network)))
+      circe-network-options)
     )
 
   ;; channel name in prompt
