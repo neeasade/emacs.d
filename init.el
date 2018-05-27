@@ -28,7 +28,8 @@
    jump
    dashdocs
 
-   ;; window-management
+   zoom
+   ;; dimmer
    projectile
    treemacs
    restclient
