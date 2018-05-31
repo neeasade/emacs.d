@@ -7,68 +7,61 @@
 ;; (init-use-package)
 (init-straight)
 
-(defun neeasade/core()
-  (neeasade/load
-   helpers
-   sanity
-   evil
-   interface
-   editing
-   shell
-   eshell
-   interactive
-   git
-   org
-   ))
-
-(defun neeasade/extra()
-  (neeasade/load
-   company
-   flycheck
-   jump
-   dashdocs
-
-   zoom
-   ;; dimmer
-   projectile
-   treemacs
-   restclient
-   latex
-
-   target-process
-   )
-
-  (when neeasade/home?
+(defconfig core
     (neeasade/load
+     helpers
+     sanity
+     evil
+     interface
+     editing
+     shell
+     eshell
+     interactive
+     git
+     org
+     ))
+
+(defconfig extra
+    (neeasade/load
+     company
+     flycheck
+     jump
+     dashdocs
+
+     ;; zoom
+     ;; dimmer
+     projectile
+     treemacs
+     restclient
+     latex
+     search-engines
+
+     target-process
      emms
      pdf
-     ledger))
+     ledger
+     )
   )
 
-(defun neeasade/communication()
-  (when neeasade/home?
-	(neeasade/load irc slack twitter email)
-	)
+(defconfig communication
+    (neeasade/load irc slack twitter email)
   )
 
-(defun neeasade/development()
-  (neeasade/load
-   clojure
-   csharp
-   elisp
-   nix
-   javascript
-   typescript
-   markdown
-   ;; terraform
-   ;; sql
-   ;; jekyll
-   ;; plantuml
-   )
-
-  (when sys/windows?
-    (neeasade/load autohotkey)
-    )
+(defconfig development
+    (neeasade/load
+     clojure
+     csharp
+     elisp
+     nix
+     javascript
+     typescript
+     markdown
+     ;; terraform
+     ;; sql
+     ;; jekyll
+     ;; plantuml
+     autohotkey
+     )
   )
 
 ;; liftoff

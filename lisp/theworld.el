@@ -2,6 +2,37 @@
 ;;; commentary:
 ;;; code:
 
+(defmacro neeasade/load (&rest targets)
+  `(mapc (lambda(target)
+           (funcall (intern (concat "neeasade/" (prin1-to-string target))))
+           )
+     ',targets)
+  )
+
+;; master
+(defmacro defconfig-base (label &rest body)
+  (cons 'defun
+    (cons (intern (concat "neeasade/" (prin1-to-string label)))
+      (cons () body)
+      )
+    )
+  )
+
+;; commander
+(defmacro defconfig (label &rest body)
+  `(defconfig-base ,label
+     (catch 'config-catch
+       ,(cons 'progn body)
+       ))
+  )
+
+;; guards!
+(defmacro neeasade/guard (&rest conditions)
+  (if (not (eval (cons 'and conditions)))
+    '(when t (throw 'config-catch "config guard"))
+    )
+  )
+
 (defun init-use-package()
   (require 'package)
   (setq package-enable-at-startup nil)
@@ -37,14 +68,7 @@
   (setq straight-cache-autoloads t)
   )
 
-(defmacro neeasade/load (&rest targets)
-  `(mapc (lambda(target)
-           (funcall (intern (concat "neeasade/" (prin1-to-string target))))
-           )
-     ',targets)
-  )
-
-(defun neeasade/helpers()
+(defconfig helpers
   (use-package hydra)
   (use-package general)
   (use-package rg)
@@ -54,12 +78,12 @@
   (eval-and-compile (load "~/.emacs.d/lisp/helpers.el"))
   )
 
-(defun neeasade/interactive()
+(defconfig interactive
   (use-package s)
   (load "~/.emacs.d/lisp/interactive.el")
   )
 
-(defun neeasade/sanity()
+(defconfig sanity
 
   (setq
     auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
@@ -144,7 +168,7 @@
     )
   )
 
-(defun neeasade/elisp()
+(defconfig elisp
   (load "~/.emacs.d/vendor/le-eval-and-insert-results.el")
 
   ;; todo: move this to helpers
@@ -178,7 +202,7 @@
     )
   )
 
-(defun neeasade/evil()
+(defconfig evil
   (use-package evil
     ;; for evil-collection
     :init (setq evil-want-integration nil)
@@ -306,7 +330,7 @@
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
   )
 
-(defun neeasade/flycheck()
+(defconfig flycheck
   (use-package flycheck
     :config
 
@@ -328,13 +352,13 @@
     )
   )
 
-(defun neeasade/treemacs()
+(defconfig treemacs
   (use-package treemacs)
   (use-package treemacs-evil)
   (use-package treemacs-projectile)
   )
 
-(defun neeasade/company()
+(defconfig company
   (use-package company
     :config
     (setq-ns company
@@ -364,7 +388,7 @@
     )
   )
 
-(defun neeasade/editing()
+(defconfig editing
   (use-package editorconfig :config (editorconfig-mode 1))
   (setq tab-width 4)
 
@@ -457,21 +481,20 @@ current major mode."
   (use-package yasnippet)
   )
 
-(defun neeasade/dashdocs()
+(defconfig dashdocs
   ;; doesn't work on windows - bind here for neeasade/install-dashdoc to ref
-  (setq neeasade-dashdocs sys/linux?)
+  (setq neeasade-dashdocs? sys/linux?)
+  (neeasade/guard neeasade-dashdocs?)
 
-  (when neeasade-dashdocs
-    (use-package counsel-dash :config
-      (setq helm-dash-docsets-path (concat user-emacs-directory "docsets"))
-      (setq helm-dash-browser-func 'neeasade/eww-browse-existing-or-new)
-      )
+  (use-package counsel-dash :config
+    (setq helm-dash-docsets-path (concat user-emacs-directory "docsets"))
+    (setq helm-dash-browser-func 'neeasade/eww-browse-existing-or-new)
+    )
 
-    ;; todo: this needs a counsel-dash-at-point/how to get point
-    ;; ref: https://github.com/areina/helm-dash/blob/master/helm-dash.el#L584
-    (neeasade/bind
-      "jd" 'counsel-dash
-      )
+  ;; todo: this needs a counsel-dash-at-point/how to get point
+  ;; ref: https://github.com/areina/helm-dash/blob/master/helm-dash.el#L584
+  (neeasade/bind
+    "jd" 'counsel-dash
     )
   )
 
@@ -481,7 +504,7 @@ current major mode."
                  powerline-scale 1)))
     (truncate (* scale (frame-char-height)))))
 
-(defun neeasade/style()
+(defconfig style
   (interactive)
   ;; todo: an xresources theme that doesn't suck/covers extensions that base16 covers
   (use-package base16-theme)
@@ -507,8 +530,8 @@ current major mode."
   (set-face-attribute 'vertical-border
     nil :foreground (face-attribute 'font-lock-comment-face :foreground))
 
-  (set-face-attribute 'circe-server-face
-    nil :foreground (face-attribute 'font-lock-comment-face :foreground))
+  ;; after circe load
+  ;; (set-face-attribute 'circe-server-face nil :foreground (face-attribute 'font-lock-comment-face :foreground))
   ;; circe-server-face
 
   ;; this doesn't persist across new frames even though the docs say it should
@@ -550,7 +573,7 @@ current major mode."
   (neeasade/spaceline)
   )
 
-(defun neeasade/spaceline()
+(defconfig spaceline
   (use-package spaceline
     :config
     (require 'spaceline-config)
@@ -574,12 +597,12 @@ current major mode."
     )
   )
 
-(defun neeasade/feebleline()
+(defconfig feebleline
   ;; todo
   (load "~/.emacs.d/lib/feebleline.el")
   )
 
-(defun neeasade/zoom()
+(defconfig zoom
   (use-package zoom
     :config
     (setq zoom-size '(80 . 24))
@@ -588,14 +611,14 @@ current major mode."
     )
   )
 
-(defun neasade/dimmer()
+(defconfig dimmer
   (use-package dimmer
     :config (setq dimmer-fraction 0.5)
     (dimmer-mode)
     )
   )
 
-(defun neeasade/org()
+(defconfig org
   (use-package org
     :straight (:host github
                 :repo "emacsmirror/org"
@@ -740,7 +763,7 @@ current major mode."
     )
   )
 
-(defun neeasade/clojure()
+(defconfig clojure
   (use-package clojure-mode)
   (use-package cider)
   (neeasade/install-dashdoc "Clojure")
@@ -756,17 +779,17 @@ current major mode."
     )
   )
 
-(defun neeasade/nix()
+(defconfig nix
   (use-package nix-mode)
   )
 
-(defun neeasade/target-process()
+(defconfig target-process
   (if enable-tp?
     (load "~/.emacs.d/lib/targetprocess.el")
     )
   )
 
-(defun neeasade/interface()
+(defconfig interface
   ;; todo: into occur/search buffer solution for better finding when don't know what we're looking for
   (use-package ivy
     :config
@@ -873,7 +896,8 @@ current major mode."
     )
   )
 
-(defun neeasade/emms()
+(defconfig emms
+  (neeasade/guard neeasade/home?)
   (use-package emms)
 
   (defun emms-start()
@@ -896,7 +920,7 @@ current major mode."
   (neeasade/bind "am" 'emms-start)
   )
 
-(defun neeasade/projectile()
+(defconfig projectile
   (use-package projectile)
   ;; (project-find-file-in)
   (neeasade/bind
@@ -905,7 +929,7 @@ current major mode."
     )
   )
 
-(defun neeasade/javascript()
+(defconfig javascript
   (neeasade/install-dashdoc "Javascript")
 
   (defun js-jsx-indent-line-align-closing-bracket ()
@@ -949,7 +973,7 @@ current major mode."
       ))
   )
 
-(defun neeasade/typescript()
+(defconfig typescript
   (neeasade/install-dashdoc "Typescript")
   (use-package tide
     :config
@@ -971,12 +995,12 @@ current major mode."
     )
   )
 
-(defun neeasade/csharp()
+(defconfig csharp
   (use-package csharp-mode)
   (use-package omnisharp)
   )
 
-(defun neeasade/git()
+(defconfig git
   (use-package magit
     :config
     (setq magit-repository-directories (list "~/git"))
@@ -1074,7 +1098,7 @@ current major mode."
     )
   )
 
-(defun neeasade/jump()
+(defconfig jump
   (use-package smart-jump
     :config
     (setq dumb-jump-selector 'ivy)
@@ -1092,7 +1116,7 @@ current major mode."
   ;; (advice-add #'neeasade/org-set-active :after #'tp-set-active)
   )
 
-(defun neeasade/irc()
+(defconfig irc
   (neeasade/guard neeasade/home?)
   (use-package circe
     :config
@@ -1226,15 +1250,17 @@ current major mode."
     )
   )
 
-(defun neeasade/pdf()
+(defconfig pdf
+  (neeasade/guard neeasade/home?)
   (use-package pdf-tools)
   )
 
-(defun neeasade/terraform()
+(defconfig terraform
   (use-package terraform-mode)
   )
 
-(defun neeasade/twitter()
+(defconfig twitter
+  (neeasade/guard neeasade/home?)
   (use-package twittering-mode
     :commands (twitter-start)
     :init
@@ -1351,7 +1377,8 @@ current major mode."
   (neeasade/bind "at" 'twitter-start)
   )
 
-(defun neeasade/slack()
+(defconfig slack
+  (neeasade/guard neeasade/home?)
   (use-package slack
     :commands (slack-start)
     :init
@@ -1414,11 +1441,13 @@ current major mode."
     "as" 'slack-start)
   )
 
-(defun neeasade/email()
+(defconfig email
+  (neeasade/guard neeasade/home?)
   ;; TODO
+  (nop)
   )
 
-(defun neeasade/shell()
+(defconfig shell
   ;; consider arrow function here
   ;; https://superuser.com/questions/139815/how-do-you-run-the-previous-command-in-emacs-shell
   (when sys/linux?
@@ -1488,23 +1517,24 @@ current major mode."
   (setq ansi-term-color-vector [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white])
   )
 
-(defun neeasade/eshell()
+(defconfig eshell
   ;; todo: https://www.reddit.com/r/emacs/comments/6y3q4k/yes_eshell_is_my_main_shell/
   )
 
-(defun neeasade/jekyll()
+(defconfig jekyll
   (use-package jekyll-modes)
   )
 
-(defun neeasade/autohotkey()
+(defconfig autohotkey
+  (neeasade/guard sys/windows?)
   (use-package xahk-mode)
   )
 
-(defun neeasade/markdown()
+(defconfig markdown
   ;; (use-package markdownmode)
   )
 
-(defun neeasade/restclient()
+(defconfig restclient
   (use-package restclient
     :config
     (neeasade/bind-leader-mode
@@ -1516,12 +1546,12 @@ current major mode."
   (use-package company-restclient)
   )
 
-(defun neeasade/sql()
+(defconfig sql
   ;; todo
   (neeasade/install-dashdoc "SQLite")
   )
 
-(defun neeasade/latex()
+(defconfig latex
   (neeasade/bind-leader-mode 'latex
     "\\"  'TeX-insert-macro                            ;; C-c C-m
     "-"   'TeX-recenter-output-buffer                  ;; C-c C-l
@@ -1544,12 +1574,13 @@ current major mode."
   )
 
 
-(defun neeasade/plantuml()
+(defconfig plantuml
   (use-package plantuml)
   (use-package flycheck-plantuml)
   )
 
-(defun neeasade/ledger()
+(defconfig ledger
+  (neeasade/guard neeasade/home?)
   (use-package ledger-mode)
   (use-package flycheck-ledger)
   (use-package evil-ledger
@@ -1558,12 +1589,12 @@ current major mode."
     )
   )
 
-(defun neeasade/lsp()
+(defconfig lsp
   (use-package lsp-ui)
   (use-package lsp-javascript-flow)
   )
 
-(defun neeasade/search-engines()
+(defconfig search-engines
   (use-package engine-mode
     :config
 
@@ -1586,7 +1617,7 @@ current major mode."
     )
   )
 
-(defun neeasade/filehooks()
+(defconfig filehooks
   (defvar *afilename-cmd*
     ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
     `((,(neeasade/homefile ".Xresources") . "xrdb -merge ~/.Xresources")
