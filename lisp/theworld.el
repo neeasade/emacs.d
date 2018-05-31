@@ -207,7 +207,6 @@
   ;; defaults to fd/spacemacs-like config
   (use-package evil-escape :config (evil-escape-mode))
   (use-package evil-lion :config (evil-lion-mode))
-  (use-package evil-surround :config (global-evil-surround-mode 1))
   (use-package evil-commentary :config (evil-commentary-mode))
   (use-package evil-anzu) ;; displays current match and total matches.
   (use-package evil-matchit :config (global-evil-matchit-mode 1))
@@ -226,7 +225,31 @@
     ;; (evil-goggles-mode 0)
     )
 
+  (use-package evil-surround :config (global-evil-surround-mode 0))
+
   ;; todo: checkout https://github.com/cute-jumper/evil-embrace.el
+  (use-package evil-embrace
+    :config
+    (general-define-key
+      :states 'normal
+      "c" (general-key-dispatch 'evil-change "s" #'embrace-change)
+      "d" (general-key-dispatch 'evil-delete "s" #'embrace-delete))
+
+    (general-define-key
+      :states 'visual
+      ;; `evil-change' is not bound in `evil-visual-state-map' by default but
+      ;; inherited from `evil-normal-state-map'
+      ;; if you don't want "c" to be affected in visual state, you should add this
+      ;; "c" #'evil-change
+      ;; "d" #'evil-delete
+      "s" #'embrace-add
+      ;; "x" #'exchange-point-and-mark ; for expand-region
+      )
+
+    ;; (evil-embrace-evil-surround-integration)
+    )
+  ;;; ⇒ t
+
   ;; also https://github.com/cute-jumper/evil-embrace.el/issues/6
   ;; also: https://github.com/casouri/lunarymacs/blob/79f8eb90ce06371e87d9979de8d3607a52a648c6/star/basic/evil/config.el#L147
 
@@ -1070,26 +1093,30 @@ current major mode."
   )
 
 (defun neeasade/irc()
+  (neeasade/guard neeasade/home?)
   (use-package circe
     :config
+    (setq neeasade/irc-nick "neeasade")
     (setq circe-network-options
       `(
          ("Freenode"
-           :nick "neeasade"
+           :nick ,neeasade/irc-nick
            :host "irc.freenode.net"
            :tls t
            :nickserv-password ,(pass "freenode")
            :channels (:after-auth "#bspwm" "#qutebrowser")
            )
+
          ("Nixers"
-           :nick "neeasade"
+           :nick ,neeasade/irc-nick
            :host "irc.unix.chat"
            :port (6667 . 6697)
            :tls t
            :channels ("#unix")
            )
+
          ("Rizon"
-           :nick "neeasade"
+           :nick ,neeasade/irc-nick
            :host "irc.rizon.net"
            :port (6667 . 6697)
            :tls t
@@ -1167,12 +1194,9 @@ current major mode."
     (setf (cdr (assoc 'continuation fringe-indicator-alist)) nil)
     )
 
-  (setq lui-highlight-keywords (list "neeasade"))
-
   (use-package circe-notifications
     :config
     (autoload 'enable-circe-notifications "circe-notifications" nil t)
-
     (eval-after-load "circe-notifications"
       '(setq circe-notifications-watch-strings
          ;; example: '("people" "you" "like" "to" "hear" "from")))
@@ -1553,14 +1577,10 @@ current major mode."
          )
       )
 
-    (bind-search amazon "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=%s" "a")
-    (bind-search amazon "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=%s" "a")
-    (bind-search duckduckgo "https://duckduckgo.com/?q=%s" "d")
+    (bind-search google "https://google.com/search?q=%s" "s")
+    (bind-search melpa "https://melpa.org/#/?q=%s" "m")
+    (bind-search stack-overflow "https://stackoverflow.com/search?q=%s" "o")
     (bind-search github "https://github.com/search?ref=simplesearch&q=%s" "g")
-    (bind-search google-images "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s" "i")
-    (defengine google-maps "http://maps.google.com/maps?q=%s" "m")
-    (bind-search stack-overflow "https://stackoverflow.com/search?q=%s" "s")
-    (bind-search wikipedia "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s" "w")
     (bind-search youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s" "y")
     (engine-mode t)
     )
