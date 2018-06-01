@@ -21,15 +21,18 @@
 ;; commander
 (defmacro defconfig (label &rest body)
   `(defconfig-base ,label
-     (catch 'config-catch
-       ,(cons 'progn body)
-       ))
+     (let ((config-name ,(prin1-to-string label)))
+       (message (concat "loading " config-name "..."))
+       (catch 'config-catch
+         ,(cons 'progn body)
+         ))
+     )
   )
 
 ;; guards!
 (defmacro neeasade/guard (&rest conditions)
   (if (not (eval (cons 'and conditions)))
-    '(when t (throw 'config-catch "config guard"))
+    '(when t (throw 'config-catch (concat "config guard " config-name)))
     )
   )
 
