@@ -42,9 +42,9 @@ buffer is not visiting a file."
 (defun neeasade/get-functions()
   (mapcar*
     (lambda(item)
-      (s-chomp (s-chop-prefix "defun neeasade/" (car item))))
+      (s-chomp (s-chop-prefix "defconfig " (car item))))
     (s-match-strings-all
-      "defun neeasade/[^ \(\)]+"
+      "defconfig [^ \(\)]+"
       (get-string-from-file "~/.emacs.d/lisp/theworld.el"))
     )
   )
@@ -58,8 +58,8 @@ buffer is not visiting a file."
       (interactive)
       (neeasade/find-or-open "~/.emacs.d/lisp/theworld.el")
       (goto-char (point-min))
-      (re-search-forward (concat "neeasade/" option))
-      (neeasade/zz-scroll)
+      (re-search-forward (concat "defconfig " option))
+      (evil-scroll-line-to-center (what-line))
       )))
 
 (defun neeasade/toggle-bloat()

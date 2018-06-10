@@ -6,18 +6,14 @@
   `(mapc (lambda(target)
            (funcall (intern (concat "neeasade/" (prin1-to-string target))))
            )
-     ',targets)
-  )
+     ',targets))
 
 ;; master
 (defmacro defconfig-base (label &rest body)
   (cons 'defun
     (cons (intern (concat "neeasade/" (prin1-to-string label)))
       (cons () body)
-      )
-    )
-  )
-
+      )))
 ;; commander
 (defmacro defconfig (label &rest body)
   `(defconfig-base ,label
@@ -25,16 +21,13 @@
        (message (concat "loading " config-name "..."))
        (catch 'config-catch
          ,(cons 'progn body)
-         ))
-     )
-  )
+         ))))
 
 ;; guards!
 (defmacro neeasade/guard (&rest conditions)
   (if (not (eval (cons 'and conditions)))
     '(when t (throw 'config-catch (concat "config guard " config-name)))
-    )
-  )
+    ))
 
 (defun init-use-package()
   (require 'package)
@@ -249,7 +242,7 @@
     (setq evil-goggles-pulse t)
     ;; fun visual vim mode
     ;; todo: consider some sort of coding presentation mode func
-    ;; (evil-goggles-mode 0)
+    (evil-goggles-mode 0)
     )
 
   (use-package evil-surround :config (global-evil-surround-mode 0))
@@ -870,9 +863,9 @@ current major mode."
   (use-package which-key
     :config
     (setq-ns which-key
-      sort-order 'which-key-key-order-alpha
-      idle-delay 2.5
+      idle-delay 1.5
       side-window-max-width 0.33
+      sort-order 'which-key-key-order-alpha
       )
     (which-key-setup-side-window-right-bottom)
     (which-key-mode)
@@ -1204,7 +1197,9 @@ current major mode."
 
   (add-hook 'lui-mode-hook 'my-circe-set-margin)
   (defun my-circe-set-margin ()
-    (setq right-margin-width 5))
+    (setq right-margin-width 5)
+    (setq left-margin-width 0)
+    )
 
   ;; fluid width windows
   (setq
@@ -1265,7 +1260,7 @@ current major mode."
 (defconfig twitter
   (neeasade/guard neeasade/home?)
   (use-package twittering-mode
-    :commands (twitter-start)
+    :commands (twittering-start)
     :init
     (add-hook 'twittering-edit-mode-hook (lambda () (flyspell-mode)))
     :config
@@ -1377,7 +1372,7 @@ current major mode."
     ("Y"          twittering-push-tweet-onto-kill-ring)
     ("a"          twittering-toggle-activate-buffer))
 
-  (neeasade/bind "at" 'twitter-start)
+  (neeasade/bind "at" 'twittering-start)
   )
 
 (defconfig slack

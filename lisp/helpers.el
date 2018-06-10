@@ -19,7 +19,7 @@
   "MAPCAR for multiple sequences F XS."
   (if (not (memq nil xs))
     (cons (apply f (mapcar 'car xs))
-	    (apply 'mapcar* f (mapcar 'cdr xs)))))
+      (apply 'mapcar* f (mapcar 'cdr xs)))))
 
 ;; setq namespace
 (defmacro setq-ns (namespace &rest lst)
@@ -44,7 +44,6 @@
                ("Emacs.theme"          . "base16-grayscale-light")
                ("Emacs.powerlinescale" . "1.1")
                ("st.font"              . "Go Mono-10")
-               ;; ("st.font"              . "Hack-10")
                ("st.borderpx"          . "15")
                ("emacs.powerline"      . "bar")
                ("*.background"         . (face-attribute 'default :background))
@@ -139,6 +138,26 @@
 ;; 	(setq-local helm-dash-docsets '("Emacs Lisp")))
 ;; (add-hook 'emacs-lisp-mode-hook 'energos/dash-elisp)
 
+;; this was removed
+;; ref: https://github.com/abo-abo/swiper/pull/1570/files#diff-c7fad2f9905e642928fa92ae655e23d0L4500
+(defun counsel-switch-to-buffer-or-window (buffer-name)
+  "Display buffer BUFFER-NAME and select its window.
+
+ This behaves as `switch-to-buffer', except when the buffer is
+ already visible; in that case, select the window corresponding to
+ the buffer."
+  (let ((buffer (get-buffer buffer-name)))
+    (if (not buffer)
+      (shell buffer-name)
+      (let (window-of-buffer-visible)
+        (catch 'found
+          (walk-windows (lambda (window)
+                          (and (equal (window-buffer window) buffer)
+                            (throw 'found (setq window-of-buffer-visible window))))))
+        (if window-of-buffer-visible
+          (select-window window-of-buffer-visible)
+          (switch-to-buffer buffer))))))
+
 (defun neeasade/find-or-open (filepath)
   "Find or open FILEPATH."
   (interactive)
@@ -149,13 +168,19 @@
       (find-file filepath)
       )))
 
+(defun what-line ()
+  "Print the current line number (in the buffer) of point."
+  (interactive)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (beginning-of-line)
+      (1+ (count-lines 1 (point))))))
+
 ;; todo: this isn't working with anchors in other frames
 (defun neeasade/eww-browse-existing-or-new (url)
   "If eww is displayed, use that for URL, else open here."
   (if (get-buffer-window "*eww*" 0)
     (url-retrieve url 'eww-render
       (list url nil (get-buffer "*eww*")))
-    (eww url)
-    )
-  )
-
+    (eww url)))
