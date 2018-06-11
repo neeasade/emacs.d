@@ -1616,6 +1616,8 @@ current major mode."
   )
 
 (defconfig filehooks
+  (neeasade/guard neeasade/home?)
+
   (defvar *afilename-cmd*
     ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
     `((,(neeasade/homefile ".Xresources") . "xrdb -merge ~/.Xresources")
