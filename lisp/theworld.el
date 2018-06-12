@@ -754,7 +754,8 @@ current major mode."
     )
 
   (neeasade/bind
-    "jo" (lambda() (interactive) (neeasade/find-or-open "~/org/notes.org" ))
+    "oo" (lambda() (interactive) (neeasade/find-or-open "~/org/notes.org" ))
+    "oc" 'org-capture
     "jf" 'neeasade/org-goto-active
     )
   )
@@ -1446,6 +1447,10 @@ current major mode."
   )
 
 (defconfig shell
+
+  (add-hook 'sh-mode-hook
+    (lambda () (sh-electric-here-document-mode -1)))
+
   ;; consider arrow function here
   ;; https://superuser.com/questions/139815/how-do-you-run-the-previous-command-in-emacs-shell
   (when sys/linux?
