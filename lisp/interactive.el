@@ -49,6 +49,20 @@ buffer is not visiting a file."
     )
   )
 
+(defun neeasade/check-for-orphans()
+  "Check to see if any defconfigs are missing from init."
+  (let ((initfile (get-string-from-file "~/.emacs.d/init.el")))
+    (mapcar
+      (lambda(conf)
+        (when (not (s-contains? conf initfile))
+          (message (concat "orphaned function! " conf))
+          )
+        )
+      (neeasade/get-functions)
+      )
+    )
+  )
+
 ;; todo: not working when already in file -- goto-char call not moving
 (defun neeasade/jump-config()
   (interactive)
