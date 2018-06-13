@@ -61,11 +61,13 @@
      ;; jekyll
      ;; plantuml
      autohotkey
+     filehooks
      )
   )
 
 ;; liftoff
 (neeasade/load core extra communication development style)
+(neeasade/check-for-orphans)
 
 ;; Emacs is terribly slow on windows
 (neeasade/toggle-bloat-global sys/linux?)

@@ -1,14 +1,22 @@
-(setq sys/windows? (eq system-type 'windows-nt))
-(setq sys/linux? (eq system-type 'gnu/linux))
-(setq enable-tp? sys/windows?)
-
 (defmacro neeasade/shell-exec(command)
   "trim the newline from shell exec"
   `(replace-regexp-in-string "\n$" ""
      (shell-command-to-string ,command)))
 
-;; hostname command exists on windows as well
-(setq neeasade/home? (string= (neeasade/shell-exec "hostname") "erasmus"))
+(setq
+  sys/windows? (eq system-type 'windows-nt)
+  sys/linux? (eq system-type 'gnu/linux)
+  enable-tp? sys/windows?
+  neeasade/home? (string= (neeasade/shell-exec "hostname") "erasmus")
+  )
+
+;; docker container user, still act trimmed/assume windows
+(if (string= (getenv "USER") "emacser")
+  (setq
+    sys/windows? t
+    sys/linux? nil
+    enable-tp? t
+    ))
 
 ;; todo: on windows this should be USERPROFILE
 (defun neeasade/homefile (path)
