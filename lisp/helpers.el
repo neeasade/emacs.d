@@ -15,6 +15,12 @@
   (concat (getenv "HOME") "/" path)
   )
 
+(let ((extend-file (neeasade/homefile "extend.el")))
+  (when (file-exists-p extend-file)
+    (eval-and-compile (load extend-file))
+    )
+  )
+
 (defun mapcar* (f &rest xs)
   "MAPCAR for multiple sequences F XS."
   (if (not (memq nil xs))

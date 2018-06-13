@@ -209,6 +209,7 @@
   ;;:config (evil-collection-init)
   ;;)
 
+  ;; todo: check if we're near the height of the buffer and not scroll to top if so
   (defun neeasade/zz-scroll (&rest optional)
     (let* ((scrollcount (/ (window-total-size) 7))
             (halfheight (/ (window-total-size) 2))
@@ -753,9 +754,13 @@ current major mode."
       (apply-partially #'neeasade/toggle-music "pause"))
     )
 
+  (defun jump-org() (interactive) (neeasade/find-or-open "~/notes/notes.org" ))
   (neeasade/bind
-    "jo" (lambda() (interactive) (neeasade/find-or-open "~/org/notes.org" ))
-    "jf" 'neeasade/org-goto-active
+    "oo" 'neeasade/org-goto-active
+    "oc" 'org-capture
+
+    ;; ehh
+    "on" 'jump-org
     )
   )
 
@@ -885,8 +890,8 @@ current major mode."
     (setq ajb-sort-function 'bs--sort-by-recentf)
 
     (neeasade/bind
-      "bs" 'counsel-ibuffer
-      "bb" 'ace-jump-buffer
+      "bb" 'counsel-ibuffer
+      "bs" 'ace-jump-buffer
       "bm" 'ace-jump-same-mode-buffers
       )
     )
