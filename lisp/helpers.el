@@ -8,10 +8,11 @@
   sys/linux? (eq system-type 'gnu/linux)
   enable-tp? sys/windows?
   neeasade/home? (string= (neeasade/shell-exec "hostname") "erasmus")
+  sys/docker? (string= (getenv "USER") "emacser")
   )
 
 ;; docker container user, still act trimmed/assume windows
-(if (string= (getenv "USER") "emacser")
+(when sys/docker?
   (setq
     sys/windows? t
     sys/linux? nil

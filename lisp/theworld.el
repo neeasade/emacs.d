@@ -1461,7 +1461,7 @@ current major mode."
     (setq explicit-shell-file-name (getenv "SHELL"))
     )
 
-  (when sys/windows?
+  (when (and sys/windows? (not sys/docker?))
     (setq explicit-shell-file-name (neeasade/shell-exec "where bash"))
     (setq explicit-bash.exe-args '("--login" "-i"))
     )
