@@ -758,6 +758,7 @@ current major mode."
   (neeasade/bind
     "oo" 'neeasade/org-goto-active
     "oc" 'org-capture
+    "or" 'org-refile
 
     ;; ehh
     "on" 'jump-org
@@ -1645,6 +1646,8 @@ current major mode."
 
   (add-hook 'after-save-hook 'my/cmd-after-saved-file)
   )
+
+(defconfig emoji (use-package emojify :config (global-emojify-mode)))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
