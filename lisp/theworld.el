@@ -14,6 +14,7 @@
     (cons (intern (concat "neeasade/" (prin1-to-string label)))
       (cons () body)
       )))
+
 ;; commander
 (defmacro defconfig (label &rest body)
   `(defconfig-base ,label
@@ -205,9 +206,7 @@
     :config (evil-mode 1)
     )
 
-  ;;(use-package evil-collection
-  ;;:config (evil-collection-init)
-  ;;)
+  (use-package evil-collection :config (evil-collection-init))
 
   ;; todo: check if we're near the height of the buffer and not scroll to top if so
   (defun neeasade/zz-scroll (&rest optional)
@@ -543,9 +542,41 @@ current major mode."
   (set-face-attribute 'default nil :font (get-resource "st.font"))
   (set-frame-font (get-resource "st.font") nil t)
 
+  ;; (eval-after-load "whitespace-mode"
+  ;; (defadvice org-add-props (ac check-faces activate)
+
+  (defun color-whitespace-mode()
+    (interactive)
+    (message "hook hit")
+    (set-face-attribute 'whitespace-space nil :background nil)
+    (set-face-attribute 'whitespace-tab nil :background nil)
+    (set-face-attribute 'whitespace-newline nil
+      :foreground (face-attribute 'whitespace-space :foreground))
+    )
+
+  (advice-add #'color-whitespace-mode :after #'whitespace-mode)
+
+  (use-package hl-todo
+    :config
+    (let* ((comment-color (face-attribute 'font-lock-comment-face :foreground))
+            (highlight-color
+              (if (neeasade/color-is-light-p comment-color)
+                (color-darken-name comment-color 30)
+                (color-lighten-name comment-color 30)
+                )))
+
+      (setq hl-todo-keyword-faces
+        `(("TODO" . ,highlight-color)
+           ("todo" . ,highlight-color)
+           ("NOTE" . ,highlight-color)
+           ("note" . ,highlight-color)
+           )))
+
+    (global-hl-todo-mode)
+    )
+
   ;; NO BOLD
   ;; (set-face-bold-p doesn't cover everything, some fonts use slant and underline as bold...)
-
   (mapc (lambda (face)
           (set-face-attribute face nil
             :weight 'normal
@@ -554,18 +585,6 @@ current major mode."
             ;;:inherit nil
             ))
     (face-list))
-
-  ;; (eval-after-load "whitespace-mode"
-  ;; (defadvice org-add-props (ac check-faces activate)
-
-  (defun color-whitespace-mode()
-    (set-face-attribute 'whitespace-space nil :background nil)
-    (set-face-attribute 'whitespace-tab nil :background nil)
-    (set-face-attribute 'whitespace-newline nil
-      :foreground (face-attribute 'whitespace-space :foreground))
-    )
-
-  (advice-add #'color-whitespace-mode :after #'whitespace-mode)
 
   (neeasade/spaceline)
   )
@@ -623,16 +642,15 @@ current major mode."
 
     :config
     (setq-ns org
-      directory "~/org/projects"
+      directory "~/notes"
       agenda-files (list org-directory)
-      default-notes-file  "~/org/notes.org"
-      default-diary-file  "~/org/diary.org"
-      default-habits-file  "~/org/habits.org"
+      default-notes-file  (concat org-directory "/notes.org")
+      default-diary-file  (concat org-directory "/diary.org")
+      default-habits-file  (concat org-directory "/habits.org")
 
       ellipsis "…"
       startup-indented t
       startup-folded t
-
 
       ;; days before expiration where a deadline becomes active
       deadline-warn-days 14
@@ -656,8 +674,9 @@ current major mode."
 
       ;; capture
       capture-templates
-      '(("t" "todo" entry (file org-default-notes-file)
-          "* TODO %?\n%u\n%a\n" :clock-in t :clock-resume t)
+      '(
+         ("t" "todo" entry (file org-default-notes-file)
+           "* TODO %?\n%u\n%a\n" :clock-in t :clock-resume t)
 
          ("b" "Blank" entry (file org-default-notes-file)
            "* %?\n%u")
@@ -668,7 +687,7 @@ current major mode."
          ("d" "Diary" entry (file+datetree org-default-diary-file)
            "* %?\n%U\n" :clock-in t :clock-resume t)
 
-         ("D" "Daily Log" entry (file "~/org/daily-log.org")
+         ("D" "Daily Log" entry (file "~/notes/daily-log.org")
            "* %u %?\n*Summary*: \n\n*Problem*: \n\n*Insight*: \n\n*Tomorrow*: " :clock-in t :clock-resume t)
 
          ("i" "Idea" entry (file org-default-notes-file)
@@ -712,7 +731,7 @@ current major mode."
 
   (defun neeasade/org-goto-active()
     (interactive)
-    (neeasade/find-or-open "~/org/notes.org")
+    (neeasade/find-or-open org-default-notes-file)
     (goto-char (org-find-property "focus"))
     (org-show-context)
     (org-show-subtree)
@@ -1647,7 +1666,11 @@ current major mode."
   (add-hook 'after-save-hook 'my/cmd-after-saved-file)
   )
 
-(defconfig emoji (use-package emojify :config (global-emojify-mode)))
+(defconfig emoji
+  (use-package emojify
+    :init (setq emojify-emoji-styles '(unicode github))
+    :config (global-emojify-mode)
+    ))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs

@@ -199,3 +199,15 @@
     (url-retrieve url 'eww-render
       (list url nil (get-buffer "*eww*")))
     (eww url)))
+
+(defun neeasade/color-is-light-p (name)
+  (let*
+    ((input (color-name-to-rgb name))
+      (red (first input))
+      (green (second input))
+      (blue (third input))
+      ;; cf https://en.wikipedia.org/wiki/YIQ#From_RGB_to_YIQ
+      (yiq (/ (+ (* red 299) (* green 587) (* blue 114))
+             1000)))
+    (>= yiq 0.5)
+    ))

@@ -40,6 +40,7 @@
      emms
      pdf
      ledger
+     emoji
      )
   )
 
