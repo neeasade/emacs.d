@@ -1667,6 +1667,7 @@ current major mode."
   )
 
 (defconfig emoji
+  (neeasade/guard neeasade/home?)
   (use-package emojify
     :init (setq emojify-emoji-styles '(unicode github))
     :config (global-emojify-mode)
