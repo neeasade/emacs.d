@@ -2,18 +2,10 @@
 ;;; commentary:
 ;;; code:
 
-(defmacro neeasade/load (&rest targets)
-  `(mapc (lambda(target)
-           (funcall (intern (concat "neeasade/" (prin1-to-string target))))
-           )
-     ',targets))
-
 ;; master
 (defmacro defconfig-base (label &rest body)
-  (cons 'defun
-    (cons (intern (concat "neeasade/" (prin1-to-string label)))
-      (cons () body)
-      )))
+  `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) nil
+     ,@body))
 
 ;; commander
 (defmacro defconfig (label &rest body)
@@ -21,16 +13,14 @@
      (let ((config-name ,(prin1-to-string label)))
        (message (concat "loading " config-name "..."))
        (catch 'config-catch
-         ,(cons 'progn body)
-         ))))
+         ,@body))))
 
 ;; guards!
 (defmacro neeasade/guard (&rest conditions)
   (if (not (eval (cons 'and conditions)))
-    '(when t (throw 'config-catch (concat "config guard " config-name)))
-    ))
+    '(when t (throw 'config-catch (concat "config guard " config-name)))))
 
-(defun init-use-package()
+(defconfig use-package
   (require 'package)
   (setq package-enable-at-startup nil)
   (add-to-list 'package-archives
@@ -48,7 +38,7 @@
   (setq use-package-always-ensure t)
   )
 
-(defun init-straight()
+(defconfig straight
   (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
          (bootstrap-version 2))
     (unless (file-exists-p bootstrap-file)
@@ -65,19 +55,376 @@
   (setq straight-cache-autoloads t)
   )
 
-(defconfig helpers
+(defconfig bedrock
+  ;; todo: hmmm
   (use-package hydra)
   (use-package general)
   (use-package rg)
   (use-package dash)
-  ;; todo: reconsider request at this level?
   (use-package request)
-  (eval-and-compile (load "~/.emacs.d/lisp/helpers.el"))
+
+  (defmacro neeasade/shell-exec(command)
+    "trim the newline from shell exec"
+    `(replace-regexp-in-string "\n$" ""
+       (shell-command-to-string ,command)))
+
+  (defmacro neeasade/load (&rest targets)
+    `(mapc (lambda(target)
+             (funcall (intern (concat "neeasade/" (prin1-to-string target))))
+             )
+       ',targets))
+
+  (defmacro neeasade/compose (name &rest targets)
+    `(defconfig ,name (neeasade/load ,@targets)))
+
+  (defun mapcar* (f &rest xs)
+    "MAPCAR for multiple sequences F XS."
+    (if (not (memq nil xs))
+      (cons (apply f (mapcar 'car xs))
+        (apply 'mapcar* f (mapcar 'cdr xs)))))
+
+  ;; setq namespace
+  (defmacro setq-ns (namespace &rest lst)
+    (require 'seq)
+    `(mapcar*
+       (lambda (pair)
+         (let ((key (car pair))
+                (value (car (cdr pair))))
+           (set
+             (intern (concat (prin1-to-string ',namespace) "-" (prin1-to-string key)))
+             (eval value)
+             )))
+       (seq-partition ',lst 2)
+       ))
+
+  ;; todo: on windows this should be USERPROFILE
+  (defun neeasade/homefile (path)
+    (concat (getenv "HOME") "/" path)
+    )
+
+  (setq-ns enable
+    windows? (eq system-type 'windows-nt)
+    linux? (eq system-type 'gnu/linux)
+    home? (string= (neeasade/shell-exec "hostname") "erasmus")
+    docker? (string= (getenv "USER") "emacser")
+    tp? sys/windows?
+    )
+
+  ;; docker container user, still act trimmed/assume windows
+  (when enable-docker?
+    (setq-ns enable
+      windows? t
+      linux? nil
+      tp? t
+      ))
+
+  ;; binding wrappers
+  (defun neeasade/bind (&rest binds)
+    (apply 'general-define-key
+      :states '(normal visual)
+      :prefix "SPC"
+      binds))
+
+  (defun neeasade/bind-mode(keymaps &rest binds)
+    (apply 'general-define-key
+      :prefix "SPC"
+      :states '(visual normal)
+      :keymaps keymaps
+      binds))
+
+  (defun neeasade/bind-leader-mode(mode &rest binds)
+    (apply 'general-define-key
+      :prefix ","
+      :states '(visual normal)
+      :keymaps (intern (concat (symbol-name mode) "-mode-map"))
+      binds))
+
+  ;; this was removed
+  ;; cf https://github.com/abo-abo/swiper/pull/1570/files#diff-c7fad2f9905e642928fa92ae655e23d0L4500
+  (defun counsel-switch-to-buffer-or-window (buffer-name)
+    "Display buffer BUFFER-NAME and select its window.
+
+ This behaves as `switch-to-buffer', except when the buffer is
+ already visible; in that case, select the window corresponding to
+ the buffer."
+    (let ((buffer (get-buffer buffer-name)))
+      (if (not buffer)
+        (shell buffer-name)
+        (let (window-of-buffer-visible)
+          (catch 'found
+            (walk-windows (lambda (window)
+                            (and (equal (window-buffer window) buffer)
+                              (throw 'found (setq window-of-buffer-visible window))))))
+          (if window-of-buffer-visible
+            (select-window window-of-buffer-visible)
+            (switch-to-buffer buffer))))))
+
+  (defun neeasade/find-or-open (filepath)
+    "Find or open FILEPATH."
+    (interactive)
+    (let
+      ((filename (file-name-nondirectory filepath)))
+      (if (get-buffer filename)
+        (counsel-switch-to-buffer-or-window filename)
+        (find-file filepath)
+        )))
+
+  ;; wrap passwordstore
+  (defun pass (key)
+    (neeasade/shell-exec
+      (if sys/windows?
+        (concat "pprint.bat " key)
+        (concat "pass " key " 2>/dev/null"))
+      )
+    )
+
+  (defun get-resource (name)
+    "Get X resource value, with a fallback value NAME."
+    (let* (
+            (xrdb-fallback-values
+              ;; for when we're away from $HOME.
+              '(
+                 ("Emacs.theme"          . "base16-grayscale-light")
+                 ("Emacs.powerlinescale" . "1.1")
+                 ("st.font"              . "Go Mono-12")
+                 ("st.borderpx"          . "15")
+                 ("emacs.powerline"      . "bar")
+                 ("*.background"         . (face-attribute 'default :background))
+                 ))
+            (default (eval (cdr (assoc name xrdb-fallback-values))))
+            )
+      (if (executable-find "xrq")
+        (let ((result
+                ;; shell-command-to-string appends newline
+                (neeasade/shell-exec (concat "xrq '" name "' 2>/dev/null"))
+                ))
+          (if (string= result "")
+            ;; we didn't find it in xrdb.
+            default
+            result
+            ))
+        default
+        )))
+  )
+
+(defconfig bedroll
+  (let ((extend-file (neeasade/homefile "extend.el")))
+    (when (file-exists-p extend-file)
+      (eval-and-compile (load extend-file))))
+
+  (defun reload-init()
+    "Reload init.el."
+    (interactive)
+    (straight-transaction
+      (straight-mark-transaction-as-init)
+      (message "Reloading init.el...")
+      (load user-init-file nil 'nomessage)
+      (message "Reloading init.el... done.")))
+
+  (defun get-string-from-file (filePath)
+    "Return filePath's file content."
+    (with-temp-buffer
+      (insert-file-contents filePath)
+      (buffer-string)))
+
+  ;; ref: https://emacs.stackexchange.com/questions/3197/best-way-to-retrieve-values-in-nested-assoc-lists
+  (defun assoc-recursive (alist &rest keys)
+    "Recursively find KEYs in ALIST."
+    (while keys
+      (setq alist (cdr (assoc (pop keys) alist))))
+    alist)
+
+  (defun nop()
+    nil
+    )
+
+  ;; ref https://github.com/energos/dotfiles/blob/master/emacs/init.el#L162
+  (defun neeasade/install-dashdoc (docset)
+    "Install dash DOCSET if dashdocs enabled."
+
+    (if (bound-and-true-p neeasade-dashdocs)
+      (if (helm-dash-docset-installed-p docset)
+        (message (format "%s docset is already installed!" docset))
+        (progn (message (format "Installing %s docset..." docset))
+          (helm-dash-install-docset (subst-char-in-string ?\s ?_ docset)))
+        )
+      )
+    )
+
+  ;; todo: have the above do something like this
+  ;; implies change to  have mode passed/arg diff
+  ;; (defun energos/dash-elisp ()
+  ;; 	(setq-local helm-dash-docsets '("Emacs Lisp")))
+  ;; (add-hook 'emacs-lisp-mode-hook 'energos/dash-elisp)
+
+  (defun what-line ()
+    "Print the current line number (in the buffer) of point."
+    (interactive)
+    (save-restriction
+      (widen)
+      (save-excursion
+        (beginning-of-line)
+        (1+ (count-lines 1 (point))))))
+
+  ;; todo: this isn't working with anchors in other frames
+  (defun neeasade/eww-browse-existing-or-new (url)
+    "If eww is displayed, use that for URL, else open here."
+    (if (get-buffer-window "*eww*" 0)
+      (url-retrieve url 'eww-render
+        (list url nil (get-buffer "*eww*")))
+      (eww url)))
+
+  (defun neeasade/color-is-light-p (name)
+    (let*
+      ((rgb (color-name-to-rgb name))
+        (red (first rgb))
+        (green (second rgb))
+        (blue (third rgb))
+        ;; cf https://en.wikipedia.org/wiki/YIQ#From_RGB_to_YIQ
+        (yiq (+ (* red .299) (* green .587) (* blue .114))))
+      (>= yiq 0.5)
+      ))
   )
 
 (defconfig interactive
   (use-package s)
-  (load "~/.emacs.d/lisp/interactive.el")
+  (defun what-face (pos)
+    (interactive "d")
+    (let ((face (or (get-char-property (point) 'read-face-name)
+                  (get-char-property (point) 'face))))
+      (if face (message "Face: %s" face) (message "No face at %d" pos))))
+
+  (defun what-major-mode ()
+    "Reveal current major mode."
+    (interactive)
+    (message "%s" major-mode))
+
+  (defun what-minor-modes ()
+    (interactive)
+    (message
+      (format "%s"
+        (delq nil
+          (mapcar
+            (lambda (x)
+              (let ((car-x (car x)))
+                (when (and (symbolp car-x) (symbol-value car-x))
+                  x)))
+            minor-mode-alist))
+        ))
+    )
+
+  (defun sudo-edit (&optional arg)
+    "Edit currently visited file as root.
+
+With a prefix ARG prompt for a file to visit.
+Will also prompt for a file to visit if current
+buffer is not visiting a file."
+    (interactive "P")
+    (if (or arg (not buffer-file-name))
+      (find-file (concat "/sudo:root@localhost:"
+                   (ido-read-file-name "Find file(as root): ")))
+      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
+  (defun neeasade/get-functions()
+    (mapcar*
+      (lambda(item)
+        (s-chomp (s-chop-prefix "(defconfig " (car item))))
+      (s-match-strings-all
+        "^(defconfig [^ \(\)]+"
+        (get-string-from-file "~/.emacs.d/lisp/theworld.el"))
+      ))
+
+  (defun neeasade/check-for-orphans()
+    "Check to see if any defconfigs are missing from init."
+    (let ((initfile (get-string-from-file "~/.emacs.d/init.el")))
+      (mapcar
+        (lambda(conf)
+          (when (not (s-contains? conf initfile))
+            (message (concat "orphaned function! " conf))
+            )
+          )
+        (neeasade/get-functions)
+        )
+      )
+    )
+
+  ;; todo: not working when already in file -- goto-char call not moving
+  (defun neeasade/jump-config()
+    (interactive)
+    (ivy-read "config: " (neeasade/get-functions)
+      :action
+      (lambda (option)
+        (interactive)
+        (neeasade/find-or-open "~/.emacs.d/lisp/theworld.el")
+        (goto-char (point-min))
+        (re-search-forward (concat "defconfig " option))
+        (evil-scroll-line-to-center (what-line))
+        )))
+
+  (defun neeasade/toggle-bloat()
+    "toggle bloat in the current buffer"
+    (interactive)
+    (if (not (bound-and-true-p company-mode))
+      (progn
+        (company-mode)
+        (flycheck-mode)
+        (font-lock-mode)
+        (git-gutter-mode)
+        )
+      (progn
+        (company-mode -1)
+        (flycheck-mode -1)
+        (font-lock-mode 0)
+        (git-gutter-mode 0)
+        )
+      )
+    )
+
+  (defun neeasade/toggle-bloat-global(toggle)
+    "toggle global bloat - must be called on it's own"
+    (if toggle
+      (progn
+        (global-company-mode)
+        (global-flycheck-mode)
+        (global-font-lock-mode)
+        ;; (global-git-gutter-mode t)
+        )
+      (progn
+        (global-company-mode -1)
+        (global-flycheck-mode -1)
+        (global-font-lock-mode 0)
+        ;; (global-git-gutter-mode nil)
+        )
+      )
+    )
+
+  (defun neeasade/buffercurl()
+    (interactive)
+    (use-package simpleclip)
+
+    (request
+      (simpleclip-get-contents)
+      :type "GET"
+      :parser 'buffer-string
+      :success (function*
+                 (lambda (&key data &allow-other-keys)
+                   (interactive)
+                   (insert data)
+                   )
+                 )
+      )
+    )
+
+  (neeasade/bind
+    ;; reconsider these, moved from w -> q for query
+    "qf" 'what-face
+    "qm" 'what-major-mode
+    "qi" 'what-minor-modes
+
+    "fE" 'sudo-edit
+    "jc" 'neeasade/jump-config
+    "tb" 'neeasade/toggle-bloat
+    )
   )
 
 (defconfig sanity
@@ -479,8 +826,8 @@ current major mode."
 
 (defconfig dashdocs
   ;; doesn't work on windows - bind here for neeasade/install-dashdoc to ref
-  (setq neeasade-dashdocs? sys/linux?)
-  (neeasade/guard neeasade-dashdocs?)
+  (setq enable-dashdocs? enable-linux?)
+  (neeasade/guard enable-dashdocs?)
 
   (use-package counsel-dash :config
     (setq helm-dash-docsets-path (concat user-emacs-directory "docsets"))
@@ -500,7 +847,7 @@ current major mode."
                  powerline-scale 1)))
     (truncate (* scale (frame-char-height)))))
 
-(defconfig style
+(defconfig-base style
   (interactive)
   ;; todo: an xresources theme that doesn't suck/covers extensions that base16 covers
   (use-package base16-theme)
@@ -628,6 +975,7 @@ current major mode."
   )
 
 (defconfig dimmer
+  ;; todo: change this based on background with contrast detect -- would need to be after style though
   (use-package dimmer
     :config (setq dimmer-fraction 0.5)
     (dimmer-mode)
@@ -805,9 +1153,8 @@ current major mode."
   )
 
 (defconfig target-process
-  (if enable-tp?
-    (load "~/.emacs.d/lib/targetprocess.el")
-    )
+  (neeasade/guard enable-tp?)
+  (load "~/.emacs.d/lib/targetprocess.el")
   )
 
 (defconfig interface
@@ -918,7 +1265,7 @@ current major mode."
   )
 
 (defconfig emms
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   (use-package emms)
 
   (defun emms-start()
@@ -1138,7 +1485,7 @@ current major mode."
   )
 
 (defconfig irc
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   (use-package circe
     :config
     (setq neeasade/irc-nick "neeasade")
@@ -1274,7 +1621,7 @@ current major mode."
   )
 
 (defconfig pdf
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   (use-package pdf-tools)
   )
 
@@ -1283,7 +1630,7 @@ current major mode."
   )
 
 (defconfig twitter
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   (use-package twittering-mode
     :commands (twittering-start)
     :init
@@ -1401,7 +1748,7 @@ current major mode."
   )
 
 (defconfig slack
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   (use-package slack
     :commands (slack-start)
     :init
@@ -1465,7 +1812,7 @@ current major mode."
   )
 
 (defconfig email
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   ;; TODO
   (nop)
   )
@@ -1553,7 +1900,7 @@ current major mode."
   )
 
 (defconfig autohotkey
-  (neeasade/guard sys/windows?)
+  (neeasade/guard enable-windows?)
   (use-package xahk-mode)
   )
 
@@ -1607,7 +1954,7 @@ current major mode."
   )
 
 (defconfig ledger
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   (use-package ledger-mode)
   (use-package flycheck-ledger)
   (use-package evil-ledger
@@ -1645,7 +1992,7 @@ current major mode."
   )
 
 (defconfig filehooks
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
 
   (defvar *afilename-cmd*
     ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
@@ -1667,7 +2014,7 @@ current major mode."
   )
 
 (defconfig emoji
-  (neeasade/guard neeasade/home?)
+  (neeasade/guard enable-home?)
   (use-package emojify
     :init (setq emojify-emoji-styles '(unicode github))
     :config (global-emojify-mode)

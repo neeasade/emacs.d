@@ -4,67 +4,71 @@
 
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
-;; (init-use-package)
-(init-straight)
+(neeasade/compose
+ core
 
-(defconfig core
-    (neeasade/load
-     helpers
-     sanity
-     evil
-     interface
-     editing
-     shell
-     eshell
-     interactive
-     git
-     org
-     ))
+ ;; use-package
+ straight
+ bedrock
+ bedroll
 
-(defconfig extra
-    (neeasade/load
-     company
-     flycheck
-     jump
-     dashdocs
+ helpers
+ sanity
+ evil
+ interface
+ editing
+ shell
+ eshell
+ interactive
+ git
+ org
+ )
 
-     ;; zoom
-     ;; dimmer
-     projectile
-     treemacs
-     restclient
-     latex
-     search-engines
+(neeasade/compose
+ extra
 
-     target-process
-     emms
-     pdf
-     ledger
-     emoji
-     )
-  )
+ company
+ flycheck
+ jump
+ dashdocs
 
-(defconfig communication
-    (neeasade/load irc slack twitter email)
-  )
+ ;; zoom
+ ;; dimmer
+ projectile
+ treemacs
+ restclient
+ latex
+ search-engines
 
-(defconfig development
-    (neeasade/load
-     clojure
-     csharp
-     elisp
-     nix
-     javascript
-     typescript
-     markdown
-     ;; terraform
-     ;; sql
-     ;; jekyll
-     ;; plantuml
-     autohotkey
-     filehooks
-     )
-  )
+ target-process
+ emms
+ pdf
+ ledger
+ emoji
+ )
+
+(neeasade/compose
+ communication
+ irc slack twitter email
+ )
+
+(neeasade/compose
+ development
+
+ clojure
+ csharp
+ elisp
+ nix
+ javascript
+ typescript
+ markdown
+ ;; terraform
+ ;; sql
+ ;; jekyll
+ ;; plantuml
+ autohotkey
+ filehooks
+ )
 
 ;; liftoff
 (neeasade/load core extra communication development style)
