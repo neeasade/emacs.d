@@ -202,12 +202,11 @@
 
 (defun neeasade/color-is-light-p (name)
   (let*
-    ((input (color-name-to-rgb name))
-      (red (first input))
-      (green (second input))
-      (blue (third input))
+    ((rgb (color-name-to-rgb name))
+      (red (first rgb))
+      (green (second rgb))
+      (blue (third rgb))
       ;; cf https://en.wikipedia.org/wiki/YIQ#From_RGB_to_YIQ
-      (yiq (/ (+ (* red 299) (* green 587) (* blue 114))
-             1000)))
+      (yiq (+ (* red .299) (* green .587) (* blue .114))))
     (>= yiq 0.5)
     ))
