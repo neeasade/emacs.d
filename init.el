@@ -41,16 +41,13 @@
  pdf
  ledger
  emoji
- )
-
-(neeasade/compose
- communication
- irc slack twitter email
+ filehooks
  )
 
 (neeasade/compose
  development
 
+ autohotkey
  clojure
  csharp
  elisp
@@ -62,12 +59,12 @@
  ;; sql
  ;; jekyll
  ;; plantuml
- autohotkey
- filehooks
  )
 
+(neeasade/compose communication irc slack twitter email)
+
 ;; liftoff
-(neeasade/load core extra communication development style)
+(neeasade/load core extra development communication style)
 (neeasade/check-for-orphans)
 
 ;; Emacs is terribly slow on windows

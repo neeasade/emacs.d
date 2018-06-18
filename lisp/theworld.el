@@ -2,7 +2,6 @@
 ;;; commentary:
 ;;; code:
 
-
 ;; master
 (defmacro defconfig-base (label &rest body)
   `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) nil
@@ -23,8 +22,7 @@
 
 (defmacro neeasade/load (&rest targets)
   `(mapc (lambda(target)
-           (funcall (intern (concat "neeasade/" (prin1-to-string target))))
-           )
+           (funcall (intern (concat "neeasade/" (prin1-to-string target)))))
      ',targets))
 
 (defmacro neeasade/compose (name &rest targets)
@@ -45,6 +43,7 @@
 
   (eval-when-compile
     (require 'use-package))
+
   (setq use-package-always-ensure t)
   )
 
@@ -66,13 +65,12 @@
   )
 
 (defconfig bedrock
-  ;; todo: hmmm
+  ;; todo: consider a use-packages macro
   (use-package s)
   (use-package hydra)
   (use-package general)
-  (use-package rg)
-  (use-package dash)
   (use-package request)
+  (require 'seq)
 
   (defmacro neeasade/shell-exec(command)
     "trim the newline from shell exec"
@@ -86,7 +84,6 @@
         (apply 'mapcar* f (mapcar 'cdr xs)))))
 
   ;; setq namespace
-  (require 'seq)
   (defmacro setq-ns (namespace &rest lst)
     `(mapcar*
        (lambda (pair)
@@ -795,6 +792,7 @@ current major mode."
   (setq enable-dashdocs? enable-linux?)
   (neeasade/guard enable-dashdocs?)
 
+  (use-package dash)
   (use-package counsel-dash :config
     (setq helm-dash-docsets-path (concat user-emacs-directory "docsets"))
     (setq helm-dash-browser-func 'neeasade/eww-browse-existing-or-new)
@@ -1055,7 +1053,7 @@ current major mode."
     (goto-char (org-find-property "focus"))
     (org-show-context)
     (org-show-subtree)
-    (evil-scroll-line-to-center nil)
+    (evil-scroll-line-to-center (what-line))
     )
 
   (add-hook
@@ -1154,6 +1152,7 @@ current major mode."
   ;; counsel
   (use-package counsel
     :config
+    (use-package rg)
     (setq-ns counsel
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
       rg-base-command "rg -i -M 120 --no-heading --line-number --color never %s ."
