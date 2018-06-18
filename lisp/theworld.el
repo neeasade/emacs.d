@@ -99,7 +99,6 @@
     enable-home? (string= (neeasade/shell-exec "hostname") "erasmus")
     enable-docker? (string= (getenv "USER") "emacser")
     enable-work? enable-windows?
-    enable-tp? enable-work?
     )
 
   ;; docker container user, still act trimmed/assume windows
@@ -187,7 +186,6 @@
             )
       (if (executable-find "xrq")
         (let ((result
-                ;; shell-command-to-string appends newline
                 (neeasade/shell-exec (concat "xrq '" name "' 2>/dev/null"))
                 ))
           (if (string= result "")
@@ -214,8 +212,7 @@
   ;; ref https://github.com/energos/dotfiles/blob/master/emacs/init.el#L162
   (defun neeasade/install-dashdoc (docset)
     "Install dash DOCSET if dashdocs enabled."
-    ;; (if (bound-and-true-p enable-dashdocs?)
-    (if nil
+    (if (bound-and-true-p enable-dashdocs?)
       (if (helm-dash-docset-installed-p docset)
         (message (format "%s docset is already installed!" docset))
         (progn (message (format "Installing %s docset..." docset))
@@ -1066,8 +1063,7 @@ current major mode."
     (defun neeasade/toggle-music(action)
       ;; todo: see if this can turn into emms command
       (let ((command (concat (if enable-windows? "mpc" "player.sh") " " action)))
-        (shell-command command)
-        ))
+        (shell-command command)))
 
     (add-hook 'org-pomodoro-started-hook
       (apply-partially #'neeasade/toggle-music "play"))
@@ -1112,7 +1108,7 @@ current major mode."
   )
 
 (defconfig target-process
-  (neeasade/guard enable-tp?)
+  (neeasade/guard enable-work?)
   (load "~/.emacs.d/lib/targetprocess.el")
   )
 
@@ -1281,8 +1277,7 @@ current major mode."
         ;; short circuit js mode and just do everything in jsx-mode
         (if (equal web-mode-content-type "javascript")
           (web-mode-set-content-type "jsx")
-          (message "now set to: %s" web-mode-content-type))))
-    )
+          (message "now set to: %s" web-mode-content-type)))))
 
   (use-package prettier-js
     :config
@@ -1302,7 +1297,8 @@ current major mode."
       "eb" 'nodejs-repl-load-file
       "ee" 'nodejs-repl-send-line
       "ei" 'nodejs-repl-send-last-expression
-      )))
+      ))
+  )
 
 (defconfig typescript
   (neeasade/install-dashdoc "Typescript")
