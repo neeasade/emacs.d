@@ -4,6 +4,14 @@
 
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
+(defmacro neeasade/load (&rest targets)
+  `(mapc (lambda(target)
+           (funcall (intern (concat "neeasade/" (prin1-to-string target)))))
+	 ',targets))
+
+(defmacro neeasade/compose (name &rest targets)
+  `(defconfig ,name (neeasade/load ,@targets)))
+
 (neeasade/compose
  core
 

@@ -20,14 +20,6 @@
   (if (not (eval (cons 'and conditions)))
     '(when t (throw 'config-catch (concat "config guard " config-name)))))
 
-(defmacro neeasade/load (&rest targets)
-  `(mapc (lambda(target)
-           (funcall (intern (concat "neeasade/" (prin1-to-string target)))))
-     ',targets))
-
-(defmacro neeasade/compose (name &rest targets)
-  `(defconfig ,name (neeasade/load ,@targets)))
-
 (defconfig use-package
   (require 'package)
   (setq package-enable-at-startup nil)
@@ -1175,6 +1167,7 @@ current major mode."
     "wl" 'evil-window-right
     "wd" 'evil-window-delete
     "ww" 'other-window
+    "wf" 'follow-mode
 
     "wm" 'delete-other-windows ;; window-max
     "wo" 'other-frame
