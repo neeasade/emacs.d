@@ -65,7 +65,6 @@
   )
 
 (defconfig bedrock
-  ;; todo: consider a use-packages macro
   (use-package s)
   (use-package hydra)
   (use-package general)
@@ -186,7 +185,7 @@
               '(
                  ("Emacs.theme"          . "base16-grayscale-light")
                  ("Emacs.powerlinescale" . "1.1")
-                 ("st.font"              . "Go Mono-12")
+                 ("st.font"              . "Go Mono-10")
                  ("st.borderpx"          . "15")
                  ("emacs.powerline"      . "bar")
                  ("*.background"         . (face-attribute 'default :background))
@@ -286,9 +285,7 @@
               (let ((car-x (car x)))
                 (when (and (symbolp car-x) (symbol-value car-x))
                   x)))
-            minor-mode-alist))
-        ))
-    )
+            minor-mode-alist)))))
 
   (defun sudo-edit (&optional arg)
     "Edit currently visited file as root.
@@ -328,8 +325,7 @@ buffer is not visiting a file."
         (neeasade/find-or-open "~/.emacs.d/lisp/theworld.el")
         (goto-char (point-min))
         (re-search-forward (concat "defconfig " option))
-        (evil-scroll-line-to-center (what-line))
-        )))
+        (evil-scroll-line-to-center (what-line)))))
 
   (defun neeasade/toggle-bloat()
     "toggle bloat in the current buffer"
@@ -339,16 +335,12 @@ buffer is not visiting a file."
         (company-mode)
         (flycheck-mode)
         (font-lock-mode)
-        (git-gutter-mode)
-        )
+        (git-gutter-mode))
       (progn
         (company-mode -1)
         (flycheck-mode -1)
         (font-lock-mode 0)
-        (git-gutter-mode 0)
-        )
-      )
-    )
+        (git-gutter-mode 0))))
 
   (defun neeasade/toggle-bloat-global(toggle)
     "toggle global bloat - must be called on it's own"
@@ -357,18 +349,15 @@ buffer is not visiting a file."
         (global-company-mode)
         (global-flycheck-mode)
         (global-font-lock-mode)
-        ;; (global-git-gutter-mode t)
-        )
+        (when (not enable-windows?)
+          (global-git-gutter-mode t)))
       (progn
         (global-company-mode -1)
         (global-flycheck-mode -1)
         (global-font-lock-mode 0)
-        ;; (global-git-gutter-mode nil)
-        )
-      )
-    )
+        (global-git-gutter-mode nil))))
 
-  (defun neeasade/buffercurl ()
+  (defun neeasade/buffercurl()
     "curl buffer from url grabbed from clipboard"
     (interactive)
     (use-package simpleclip)
@@ -1119,6 +1108,7 @@ current major mode."
   )
 
 (defconfig nix
+  (neeasade/guard enable-home?)
   (use-package nix-mode)
   )
 
@@ -1353,8 +1343,6 @@ current major mode."
         diff-paint-whitespace nil
         diff-highlight-hunk-body nil
         diff-refine-hunk nil
-
-        ;;
         refresh-status-buffer nil
         )
 
@@ -1364,8 +1352,7 @@ current major mode."
 
       ;; disable emacs VC
       (setq vc-handled-backends nil)
-      )
-    )
+      ))
 
   (use-package magit-svn)
   (add-hook 'magit-mode-hook 'magit-svn-mode)
@@ -1408,13 +1395,6 @@ current major mode."
     ("u" undo-tree-undo)
     ("q" nil :exit t))
 
-  (neeasade/bind
-    "g" '(:ignore t :which-key "git")
-    "gb" 'magit-blame
-    "gl" 'magit-log-current
-    "gm" 'git-smerge-menu/body
-    )
-
   ;; define a minimal staging mode for when we're on windows.
   (when enable-windows?
     ;; WORKAROUND https://github.com/magit/magit/issues/2395
@@ -1431,9 +1411,16 @@ current major mode."
       (magit-mode-setup #'magit-staging-mode))
     )
 
-  (if enable-windows?
-    (neeasade/bind "gs" 'magit-staging)
-    (neeasade/bind "gs" 'magit-status)
+  (defun neeasade/git-status()
+    (interactive)
+    (if enable-windows? (magit-staging) (magit-status)))
+
+  (neeasade/bind
+    "g" '(:ignore t :which-key "git")
+    "gb" 'magit-blame
+    "gl" 'magit-log-current
+    "gm" 'git-smerge-menu/body
+    "gs" 'neeasade/git-status
     )
   )
 
@@ -1961,6 +1948,13 @@ current major mode."
     :init (setq emojify-emoji-styles '(unicode github))
     :config (global-emojify-mode)
     ))
+
+(defconfig writing
+  (neeasade/guard enable-home?)
+  ;; todo
+  ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
+  ;;
+  )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
