@@ -87,9 +87,8 @@
        (seq-partition ',lst 2)
        ))
 
-  ;; todo: on windows this should be USERPROFILE
   (defun neeasade/homefile (path)
-    (concat (getenv "HOME") "/" path)
+    (concat (getenv (if enable-windows? "USERPROFILE" "HOME")) "/" path)
     )
 
   ;; todo: can't use setq-ns here? understand why
@@ -362,6 +361,11 @@ buffer is not visiting a file."
           (interactive)
           (insert data)))))
 
+  (defun current-line-empty-p ()
+    (save-excursion
+      (beginning-of-line)
+      (looking-at "[[:space:]]*$")))
+
   (neeasade/bind
     ;; reconsider these, moved from w -> q for query
     "qf" 'what-face
@@ -461,14 +465,10 @@ buffer is not visiting a file."
 (defconfig elisp
   (load "~/.emacs.d/vendor/le-eval-and-insert-results.el")
 
-  ;; todo: move this to helpers
-  (defun current-line-empty-p ()
-    (save-excursion
-      (beginning-of-line)
-      (looking-at "[[:space:]]*$")))
-
   (neeasade/install-dashdoc "Emacs Lisp")
   (setq lisp-indent-function 'common-lisp-indent-function)
+
+  ;; todo: finish this
   (defun neeasade/smart-elisp-eval()
     "eval total sexp by paragraph (jump ahead if not on blank line) or region if selected"
     (interactive)
@@ -506,12 +506,9 @@ buffer is not visiting a file."
     (let* ((scrollcount (/ (window-total-size) 7))
             (halfheight (/ (window-total-size) 2))
             (scrollcheck (- halfheight scrollcount)))
-
       (if (> (line-number-at-pos) scrollcheck)
         (evil-scroll-line-down scrollcount)
-        )
-      )
-    )
+        )))
 
   (add-function :after (symbol-function 'evil-scroll-line-to-center) #'neeasade/zz-scroll)
 
