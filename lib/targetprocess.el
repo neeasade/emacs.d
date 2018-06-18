@@ -1,3 +1,10 @@
+;; ref: https://emacs.stackexchange.com/questions/3197/best-way-to-retrieve-values-in-nested-assoc-lists
+(defun assoc-recursive (alist &rest keys)
+  "Recursively find KEYs in ALIST."
+  (while keys
+    (setq alist (cdr (assoc (pop keys) alist))))
+  alist)
+
 (setq tp-subdomain (pass "tp-subdomain"))
 
 ;; debug request '(warn blather)

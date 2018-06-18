@@ -10,18 +10,16 @@
  ;; use-package
  straight
  bedrock
- bedroll
 
- helpers
  sanity
  evil
  interface
  editing
  shell
  eshell
- interactive
  git
  org
+ util
  )
 
 (neeasade/compose
@@ -75,7 +73,7 @@
 (neeasade/check-for-orphans)
 
 ;; Emacs is terribly slow on windows
-(neeasade/toggle-bloat-global sys/linux?)
+(neeasade/toggle-bloat-global enable-linux?)
 
 (provide 'init)
 ;;; init.el ends here

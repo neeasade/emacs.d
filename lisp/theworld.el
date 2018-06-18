@@ -2,6 +2,7 @@
 ;;; commentary:
 ;;; code:
 
+
 ;; master
 (defmacro defconfig-base (label &rest body)
   `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) nil
@@ -19,6 +20,15 @@
 (defmacro neeasade/guard (&rest conditions)
   (if (not (eval (cons 'and conditions)))
     '(when t (throw 'config-catch (concat "config guard " config-name)))))
+
+(defmacro neeasade/load (&rest targets)
+  `(mapc (lambda(target)
+           (funcall (intern (concat "neeasade/" (prin1-to-string target))))
+           )
+     ',targets))
+
+(defmacro neeasade/compose (name &rest targets)
+  `(defconfig ,name (neeasade/load ,@targets)))
 
 (defconfig use-package
   (require 'package)
@@ -57,6 +67,7 @@
 
 (defconfig bedrock
   ;; todo: hmmm
+  (use-package s)
   (use-package hydra)
   (use-package general)
   (use-package rg)
@@ -68,15 +79,6 @@
     `(replace-regexp-in-string "\n$" ""
        (shell-command-to-string ,command)))
 
-  (defmacro neeasade/load (&rest targets)
-    `(mapc (lambda(target)
-             (funcall (intern (concat "neeasade/" (prin1-to-string target))))
-             )
-       ',targets))
-
-  (defmacro neeasade/compose (name &rest targets)
-    `(defconfig ,name (neeasade/load ,@targets)))
-
   (defun mapcar* (f &rest xs)
     "MAPCAR for multiple sequences F XS."
     (if (not (memq nil xs))
@@ -84,8 +86,8 @@
         (apply 'mapcar* f (mapcar 'cdr xs)))))
 
   ;; setq namespace
+  (require 'seq)
   (defmacro setq-ns (namespace &rest lst)
-    (require 'seq)
     `(mapcar*
        (lambda (pair)
          (let ((key (car pair))
@@ -102,12 +104,13 @@
     (concat (getenv "HOME") "/" path)
     )
 
-  (setq-ns enable
-    windows? (eq system-type 'windows-nt)
-    linux? (eq system-type 'gnu/linux)
-    home? (string= (neeasade/shell-exec "hostname") "erasmus")
-    docker? (string= (getenv "USER") "emacser")
-    tp? sys/windows?
+  ;; todo: can't use setq-ns here? understand why
+  (setq
+    enable-windows? (eq system-type 'windows-nt)
+    enable-linux? (eq system-type 'gnu/linux)
+    enable-home? (string= (neeasade/shell-exec "hostname") "erasmus")
+    enable-docker? (string= (getenv "USER") "emacser")
+    enable-tp? enable-windows?
     )
 
   ;; docker container user, still act trimmed/assume windows
@@ -172,7 +175,7 @@
   ;; wrap passwordstore
   (defun pass (key)
     (neeasade/shell-exec
-      (if sys/windows?
+      (if enable-windows?
         (concat "pprint.bat " key)
         (concat "pass " key " 2>/dev/null"))
       )
@@ -205,15 +208,9 @@
             ))
         default
         )))
-  )
-
-(defconfig bedroll
-  (let ((extend-file (neeasade/homefile "extend.el")))
-    (when (file-exists-p extend-file)
-      (eval-and-compile (load extend-file))))
 
   (defun reload-init()
-    "Reload init.el."
+    "Reload init.el with straight.el."
     (interactive)
     (straight-transaction
       (straight-mark-transaction-as-init)
@@ -221,41 +218,31 @@
       (load user-init-file nil 'nomessage)
       (message "Reloading init.el... done.")))
 
+  (let ((extend-file (neeasade/homefile "extend.el")))
+    (when (file-exists-p extend-file)
+      (eval-and-compile (load extend-file))))
+
+  ;; ref https://github.com/energos/dotfiles/blob/master/emacs/init.el#L162
+  (defun neeasade/install-dashdoc (docset)
+    "Install dash DOCSET if dashdocs enabled."
+    ;; (if (bound-and-true-p enable-dashdocs?)
+    (if nil
+      (if (helm-dash-docset-installed-p docset)
+        (message (format "%s docset is already installed!" docset))
+        (progn (message (format "Installing %s docset..." docset))
+          (helm-dash-install-docset (subst-char-in-string ?\s ?_ docset))))))
+  )
+
+(defconfig util
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
     (with-temp-buffer
       (insert-file-contents filePath)
       (buffer-string)))
 
-  ;; ref: https://emacs.stackexchange.com/questions/3197/best-way-to-retrieve-values-in-nested-assoc-lists
-  (defun assoc-recursive (alist &rest keys)
-    "Recursively find KEYs in ALIST."
-    (while keys
-      (setq alist (cdr (assoc (pop keys) alist))))
-    alist)
-
   (defun nop()
     nil
     )
-
-  ;; ref https://github.com/energos/dotfiles/blob/master/emacs/init.el#L162
-  (defun neeasade/install-dashdoc (docset)
-    "Install dash DOCSET if dashdocs enabled."
-
-    (if (bound-and-true-p neeasade-dashdocs)
-      (if (helm-dash-docset-installed-p docset)
-        (message (format "%s docset is already installed!" docset))
-        (progn (message (format "Installing %s docset..." docset))
-          (helm-dash-install-docset (subst-char-in-string ?\s ?_ docset)))
-        )
-      )
-    )
-
-  ;; todo: have the above do something like this
-  ;; implies change to  have mode passed/arg diff
-  ;; (defun energos/dash-elisp ()
-  ;; 	(setq-local helm-dash-docsets '("Emacs Lisp")))
-  ;; (add-hook 'emacs-lisp-mode-hook 'energos/dash-elisp)
 
   (defun what-line ()
     "Print the current line number (in the buffer) of point."
@@ -284,10 +271,7 @@
         (yiq (+ (* red .299) (* green .587) (* blue .114))))
       (>= yiq 0.5)
       ))
-  )
 
-(defconfig interactive
-  (use-package s)
   (defun what-face (pos)
     (interactive "d")
     (let ((face (or (get-char-property (point) 'read-face-name)
@@ -331,8 +315,7 @@ buffer is not visiting a file."
         (s-chomp (s-chop-prefix "(defconfig " (car item))))
       (s-match-strings-all
         "^(defconfig [^ \(\)]+"
-        (get-string-from-file "~/.emacs.d/lisp/theworld.el"))
-      ))
+        (get-string-from-file "~/.emacs.d/lisp/theworld.el"))))
 
   (defun neeasade/check-for-orphans()
     "Check to see if any defconfigs are missing from init."
@@ -340,13 +323,8 @@ buffer is not visiting a file."
       (mapcar
         (lambda(conf)
           (when (not (s-contains? conf initfile))
-            (message (concat "orphaned function! " conf))
-            )
-          )
-        (neeasade/get-functions)
-        )
-      )
-    )
+            (message (concat "orphaned function! " conf))))
+        (neeasade/get-functions))))
 
   ;; todo: not working when already in file -- goto-char call not moving
   (defun neeasade/jump-config()
@@ -398,7 +376,7 @@ buffer is not visiting a file."
       )
     )
 
-  (defun neeasade/buffercurl()
+  (defun neeasade/buffercurl ()
     (interactive)
     (use-package simpleclip)
 
@@ -406,14 +384,11 @@ buffer is not visiting a file."
       (simpleclip-get-contents)
       :type "GET"
       :parser 'buffer-string
-      :success (function*
-                 (lambda (&key data &allow-other-keys)
-                   (interactive)
-                   (insert data)
-                   )
-                 )
-      )
-    )
+      :success
+      (function*
+        (lambda (&key data &allow-other-keys)
+          (interactive)
+          (insert data)))))
 
   (neeasade/bind
     ;; reconsider these, moved from w -> q for query
@@ -428,7 +403,6 @@ buffer is not visiting a file."
   )
 
 (defconfig sanity
-
   (setq
     auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
     backup-directory-alist `(("." . "~/.emacs.d/backups"))
@@ -477,7 +451,7 @@ buffer is not visiting a file."
 
   (setq browse-url-browser-function 'browse-url-generic)
 
-  (if sys/windows?
+  (if enable-windows?
     (if (executable-find "qutebrowser")
       (setq browse-url-generic-program "qutebrowser")
       (setq browse-url-browser-function 'browse-url-default-windows-browser)
@@ -705,7 +679,7 @@ buffer is not visiting a file."
   (use-package company
     :config
     (setq-ns company
-      idle-delay (if sys/windows? 1 0)
+      idle-delay (if enable-windows? 1 0)
       selection-wrap-around t
       tooltip-align-annotations t
       dabbrev-downcase nil
@@ -839,6 +813,12 @@ current major mode."
   (neeasade/bind
     "jd" 'counsel-dash
     )
+
+  ;; todo: have the above do something like this
+  ;; implies change to  have mode passed/arg diff
+  ;; (defun energos/dash-elisp ()
+  ;; 	(setq-local helm-dash-docsets '("Emacs Lisp")))
+  ;; (add-hook 'emacs-lisp-mode-hook 'energos/dash-elisp)
   )
 
 (defun spacemacs/compute-powerline-height ()
@@ -1107,7 +1087,7 @@ current major mode."
     :config
     (defun neeasade/toggle-music(action)
       ;; todo: see if this can turn into emms command
-      (let ((command (concat (if sys/windows? "mpc" "player.sh") " " action)))
+      (let ((command (concat (if enable-windows? "mpc" "player.sh") " " action)))
         (shell-command command)
         ))
 
@@ -1227,7 +1207,7 @@ current major mode."
 
   (use-package alert
     :config (setq alert-default-style
-              (if sys/windows?
+              (if enable-windows?
                 'toaster
                 'libnotify
                 )))
@@ -1374,7 +1354,7 @@ current major mode."
     (setq magit-repository-directories (list "~/git"))
 
     ;; https://magit.vc/manual/magit/Performance.html
-    (when sys/windows?
+    (when enable-windows?
       (setq-ns magit
         ;; diff perf
         diff-highlight-indentation nil
@@ -1409,7 +1389,7 @@ current major mode."
     :config
     (setq git-gutter-fr:side 'right-fringe)
     ;; fails when too many buffers open on windows
-    (if sys/linux? (global-git-gutter-mode t))
+    (if enable-linux? (global-git-gutter-mode t))
     )
 
   (defhydra git-smerge-menu ()
@@ -1445,7 +1425,7 @@ current major mode."
     )
 
   ;; define a minimal staging mode for when we're on windows.
-  (when sys/windows?
+  (when enable-windows?
     ;; WORKAROUND https://github.com/magit/magit/issues/2395
     (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
       "Mode for showing staged and unstaged changes."
@@ -1460,7 +1440,7 @@ current major mode."
       (magit-mode-setup #'magit-staging-mode))
     )
 
-  (if sys/windows?
+  (if enable-windows?
     (neeasade/bind "gs" 'magit-staging)
     (neeasade/bind "gs" 'magit-status)
     )
@@ -1756,7 +1736,7 @@ current major mode."
     (setq slack-prefer-current-team t)
 
     :config
-    (when sys/windows?
+    (when enable-windows?
       ;; https://github.com/yuya373/emacs-slack/issues/161
       (setq request-backend 'url-retrieve)
       (setq slack-request-timeout 50)
@@ -1824,11 +1804,11 @@ current major mode."
 
   ;; consider arrow function here
   ;; https://superuser.com/questions/139815/how-do-you-run-the-previous-command-in-emacs-shell
-  (when sys/linux?
+  (when enable-linux?
     (setq explicit-shell-file-name (getenv "SHELL"))
     )
 
-  (when (and sys/windows? (not sys/docker?))
+  (when (and enable-windows? (not enable-docker?))
     (setq explicit-shell-file-name (neeasade/shell-exec "where bash"))
     (setq explicit-bash.exe-args '("--login" "-i"))
     )
