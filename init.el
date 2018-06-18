@@ -10,13 +10,11 @@
  ;; use-package
  straight
  bedrock
-
  sanity
  evil
  interface
  editing
  shell
- eshell
  git
  org
  util

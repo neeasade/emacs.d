@@ -240,10 +240,6 @@
       (insert-file-contents filePath)
       (buffer-string)))
 
-  (defun nop()
-    nil
-    )
-
   (defun what-line ()
     "Print the current line number (in the buffer) of point."
     (interactive)
@@ -326,7 +322,6 @@ buffer is not visiting a file."
             (message (concat "orphaned function! " conf))))
         (neeasade/get-functions))))
 
-  ;; todo: not working when already in file -- goto-char call not moving
   (defun neeasade/jump-config()
     (interactive)
     (ivy-read "config: " (neeasade/get-functions)
@@ -377,6 +372,7 @@ buffer is not visiting a file."
     )
 
   (defun neeasade/buffercurl ()
+    "curl buffer from url grabbed from clipboard"
     (interactive)
     (use-package simpleclip)
 
@@ -727,8 +723,7 @@ buffer is not visiting a file."
   (defvar spacemacs--indent-variable-alist
     ;; Note that derived modes must come before their sources
     '(((awk-mode c-mode c++-mode java-mode groovy-mode
-         idl-mode java-mode objc-mode pike-mode) . c-basic-offset)
-       (python-mode . python-indent-offset)
+         idl-mode java-mode objc-mode pike-mode) . c-basic-offset) (python-mode . python-indent-offset)
        (cmake-mode . cmake-tab-width)
        (coffee-mode . coffee-tab-width)
        (cperl-mode . cperl-indent-level)
@@ -784,10 +779,6 @@ current major mode."
 
   (add-hook 'after-change-major-mode-hook 'spacemacs//set-evil-shift-width 'append)
 
-  ;; some default indent preferences for different modes
-  ;; note for the future: editorconfig is awesome.
-  (setq sh-basic-offset 2)
-
   ;; only trim whitespace on lines you edit
   (use-package ws-butler :config (ws-butler-global-mode))
 
@@ -795,7 +786,8 @@ current major mode."
   ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   ;; todo: into yasnippet
-  (use-package yasnippet)
+  (use-package yasnippet
+    )
   )
 
 (defconfig dashdocs
@@ -1794,16 +1786,15 @@ current major mode."
 (defconfig email
   (neeasade/guard enable-home?)
   ;; TODO
-  (nop)
   )
 
 (defconfig shell
-
   (add-hook 'sh-mode-hook
     (lambda () (sh-electric-here-document-mode -1)))
 
-  ;; consider arrow function here
+  ;; todo: consider arrow bind here
   ;; https://superuser.com/questions/139815/how-do-you-run-the-previous-command-in-emacs-shell
+
   (when enable-linux?
     (setq explicit-shell-file-name (getenv "SHELL"))
     )
@@ -1820,59 +1811,31 @@ current major mode."
 
   (use-package shell-pop
     :config
-
-    ;; https://github.com/kyagi/shell-pop-el/issues/51
-    (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
-
     (setq-ns shell-pop
       window-position "top"
       window-size 33 ;; percent
       full-span t
       )
 
-    (neeasade/bind "'" 'shell-pop)
-
     ;; interactive shell-pop bound to spc t index shell
     (defun makepop(index)
       (let ((funcname (intern (concat "shell-pop-" (number-to-string index)))))
         (eval `(progn
                  (defun ,funcname () (interactive) (shell-pop ,index))
-                 (neeasade/bind ,(concat "t" (number-to-string index)) ',funcname)
-                 )
-          )
-        )
-      )
+                 (neeasade/bind ,(concat "t" (number-to-string index)) ',funcname)))))
 
     ;; give us 1-9
     (mapc 'makepop (number-sequence 1 9))
-    )
+    (neeasade/bind "'" 'shell-pop)
 
-  (neeasade/bind-mode '(shell)
-    ;; todo: winner-undo/unshell pop
-    "d" 'deer
-    )
+    ;; https://github.com/kyagi/shell-pop-el/issues/51
+    (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
-  ;; todo: These binds don't work why
-  ;; todo: def advice after quite ranger last history shell-pop/use same shell
-  ;; (progn ranger-history-ring)
-  (neeasade/bind-mode
-    '(ranger)
-    "s" 'shell-pop
+    ;; todo: want if I quit ranger into shell buffer, switch dir to that -- or keybind to switch
     )
-
-  (general-define-key
-    :states '(visual normal)
-    :keymaps '(ranger)
-    "s" 'shell-pop
-    )
-
-  ;; only for term, ansi term
+  ;; fix for term, ansi term
   ;; https://github.com/hlissner/emacs-doom-themes/issues/54
   (setq ansi-term-color-vector [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white])
-  )
-
-(defconfig eshell
-  ;; todo: https://www.reddit.com/r/emacs/comments/6y3q4k/yes_eshell_is_my_main_shell/
   )
 
 (defconfig jekyll
