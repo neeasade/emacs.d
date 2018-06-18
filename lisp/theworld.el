@@ -98,7 +98,8 @@
     enable-linux? (eq system-type 'gnu/linux)
     enable-home? (string= (neeasade/shell-exec "hostname") "erasmus")
     enable-docker? (string= (getenv "USER") "emacser")
-    enable-tp? enable-windows?
+    enable-work? enable-windows?
+    enable-tp? enable-work?
     )
 
   ;; docker container user, still act trimmed/assume windows
@@ -1275,11 +1276,14 @@ current major mode."
         (if (equal web-mode-content-type "javascript")
           (web-mode-set-content-type "jsx")
           (message "now set to: %s" web-mode-content-type))))
-
     )
 
-  ;; todo: enable this sometimes if conf file found
-  (use-package prettier-js)
+  (use-package prettier-js
+    :config
+    (when enable-work?
+      (add-hook 'typescript-mode-hook 'prettier-js-mode)
+      (add-hook 'web-mode-hook 'prettier-js-mode)
+      (add-hook 'js-mode-hook 'prettier-js-mode)))
 
   ;; notes for using this
   ;; kill shx-mode
@@ -1292,8 +1296,7 @@ current major mode."
       "eb" 'nodejs-repl-load-file
       "ee" 'nodejs-repl-send-line
       "ei" 'nodejs-repl-send-last-expression
-      ))
-  )
+      )))
 
 (defconfig typescript
   (neeasade/install-dashdoc "Typescript")
