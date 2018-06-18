@@ -625,6 +625,11 @@ buffer is not visiting a file."
 (defconfig flycheck
   (use-package flycheck
     :config
+    ;; cf http://www.flycheck.org/en/latest/user/syntax-checks.html#check-automatically
+    (setq-ns flycheck
+      check-syntax-automatically (if enable-windows? '(save mode-enabled idle-change) '(save mode-enabled idle-change new-line))
+      idle-change-delay 1
+      )
 
     ;; (flycheck) disable jshint since we prefer eslint checking
     (setq-default
@@ -667,6 +672,7 @@ buffer is not visiting a file."
                       circe-chat-mode
                       circe-channel-mode
                       )
+      tooltip-align-annotations t
       )
 
     ;; TODO: investigate tab handling like VS completely
@@ -1305,18 +1311,13 @@ current major mode."
     (defun setup-tide-mode ()
       (interactive)
       (tide-setup)
-      (setq flycheck-check-syntax-automatically '(save mode-enabled))
       (eldoc-mode +1)
       (tide-hl-identifier-mode +1)
       )
 
-    ;; aligns annotation to the right hand side
-    (setq company-tooltip-align-annotations t)
-
+    (add-hook 'typescript-mode-hook #'setup-tide-mode)
     ;; formats the buffer before saving
     ;; (add-hook 'before-save-hook 'tide-format-before-save)
-
-    (add-hook 'typescript-mode-hook #'setup-tide-mode)
     )
   )
 
@@ -1949,7 +1950,6 @@ current major mode."
   (neeasade/guard enable-home?)
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
-  ;;
   )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
