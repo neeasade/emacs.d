@@ -1780,6 +1780,7 @@ current major mode."
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
   (setq comint-buffer-maximum-size 1000)
+  (setq comint-prompt-read-only t)
 
   (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
   (define-key comint-mode-map (kbd "<down>") 'comint-next-input)
