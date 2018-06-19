@@ -2,6 +2,22 @@
 ;;; commentary:
 ;;; code:
 
+(setq
+  enable-windows? (eq system-type 'windows-nt)
+  enable-linux? (eq system-type 'gnu/linux)
+  enable-home? (string= (system-name) "erasmus")
+  enable-docker? (string= (getenv "USER") "emacser")
+  enable-work? enable-windows?
+  )
+
+;; docker container user, still act trimmed/assume windows
+(when enable-docker?
+  (setq
+    enable-linux? nil
+    enable-windows? t
+    enable-work? t
+    ))
+
 ;; master
 (defmacro defconfig-base (label &rest body)
   `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) nil
@@ -96,23 +112,6 @@
   (defun neeasade/homefile (path)
     (concat (getenv (if enable-windows? "USERPROFILE" "HOME")) "/" path)
     )
-
-  ;; todo: can't use setq-ns here? understand why
-  (setq
-    enable-windows? (eq system-type 'windows-nt)
-    enable-linux? (eq system-type 'gnu/linux)
-    enable-home? (string= (neeasade/shell-exec "hostname") "erasmus")
-    enable-docker? (string= (getenv "USER") "emacser")
-    enable-work? enable-windows?
-    )
-
-  ;; docker container user, still act trimmed/assume windows
-  (when enable-docker?
-    (setq-ns enable
-      windows? t
-      linux? nil
-      tp? t
-      ))
 
   ;; binding wrappers
   (defun neeasade/bind (&rest binds)
