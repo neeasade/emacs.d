@@ -1347,14 +1347,22 @@ current major mode."
       (setq vc-handled-backends nil)
       ))
 
-  (use-package magit-svn)
-  (add-hook 'magit-mode-hook 'magit-svn-mode)
+  (when enable-linux?
+    ;; depends on 'nice' command
+    (straight-use-package
+      '(magit-todos :type git :host github :repo "alphapapa/magit-todos"
+         :upstream (:host github
+                     :repo "alphapapa/magit-todos"))
+      :config (magit-todos-mode)
+      ))
+
+  (use-package magit-svn :config
+    (add-hook 'magit-mode-hook 'magit-svn-mode))
 
   (use-package evil-magit
     :config
     (evil-define-key
-      evil-magit-state magit-mode-map "?" 'evil-search-backward)
-    )
+      evil-magit-state magit-mode-map "?" 'evil-search-backward))
 
   (use-package git-gutter-fringe
     :config
@@ -1550,8 +1558,7 @@ current major mode."
     (add-hook 'circe-server-connected-hook 'enable-circe-notifications)
     )
 
-  (defun neeasade/jump-irc()
-    (interactive)
+  (defcommand jump-irc()
     (let ((irc-channels
             (remove-if-not
               (lambda (s) (s-match "#.*" s))
@@ -1561,15 +1568,12 @@ current major mode."
         (message "connect to irc first!")
         (ivy-read "channel: " irc-channels
           :action (lambda (option) (counsel-switch-to-buffer-or-window option)))
-        )
-      )
-    )
+        )))
 
   (neeasade/bind
     "ai" 'connect-all-irc
     "ji" 'neeasade/jump-irc
-    )
-  )
+    ))
 
 (defconfig pdf
   (neeasade/guard enable-home?)
