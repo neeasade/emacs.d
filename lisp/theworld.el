@@ -20,6 +20,12 @@
   (if (not (eval (cons 'and conditions)))
     '(when t (throw 'config-catch (concat "config guard " config-name)))))
 
+;; interactive
+(defmacro defcommand (label args &rest body)
+  `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) ,args
+     (interactive)
+     ,@body))
+
 (defconfig use-package
   (require 'package)
   (setq package-enable-at-startup nil)
@@ -149,9 +155,8 @@
             (select-window window-of-buffer-visible)
             (switch-to-buffer buffer))))))
 
-  (defun neeasade/find-or-open (filepath)
+  (defcommand find-or-open (filepath)
     "Find or open FILEPATH."
-    (interactive)
     (let
       ((filename (file-name-nondirectory filepath)))
       (if (get-buffer filename)
@@ -225,9 +230,8 @@
       (insert-file-contents filePath)
       (buffer-string)))
 
-  (defun what-line ()
+  (defcommand what-line ()
     "Print the current line number (in the buffer) of point."
-    (interactive)
     (save-restriction
       (widen)
       (save-excursion
@@ -253,19 +257,17 @@
       (>= yiq 0.5)
       ))
 
-  (defun what-face (pos)
+  (defun neeasade/what-face (pos)
     (interactive "d")
     (let ((face (or (get-char-property (point) 'read-face-name)
                   (get-char-property (point) 'face))))
       (if face (message "Face: %s" face) (message "No face at %d" pos))))
 
-  (defun what-major-mode ()
+  (defcommand what-major-mode ()
     "Reveal current major mode."
-    (interactive)
     (message "%s" major-mode))
 
-  (defun what-minor-modes ()
-    (interactive)
+  (defcommand what-minor-modes ()
     (message
       (format "%s"
         (delq nil
@@ -305,8 +307,7 @@ buffer is not visiting a file."
             (message (concat "orphaned function! " conf))))
         (neeasade/get-functions))))
 
-  (defun neeasade/jump-config()
-    (interactive)
+  (defcommand jump-config()
     (ivy-read "config: " (neeasade/get-functions)
       :action
       (lambda (option)
@@ -314,11 +315,10 @@ buffer is not visiting a file."
         (neeasade/find-or-open "~/.emacs.d/lisp/theworld.el")
         (goto-char (point-min))
         (re-search-forward (concat "defconfig " option))
-        (evil-scroll-line-to-center (what-line)))))
+        (evil-scroll-line-to-center (neeasade/what-line)))))
 
-  (defun neeasade/toggle-bloat()
+  (defcommand toggle-bloat()
     "toggle bloat in the current buffer"
-    (interactive)
     (if (not (bound-and-true-p company-mode))
       (progn
         (company-mode)
@@ -368,9 +368,9 @@ buffer is not visiting a file."
 
   (neeasade/bind
     ;; reconsider these, moved from w -> q for query
-    "qf" 'what-face
-    "qm" 'what-major-mode
-    "qi" 'what-minor-modes
+    "qf" 'neeasade/what-face
+    "qm" 'neeasade/what-major-mode
+    "qi" 'neeasade/what-minor-modes
 
     "fE" 'sudo-edit
     "jc" 'neeasade/jump-config
@@ -765,13 +765,15 @@ current major mode."
   ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   ;; todo: into yasnippet
-  (use-package yasnippet
-    )
+  (use-package yasnippet)
+
+  (add-hook 'sh-mode-hook
+    (lambda () (sh-electric-here-document-mode -1)))
   )
 
 (defconfig dashdocs
   ;; doesn't work on windows - bind here for neeasade/install-dashdoc to ref
-  (setq enable-dashdocs? enable-linux?)
+  (setq enable-dashdocs? nil)
   (neeasade/guard enable-dashdocs?)
 
   (use-package dash)
@@ -1035,7 +1037,7 @@ current major mode."
     (goto-char (org-find-property "focus"))
     (org-show-context)
     (org-show-subtree)
-    (evil-scroll-line-to-center (what-line))
+    (evil-scroll-line-to-center (neeasade/what-line))
     )
 
   (add-hook
@@ -1150,7 +1152,23 @@ current major mode."
   (use-package ranger
     :init (setq ranger-override-dired t)
     :config
-    (setq-ns ranger-show literal nil hidden t)
+    (setq-ns ranger
+      show-literal nil
+      show-hidden t
+      cleanup-eagerly t
+      )
+
+    ;; call with eg 'dired-mode
+    (defcommand kill-buffers-by-mode (mode)
+	  (mapc (lambda (buffer)
+              (when (eq mode (buffer-local-value 'major-mode buffer))
+                (kill-buffer buffer)))
+        (buffer-list)))
+
+    (defcommand kill-ranger-buffers ()
+      (neeasade/kill-buffers-by-mode 'ranger-mode))
+    (advice-add #'neeasade/kill-ranger-buffers :after #'ranger-close)
+
     (neeasade/bind "d" 'deer)
     )
 
@@ -1765,23 +1783,21 @@ current major mode."
   )
 
 (defconfig shell
-  (add-hook 'sh-mode-hook
-    (lambda () (sh-electric-here-document-mode -1)))
-
-  ;; todo: consider arrow bind here
-  ;; https://superuser.com/questions/139815/how-do-you-run-the-previous-command-in-emacs-shell
+  (require 'comint)
 
   (when enable-linux?
-    (setq explicit-shell-file-name (getenv "SHELL"))
-    )
+    (setq explicit-shell-file-name (getenv "SHELL")))
 
   (when (and enable-windows? (not enable-docker?))
     (setq explicit-shell-file-name (neeasade/shell-exec "where bash"))
-    (setq explicit-bash.exe-args '("--login" "-i"))
-    )
+    (setq explicit-bash.exe-args '("--login" "-i")))
 
-  ;; https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
+  ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
+  (setq comint-buffer-maximum-size 1000)
+
+  (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
+  (define-key comint-mode-map (kbd "<down>") 'comint-next-input)
 
   (use-package shx :config (shx-global-mode 1))
 
@@ -1794,7 +1810,7 @@ current major mode."
       )
 
     ;; interactive shell-pop bound to spc t index shell
-    (defun makepop(index)
+    (defun makepop (index)
       (let ((funcname (intern (concat "shell-pop-" (number-to-string index)))))
         (eval `(progn
                  (defun ,funcname () (interactive) (shell-pop ,index))
@@ -1804,11 +1820,19 @@ current major mode."
     (mapc 'makepop (number-sequence 1 9))
     (neeasade/bind "'" 'shell-pop)
 
-    ;; https://github.com/kyagi/shell-pop-el/issues/51
+    ;; cf https://github.com/kyagi/shell-pop-el/issues/51
     (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
-    ;; todo: want if I quit ranger into shell buffer, switch dir to that -- or keybind to switch
+    (defcommand shell-pop-ranger-dir ()
+      (let ((ranger-dir (expand-file-name default-directory)))
+        (switch-to-buffer shell-pop-last-shell-buffer-name)
+        (shell-pop--cd-to-cwd-shell ranger-dir)
+        (ranger-kill-buffers-without-window)
+        ))
+
+    (define-key ranger-mode-map (kbd "s") 'neeasade/shell-pop-ranger-dir)
     )
+
   ;; fix for term, ansi term
   ;; https://github.com/hlissner/emacs-doom-themes/issues/54
   (setq ansi-term-color-vector [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white])
