@@ -462,34 +462,20 @@ buffer is not visiting a file."
   )
 
 (defconfig elisp
-  (load "~/.emacs.d/vendor/le-eval-and-insert-results.el")
-
   (neeasade/install-dashdoc "Emacs Lisp")
   (setq lisp-indent-function 'common-lisp-indent-function)
 
-  ;; todo: finish this
-  (defun neeasade/smart-elisp-eval()
-    "eval total sexp by paragraph (jump ahead if not on blank line) or region if selected"
-    (interactive)
-    (if (use-region-p)
-      ;; change this func, region doesn't matter
-      (le::eval-and-insert-results)
-      (progn
-        (when (not (current-line-empty-p))
-          ;; todo: ] keybind func
-          )
-        (le::eval-and-insert-results)
-        )
+  (use-package eros
+    :config
+    (setq eros-eval-result-duration 20)
+    (eros-mode 1)
+    (neeasade/bind-leader-mode
+      'emacs-lisp
+      "er" 'eval-region
+      "ei" 'eros-eval-last-sexp
+      "ee" 'eros-eval-defun
       )
-    )
-
-  (neeasade/bind-leader-mode
-    'emacs-lisp
-    "er" 'eval-region
-    "ei" 'le::eval-and-insert-results
-    "eb" 'le::eval-and-insert-all-sexps
-    )
-  )
+    ))
 
 (defconfig evil
   (use-package evil
