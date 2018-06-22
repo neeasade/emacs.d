@@ -18,6 +18,18 @@
     enable-work? t
     ))
 
+(setq xrdb-fallback-values
+  ;; for when we're away from $HOME.
+  '(
+     ;; ("Emacs.theme"          . "base16-grayscale-light")
+     ("Emacs.theme"          . "base16-atelier-heath-light")
+     ("Emacs.powerlinescale" . "1.1")
+     ("st.font"              . "Go Mono-10")
+     ("st.borderpx"          . "30")
+     ("emacs.powerline"      . "bar")
+     ("*.background"         . (face-attribute 'default :background))
+     ))
+
 ;; master
 (defmacro defconfig-base (label &rest body)
   `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) nil
@@ -175,16 +187,7 @@
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
     (let* (
-            (xrdb-fallback-values
-              ;; for when we're away from $HOME.
-              '(
-                 ("Emacs.theme"          . "base16-grayscale-light")
-                 ("Emacs.powerlinescale" . "1.1")
-                 ("st.font"              . "Go Mono-10")
-                 ("st.borderpx"          . "15")
-                 ("emacs.powerline"      . "bar")
-                 ("*.background"         . (face-attribute 'default :background))
-                 ))
+
             (default (eval (cdr (assoc name xrdb-fallback-values))))
             )
       (if (executable-find "xrq")
@@ -314,7 +317,8 @@ buffer is not visiting a file."
         (neeasade/find-or-open "~/.emacs.d/lisp/theworld.el")
         (goto-char (point-min))
         (re-search-forward (concat "defconfig " option))
-        (evil-scroll-line-to-center (neeasade/what-line)))))
+        (neeasade/focus-line)
+        )))
 
   (defcommand toggle-bloat()
     "toggle bloat in the current buffer"
@@ -365,6 +369,9 @@ buffer is not visiting a file."
       (beginning-of-line)
       (looking-at "[[:space:]]*$")))
 
+  (defcommand focus-line()
+    (evil-scroll-line-to-center (neeasade/what-line)))
+
   (neeasade/bind
     ;; reconsider these, moved from w -> q for query
     "qf" 'neeasade/what-face
@@ -392,6 +399,7 @@ buffer is not visiting a file."
     vc-follow-symlinks t ;; auto follow symlinks
     vc-make-backup-files t
     version-control t
+    network-security-level 'high
     ;; ouch - todo: revisit this
     gc-cons-threshold 10000000
     )
@@ -520,9 +528,7 @@ buffer is not visiting a file."
     (evil-goggles-mode 0)
     )
 
-  (use-package evil-surround :config (global-evil-surround-mode 0))
-
-  ;; todo: checkout https://github.com/cute-jumper/evil-embrace.el
+  ;; (use-package evil-surround :config (global-evil-surround-mode 0))
   (use-package evil-embrace
     :config
     (general-define-key
@@ -535,18 +541,10 @@ buffer is not visiting a file."
       ;; `evil-change' is not bound in `evil-visual-state-map' by default but
       ;; inherited from `evil-normal-state-map'
       ;; if you don't want "c" to be affected in visual state, you should add this
-      ;; "c" #'evil-change
-      ;; "d" #'evil-delete
+      "c" #'evil-change
+      "d" #'evil-delete
       "s" #'embrace-add
-      ;; "x" #'exchange-point-and-mark ; for expand-region
-      )
-
-    ;; (evil-embrace-evil-surround-integration)
-    )
-  ;;; ⇒ t
-
-  ;; also https://github.com/cute-jumper/evil-embrace.el/issues/6
-  ;; also: https://github.com/casouri/lunarymacs/blob/79f8eb90ce06371e87d9979de8d3607a52a648c6/star/basic/evil/config.el#L147
+      ))
 
   ;; (use-package evil-snipe
   ;;   :config
@@ -606,7 +604,9 @@ buffer is not visiting a file."
     :config
     ;; cf http://www.flycheck.org/en/latest/user/syntax-checks.html#check-automatically
     (setq-ns flycheck
-      check-syntax-automatically (if enable-windows? '(save mode-enabled idle-change) '(save mode-enabled idle-change new-line))
+      check-syntax-automatically (if enable-windows?
+                                   '(save mode-enabled idle-change)
+                                   '(save mode-enabled idle-change new-line))
       idle-change-delay 1
       )
 
@@ -780,11 +780,7 @@ current major mode."
   ;; (add-hook 'emacs-lisp-mode-hook 'energos/dash-elisp)
   )
 
-(defun spacemacs/compute-powerline-height ()
-  "Return an adjusted powerline height."
-  (let ((scale (if (and (boundp 'powerline-scale) powerline-scale)
-                 powerline-scale 1)))
-    (truncate (* scale (frame-char-height)))))
+
 
 (defconfig-base style
   (interactive)
@@ -876,6 +872,12 @@ current major mode."
   )
 
 (defconfig spaceline
+  (defun spacemacs/compute-powerline-height ()
+    "Return an adjusted powerline height."
+    (let ((scale (if (and (boundp 'powerline-scale) powerline-scale)
+                   powerline-scale 1)))
+      (truncate (* scale (frame-char-height)))))
+
   (use-package spaceline
     :config
     (require 'spaceline-config)
@@ -896,8 +898,7 @@ current major mode."
     (spaceline-toggle-minor-modes-off)
     (spaceline-toggle-evil-state-off)
     (spaceline-compile)
-    )
-  )
+    ))
 
 (defconfig feebleline
   ;; todo
@@ -1022,7 +1023,7 @@ current major mode."
     (goto-char (org-find-property "focus"))
     (org-show-context)
     (org-show-subtree)
-    (evil-scroll-line-to-center (neeasade/what-line))
+    (neeasade/focus-line)
     )
 
   (add-hook
@@ -1046,7 +1047,7 @@ current major mode."
     :config
     (defun neeasade/toggle-music(action)
       ;; todo: see if this can turn into emms command
-      (let ((command (concat (if enable-windows? "mpc" "player.sh") " " action)))
+      (let ((command (concat (if enable-home? "player.sh" "mpc") " " action)))
         (shell-command command)))
 
     (add-hook 'org-pomodoro-started-hook
@@ -1436,11 +1437,11 @@ current major mode."
       "jj" 'smart-jump-go
       "jb" 'smart-jump-back
       )
+
+    ;; todo: this isn't proc'ing?
+    (add-function :after (symbol-function 'smart-jump-go) #'neeasade/focus-line)
     )
 
-  ;; (add-function :after (symbol-function 'smart-jump-go) #'evil-scroll-line-to-center)
-  ;; todo:
-  ;; (advice-add #'neeasade/org-set-active :after #'tp-set-active)
   )
 
 (defconfig irc
@@ -1910,10 +1911,7 @@ current major mode."
       `(progn
          (defengine ,label ,url)
          (neeasade/bind
-           (concat "s" ,hotkey) (intern (concat "engine/search-" (prin1-to-string ',label)))
-           )
-         )
-      )
+           (concat "s" ,hotkey) (intern (concat "engine/search-" (prin1-to-string ',label))))))
 
     (bind-search google "https://google.com/search?q=%s" "s")
     (bind-search melpa "https://melpa.org/#/?q=%s" "m")
@@ -1921,8 +1919,7 @@ current major mode."
     (bind-search github "https://github.com/search?ref=simplesearch&q=%s" "g")
     (bind-search youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s" "y")
     (engine-mode t)
-    )
-  )
+    ))
 
 (defconfig filehooks
   (neeasade/guard enable-home?)
