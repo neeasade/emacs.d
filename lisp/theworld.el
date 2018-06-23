@@ -802,9 +802,19 @@ current major mode."
   (set-face-attribute 'fringe nil :background nil)
   (set-face-background 'font-lock-comment-face nil)
 
-  ;; todo: make this on all frames, not just current
-  (set-frame-parameter (selected-frame) 'internal-border-width
-    (string-to-number (get-resource "st.borderpx")))
+  ;; current frames
+  (mapc (lambda(frame)
+          (interactive)
+          (set-frame-parameter frame 'internal-border-width
+            (string-to-number (get-resource "st.borderpx")))
+          (redraw-frame frame))
+    (frame-list))
+
+  ;; future frames
+  (when (alist-get 'internal-border-width default-frame-alist)
+    (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
+  (add-to-list 'default-frame-alist
+    `(internal-border-width . ,(string-to-number (get-resource "st.borderpx"))))
 
   ;; this is only viable if can get it on internal window edges only (not right now)
   ;; http://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
@@ -1051,7 +1061,6 @@ current major mode."
   (use-package org-pomodoro
     :config
     (defun neeasade/toggle-music(action)
-      ;; todo: see if this can turn into emms command
       (let ((command (concat (if enable-home? "player.sh" "mpc") " " action)))
         (shell-command command)))
 
