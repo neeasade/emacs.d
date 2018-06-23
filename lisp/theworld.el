@@ -456,6 +456,16 @@ buffer is not visiting a file."
 
   (fset 'yes-or-no-p 'y-or-n-p)
 
+  (defcommand toggle-modeline ()
+    (make-local-variable 'neeasade-modeline)
+
+    (if mode-line-format
+      (progn
+        (setq neeasade-modeline mode-line-format)
+        (setq mode-line-format nil))
+      (setq mode-line-format neeasade-modeline))
+    (redraw-frame))
+
   (neeasade/bind
     "js" (lambda() (interactive) (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el"))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
@@ -464,8 +474,7 @@ buffer is not visiting a file."
     "tw" 'whitespace-mode
     "tn" 'linum-mode
     "tl" 'toggle-truncate-lines
-    ;; todo: make a toggle
-    ;; "tm" (lambda() (interactive) (setq mode-line-format nil))
+    "tm" 'neeasade/toggle-modeline
     )
   )
 
@@ -1437,7 +1446,6 @@ current major mode."
     ;; todo: this isn't proc'ing?
     (add-function :after (symbol-function 'smart-jump-go) #'neeasade/focus-line)
     )
-
   )
 
 (defconfig irc
