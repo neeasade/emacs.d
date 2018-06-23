@@ -868,6 +868,10 @@ current major mode."
             ))
     (face-list))
 
+  (use-package dimmer
+    :config (setq dimmer-fraction 0.5)
+    (dimmer-mode 0))
+
   (neeasade/spaceline)
   )
 
@@ -911,14 +915,6 @@ current major mode."
     (setq zoom-size '(80 . 24))
     (setq zoom-size '(0.58 . 0.618))
     (zoom-mode 1)
-    )
-  )
-
-(defconfig dimmer
-  ;; todo: change this based on background with contrast detect -- would need to be after style though
-  (use-package dimmer
-    :config (setq dimmer-fraction 0.5)
-    (dimmer-mode)
     )
   )
 
