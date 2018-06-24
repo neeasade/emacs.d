@@ -809,14 +809,15 @@ current major mode."
       min-length 2
       docsets-path (concat user-emacs-directory "docsets")
       browser-func 'neeasade/eww-browse-existing-or-new
-      )
-    )
+      ))
 
-  ;; todo: this needs a counsel-dash-at-point/how to get point
-  ;; ref: https://github.com/areina/helm-dash/blob/master/helm-dash.el#L584
+  (defcommand counsel-dash-word ()
+    (if (region-active-p)
+      (counsel-dash (buffer-substring (region-beginning) (region-end)))
+      (counsel-dash (thing-at-point 'word))))
+
   (neeasade/bind
-    "jd" 'counsel-dash
-    )
+    "jd" 'neeasade/counsel-dash-word)
   )
 
 (defconfig-base style
