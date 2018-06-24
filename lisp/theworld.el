@@ -214,15 +214,6 @@
   (let ((extend-file (neeasade/homefile "extend.el")))
     (when (file-exists-p extend-file)
       (eval-and-compile (load extend-file))))
-
-  ;; ref https://github.com/energos/dotfiles/blob/master/emacs/init.el#L162
-  (defun neeasade/install-dashdoc (docset)
-    "Install dash DOCSET if dashdocs enabled."
-    (if (bound-and-true-p enable-dashdocs?)
-      (if (helm-dash-docset-installed-p docset)
-        (message (format "%s docset is already installed!" docset))
-        (progn (message (format "Installing %s docset..." docset))
-          (helm-dash-install-docset (subst-char-in-string ?\s ?_ docset))))))
   )
 
 (defconfig util
@@ -278,7 +269,9 @@
               (let ((car-x (car x)))
                 (when (and (symbolp car-x) (symbol-value car-x))
                   x)))
-            minor-mode-alist)))))
+            minor-mode-alist))))
+    (neeasade/look-at-last-message)
+    )
 
   (defun sudo-edit (&optional arg)
     "Edit currently visited file as root.
@@ -371,6 +364,21 @@ buffer is not visiting a file."
 
   (defcommand focus-line()
     (evil-scroll-line-to-center (neeasade/what-line)))
+
+  (defun neeasade/get-last-message()
+    (with-current-buffer (get-buffer "*Messages*")
+      (goto-char (point-max))
+      (previous-line 1)
+      (let ((beg (line-beginning-position 1))
+	         (end (line-beginning-position 2)))
+        (buffer-substring beg end))))
+
+  (defun neeasade/look-at-last-message()
+    (interactive)
+    (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el")
+    (goto-char (point-max))
+    (insert "\n")
+    (insert (neeasade/get-last-message)))
 
   (neeasade/bind
     ;; reconsider these, moved from w -> q for query
@@ -479,7 +487,7 @@ buffer is not visiting a file."
   )
 
 (defconfig elisp
-  (neeasade/install-dashdoc "Emacs Lisp")
+  (neeasade/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
   (setq lisp-indent-function 'common-lisp-indent-function)
 
   ;; todo: look into this package some more
@@ -777,14 +785,31 @@ current major mode."
   )
 
 (defconfig dashdocs
+  (defmacro neeasade/install-dashdoc (docset mode-hook)
+    "Install dash DOCSET if dashdocs enabled."
+    (if (bound-and-true-p enable-dashdocs?)
+      (if (helm-dash-docset-installed-p docset)
+        `(message (format "%s docset is already installed!" ,docset))
+        `(progn
+           (message (format "Installing %s docset..." ,docset))
+           (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset))
+           (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
+           ))
+      nil
+      ))
+
   ;; doesn't work on windows - bind here for neeasade/install-dashdoc to ref
-  (setq enable-dashdocs? nil)
+  (setq enable-dashdocs? t)
   (neeasade/guard enable-dashdocs?)
 
   (use-package dash)
-  (use-package counsel-dash :config
-    (setq helm-dash-docsets-path (concat user-emacs-directory "docsets"))
-    (setq helm-dash-browser-func 'neeasade/eww-browse-existing-or-new)
+  (use-package counsel-dash
+    :config
+    (setq-ns counsel-dash
+      min-length 2
+      docsets-path (concat user-emacs-directory "docsets")
+      browser-func 'neeasade/eww-browse-existing-or-new
+      )
     )
 
   ;; todo: this needs a counsel-dash-at-point/how to get point
@@ -792,12 +817,6 @@ current major mode."
   (neeasade/bind
     "jd" 'counsel-dash
     )
-
-  ;; todo: have the above do something like this
-  ;; implies change to  have mode passed/arg diff
-  ;; (defun energos/dash-elisp ()
-  ;; 	(setq-local helm-dash-docsets '("Emacs Lisp")))
-  ;; (add-hook 'emacs-lisp-mode-hook 'energos/dash-elisp)
   )
 
 (defconfig-base style
@@ -1098,7 +1117,7 @@ current major mode."
 (defconfig clojure
   (use-package clojure-mode)
   (use-package cider)
-  (neeasade/install-dashdoc "Clojure")
+  (neeasade/install-dashdoc "Clojure" 'clojure-mode-hook)
 
   ;; TODO: learn lispyville
   ;; (use-package lispy)
@@ -1280,7 +1299,8 @@ current major mode."
   )
 
 (defconfig javascript
-  (neeasade/install-dashdoc "Javascript")
+  ;; note: this is huge, takes a bit.
+  (neeasade/install-dashdoc "JavaScript" 'web-mode-hook)
 
   (defun js-jsx-indent-line-align-closing-bracket ()
     "Workaround sgml-mode and align closing bracket with opening bracket"
@@ -1326,7 +1346,7 @@ current major mode."
   )
 
 (defconfig typescript
-  (neeasade/install-dashdoc "Typescript")
+  (neeasade/install-dashdoc "TypeScript" 'typescript-mode-hook)
   (use-package tide
     :config
     (defun setup-tide-mode ()
@@ -1884,7 +1904,13 @@ current major mode."
 
 (defconfig sql
   ;; todo
-  (neeasade/install-dashdoc "SQLite")
+  ;; (neeasade/install-dashdoc "SQLite" ')
+
+  ;; setup: https://github.com/kostafey/ejc-sql#install-jdbc-drivers
+  ;; (use-package ejc-sql
+  ;;   :config
+  ;;   ;; test local sqlite
+  ;; )
   )
 
 (defconfig latex
@@ -1902,7 +1928,7 @@ current major mode."
     "v"   'TeX-view                                    ;; C-c C-v
     )
 
-  (neeasade/install-dashdoc "LaTeX")
+  (neeasade/install-dashdoc "LaTeX" 'latex-mode-hook)
 
   ;; todo: this doesn't build?
   ;; ref: https://github.com/raxod502/straight.el/issues/240
