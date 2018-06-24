@@ -482,6 +482,18 @@ buffer is not visiting a file."
   (neeasade/install-dashdoc "Emacs Lisp")
   (setq lisp-indent-function 'common-lisp-indent-function)
 
+  ;; todo: look into this package some more
+  (use-package helpful
+    :config
+    ;; Note that the built-in `describe-function' includes both functions
+    ;; and macros. `helpful-function' is functions only, so we provide
+    ;; `helpful-callable' as a drop-in replacement.
+    (global-set-key (kbd "C-h f") #'helpful-callable)
+    (global-set-key (kbd "C-h v") #'helpful-variable)
+    (global-set-key (kbd "C-h k") #'helpful-key)
+    (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol)
+    )
+
   (use-package eros
     :config
     (setq eros-eval-result-duration 20)
@@ -533,7 +545,6 @@ buffer is not visiting a file."
     (setq evil-goggles-duration 0.100)
     (setq evil-goggles-pulse t)
     ;; fun visual vim mode
-    ;; todo: consider some sort of coding presentation mode func
     (evil-goggles-mode 0)
     )
 
@@ -789,8 +800,6 @@ current major mode."
   ;; (add-hook 'emacs-lisp-mode-hook 'energos/dash-elisp)
   )
 
-
-
 (defconfig-base style
   (interactive)
   ;; todo: an xresources theme that doesn't suck/covers extensions that base16 covers
@@ -910,10 +919,6 @@ current major mode."
       default-separator (get-resource "Emacs.powerline")
       )
 
-    ;; todo sync modeline background color?
-    ;; other option is remove off color section/pick explicitly
-    ;; (set-face-attribute 'spacemacs-normal-face nil :inherit 'mode-line)
-
     (set-face-attribute 'spaceline-highlight-face nil
       :background (face-attribute 'spaceline-evil-normal :background))
 
@@ -921,6 +926,11 @@ current major mode."
     (spaceline-toggle-minor-modes-off)
     (spaceline-toggle-evil-state-off)
     (spaceline-compile)
+
+    ;; set the modeline for all existing buffers
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))
     ))
 
 (defconfig feebleline
@@ -1365,11 +1375,16 @@ current major mode."
   (when enable-linux?
     ;; depends on 'nice' command
     (straight-use-package
-      '(magit-todos :type git :host github :repo "alphapapa/magit-todos"
+      '(magit-todos
+         :type git
+         :host github
+         :repo "alphapapa/magit-todos"
          :upstream (:host github
                      :repo "alphapapa/magit-todos"))
-      :config (magit-todos-mode)
-      ))
+      )
+    (magit-todos-mode)
+
+    )
 
   (use-package magit-svn :config
     (add-hook 'magit-mode-hook 'magit-svn-mode))
@@ -1469,7 +1484,7 @@ current major mode."
            :host "irc.freenode.net"
            :tls t
            :nickserv-password ,(pass "freenode")
-           :channels (:after-auth "#bspwm" "#qutebrowser")
+           :channels (:after-auth "#bspwm" "#qutebrowser" "#emacs")
            )
 
          ("Nixers"
