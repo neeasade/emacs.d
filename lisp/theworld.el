@@ -2,12 +2,14 @@
 ;;; commentary:
 ;;; code:
 
+
 (setq
   enable-windows? (eq system-type 'windows-nt)
   enable-linux? (eq system-type 'gnu/linux)
   enable-home? (string= (system-name) "erasmus")
   enable-docker? (string= (getenv "USER") "emacser")
   enable-work? enable-windows?
+  enable-dashdocs? enable-home?
   )
 
 ;; docker container user, still act trimmed/assume windows
@@ -378,7 +380,11 @@ buffer is not visiting a file."
     (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el")
     (goto-char (point-max))
     (insert "\n")
-    (insert (neeasade/get-last-message)))
+    (insert (neeasade/get-last-message))
+    (previous-line 1)
+    )
+
+
 
   (neeasade/bind
     ;; reconsider these, moved from w -> q for query
@@ -473,6 +479,9 @@ buffer is not visiting a file."
         (setq mode-line-format nil))
       (setq mode-line-format neeasade-modeline))
     (redraw-frame))
+
+  ;; don't ask to kill running processes when killing a buffer.
+  (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
   (neeasade/bind
     "js" (lambda() (interactive) (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el"))
@@ -797,10 +806,8 @@ current major mode."
            ))
       nil
       ))
-
-  ;; doesn't work on windows - bind here for neeasade/install-dashdoc to ref
-  (setq enable-dashdocs? t)
   (neeasade/guard enable-dashdocs?)
+
 
   (use-package dash)
   (use-package counsel-dash
@@ -1250,20 +1257,17 @@ current major mode."
   (use-package ace-jump-buffer
     :config
     (defun dynamic-ajb-height()
-      (setq ajb-max-window-height (/ (window-total-size) 2))
-      )
+      (setq ajb-max-window-height (/ (window-total-size) 2)))
 
     (dynamic-ajb-height)
     (add-hook 'window-configuration-change-hook 'dynamic-ajb-height)
-
     (setq ajb-sort-function 'bs--sort-by-recentf)
 
     (neeasade/bind
       "bb" 'counsel-ibuffer
       "bs" 'ace-jump-buffer
       "bm" 'ace-jump-same-mode-buffers
-      )
-    )
+      ))
   )
 
 (defconfig emms
@@ -2009,6 +2013,27 @@ current major mode."
   (neeasade/guard enable-home?)
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
+  )
+
+;; use shell frames as terminals.
+(defconfig terminal
+  (neeasade/guard enable-home?)
+  (defcommand spawn-terminal ()
+    (select-frame (make-frame))
+    (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
+    (delete-other-windows)
+    (neeasade/toggle-modeline)
+    (set-window-fringes nil 0 0))
+
+  (defcommand kill-hidden-terminals (frame)
+    (message "called")
+    (let ((windows (window-list frame)))
+      (when (eq 1 (length windows))
+        (let ((buffer (window-buffer (car windows))))
+          (when (s-match "\*spawn-shell.*" (buffer-name buffer))
+            (kill-buffer buffer))))))
+
+  (add-hook 'delete-frame-hook 'neeasade/kill-hidden-terminals)
   )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el

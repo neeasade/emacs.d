@@ -36,6 +36,7 @@
  jump
  dashdocs
 
+ terminal
  ;; zoom
  ;; dimmer
  projectile
