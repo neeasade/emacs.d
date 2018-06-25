@@ -2019,11 +2019,12 @@ current major mode."
 (defconfig terminal
   (neeasade/guard enable-home?)
   (defcommand spawn-terminal ()
-    (select-frame (make-frame))
-    (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
-    (delete-other-windows)
-    (neeasade/toggle-modeline)
-    (set-window-fringes nil 0 0))
+    (let ((default-directory (env "HOME")))
+      (select-frame (make-frame))
+      (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
+      (delete-other-windows)
+      (neeasade/toggle-modeline)
+      (set-window-fringes nil 0 0)))
 
   (defcommand kill-hidden-terminals (frame)
     (message "called")
