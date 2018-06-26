@@ -1209,6 +1209,21 @@ current major mode."
     (neeasade/bind "d" 'deer)
     )
 
+  (defun my-resize-margins ()
+    (let ((margin-size (if neeasade-center (/ (- (frame-width) 120) 2) 0)))
+      (set-window-margins nil margin-size margin-size)))
+
+  (defcommand toggle-margin ()
+    (if (not (bound-and-true-p neeasade-center))
+      (setq neeasade-center nil))
+
+    (if neeasade-center
+      (remove-hook 'window-configuration-change-hook #'my-resize-margins)
+      (add-hook 'window-configuration-change-hook #'my-resize-margins))
+
+    (setq neeasade-center (not neeasade-center))
+    (my-resize-margins))
+
   (neeasade/bind
     "/"   'counsel-rg
     "TAB" '(switch-to-other-buffer :which-key "prev buffer")
@@ -1223,6 +1238,7 @@ current major mode."
     "wd" 'evil-window-delete
     "ww" 'other-window
     "wf" 'follow-mode
+    "wc" 'neeasade/toggle-margin
 
     "wm" 'delete-other-windows ;; window-max
     "wo" 'other-frame
