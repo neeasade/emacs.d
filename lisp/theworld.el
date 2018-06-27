@@ -1206,7 +1206,16 @@ current major mode."
       (neeasade/kill-buffers-by-mode 'ranger-mode))
     (advice-add #'neeasade/kill-ranger-buffers :after #'ranger-close)
 
-    (neeasade/bind "d" 'deer)
+    (defcommand deer-with-last-shell ()
+      (let ((current-buffer (buffer-name (current-buffer))))
+        (if (or (s-match "\*spawn-shell.*" current-buffer)
+              (s-match "\*shell-[1-9]\*" current-buffer)
+              )
+          (setq neeasade-last-shell current-buffer)
+          (setq neeasade-last-shell shell-pop-last-shell-buffer-name)))
+      (deer))
+
+    (neeasade/bind "d" 'neeasade/deer-with-last-shell)
     )
 
   (defun my-resize-margins ()
@@ -1563,7 +1572,7 @@ current major mode."
     "Connect to NETWORK, but ask user for confirmation if it's already been connected to."
     (interactive "sNetwork: ")
     (if (or (not (circe-network-connected-p network))
-          (y-or-n-p (format "Already connected to %s, reconnect?" network)))
+          (y-or-n-p (format "Already connected to %s, reconnect? " network)))
       (circe network)))
 
   (defun connect-all-irc()
@@ -1885,7 +1894,7 @@ current major mode."
 
     (defcommand shell-pop-ranger-dir ()
       (let ((ranger-dir (expand-file-name default-directory)))
-        (switch-to-buffer shell-pop-last-shell-buffer-name)
+        (switch-to-buffer neeasade-last-shell)
         (shell-pop--cd-to-cwd-shell ranger-dir)
         (ranger-kill-buffers-without-window)
         ))
@@ -2033,7 +2042,6 @@ current major mode."
 
 ;; use shell frames as terminals.
 (defconfig terminal
-  (neeasade/guard enable-home?)
   (defcommand spawn-terminal ()
     (select-frame (make-frame))
     (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
@@ -2042,7 +2050,6 @@ current major mode."
     (set-window-fringes nil 0 0))
 
   (defcommand kill-hidden-terminals (frame)
-    (message "called")
     (let ((windows (window-list frame)))
       (when (eq 1 (length windows))
         (let ((buffer (window-buffer (car windows))))
