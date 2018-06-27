@@ -1895,9 +1895,10 @@ current major mode."
     (defcommand shell-pop-ranger-dir ()
       (let ((ranger-dir (expand-file-name default-directory)))
         (switch-to-buffer neeasade-last-shell)
-        (shell-pop--cd-to-cwd-shell ranger-dir)
-        (ranger-kill-buffers-without-window)
-        ))
+        (shell-pop--cd-to-cwd-shell ranger-dir))
+      ;; note: keep this outsite of let to close properly
+      (ranger-kill-buffers-without-window)
+      )
 
     (define-key ranger-mode-map (kbd "s") 'neeasade/shell-pop-ranger-dir)
     )
