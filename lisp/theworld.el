@@ -473,6 +473,10 @@ buffer is not visiting a file."
   ;; don't ask to kill running processes when killing a buffer.
   (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
+  ;; don't popup buffers with output when launching things
+  (add-to-list 'display-buffer-alist (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil)))
+
+
   (neeasade/bind
     "js" (lambda() (interactive) (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el"))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
@@ -1837,7 +1841,14 @@ current major mode."
   (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
   (define-key comint-mode-map (kbd "<down>") 'comint-next-input)
 
-  (use-package shx :config (shx-global-mode 1))
+  (use-package shx
+    :config
+    (shx-global-mode 1)
+    (defun shx-cmd-term (placeholder)
+      (interactive)
+      (let ((default-directory (neeasade/homefile ""))
+             (term (if enable-windows? "cmd" (getenv "TERMINAL"))))
+        (shell-command (format "nohup %s &" term) nil nil))))
 
   (use-package shell-pop
     :config
@@ -2011,9 +2022,8 @@ current major mode."
 
 ;; use shell frames as terminals.
 (defconfig terminal
-  (neeasade/guard enable-home?)
   (defcommand spawn-terminal ()
-    (let ((default-directory (env "HOME")))
+    (let ((default-directory (neeasade/homefile "")))
       (select-frame (make-frame))
       (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
       (delete-other-windows)
