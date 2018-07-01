@@ -188,21 +188,11 @@
 
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
-    (let* (
-
-            (default (eval (cdr (assoc name xrdb-fallback-values))))
-            )
-      (if (executable-find "xrq")
-        (let ((result
-                (neeasade/shell-exec (concat "xrq '" name "' 2>/dev/null"))
-                ))
-          (if (string= result "")
-            ;; we didn't find it in xrdb.
-            default
-            result
-            ))
-        default
-        )))
+    (let ((default (cdr (assoc name xrdb-fallback-values)))
+           (result (if (executable-find "xrq")
+                     (neeasade/shell-exec (format "xrq '%s' 2>/dev/null" name))
+                     "")))
+      (if (string= result "") default result)))
 
   (defun reload-init()
     "Reload init.el with straight.el."
@@ -833,7 +823,11 @@ current major mode."
   (use-package base16-theme)
   ;;(use-package ujelly-theme)
 
-  (load-theme (intern (get-resource "Emacs.theme")))
+  (let ((theme (intern (get-resource "Emacs.theme"))))
+    (when (boundp 'neeasade-loaded-theme)
+      (disable-theme neeasade-loaded-theme))
+    (load-theme theme)
+    (setq neeasade-loaded-theme theme))
 
   (set-face-attribute 'fringe nil :background nil)
   (set-face-background 'font-lock-comment-face nil)
