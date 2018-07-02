@@ -392,6 +392,9 @@ buffer is not visiting a file."
     "qm" 'neeasade/what-major-mode
     "qi" 'neeasade/what-minor-modes
 
+    ;; this should maybe be more generic ie mx history when not in shell
+    "qh" 'counsel-shell-history
+
     "fE" 'sudo-edit
     "jc" 'neeasade/jump-config
     "tb" 'neeasade/toggle-bloat
@@ -583,16 +586,16 @@ buffer is not visiting a file."
       "s" #'embrace-add
       ))
 
+  ;; todo: review the uses of this as verb
   ;; (use-package evil-snipe
   ;;   :config
-  ;;   ;; todo: revisit these settings/evaluate https://github.com/hlissner/evil-snipe#search-scope
-  ;;   ;; todo: resolve , because it's your leader -- overridden to jump back with this
-  ;;   (setq evil-snipe-repeat-scope 'whole-buffer)
-  ;;   (setq evil-snipe-spillover-scope 'whole-buffer)
+  ;;   (setq evil-snipe-repeat-scope 'whole-visible)
+  ;;   (setq evil-snipe-spillover-scope 'whole-visible)
   ;;   (evil-snipe-mode +1)
   ;;   (evil-snipe-override-mode +1)
   ;;   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
   ;;   )
+
 
   ;; Overload shifts so that they don't lose the selection
   (define-key evil-visual-state-map (kbd ">") 'djoyner/evil-shift-right-visual)
@@ -790,8 +793,7 @@ current major mode."
   (use-package yasnippet)
 
   (add-hook 'sh-mode-hook
-    (lambda () (sh-electric-here-document-mode -1)))
-  )
+    (lambda () (sh-electric-here-document-mode -1))))
 
 (defconfig dashdocs
   (defmacro neeasade/install-dashdoc (docset mode-hook)
@@ -1277,8 +1279,13 @@ current major mode."
     (which-key-mode)
     )
 
-  ;; jump to buffer with avy
-  ;; todo: checkout avy-goto-char-timer
+  (use-package avy
+    :bind (:map evil-motion-state-map
+            ("gh" . avy-goto-char-timer))
+    :config
+    (setq avy-timeout-seconds 0.3)
+    )
+
   (use-package ace-jump-buffer
     :config
     (defun dynamic-ajb-height()
@@ -1292,8 +1299,7 @@ current major mode."
       "bb" 'counsel-ibuffer
       "bs" 'ace-jump-buffer
       "bm" 'ace-jump-same-mode-buffers
-      ))
-  )
+      )))
 
 (defconfig emms
   (neeasade/guard enable-home?)
@@ -1492,9 +1498,11 @@ current major mode."
       (magit-mode-setup #'magit-staging-mode))
     )
 
-  (defun neeasade/git-status()
-    (interactive)
-    (if enable-windows? (magit-staging) (magit-status)))
+  (defcommand git-status()
+    (if enable-windows? (magit-staging) (magit-status))
+    ;; todo: change this to be a dimension check rather than neeasade-center
+    (if neeasade-center
+      (delete-other-windows)))
 
   (neeasade/bind
     "g" '(:ignore t :which-key "git")
@@ -2050,15 +2058,18 @@ current major mode."
     (neeasade/toggle-modeline)
     (set-window-fringes nil 0 0))
 
-  (defcommand kill-hidden-terminals (frame)
+  (defcommand kill-spawned-shell (frame)
     (let ((windows (window-list frame)))
       (when (eq 1 (length windows))
         (let ((buffer (window-buffer (car windows))))
           (when (s-match "\*spawn-shell.*" (buffer-name buffer))
             (kill-buffer buffer))))))
 
-  (add-hook 'delete-frame-hook 'neeasade/kill-hidden-terminals)
-  )
+  (add-hook 'delete-frame-hook 'neeasade/kill-spawned-shell))
+
+(defconfig powershell
+  (neeasade/guard enable-windows?)
+  (use-package powershell))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
