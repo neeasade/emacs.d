@@ -43,7 +43,10 @@
      (let ((config-name ,(prin1-to-string label)))
        (message (concat "loading " config-name "..."))
        (catch 'config-catch
-         ,@body))))
+         (setq ,(intern (format "neeasade-enable-%s-p" (prin1-to-string label))) nil)
+         ,@body
+         (setq ,(intern (format "neeasade-enable-%s-p" (prin1-to-string label))) t)
+         ))))
 
 ;; guards!
 (defmacro neeasade/guard (&rest conditions)
@@ -124,8 +127,7 @@
        ))
 
   (defun neeasade/homefile (path)
-    (concat (getenv (if enable-windows? "USERPROFILE" "HOME")) "/" path)
-    )
+    (concat (getenv (if enable-windows? "USERPROFILE" "HOME")) "/" path))
 
   ;; binding wrappers
   (defun neeasade/bind (&rest binds)
@@ -188,21 +190,11 @@
 
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
-    (let* (
-
-            (default (eval (cdr (assoc name xrdb-fallback-values))))
-            )
-      (if (executable-find "xrq")
-        (let ((result
-                (neeasade/shell-exec (concat "xrq '" name "' 2>/dev/null"))
-                ))
-          (if (string= result "")
-            ;; we didn't find it in xrdb.
-            default
-            result
-            ))
-        default
-        )))
+    (let ((default (cdr (assoc name xrdb-fallback-values)))
+           (result (if (executable-find "xrq")
+                     (neeasade/shell-exec (format "xrq '%s' 2>/dev/null" name))
+                     "")))
+      (if (string= result "") default result)))
 
   (defun reload-init()
     "Reload init.el with straight.el."
@@ -251,6 +243,12 @@
         (yiq (+ (* red .299) (* green .587) (* blue .114))))
       (>= yiq 0.5)
       ))
+
+  (defun neeasade/color-tone (name light dark)
+    "tone name a percent based on if light or dark - generally want softer value for dark."
+    (if (neeasade/color-is-light-p name)
+      (color-darken-name name light)
+      (color-lighten-name name dark)))
 
   (defun neeasade/what-face (pos)
     (interactive "d")
@@ -485,6 +483,10 @@ buffer is not visiting a file."
 
   ;; don't ask to kill running processes when killing a buffer.
   (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
+
+  ;; don't popup buffers with output when launching things
+  (add-to-list 'display-buffer-alist (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil)))
+
 
   (neeasade/bind
     "js" (lambda() (interactive) (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el"))
@@ -835,7 +837,11 @@ current major mode."
   (use-package base16-theme)
   ;;(use-package ujelly-theme)
 
-  (load-theme (intern (get-resource "Emacs.theme")))
+  (let ((theme (intern (get-resource "Emacs.theme"))))
+    (when (boundp 'neeasade-loaded-theme)
+      (disable-theme neeasade-loaded-theme))
+    (load-theme theme)
+    (setq neeasade-loaded-theme theme))
 
   (set-face-attribute 'fringe nil :background nil)
   (set-face-background 'font-lock-comment-face nil)
@@ -865,9 +871,32 @@ current major mode."
   (set-face-attribute 'vertical-border
     nil :foreground (face-attribute 'font-lock-comment-face :foreground))
 
-  ;; after circe load
-  ;; (set-face-attribute 'circe-server-face nil :foreground (face-attribute 'font-lock-comment-face :foreground))
-  ;; circe-server-face
+  (when enable-neeasade-irc-p
+    (let*
+      (
+        (comment-fg (face-attribute 'font-lock-keyword-face :foreground))
+        (default-fg (face-attribute 'default :foreground))
+        (highlight-fg (neeasade/color-tone default-fg 20 20))
+        (fade-fg (neeasade/color-tone default-fg 40 40))
+        )
+
+      (set-face-attribute 'circe-server-face nil :foreground fade-fg)
+      (set-face-attribute 'lui-time-stamp-face nil :foreground fade-fg)
+
+      (set-face-attribute 'lui-track-bar nil :background fade-fg)
+
+      (set-face-attribute 'circe-prompt-face nil :background nil)
+      (set-face-attribute 'circe-prompt-face nil :foreground fade-fg)
+
+      (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
+      ;; url face
+      (set-face-attribute 'lui-button-face nil :foreground highlight-fg)
+
+      (set-face-attribute 'circe-my-message-face nil :foreground fade-fg)
+
+      ;; sender nick face
+      (set-face-attribute 'circe-originator-face nil :foreground fade-fg)
+      ))
 
   ;; this doesn't persist across new frames even though the docs say it should
   (set-face-attribute 'fringe nil :background nil)
@@ -1164,6 +1193,8 @@ current major mode."
       (setq ivy-height (/ (window-total-size) 2)))
 
     (dynamic-ivy-height)
+
+    ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
     (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
 
     (ivy-mode 1)
@@ -1406,7 +1437,10 @@ current major mode."
 (defconfig git
   (use-package magit
     :config
-    (setq magit-repository-directories (list "~/git"))
+    (setq-ns magit
+      save-repository-buffers 'dontask
+      repository-directories (list "~/git")
+      )
 
     ;; https://magit.vc/manual/magit/Performance.html
     (when enable-windows?
@@ -1525,25 +1559,34 @@ current major mode."
       "jb" 'smart-jump-back
       )
 
-    ;; todo: this isn't proc'ing?
-    (add-function :after (symbol-function 'smart-jump-go) #'neeasade/focus-line)
-    )
-  )
+    (advice-add #'neeasade/focus-line :after #'smart-jump-go)
+
+    ))
 
 (defconfig irc
   (neeasade/guard enable-home?)
   (use-package circe
     :config
     (setq neeasade/irc-nick "neeasade")
-    (setq circe-network-options
-      `(
-         ("Freenode"
-           :nick ,neeasade/irc-nick
-           :host "irc.freenode.net"
-           :tls t
-           :nickserv-password ,(pass "freenode")
-           :channels (:after-auth "#bspwm" "#qutebrowser" "#emacs")
-           )
+
+    (setq-ns lui
+      logging-directory (neeasade/homefile ".irc")
+      time-stamp-position 'right-margin
+      time-stamp-format "%H:%M"
+      ;; fluid width windows
+      fill-type nil
+      )
+
+    (setq-ns circe
+      reduce-lurker-spam t ;; hide part, join, quit
+      network-options
+      `(("Freenode"
+          :nick ,neeasade/irc-nick
+          :host "irc.freenode.net"
+          :tls t
+          :nickserv-password ,(pass "freenode")
+          :channels (:after-auth "#nixos" "#github" "#bspwm" "#qutebrowser" "#emacs")
+          )
 
          ("Nixers"
            :nick ,neeasade/irc-nick
@@ -1564,8 +1607,51 @@ current major mode."
            :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
            :nickserv-identify-command "PRIVMSG NickServ :IDENTIFY {password}"
            :nickserv-identify-confirmation ,(rx bol "Password accepted - you are now recognized." eol)
-           )
-         ))
+           )))
+
+    (defun my/circe-format-truncated-nick (type args)
+      (let* ((nick (plist-get args :nick))
+              (body (plist-get args :body))
+              (maxlen (if (eq type 'action) 7 8))
+              (lui-nick (concat "{nick:" (number-to-string maxlen) "s}")))
+        (when (> (length nick) maxlen)
+          (setq nick (concat (substring nick 0 (- maxlen 1)) "…"))
+          (setq nick (propertize nick 'face 'circe-originator-face))
+          )
+        (lui-format
+          (pcase type
+            ('say (concat lui-nick " {body}"))
+            ('action (concat "*" lui-nick " {body}*"))
+            ('notice (concat lui-nick " ‼ {body} ‼")))
+          :nick nick :body body)))
+
+    (defun my/circe-format-action (&rest args)
+      (my/circe-format-truncated-nick 'action args))
+
+    (defun my/circe-format-notice (&rest args)
+      (my/circe-format-truncated-nick 'notice args))
+
+    (defun my/circe-format-say (&rest args)
+      (my/circe-format-truncated-nick 'say args))
+    (setq-ns circe
+      format-action        'my/circe-format-action
+      format-notice        'my/circe-format-notice
+      format-say           'my/circe-format-say
+      format-self-say      "     ━━━ {body}"
+      format-self-action   "     ━━━ *{body}*"
+      )
+
+    ;; Don't show names list upon joining a channel.
+    ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
+    (circe-set-display-handler "353" 'circe-display-ignore)
+    (circe-set-display-handler "366" 'circe-display-ignore)
+
+    ;; (require 'circe-color-nicks)
+    ;; (enable-circe-color-nicks)
+
+    ;; Last reading position.
+    (enable-lui-track-bar)
+    (add-hook 'focus-out-hook 'lui-track-bar-move)
     )
 
   (defun circe-network-connected-p (network)
@@ -1585,44 +1671,29 @@ current major mode."
 
   (defun connect-all-irc()
     (interactive)
-    (mapcar
-      '(lambda (network) (circe-maybe-connect (car network)))
-      circe-network-options)
-    )
+    (mapcar '(lambda (network) (circe-maybe-connect (car network)))
+      circe-network-options))
 
   ;; channel name in prompt
   (add-hook 'circe-chat-mode-hook 'my-circe-prompt)
   (defun my-circe-prompt ()
-    (lui-set-prompt
-      (concat (propertize (concat (buffer-name) ">") 'face 'circe-prompt-face) " ")))
+    (let ((prompt (format "%8s" (buffer-name))))
+      (when (> (length prompt) 8)
+        (setq prompt (concat (substring prompt 0 7) "…")))
+      (lui-set-prompt
+        (concat (propertize prompt 'face 'circe-prompt-face) " "))))
 
   ;; prevent too long pastes/prompt on it:
   (require 'lui-autopaste)
   (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
 
-  ;; hide part, join, quit
-  (setq circe-reduce-lurker-spam t)
-
-  (setq circe-format-say "{nick:-8s} {body}")
-
   (load "lui-logging" nil t)
-  (setq lui-logging-directory "~/.irc")
   (enable-lui-logging-globally)
-
-  (setq
-    lui-time-stamp-position 'right-margin
-    lui-time-stamp-format "%H:%M")
 
   (add-hook 'lui-mode-hook 'my-circe-set-margin)
   (defun my-circe-set-margin ()
     (setq right-margin-width 5)
-    (setq left-margin-width 0)
-    )
-
-  ;; fluid width windows
-  (setq
-    lui-time-stamp-position 'right-margin
-    lui-fill-type nil)
+    (setq left-margin-width 0))
 
   (add-hook 'lui-mode-hook 'my-lui-setup)
   (defun my-lui-setup ()
@@ -1630,9 +1701,8 @@ current major mode."
       fringes-outside-margins t
       right-margin-width 5
       word-wrap t
-      wrap-prefix "    ")
-    (setf (cdr (assoc 'continuation fringe-indicator-alist)) nil)
-    )
+      wrap-prefix "         ")
+    (setf (cdr (assoc 'continuation fringe-indicator-alist)) nil))
 
   (use-package circe-notifications
     :config
@@ -1640,7 +1710,7 @@ current major mode."
     (eval-after-load "circe-notifications"
       '(setq circe-notifications-watch-strings
          ;; example: '("people" "you" "like" "to" "hear" "from")))
-         '("neeasade")))
+         '("neeasade" "bspwm")))
 
     (add-hook 'circe-server-connected-hook 'enable-circe-notifications)
     )
@@ -1876,7 +1946,17 @@ current major mode."
   (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
   (define-key comint-mode-map (kbd "<down>") 'comint-next-input)
 
-  (use-package shx :config (shx-global-mode 1))
+  (use-package shx
+    :config
+    (shx-global-mode 1)
+    ;; todo: find a way to alias things
+    ;; ie clear --> :clear, term, exit
+    (defun shx-cmd-term (placeholder)
+      (interactive)
+      (let ((term (if enable-windows? "cmd" (getenv "TERMINAL")))
+             ;; (default-directory (neeasade/homefile ""))
+             )
+        (shell-command (format "nohup %s &" term) nil nil))))
 
   (use-package shell-pop
     :config
@@ -2052,11 +2132,15 @@ current major mode."
 ;; use shell frames as terminals.
 (defconfig terminal
   (defcommand spawn-terminal ()
-    (select-frame (make-frame))
-    (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
-    (delete-other-windows)
-    (neeasade/toggle-modeline)
-    (set-window-fringes nil 0 0))
+    (let ((default-directory (neeasade/homefile "")))
+      (select-frame (make-frame))
+      (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
+      (delete-other-windows)
+      (neeasade/toggle-modeline)
+      ;; todo: find a way to set initial dirtrack to default-directory
+      (dirtrack-mode)
+      (set-window-fringes nil 0 0))
+    )
 
   (defcommand kill-spawned-shell (frame)
     (let ((windows (window-list frame)))
