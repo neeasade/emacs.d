@@ -1237,8 +1237,32 @@ current major mode."
       (neeasade/kill-buffers-by-mode 'ranger-mode))
     (advice-add #'neeasade/kill-ranger-buffers :after #'ranger-close)
 
-    (neeasade/bind "d" 'deer)
+    (defcommand deer-with-last-shell ()
+      (let ((current-buffer (buffer-name (current-buffer))))
+        (if (or (s-match "\*spawn-shell.*" current-buffer)
+              (s-match "\*shell-[1-9]\*" current-buffer)
+              )
+          (setq neeasade-last-shell current-buffer)
+          (setq neeasade-last-shell shell-pop-last-shell-buffer-name)))
+      (deer))
+
+    (neeasade/bind "d" 'neeasade/deer-with-last-shell)
     )
+
+  (defun my-resize-margins ()
+    (let ((margin-size (if neeasade-center (/ (- (frame-width) 120) 2) 0)))
+      (set-window-margins nil margin-size margin-size)))
+
+  (defcommand toggle-margin ()
+    (if (not (bound-and-true-p neeasade-center))
+      (setq neeasade-center nil))
+
+    (if neeasade-center
+      (remove-hook 'window-configuration-change-hook #'my-resize-margins)
+      (add-hook 'window-configuration-change-hook #'my-resize-margins))
+
+    (setq neeasade-center (not neeasade-center))
+    (my-resize-margins))
 
   (neeasade/bind
     "/"   'counsel-rg
@@ -1254,6 +1278,7 @@ current major mode."
     "wd" 'evil-window-delete
     "ww" 'other-window
     "wf" 'follow-mode
+    "wc" 'neeasade/toggle-margin
 
     "wm" 'delete-other-windows ;; window-max
     "wo" 'other-frame
@@ -1949,10 +1974,11 @@ current major mode."
 
     (defcommand shell-pop-ranger-dir ()
       (let ((ranger-dir (expand-file-name default-directory)))
-        (switch-to-buffer shell-pop-last-shell-buffer-name)
-        (shell-pop--cd-to-cwd-shell ranger-dir)
-        (ranger-kill-buffers-without-window)
-        ))
+        (switch-to-buffer neeasade-last-shell)
+        (shell-pop--cd-to-cwd-shell ranger-dir))
+      ;; note: keep this outsite of let to close properly
+      (ranger-kill-buffers-without-window)
+      )
 
     (define-key ranger-mode-map (kbd "s") 'neeasade/shell-pop-ranger-dir)
     )
@@ -2109,7 +2135,6 @@ current major mode."
     )
 
   (defcommand kill-hidden-terminals (frame)
-    (message "called")
     (let ((windows (window-list frame)))
       (when (eq 1 (length windows))
         (let ((buffer (window-buffer (car windows))))
