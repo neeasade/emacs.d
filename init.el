@@ -64,6 +64,7 @@
  javascript
  typescript
  markdown
+ powershell
  ;; terraform
  ;; sql
  ;; jekyll

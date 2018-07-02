@@ -22,14 +22,14 @@
 
 (setq xrdb-fallback-values
   ;; for when we're away from $HOME.
-  '(
+  `(
      ;; ("Emacs.theme"          . "base16-grayscale-light")
      ("Emacs.theme"          . "base16-atelier-heath-light")
      ("Emacs.powerlinescale" . "1.1")
      ("st.font"              . "Go Mono-10")
      ("st.borderpx"          . "30")
      ("emacs.powerline"      . "bar")
-     ("*.background"         . (face-attribute 'default :background))
+     ("*.background"         . ,(face-attribute 'default :background))
      ))
 
 ;; master
@@ -871,7 +871,7 @@ current major mode."
   (set-face-attribute 'vertical-border
     nil :foreground (face-attribute 'font-lock-comment-face :foreground))
 
-  (when enable-neeasade-irc-p
+  (when neeasade-enable-irc-p
     (let*
       (
         (comment-fg (face-attribute 'font-lock-keyword-face :foreground))
