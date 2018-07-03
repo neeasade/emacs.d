@@ -1598,7 +1598,7 @@ current major mode."
           (pcase type
             ('say (concat lui-nick " {body}"))
             ('action (concat "*" lui-nick " {body}*"))
-            ('notice (concat lui-nick " ‼ {body} ‼")))
+            ('notice (concat lui-nick " ! {body} !")))
           :nick nick :body body)))
 
     (defun my/circe-format-action (&rest args)
@@ -1620,7 +1620,7 @@ current major mode."
           (result
             (if (string= circe-last-nick neeasade/irc-nick)
               (lui-format "         {body}" :body body)
-              (lui-format "     ━━━ {body}" :body body)
+              (lui-format "       ► {body}" :body body)
               )))
         (setq-local circe-last-nick neeasade/irc-nick)
         result
@@ -1646,8 +1646,8 @@ current major mode."
     ;; (enable-circe-color-nicks)
 
     ;; Last reading position.
-    (enable-lui-track-bar)
-    (add-hook 'focus-out-hook 'lui-track-bar-move)
+    ;; (enable-lui-track-bar)
+    ;; (remove-hook 'focus-out-hook 'lui-track-bar-move)
     )
 
   (defun circe-network-connected-p (network)
@@ -1723,11 +1723,20 @@ current major mode."
           :action (lambda (option) (counsel-switch-to-buffer-or-window option)))
         )))
 
+  (require 'circe-display-images)
+  (setq circe-display-images-max-height 100)
+  (neeasade/bind-leader-mode
+    'circe-channel
+    "i" 'circe-display-images-toggle-image-at-point)
+
+  (enable-circe-display-images)
+
   (advice-add #'neeasade/style :after #'neeasade/style-circe)
   (defun neeasade/style-circe()
     (let*
       ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
         (default-fg (face-attribute 'default :foreground))
+        (default-bg (face-attribute 'default :background))
         (highlight-fg (neeasade/color-tone default-fg 20 20))
         (fade-fg (neeasade/color-tone default-fg 35 40)))
 
@@ -1736,10 +1745,13 @@ current major mode."
           (set-face-attribute face nil :foreground fade-fg))
         '(circe-server-face
            lui-time-stamp-face
-           lui-track-bar
            circe-prompt-face
            circe-my-message-face
            circe-originator-face))
+
+      (set-face-attribute 'lui-track-bar nil :background
+        (neeasade/color-tone default-bg  10 10)
+        )
 
       (set-face-attribute 'circe-prompt-face nil :background nil)
       (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
