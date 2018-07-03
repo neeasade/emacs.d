@@ -871,40 +871,11 @@ current major mode."
   (set-face-attribute 'vertical-border
     nil :foreground (face-attribute 'font-lock-comment-face :foreground))
 
-  (when neeasade-enable-irc-p
-    (let*
-      (
-        (comment-fg (face-attribute 'font-lock-keyword-face :foreground))
-        (default-fg (face-attribute 'default :foreground))
-        (highlight-fg (neeasade/color-tone default-fg 20 20))
-        (fade-fg (neeasade/color-tone default-fg 40 40))
-        )
-
-      (set-face-attribute 'circe-server-face nil :foreground fade-fg)
-      (set-face-attribute 'lui-time-stamp-face nil :foreground fade-fg)
-
-      (set-face-attribute 'lui-track-bar nil :background fade-fg)
-
-      (set-face-attribute 'circe-prompt-face nil :background nil)
-      (set-face-attribute 'circe-prompt-face nil :foreground fade-fg)
-
-      (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
-      ;; url face
-      (set-face-attribute 'lui-button-face nil :foreground highlight-fg)
-
-      (set-face-attribute 'circe-my-message-face nil :foreground fade-fg)
-
-      ;; sender nick face
-      (set-face-attribute 'circe-originator-face nil :foreground fade-fg)
-      ))
-
   ;; this doesn't persist across new frames even though the docs say it should
   (set-face-attribute 'fringe nil :background nil)
   (add-hook 'after-make-frame-functions
     (lambda (frame)
-      (set-face-attribute 'fringe nil :background nil)
-      )
-    )
+      (set-face-attribute 'fringe nil :background nil)))
 
   ;; set font on current and future
   (set-face-attribute 'default nil :font (get-resource "st.font"))
@@ -922,16 +893,12 @@ current major mode."
       :foreground (face-attribute 'whitespace-space :foreground))
     )
 
-  (advice-add #'color-whitespace-mode :after #'whitespace-mode)
+  (advice-add #'whitespace-mode :after #'color-whitespace-mode )
 
   (use-package hl-todo
     :config
     (let* ((comment-color (face-attribute 'font-lock-comment-face :foreground))
-            (highlight-color
-              (if (neeasade/color-is-light-p comment-color)
-                (color-darken-name comment-color 30)
-                (color-lighten-name comment-color 30)
-                )))
+            (highlight-color (neeasade/color-tone comment-color 30 30)))
 
       (setq hl-todo-keyword-faces
         `(("TODO" . ,highlight-color)
@@ -1237,7 +1204,8 @@ current major mode."
 
     (defcommand kill-ranger-buffers ()
       (neeasade/kill-buffers-by-mode 'ranger-mode))
-    (advice-add #'neeasade/kill-ranger-buffers :after #'ranger-close)
+
+    (advice-add #'ranger-close :after #'neeasade/kill-ranger-buffers)
 
     (defcommand deer-with-last-shell ()
       (let ((current-buffer (buffer-name (current-buffer))))
@@ -1559,8 +1527,7 @@ current major mode."
       "jb" 'smart-jump-back
       )
 
-    (advice-add #'neeasade/focus-line :after #'smart-jump-go)
-
+    (advice-add #'smart-jump-go :after #'neeasade/focus-line)
     ))
 
 (defconfig irc
@@ -1618,6 +1585,15 @@ current major mode."
           (setq nick (concat (substring nick 0 (- maxlen 1)) "…"))
           (setq nick (propertize nick 'face 'circe-originator-face))
           )
+
+        (if (not (boundp 'circe-last-nick))
+          (setq-local circe-last-nick ""))
+
+        (if (string= circe-last-nick nick)
+          (setq nick "        ")
+          (setq-local circe-last-nick nick)
+          )
+
         (lui-format
           (pcase type
             ('say (concat lui-nick " {body}"))
@@ -1633,13 +1609,33 @@ current major mode."
 
     (defun my/circe-format-say (&rest args)
       (my/circe-format-truncated-nick 'say args))
+
+    (defun my/circe-format-self-say (&rest args)
+      (if (not (boundp 'circe-last-nick))
+        (setq-local circe-last-nick ""))
+
+      (let*
+        (
+          (body (plist-get args :body))
+          (result
+            (if (string= circe-last-nick neeasade/irc-nick)
+              (lui-format "         {body}" :body body)
+              (lui-format "     ━━━ {body}" :body body)
+              )))
+        (setq-local circe-last-nick neeasade/irc-nick)
+        result
+        )
+      )
+
     (setq-ns circe
       format-action        'my/circe-format-action
       format-notice        'my/circe-format-notice
       format-say           'my/circe-format-say
-      format-self-say      "     ━━━ {body}"
+      ;; format-self-say      "     ━━━ {body}"
+      format-self-say      'my/circe-format-self-say
       format-self-action   "     ━━━ *{body}*"
       )
+
 
     ;; Don't show names list upon joining a channel.
     ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
@@ -1726,6 +1722,29 @@ current major mode."
         (ivy-read "channel: " irc-channels
           :action (lambda (option) (counsel-switch-to-buffer-or-window option)))
         )))
+
+  (advice-add #'neeasade/style :after #'neeasade/style-circe)
+  (defun neeasade/style-circe()
+    (let*
+      ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
+        (default-fg (face-attribute 'default :foreground))
+        (highlight-fg (neeasade/color-tone default-fg 20 20))
+        (fade-fg (neeasade/color-tone default-fg 35 40)))
+
+      (mapc
+        (lambda(face)
+          (set-face-attribute face nil :foreground fade-fg))
+        '(circe-server-face
+           lui-time-stamp-face
+           lui-track-bar
+           circe-prompt-face
+           circe-my-message-face
+           circe-originator-face))
+
+      (set-face-attribute 'circe-prompt-face nil :background nil)
+      (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
+      (set-face-attribute 'lui-button-face nil :foreground highlight-fg) ; url
+      ))
 
   (neeasade/bind
     "ai" 'connect-all-irc
