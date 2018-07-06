@@ -382,13 +382,12 @@ buffer is not visiting a file."
     (previous-line 1)
     )
 
-
-
   (neeasade/bind
     ;; reconsider these, moved from w -> q for query
     "qf" 'neeasade/what-face
     "qm" 'neeasade/what-major-mode
     "qi" 'neeasade/what-minor-modes
+    "qq" 'neeasade/look-at-last-message
 
     ;; this should maybe be more generic ie mx history when not in shell
     "qh" 'counsel-shell-history
@@ -497,6 +496,7 @@ buffer is not visiting a file."
     "tn" 'linum-mode
     "tl" 'toggle-truncate-lines
     "tm" 'neeasade/toggle-modeline
+    "i" 'insert-char
     )
   )
 
@@ -1502,8 +1502,7 @@ current major mode."
 
   (defcommand git-status()
     (if enable-windows? (magit-staging) (magit-status))
-    ;; todo: change this to be a dimension check rather than neeasade-center
-    (if neeasade-center
+    (if (> (frame-pixel-height) (frame-pixel-width))
       (delete-other-windows)))
 
   (neeasade/bind
@@ -1561,6 +1560,11 @@ current major mode."
            :port (6667 . 6697)
            :tls t
            :channels ("#unix")
+           )
+
+         ("Bitlbee"
+           :nick ,neeasade/irc-nick
+           :host "localhost"
            )
 
          ("Rizon"
@@ -1627,13 +1631,12 @@ current major mode."
         )
       )
 
-    (setq-ns circe
-      format-action        'my/circe-format-action
-      format-notice        'my/circe-format-notice
-      format-say           'my/circe-format-say
-      ;; format-self-say      "     ━━━ {body}"
-      format-self-say      'my/circe-format-self-say
-      format-self-action   "     ━━━ *{body}*"
+    (setq-ns circe-format
+      action 'my/circe-format-action
+      notice 'my/circe-format-notice
+      say 'my/circe-format-say
+      self-say 'my/circe-format-self-say
+      self-action "       ► *{body}*"
       )
 
 
@@ -1647,7 +1650,8 @@ current major mode."
 
     ;; Last reading position.
     ;; (enable-lui-track-bar)
-    ;; (remove-hook 'focus-out-hook 'lui-track-bar-move)
+    ;; todo: this hook should be buffer not frame maybe
+    ;; (add-hook 'focus-out-hook 'lui-track-bar-move)
     )
 
   (defun circe-network-connected-p (network)
@@ -1724,7 +1728,7 @@ current major mode."
         )))
 
   (require 'circe-display-images)
-  (setq circe-display-images-max-height 100)
+  (setq circe-display-images-max-height 200)
   (neeasade/bind-leader-mode
     'circe-channel
     "i" 'circe-display-images-toggle-image-at-point)
@@ -1758,6 +1762,7 @@ current major mode."
       (set-face-attribute 'lui-button-face nil :foreground highlight-fg) ; url
       ))
 
+  ;; todo: mute irc bots colors
   (neeasade/bind
     "ai" 'connect-all-irc
     "ji" 'neeasade/jump-irc
