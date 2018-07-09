@@ -569,7 +569,7 @@ buffer is not visiting a file."
     (evil-goggles-mode 0)
     )
 
-  ;; (use-package evil-surround :config (global-evil-surround-mode 0))
+  (use-package evil-surround :config (global-evil-surround-mode 1))
   (use-package evil-embrace
     :config
     (general-define-key
@@ -585,18 +585,18 @@ buffer is not visiting a file."
       "c" #'evil-change
       "d" #'evil-delete
       "s" #'embrace-add
-      ))
+      )
 
-  ;; todo: review the uses of this as verb
-  ;; (use-package evil-snipe
-  ;;   :config
-  ;;   (setq evil-snipe-repeat-scope 'whole-visible)
-  ;;   (setq evil-snipe-spillover-scope 'whole-visible)
-  ;;   (evil-snipe-mode +1)
-  ;;   (evil-snipe-override-mode +1)
-  ;;   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
-  ;;   )
+    (evil-embrace-enable-evil-surround-integration)
+    )
 
+  (use-package evil-snipe
+    :config
+    (setq evil-snipe-repeat-scope 'whole-visible)
+    (setq evil-snipe-spillover-scope 'whole-visible)
+    (evil-snipe-override-mode +1)
+    (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
+    )
 
   ;; Overload shifts so that they don't lose the selection
   (define-key evil-visual-state-map (kbd ">") 'djoyner/evil-shift-right-visual)
@@ -1278,10 +1278,13 @@ current major mode."
     )
 
   (use-package avy
-    :bind (:map evil-motion-state-map
-            ("gh" . avy-goto-char-timer))
     :config
-    (setq avy-timeout-seconds 0.3)
+    (setq avy-timeout-seconds 0.2)
+    (general-nmap
+      "s" 'avy-goto-char-timer)
+
+    (general-mmap
+      "z" 'avy-goto-char-timer)
     )
 
   (use-package ace-jump-buffer
