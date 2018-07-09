@@ -1537,6 +1537,11 @@ current major mode."
     (if (> (frame-pixel-height) (frame-pixel-width))
       (delete-other-windows)))
 
+  (general-nmap
+    "]g" 'git-gutter:next-hunk
+    "[g" 'git-gutter:previous-hunk
+    )
+
   (neeasade/bind
     "g" '(:ignore t :which-key "git")
     "gb" 'magit-blame
