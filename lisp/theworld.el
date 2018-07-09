@@ -587,16 +587,18 @@ buffer is not visiting a file."
       "s" #'embrace-add
       )
 
-    (evil-embrace-enable-evil-surround-integration)
-    )
+    (evil-embrace-enable-evil-surround-integration))
 
   (use-package evil-snipe
     :config
     (setq evil-snipe-repeat-scope 'whole-visible)
     (setq evil-snipe-spillover-scope 'whole-visible)
     (evil-snipe-override-mode +1)
-    (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
-    )
+    (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
+
+  (use-package evil-exchange
+    :config
+    (evil-exchange-cx-install))
 
   ;; Overload shifts so that they don't lose the selection
   (define-key evil-visual-state-map (kbd ">") 'djoyner/evil-shift-right-visual)
