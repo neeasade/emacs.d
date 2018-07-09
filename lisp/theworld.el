@@ -929,18 +929,18 @@ current major mode."
   (set-face-attribute 'default nil :font (get-resource "st.font"))
   (set-frame-font (get-resource "st.font") nil t)
 
-  ;; (eval-after-load "whitespace-mode"
-  ;; (defadvice org-add-props (ac check-faces activate)
-
+  (setq neeasade/colored-whitespace? nil)
   (defun color-whitespace-mode(&rest maybe)
-    (interactive)
-    (set-face-attribute 'whitespace-space nil :background nil)
-    (set-face-attribute 'whitespace-tab nil :background nil)
-    (set-face-attribute 'whitespace-newline nil
-      :foreground (face-attribute 'whitespace-space :foreground))
+    (when (not neeasade/colored-whitespace?)
+      (set-face-attribute 'whitespace-space nil :background nil)
+      (set-face-attribute 'whitespace-tab nil :background nil)
+      (set-face-attribute 'whitespace-newline nil
+        :foreground (face-attribute 'whitespace-space :foreground))
+      (setq neeasade/colored-whitespace? t)
+      )
     )
 
-  ;; (advice-add #'whitespace-mode :after #'color-whitespace-mode )
+  (advice-add 'whitespace-mode :after #'color-whitespace-mode )
 
   (use-package hl-todo
     :config
