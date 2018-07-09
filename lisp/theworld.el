@@ -487,6 +487,8 @@ buffer is not visiting a file."
   (add-to-list 'display-buffer-alist (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil)))
 
 
+  (setq whitespace-line-column 120)
+
   (neeasade/bind
     "js" (lambda() (interactive) (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el"))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
@@ -2310,6 +2312,20 @@ current major mode."
 (defconfig powershell
   (neeasade/guard enable-windows?)
   (use-package powershell))
+
+(defconfig staging
+  (use-package indent-guide
+    :config
+
+    (set-face-foreground 'indent-guide-face
+      (face-attribute 'font-lock-keyword-face :foreground))
+
+    ;; (set-face-foreground 'indent-guide-face (neeasade/color-tone (face-attribute 'default :background) 15 15))
+
+    (setq indent-guide-char "|")
+    (indent-guide-global-mode)
+    )
+  )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs

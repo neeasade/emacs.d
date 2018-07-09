@@ -81,6 +81,7 @@
 ;; liftoff
 (neeasade/load core extra development communication style)
 (neeasade/check-for-orphans)
+(neeasade/staging)
 
 ;; Emacs is terribly slow on windows
 (neeasade/toggle-bloat-global enable-linux?)
