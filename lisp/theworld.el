@@ -557,8 +557,15 @@ buffer is not visiting a file."
   (use-package evil-matchit :config (global-evil-matchit-mode 1))
   (use-package evil-numbers
     :config
-    (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
-    (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt)
+    (general-nmap (kbd "C-c +") 'evil-numbers/inc-at-pt)
+    (general-nmap (kbd "C-c -") 'evil-numbers/dec-at-pt)
+    )
+
+  (use-package evil-fringe-mark
+    :config
+    ;; to help remind me to use special fringes for now
+    (setq evil-fringe-mark-show-special t)
+    (global-evil-fringe-mark-mode)
     )
 
   (use-package evil-goggles
@@ -1310,11 +1317,22 @@ current major mode."
   (use-package avy
     :config
     (setq avy-timeout-seconds 0.2)
-    (general-nmap
-      "s" 'avy-goto-char-timer)
 
     (general-mmap
       "z" 'avy-goto-char-timer)
+
+    (general-nmap
+      "s" 'avy-goto-char-timer
+      "zz" 'evil-scroll-line-to-center
+      )
+
+    ;; gross colors, but need something so we have a signifier in unique match case
+    ;; todo: maybe fix gross colors
+    (set-face-attribute 'avy-lead-face nil :background
+      (neeasade/color-tone (face-attribute 'default :background) 30 30))
+
+    (set-face-attribute 'avy-lead-face nil :foreground
+      (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
     )
 
   (use-package ace-jump-buffer
