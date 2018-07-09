@@ -656,7 +656,12 @@ buffer is not visiting a file."
 
   (advice-add #'next-buffer :after #'neeasade/maybe-next)
   (advice-add #'previous-buffer :after #'neeasade/maybe-prev)
-  )
+
+  (general-nmap
+    "]s" 'flyspell-goto-next-error
+    "[b" 'evil-prev-buffer
+    "]b" 'evil-next-buffer
+    ))
 
 (defconfig flycheck
   (use-package flycheck
@@ -679,13 +684,16 @@ buffer is not visiting a file."
     (flycheck-add-mode 'javascript-eslint 'web-mode)
     )
 
-  (neeasade/bind
-    ;; Applications
-    "e" '(:ignore t :which-key "Errors")
-    "en" 'flycheck-next-error
-    "ep" 'flycheck-previous-error
-    )
-  )
+  ;; (neeasade/bind
+  ;;   "e" '(:ignore t :which-key "Errors")
+  ;;   "en" 'flycheck-next-error
+  ;;   "ep" 'flycheck-previous-error
+  ;;   )
+
+  (general-nmap
+    "]e" 'flycheck-next-error
+    "[e" 'flycheck-previous-error
+    ))
 
 (defconfig treemacs
   (use-package treemacs)
@@ -853,6 +861,7 @@ current major mode."
   (interactive)
   ;; todo: an xresources theme that doesn't suck/covers extensions that base16 covers
   (use-package base16-theme)
+  ;; https://github.com/waymondo/apropospriate-theme
   ;;(use-package ujelly-theme)
 
   (let ((theme (intern (get-resource "Emacs.theme"))))
@@ -2108,6 +2117,7 @@ current major mode."
 
   (neeasade/install-dashdoc "LaTeX" 'latex-mode-hook)
 
+  ;; todo: https://github.com/The-Compiler/dotfiles/blob/543e48cd594750188dd3e935ef6dfd77f867ca71/spacemacs#L497
   ;; todo: this doesn't build?
   ;; ref: https://github.com/raxod502/straight.el/issues/240
   ;; (use-package company-auctex)
