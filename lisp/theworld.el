@@ -2334,10 +2334,54 @@ current major mode."
     (setq indent-guide-char "|")
     (indent-guide-global-mode 0)
     )
+
+  (defun xah-syntax-color-hex (toggle)
+    "Syntax color text of the form 「#ff1100」 and 「#abc」 in current buffer.
+URL `http://ergoemacs.org/emacs/emacs_CSS_colors.html'
+Version 2017-03-12"
+    (interactive)
+    (eval
+      (cons
+        (if toggle 'font-lock-add-keywords 'font-lock-remove-keywords)
+        '(nil
+           '(("#[[:xdigit:]]\\{3\\}"
+               (0 (put-text-property
+                    (match-beginning 0)
+                    (match-end 0)
+                    'face (list :background
+                            (let* (
+                                    (ms (match-string-no-properties 0))
+                                    (r (substring ms 1 2))
+                                    (g (substring ms 2 3))
+                                    (b (substring ms 3 4)))
+                              (concat "#" r r g g b b))))))
+              ("#[[:xdigit:]]\\{6\\}"
+                (0 (put-text-property
+                     (match-beginning 0)
+                     (match-end 0)
+                     'face (list :background (match-string-no-properties 0))))))))
+      (font-lock-flush))
+    )
+
+  (defcommand toggle-colors ()
+    (if (not (boundp 'neeasade/show-colors))
+      (setq-local neeasade/show-colors nil))
+
+    (setq-local neeasade/show-colors (not neeasade/show-colors))
+    (xah-syntax-color-hex neeasade/show-colors))
+
+  (neeasade/bind "tc" 'neeasade/toggle-colors)
   )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
+
+;; todo: make personal atoms consistent
+;; functions
+;; interactive functions
+;; vars
+;; toggle vars
+;; buffer local vars
 
 (provide 'theworld)
 
