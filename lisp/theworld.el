@@ -1235,6 +1235,9 @@ current major mode."
     (setq neeasade-center (not neeasade-center))
     (my-resize-margins))
 
+  (defcommand kill-current-buffer()
+    (kill-buffer nil))
+
   (neeasade/bind
     "/"   'counsel-rg
     "TAB" '(switch-to-other-buffer :which-key "prev buffer")
@@ -1258,7 +1261,7 @@ current major mode."
     "a" '(:ignore t :which-key "Applications")
 
     "b" '(:ignore t :which-key "Buffers")
-    "bd" '(kill-buffer nil)
+    "bd" 'neeasade/kill-current-buffer
     )
 
   (use-package alert
@@ -2190,6 +2193,63 @@ current major mode."
             (kill-buffer buffer))))))
 
   (add-hook 'delete-frame-hook 'neeasade/kill-spawned-shell))
+
+
+(defconfig elfeed
+  (neeasade/guard enable-home?)
+  (use-package elfeed
+    :config
+    (neeasade/bind "af" 'elfeed)
+    (setq elfeed-feeds
+      '(
+         "https://hnrss.org/newest?q=emacs"
+         "http://pragmaticemacs.com/feed/"
+         "http://xkcd.com/rss.xml"
+         ))
+
+    ;; Entries older than 2 weeks are marked as read
+    (add-hook 'elfeed-new-entry-hook
+      (elfeed-make-tagger :before "2 weeks ago"
+        :remove 'unread))
+    )
+
+  (use-package elfeed-goodies
+    :config (elfeed-goodies/setup))
+
+  (use-package elfeed-org
+    ;; todo - could then get feeds out of this file
+    ))
+
+(defconfig stackexchange
+  (neeasade/guard enable-home?)
+  (use-package sx
+    :config
+    (neeasade/bind "as" 'sx-tab-all-questions)
+    ))
+
+(defconfig reddit
+  (neeasade/guard enable-home?)
+  ;; todo: this needs some rice love
+  ;; text wrapping comments don't align
+  ;; could use some better keybinds, UX
+  (use-package md4rd
+    :config
+    (neeasade/bind "ar" 'md4rd)
+    (setq md4rd-subs-active
+      '(unixporn emacs))
+
+    (general-nmap md4rd-mode-map
+      "q" 'neeasade/kill-current-buffer
+      "o" 'md4rd-open
+      "r" 'md4rd-reply
+      "t" 'md4rd-widget-toggle-line
+      ;; "<tab>" 'md4rd-widget-toggle-line
+      )
+
+    (add-hook 'md4rd-mode-hook 'neeasade/md4rd)
+    (defun neeasade/md4rd ()
+      ;; (setq wrap-prefix "         ")
+      )))
 
 (defconfig powershell
   (neeasade/guard enable-windows?)
