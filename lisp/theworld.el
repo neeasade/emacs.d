@@ -640,6 +640,22 @@ buffer is not visiting a file."
 
   ;; persist marks
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+
+  ;; match qutebrowser fwd back
+  (general-nmap
+    "H" 'next-buffer
+    "L" 'previous-buffer)
+
+  (defcommand should-skip()
+    (or
+      (member (buffer-name) '("scratch.el"))
+      (s-starts-with? "*" (buffer-name))))
+
+  (defcommand maybe-next () (if (neeasade/should-skip) (next-buffer)))
+  (defcommand maybe-prev () (if (neeasade/should-skip) (previous-buffer)))
+
+  (advice-add #'next-buffer :after #'neeasade/maybe-next)
+  (advice-add #'previous-buffer :after #'neeasade/maybe-prev)
   )
 
 (defconfig flycheck
