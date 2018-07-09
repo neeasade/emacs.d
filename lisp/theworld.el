@@ -681,13 +681,6 @@ buffer is not visiting a file."
       "zz" 'evil-scroll-line-to-center
       )
 
-    ;; gross colors, but need something so we have a signifier in unique match case
-    ;; todo: maybe fix gross colors
-    (set-face-attribute 'avy-lead-face nil :background
-      (neeasade/color-tone (face-attribute 'default :background) 30 30))
-
-    (set-face-attribute 'avy-lead-face nil :foreground
-      (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
     )
   )
 
@@ -978,6 +971,14 @@ current major mode."
   (use-package dimmer
     :config (setq dimmer-fraction 0.5)
     (dimmer-mode 0))
+
+  ;; gross colors, but need something so we have a signifier in unique match case
+  ;; todo: maybe fix gross colors
+  (set-face-attribute 'avy-lead-face nil :background
+    (neeasade/color-tone (face-attribute 'default :background) 30 30))
+
+  (set-face-attribute 'avy-lead-face nil :foreground
+    (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
 
   (neeasade/spaceline)
   )

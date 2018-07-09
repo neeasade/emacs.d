@@ -71,7 +71,12 @@
  ;; plantuml
  )
 
-(neeasade/compose communication irc slack twitter email)
+(neeasade/compose
+ communication
+
+ irc slack twitter email
+ reddit stackexchange elfeed
+ )
 
 ;; liftoff
 (neeasade/load core extra development communication style)
