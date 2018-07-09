@@ -370,7 +370,7 @@ buffer is not visiting a file."
       (goto-char (point-max))
       (previous-line 1)
       (let ((beg (line-beginning-position 1))
-	         (end (line-beginning-position 2)))
+             (end (line-beginning-position 2)))
         (buffer-substring beg end))))
 
   (defun neeasade/look-at-last-message()
@@ -1198,7 +1198,7 @@ current major mode."
 
     ;; call with eg 'dired-mode
     (defcommand kill-buffers-by-mode (mode)
-	  (mapc (lambda (buffer)
+      (mapc (lambda (buffer)
               (when (eq mode (buffer-local-value 'major-mode buffer))
                 (kill-buffer buffer)))
         (buffer-list)))
