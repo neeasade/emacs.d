@@ -537,7 +537,6 @@ buffer is not visiting a file."
 
   (use-package evil-collection :config (evil-collection-init))
 
-  ;; todo: check if we're near the height of the buffer and not scroll to top if so
   (defun neeasade/zz-scroll (&rest optional)
     (let* ((scrollcount (/ (window-total-size) 7))
             (halfheight (/ (window-total-size) 2))
@@ -800,18 +799,19 @@ current major mode."
 (defconfig dashdocs
   (defmacro neeasade/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled."
-    (if (bound-and-true-p enable-dashdocs?)
+    (when (bound-and-true-p enable-dashdocs?)
       (if (helm-dash-docset-installed-p docset)
-        `(message (format "%s docset is already installed!" ,docset))
+        `(progn
+           (message (format "%s docset is already installed!" ,docset))
+           (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
+           )
         `(progn
            (message (format "Installing %s docset..." ,docset))
            (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset))
            (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
-           ))
-      nil
-      ))
-  (neeasade/guard enable-dashdocs?)
+           ))))
 
+  (neeasade/guard enable-dashdocs?)
 
   (use-package dash)
   (use-package counsel-dash
@@ -886,7 +886,6 @@ current major mode."
 
   (defun color-whitespace-mode()
     (interactive)
-    (message "hook hit")
     (set-face-attribute 'whitespace-space nil :background nil)
     (set-face-attribute 'whitespace-tab nil :background nil)
     (set-face-attribute 'whitespace-newline nil
