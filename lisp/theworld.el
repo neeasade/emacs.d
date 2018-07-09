@@ -563,9 +563,8 @@ buffer is not visiting a file."
 
   (use-package evil-fringe-mark
     :config
-    ;; to help remind me to use special fringes for now
-    (setq evil-fringe-mark-show-special t)
-    (global-evil-fringe-mark-mode)
+    (setq evil-fringe-mark-show-special nil)
+    (global-evil-fringe-mark-mode t)
     )
 
   (use-package evil-goggles
@@ -668,7 +667,29 @@ buffer is not visiting a file."
     "]s" 'flyspell-goto-next-error
     "[b" 'evil-prev-buffer
     "]b" 'evil-next-buffer
-    ))
+    )
+
+  (use-package avy
+    :config
+    (setq avy-timeout-seconds 0.2)
+
+    (general-mmap
+      "z" 'avy-goto-char-timer)
+
+    (general-nmap
+      "s" 'avy-goto-char-timer
+      "zz" 'evil-scroll-line-to-center
+      )
+
+    ;; gross colors, but need something so we have a signifier in unique match case
+    ;; todo: maybe fix gross colors
+    (set-face-attribute 'avy-lead-face nil :background
+      (neeasade/color-tone (face-attribute 'default :background) 30 30))
+
+    (set-face-attribute 'avy-lead-face nil :foreground
+      (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
+    )
+  )
 
 (defconfig flycheck
   (use-package flycheck
@@ -918,7 +939,7 @@ current major mode."
   ;; (eval-after-load "whitespace-mode"
   ;; (defadvice org-add-props (ac check-faces activate)
 
-  (defun color-whitespace-mode()
+  (defun color-whitespace-mode(&rest maybe)
     (interactive)
     (set-face-attribute 'whitespace-space nil :background nil)
     (set-face-attribute 'whitespace-tab nil :background nil)
@@ -926,7 +947,7 @@ current major mode."
       :foreground (face-attribute 'whitespace-space :foreground))
     )
 
-  (advice-add #'whitespace-mode :after #'color-whitespace-mode )
+  ;; (advice-add #'whitespace-mode :after #'color-whitespace-mode )
 
   (use-package hl-todo
     :config
@@ -1151,6 +1172,9 @@ current major mode."
     ;; ehh
     "on" 'jump-org
     )
+
+  ;; todo: into org agendas
+  ;; https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
   )
 
 (defconfig clojure
@@ -1314,26 +1338,7 @@ current major mode."
     (which-key-mode)
     )
 
-  (use-package avy
-    :config
-    (setq avy-timeout-seconds 0.2)
 
-    (general-mmap
-      "z" 'avy-goto-char-timer)
-
-    (general-nmap
-      "s" 'avy-goto-char-timer
-      "zz" 'evil-scroll-line-to-center
-      )
-
-    ;; gross colors, but need something so we have a signifier in unique match case
-    ;; todo: maybe fix gross colors
-    (set-face-attribute 'avy-lead-face nil :background
-      (neeasade/color-tone (face-attribute 'default :background) 30 30))
-
-    (set-face-attribute 'avy-lead-face nil :foreground
-      (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
-    )
 
   (use-package ace-jump-buffer
     :config
@@ -2219,6 +2224,7 @@ current major mode."
   (neeasade/guard enable-home?)
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
+  ;; https://github.com/agzam/mw-thesaurus.el
   )
 
 ;; use shell frames as terminals.
