@@ -2232,15 +2232,24 @@ current major mode."
 
 ;; use shell frames as terminals.
 (defconfig terminal
-  (defcommand spawn-terminal ()
+  (defcommand stage-terminal ()
     (let ((default-directory (neeasade/homefile "")))
-      (select-frame (make-frame))
-      (shell (concat "*spawn-shell" (number-to-string (random)) "*"))
-      (delete-other-windows)
+      (shell "*spawn-shell-staged*")
       (neeasade/toggle-modeline)
+      (delete-window)
       ;; todo: find a way to set initial dirtrack to default-directory
       (dirtrack-mode)
-      (set-window-fringes nil 0 0))
+      ))
+
+  (neeasade/stage-terminal)
+
+  (defcommand spawn-terminal ()
+    (select-frame (make-frame))
+    (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
+    (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
+    (delete-other-windows)
+    (set-window-fringes nil 0 0)
+    (neeasade/stage-terminal)
     )
 
   (defcommand kill-spawned-shell (frame)
@@ -2323,7 +2332,7 @@ current major mode."
     ;; (set-face-foreground 'indent-guide-face (neeasade/color-tone (face-attribute 'default :background) 15 15))
 
     (setq indent-guide-char "|")
-    (indent-guide-global-mode)
+    (indent-guide-global-mode 0)
     )
   )
 
