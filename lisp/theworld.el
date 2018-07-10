@@ -433,7 +433,7 @@ buffer is not visiting a file."
   (unless (file-exists-p custom-file)
     (write-region "" nil custom-file))
 
-  (load custom-file)
+  (load custom-file 'noerr)
 
   ;; persistent session:
   ;; note: (desktop-clear) to clean/kill everything.
@@ -943,6 +943,7 @@ current major mode."
     )
 
   (advice-add 'whitespace-mode :after #'color-whitespace-mode )
+  ;; (advice-add 'whitespace-mode :after #'color-whitespace-mode )
 
   (use-package hl-todo
     :config
@@ -976,11 +977,8 @@ current major mode."
 
   ;; gross colors, but need something so we have a signifier in unique match case
   ;; todo: maybe fix gross colors
-  (set-face-attribute 'avy-lead-face nil :background
-    (neeasade/color-tone (face-attribute 'default :background) 30 30))
-
-  (set-face-attribute 'avy-lead-face nil :foreground
-    (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
+  ;; (set-face-attribute 'avy-lead-face nil :background (neeasade/color-tone (face-attribute 'default :background) 30 30))
+  ;; (set-face-attribute 'avy-lead-face nil :foreground (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
 
   (neeasade/spaceline)
   )
@@ -1046,6 +1044,7 @@ current major mode."
       ellipsis "…"
       startup-indented t
       startup-folded t
+      src-fontify-natively t
 
       ;; days before expiration where a deadline becomes active
       deadline-warn-days 14
@@ -1358,7 +1357,7 @@ current major mode."
       "bm" 'ace-jump-same-mode-buffers
       )))
 
-(defconfig emms
+(defconfig music
   (neeasade/guard enable-home?)
   (use-package emms)
 
@@ -1563,6 +1562,21 @@ current major mode."
     (if (> (frame-pixel-height) (frame-pixel-width))
       (delete-other-windows)))
 
+
+  (use-package vdiff
+    :config
+    (evil-define-key 'normal vdiff-mode-map "," vdiff-mode-prefix-map)
+
+    (evil-define-minor-mode-key 'normal 'vdiff-mode "]c" 'vdiff-next-hunk)
+    (evil-define-minor-mode-key 'normal 'vdiff-mode "[c" 'vdiff-previous-hunk)
+    (evil-define-minor-mode-key 'normal 'vdiff-mode "zc" 'vdiff-close-fold)
+    (evil-define-minor-mode-key 'normal 'vdiff-mode "zM" 'vdiff-close-all-folds)
+    (evil-define-minor-mode-key 'normal 'vdiff-mode "zo" 'vdiff-open-fold)
+    (evil-define-minor-mode-key 'normal 'vdiff-mode "zR" 'vdiff-open-all-folds)
+    (evil-define-minor-mode-key 'motion 'vdiff-mode "go" 'vdiff-receive-changes)
+    (evil-define-minor-mode-key 'motion 'vdiff-mode "gp" 'vdiff-send-changes)
+    )
+
   (general-nmap
     "]g" 'git-gutter:next-hunk
     "[g" 'git-gutter:previous-hunk
@@ -1573,6 +1587,7 @@ current major mode."
     "gb" 'magit-blame
     "gl" 'magit-log-current
     "gm" 'git-smerge-menu/body
+    "gd" 'vdiff-mode ; ,h for a hydra!
     "gs" 'neeasade/git-status
     )
   )
@@ -1955,7 +1970,7 @@ current major mode."
     ("Y"          twittering-push-tweet-onto-kill-ring)
     ("a"          twittering-toggle-activate-buffer))
 
-  (neeasade/bind "at" 'twittering-start)
+  ;; (neeasade/bind "at" 'twittering-start)
   )
 
 (defconfig slack
@@ -2259,6 +2274,7 @@ current major mode."
           (when (s-match "\*spawn-shell.*" (buffer-name buffer))
             (kill-buffer buffer))))))
 
+  (neeasade/bind "at" 'neeasade/spawn-terminal)
   (add-hook 'delete-frame-hook 'neeasade/kill-spawned-shell))
 
 

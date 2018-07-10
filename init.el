@@ -46,7 +46,7 @@
  search-engines
 
  target-process
- emms
+ music
  pdf
  ledger
  emoji
