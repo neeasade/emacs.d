@@ -651,8 +651,8 @@ buffer is not visiting a file."
 
   ;; match qutebrowser fwd back
   (general-nmap
-    "H" 'next-buffer
-    "L" 'previous-buffer)
+    "H" 'previous-buffer
+    "L" 'next-buffer)
 
   (defcommand should-skip()
     (or
