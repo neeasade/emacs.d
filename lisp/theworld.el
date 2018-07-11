@@ -9,7 +9,6 @@
   enable-home? (string= (system-name) "erasmus")
   enable-docker? (string= (getenv "USER") "emacser")
   enable-work? enable-windows?
-  enable-dashdocs? enable-home?
   )
 
 ;; docker container user, still act trimmed/assume windows
@@ -497,6 +496,8 @@ buffer is not visiting a file."
     "tw" 'whitespace-mode
     "tn" 'linum-mode
     "tl" 'toggle-truncate-lines
+    "ts" 'neeasade/style
+    "ti" 'reload-init
     "tm" 'neeasade/toggle-modeline
     "i" 'insert-char
     )
@@ -848,7 +849,7 @@ current major mode."
 (defconfig dashdocs
   (defmacro neeasade/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled."
-    (when (bound-and-true-p enable-dashdocs?)
+    (when (bound-and-true-p neeasade-enable-dashdocs-p)
       (if (helm-dash-docset-installed-p docset)
         `(progn
            (message (format "%s docset is already installed!" ,docset))
@@ -860,7 +861,7 @@ current major mode."
            (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
            ))))
 
-  (neeasade/guard enable-dashdocs?)
+  (neeasade/guard enable-home?)
 
   (use-package dash)
   (use-package counsel-dash
@@ -1755,7 +1756,8 @@ current major mode."
   (defun connect-all-irc()
     (interactive)
     (mapcar '(lambda (network) (circe-maybe-connect (car network)))
-      circe-network-options))
+      circe-network-options)
+    (neeasade/style-circe))
 
   ;; channel name in prompt
   (add-hook 'circe-chat-mode-hook 'my-circe-prompt)
