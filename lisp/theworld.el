@@ -674,6 +674,8 @@ buffer is not visiting a file."
 
   (use-package avy
     :config
+
+    (setq avy-all-windows 'all-frames)
     (setq avy-timeout-seconds 0.2)
 
     (general-mmap
@@ -682,10 +684,7 @@ buffer is not visiting a file."
     (general-nmap
       "s" 'avy-goto-char-timer
       "zz" 'evil-scroll-line-to-center
-      )
-
-    )
-  )
+      )))
 
 (defconfig flycheck
   (use-package flycheck
@@ -1838,9 +1837,8 @@ current major mode."
            circe-my-message-face
            circe-originator-face))
 
-      (set-face-attribute 'lui-track-bar nil :background
-        (neeasade/color-tone default-bg  10 10)
-        )
+      ;; (set-face-attribute 'lui-track-bar nil :background
+      ;;   (neeasade/color-tone default-bg  10 10))
 
       (set-face-attribute 'circe-prompt-face nil :background nil)
       (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
