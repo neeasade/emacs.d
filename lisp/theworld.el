@@ -26,14 +26,12 @@
 
 (setq ns/xrdb-fallback-values
   ;; for when we're away from $HOME.
-  `(
-     ;; ("Emacs.theme"          . "base16-grayscale-light")
-     ("Emacs.theme"          . "base16-atelier-heath-light")
+  `(("*.background"         . ,(face-attribute 'default :background))
      ("Emacs.powerlinescale" . "1.1")
-     ("st.font"              . "Go Mono-10")
-     ("st.borderpx"          . "30")
+     ("Emacs.theme"          . "base16-grayscale-light")
      ("emacs.powerline"      . "bar")
-     ("*.background"         . ,(face-attribute 'default :background))
+     ("st.borderpx"          . "30")
+     ("st.font"              . "Go Mono-10")
      ))
 
 ;; master
@@ -365,7 +363,7 @@ buffer is not visiting a file."
       (beginning-of-line)
       (looking-at "[[:space:]]*$")))
 
-  (defcommand focus-line()
+  (defcommand focus-line (&rest ignore)
     (evil-scroll-line-to-center (ns/what-line)))
 
   (defun ns/get-last-message()
@@ -2435,7 +2433,7 @@ Version 2018-02-21"
         (if (fboundp 'xahsite-url-to-filepath)
           (let (($x (xahsite-url-to-filepath $path)))
             (if (string-match "^http" $x )
-              (browse-url $x)
+              (progn (browse-url $x) t)
               (find-file $x)))
           (progn (browse-url $path)))
         (if ; not starting “http://”
@@ -2448,8 +2446,9 @@ Version 2018-02-21"
                 (find-file $fpath)
                 (goto-char 1)
                 (forward-line (1- $line-num)))
-              (when (y-or-n-p (format "file no exist: 「%s」. Create?" $fpath))
-                (find-file $fpath))))
+              ;; (when (y-or-n-p (format "file no exist: 「%s」. Create?" $fpath)) (find-file $fpath))
+              nil
+              ))
           (if (file-exists-p $path)
             (progn ; open f.ts instead of f.js
               (let (($ext (file-name-extension $path))
@@ -2460,10 +2459,16 @@ Version 2018-02-21"
                   (find-file $path))))
             (if (file-exists-p (concat $path ".el"))
               (find-file (concat $path ".el"))
-              (when (y-or-n-p (format "file no exist: 「%s」. Create?" $path))
-                (find-file $path ))))))))
+              ;; (when (y-or-n-p (format "file no exist: 「%s」. Create?" $path)) (find-file $path))
+              nil
+              ))))))
 
-  (ns/bind "jf" 'xah-open-file-at-cursor)
+  (defcommand follow ()
+    (if (not (xah-open-file-at-cursor))
+      (smart-jump-go)))
+
+  (ns/bind "jj" 'ns/follow)
+
   )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
