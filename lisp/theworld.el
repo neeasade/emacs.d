@@ -1,25 +1,30 @@
 ;;; theworld.el --- make the thing
 ;;; commentary:
+;;; functions             | ns/asdf
+;;; pred functions        | ns/asdf-p
+;;; interactive functions | ns/asdf
+;;; enable vars           | ns/enable-asdf-p
+;;; vars                  | ns/asdf
+;;; buffer local vars     | ns/enable-asdf
 ;;; code:
 
-
 (setq
-  enable-windows? (eq system-type 'windows-nt)
-  enable-linux? (eq system-type 'gnu/linux)
-  enable-home? (string= (system-name) "erasmus")
-  enable-docker? (string= (getenv "USER") "emacser")
-  enable-work? enable-windows?
+  ns/enable-windows-p (eq system-type 'windows-nt)
+  ns/enable-linux-p (eq system-type 'gnu/linux)
+  ns/enable-home-p (string= (system-name) "erasmus")
+  ns/enable-docker-p (string= (getenv "USER") "emacser")
+  ns/enable-work-p ns/enable-windows-p
   )
 
 ;; docker container user, still act trimmed/assume windows
-(when enable-docker?
+(when ns/enable-docker-p
   (setq
-    enable-linux? nil
-    enable-windows? t
-    enable-work? t
+    ns/enable-linux-p nil
+    ns/enable-windows-p t
+    ns/enable-work-p t
     ))
 
-(setq xrdb-fallback-values
+(setq ns/xrdb-fallback-values
   ;; for when we're away from $HOME.
   `(
      ;; ("Emacs.theme"          . "base16-grayscale-light")
@@ -33,7 +38,7 @@
 
 ;; master
 (defmacro defconfig-base (label &rest body)
-  `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) nil
+  `(defun ,(intern (concat "ns/" (prin1-to-string label))) nil
      ,@body))
 
 ;; commander
@@ -42,19 +47,19 @@
      (let ((config-name ,(prin1-to-string label)))
        (message (concat "loading " config-name "..."))
        (catch 'config-catch
-         (setq ,(intern (format "neeasade-enable-%s-p" (prin1-to-string label))) nil)
+         (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
          ,@body
-         (setq ,(intern (format "neeasade-enable-%s-p" (prin1-to-string label))) t)
+         (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t)
          ))))
 
 ;; guards!
-(defmacro neeasade/guard (&rest conditions)
+(defmacro ns/guard (&rest conditions)
   (if (not (eval (cons 'and conditions)))
     '(when t (throw 'config-catch (concat "config guard " config-name)))))
 
 ;; interactive
 (defmacro defcommand (label args &rest body)
-  `(defun ,(intern (concat "neeasade/" (prin1-to-string label))) ,args
+  `(defun ,(intern (concat "ns/" (prin1-to-string label))) ,args
      (interactive)
      ,@body))
 
@@ -101,7 +106,7 @@
   (use-package request)
   (require 'seq)
 
-  (defmacro neeasade/shell-exec(command)
+  (defmacro ns/shell-exec(command)
     "trim the newline from shell exec"
     `(replace-regexp-in-string "\n$" ""
        (shell-command-to-string ,command)))
@@ -125,29 +130,30 @@
        (seq-partition ',lst 2)
        ))
 
-  (defun neeasade/homefile (path)
-    (concat (getenv (if enable-windows? "USERPROFILE" "HOME")) "/" path))
+  (defun ns/homefile (path)
+    (concat (getenv (if ns/enable-windows-p "USERPROFILE" "HOME")) "/" path))
 
   ;; binding wrappers
-  (defun neeasade/bind (&rest binds)
-    (apply 'general-define-key
-      :states '(normal visual)
-      :prefix "SPC"
-      binds))
+  (defmacro ns/bind (&rest binds)
+    `(general-define-key
+       :states '(normal visual)
+       :prefix "SPC"
+       ,@binds
+       ))
 
-  (defun neeasade/bind-mode(keymaps &rest binds)
-    (apply 'general-define-key
-      :prefix "SPC"
-      :states '(visual normal)
-      :keymaps keymaps
-      binds))
+  (defmacro ns/bind-mode(keymaps &rest binds)
+    `(general-define-key
+       :prefix "SPC"
+       :states '(visual normal)
+       :keymaps ,keymaps
+       ,@binds))
 
-  (defun neeasade/bind-leader-mode(mode &rest binds)
-    (apply 'general-define-key
-      :prefix ","
-      :states '(visual normal)
-      :keymaps (intern (concat (symbol-name mode) "-mode-map"))
-      binds))
+  (defmacro ns/bind-leader-mode (mode &rest binds)
+    `(general-define-key
+       :prefix ","
+       :states '(visual normal)
+       :keymaps (intern (concat (symbol-name ,mode) "-mode-map"))
+       ,@binds))
 
   ;; this was removed
   ;; cf https://github.com/abo-abo/swiper/pull/1570/files#diff-c7fad2f9905e642928fa92ae655e23d0L4500
@@ -180,18 +186,16 @@
 
   ;; wrap passwordstore
   (defun pass (key)
-    (neeasade/shell-exec
-      (if enable-windows?
+    (ns/shell-exec
+      (if ns/enable-windows-p
         (concat "pprint.bat " key)
-        (concat "pass " key " 2>/dev/null"))
-      )
-    )
+        (concat "pass " key " 2>/dev/null"))))
 
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
-    (let ((default (cdr (assoc name xrdb-fallback-values)))
+    (let ((default (cdr (assoc name ns/xrdb-fallback-values)))
            (result (if (executable-find "xrq")
-                     (neeasade/shell-exec (format "xrq '%s' 2>/dev/null" name))
+                     (ns/shell-exec (format "xrq '%s' 2>/dev/null" name))
                      "")))
       (if (string= result "") default result)))
 
@@ -204,7 +208,7 @@
       (load user-init-file nil 'nomessage)
       (message "Reloading init.el... done.")))
 
-  (let ((extend-file (neeasade/homefile "extend.el")))
+  (let ((extend-file (ns/homefile "extend.el")))
     (when (file-exists-p extend-file)
       (eval-and-compile (load extend-file))))
   )
@@ -225,14 +229,14 @@
         (1+ (count-lines 1 (point))))))
 
   ;; todo: this isn't working with anchors in other frames
-  (defun neeasade/eww-browse-existing-or-new (url)
+  (defun ns/eww-browse-existing-or-new (url)
     "If eww is displayed, use that for URL, else open here."
     (if (get-buffer-window "*eww*" 0)
       (url-retrieve url 'eww-render
         (list url nil (get-buffer "*eww*")))
       (eww url)))
 
-  (defun neeasade/color-is-light-p (name)
+  (defun ns/color-is-light-p (name)
     (let*
       ((rgb (color-name-to-rgb name))
         (red (first rgb))
@@ -243,13 +247,13 @@
       (>= yiq 0.5)
       ))
 
-  (defun neeasade/color-tone (name light dark)
+  (defun ns/color-tone (name light dark)
     "tone name a percent based on if light or dark - generally want softer value for dark."
-    (if (neeasade/color-is-light-p name)
+    (if (ns/color-is-light-p name)
       (color-darken-name name light)
       (color-lighten-name name dark)))
 
-  (defun neeasade/what-face (pos)
+  (defun ns/what-face (pos)
     (interactive "d")
     (let ((face (or (get-char-property (point) 'read-face-name)
                   (get-char-property (point) 'face))))
@@ -269,7 +273,7 @@
                 (when (and (symbolp car-x) (symbol-value car-x))
                   x)))
             minor-mode-alist))))
-    (neeasade/look-at-last-message)
+    (ns/look-at-last-message)
     )
 
   (defun sudo-edit (&optional arg)
@@ -284,7 +288,7 @@ buffer is not visiting a file."
                    (ido-read-file-name "Find file(as root): ")))
       (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-  (defun neeasade/get-functions()
+  (defun ns/get-functions()
     (mapcar*
       (lambda(item)
         (s-chomp (s-chop-prefix "(defconfig " (car item))))
@@ -292,24 +296,24 @@ buffer is not visiting a file."
         "^(defconfig [^ \(\)]+"
         (get-string-from-file "~/.emacs.d/lisp/theworld.el"))))
 
-  (defun neeasade/check-for-orphans()
+  (defun ns/check-for-orphans()
     "Check to see if any defconfigs are missing from init."
     (let ((initfile (get-string-from-file "~/.emacs.d/init.el")))
       (mapcar
         (lambda(conf)
           (when (not (s-contains? conf initfile))
             (message (concat "orphaned function! " conf))))
-        (neeasade/get-functions))))
+        (ns/get-functions))))
 
   (defcommand jump-config()
-    (ivy-read "config: " (neeasade/get-functions)
+    (ivy-read "config: " (ns/get-functions)
       :action
       (lambda (option)
         (interactive)
-        (neeasade/find-or-open "~/.emacs.d/lisp/theworld.el")
+        (ns/find-or-open "~/.emacs.d/lisp/theworld.el")
         (goto-char (point-min))
         (re-search-forward (concat "defconfig " option))
-        (neeasade/focus-line)
+        (ns/focus-line)
         )))
 
   (defcommand toggle-bloat()
@@ -326,14 +330,14 @@ buffer is not visiting a file."
         (font-lock-mode 0)
         (git-gutter-mode 0))))
 
-  (defun neeasade/toggle-bloat-global(toggle)
+  (defun ns/toggle-bloat-global(toggle)
     "toggle global bloat - must be called on it's own"
     (if toggle
       (progn
         (global-company-mode)
         (global-flycheck-mode)
         (global-font-lock-mode)
-        (when (not enable-windows?)
+        (when (not ns/enable-windows-p)
           (global-git-gutter-mode t)))
       (progn
         (global-company-mode -1)
@@ -341,7 +345,7 @@ buffer is not visiting a file."
         (global-font-lock-mode 0)
         (global-git-gutter-mode nil))))
 
-  (defun neeasade/buffercurl()
+  (defun ns/buffercurl()
     "curl buffer from url grabbed from clipboard"
     (interactive)
     (use-package simpleclip)
@@ -362,9 +366,9 @@ buffer is not visiting a file."
       (looking-at "[[:space:]]*$")))
 
   (defcommand focus-line()
-    (evil-scroll-line-to-center (neeasade/what-line)))
+    (evil-scroll-line-to-center (ns/what-line)))
 
-  (defun neeasade/get-last-message()
+  (defun ns/get-last-message()
     (with-current-buffer (get-buffer "*Messages*")
       (goto-char (point-max))
       (previous-line 1)
@@ -372,28 +376,28 @@ buffer is not visiting a file."
              (end (line-beginning-position 2)))
         (buffer-substring beg end))))
 
-  (defun neeasade/look-at-last-message()
+  (defun ns/look-at-last-message()
     (interactive)
-    (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el")
+    (ns/find-or-open "~/.emacs.d/lisp/scratch.el")
     (goto-char (point-max))
     (insert "\n")
-    (insert (neeasade/get-last-message))
+    (insert (ns/get-last-message))
     (previous-line 1)
     )
 
-  (neeasade/bind
+  (ns/bind
     ;; reconsider these, moved from w -> q for query
-    "qf" 'neeasade/what-face
-    "qm" 'neeasade/what-major-mode
-    "qi" 'neeasade/what-minor-modes
-    "qq" 'neeasade/look-at-last-message
+    "qf" 'ns/what-face
+    "qm" 'ns/what-major-mode
+    "qi" 'ns/what-minor-modes
+    "qq" 'ns/look-at-last-message
 
     ;; this should maybe be more generic ie mx history when not in shell
     "qh" 'counsel-shell-history
 
     "fE" 'sudo-edit
-    "jc" 'neeasade/jump-config
-    "tb" 'neeasade/toggle-bloat
+    "jc" 'ns/jump-config
+    "tb" 'ns/toggle-bloat
     )
   )
 
@@ -447,7 +451,7 @@ buffer is not visiting a file."
 
   (setq browse-url-browser-function 'browse-url-generic)
 
-  (if enable-windows?
+  (if ns/enable-windows-p
     (if (executable-find "qutebrowser")
       (setq browse-url-generic-program "qutebrowser")
       (setq browse-url-browser-function 'browse-url-default-windows-browser)
@@ -470,13 +474,13 @@ buffer is not visiting a file."
   (fset 'yes-or-no-p 'y-or-n-p)
 
   (defcommand toggle-modeline ()
-    (make-local-variable 'neeasade-modeline)
+    (make-local-variable 'ns/modeline)
 
     (if mode-line-format
       (progn
-        (setq neeasade-modeline mode-line-format)
+        (setq ns/modeline mode-line-format)
         (setq mode-line-format nil))
-      (setq mode-line-format neeasade-modeline))
+      (setq mode-line-format ns/modeline))
     (redraw-frame))
 
   ;; don't ask to kill running processes when killing a buffer.
@@ -488,23 +492,23 @@ buffer is not visiting a file."
 
   (setq whitespace-line-column 120)
 
-  (neeasade/bind
-    "js" (lambda() (interactive) (neeasade/find-or-open "~/.emacs.d/lisp/scratch.el"))
+  (ns/bind
+    "js" (lambda() (interactive) (ns/find-or-open "~/.emacs.d/lisp/scratch.el"))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
     "ju" 'browse-url
 
     "tw" 'whitespace-mode
     "tn" 'linum-mode
     "tl" 'toggle-truncate-lines
-    "ts" 'neeasade/style
+    "ts" 'ns/style
     "ti" 'reload-init
-    "tm" 'neeasade/toggle-modeline
+    "tm" 'ns/toggle-modeline
     "i" 'insert-char
     )
   )
 
 (defconfig elisp
-  (neeasade/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
+  (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
   (setq lisp-indent-function 'common-lisp-indent-function)
 
   ;; todo: look into this package some more
@@ -523,7 +527,7 @@ buffer is not visiting a file."
     :config
     (setq eros-eval-result-duration 20)
     (eros-mode 1)
-    (neeasade/bind-leader-mode
+    (ns/bind-leader-mode
       'emacs-lisp
       "er" 'eval-region
       "ei" 'eros-eval-last-sexp
@@ -540,7 +544,7 @@ buffer is not visiting a file."
 
   (use-package evil-collection :config (evil-collection-init))
 
-  (defun neeasade/zz-scroll (&rest optional)
+  (defun ns/zz-scroll (&rest optional)
     (let* ((scrollcount (/ (window-total-size) 7))
             (halfheight (/ (window-total-size) 2))
             (scrollcheck (- halfheight scrollcount)))
@@ -548,7 +552,7 @@ buffer is not visiting a file."
         (evil-scroll-line-down scrollcount)
         )))
 
-  (add-function :after (symbol-function 'evil-scroll-line-to-center) #'neeasade/zz-scroll)
+  (add-function :after (symbol-function 'evil-scroll-line-to-center) #'ns/zz-scroll)
 
   (general-evil-setup t)
 
@@ -660,11 +664,11 @@ buffer is not visiting a file."
       (member (buffer-name) '("scratch.el"))
       (s-starts-with? "*" (buffer-name))))
 
-  (defcommand maybe-next () (if (neeasade/should-skip) (next-buffer)))
-  (defcommand maybe-prev () (if (neeasade/should-skip) (previous-buffer)))
+  (defcommand maybe-next () (if (ns/should-skip) (next-buffer)))
+  (defcommand maybe-prev () (if (ns/should-skip) (previous-buffer)))
 
-  (advice-add #'next-buffer :after #'neeasade/maybe-next)
-  (advice-add #'previous-buffer :after #'neeasade/maybe-prev)
+  (advice-add #'next-buffer :after #'ns/maybe-next)
+  (advice-add #'previous-buffer :after #'ns/maybe-prev)
 
   (general-nmap
     "]s" 'flyspell-goto-next-error
@@ -691,7 +695,7 @@ buffer is not visiting a file."
     :config
     ;; cf http://www.flycheck.org/en/latest/user/syntax-checks.html#check-automatically
     (setq-ns flycheck
-      check-syntax-automatically (if enable-windows?
+      check-syntax-automatically (if ns/enable-windows-p
                                    '(save mode-enabled idle-change)
                                    '(save mode-enabled idle-change new-line))
       idle-change-delay 1
@@ -707,7 +711,7 @@ buffer is not visiting a file."
     (flycheck-add-mode 'javascript-eslint 'web-mode)
     )
 
-  ;; (neeasade/bind
+  ;; (ns/bind
   ;;   "e" '(:ignore t :which-key "Errors")
   ;;   "en" 'flycheck-next-error
   ;;   "ep" 'flycheck-previous-error
@@ -728,7 +732,7 @@ buffer is not visiting a file."
   (use-package company
     :config
     (setq-ns company
-      idle-delay (if enable-windows? 1 0)
+      idle-delay (if ns/enable-windows-p 1 0)
       selection-wrap-around t
       tooltip-align-annotations t
       dabbrev-downcase nil
@@ -846,9 +850,9 @@ current major mode."
     (lambda () (sh-electric-here-document-mode -1))))
 
 (defconfig dashdocs
-  (defmacro neeasade/install-dashdoc (docset mode-hook)
+  (defmacro ns/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled."
-    (when (bound-and-true-p neeasade-enable-dashdocs-p)
+    (when (bound-and-true-p ns/enable-dashdocs-p)
       (if (helm-dash-docset-installed-p docset)
         `(progn
            (message (format "%s docset is already installed!" ,docset))
@@ -860,7 +864,7 @@ current major mode."
            (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
            ))))
 
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
 
   (use-package dash)
   (use-package counsel-dash
@@ -868,7 +872,7 @@ current major mode."
     (setq-ns counsel-dash
       min-length 2
       docsets-path (concat user-emacs-directory "docsets")
-      browser-func 'neeasade/eww-browse-existing-or-new
+      browser-func 'ns/eww-browse-existing-or-new
       ))
 
   (defcommand counsel-dash-word ()
@@ -876,8 +880,8 @@ current major mode."
       (counsel-dash (buffer-substring (region-beginning) (region-end)))
       (counsel-dash (thing-at-point 'word))))
 
-  (neeasade/bind
-    "jd" 'neeasade/counsel-dash-word)
+  (ns/bind
+    "jd" 'ns/counsel-dash-word)
   )
 
 (defconfig-base style
@@ -888,10 +892,10 @@ current major mode."
   ;;(use-package ujelly-theme)
 
   (let ((theme (intern (get-resource "Emacs.theme"))))
-    (when (boundp 'neeasade-loaded-theme)
-      (disable-theme neeasade-loaded-theme))
+    (when (boundp 'ns/loaded-theme)
+      (disable-theme ns/loaded-theme))
     (load-theme theme)
-    (setq neeasade-loaded-theme theme))
+    (setq ns/loaded-theme theme))
 
   (set-face-attribute 'fringe nil :background nil)
   (set-face-background 'font-lock-comment-face nil)
@@ -931,14 +935,14 @@ current major mode."
   (set-face-attribute 'default nil :font (get-resource "st.font"))
   (set-frame-font (get-resource "st.font") nil t)
 
-  (setq neeasade/colored-whitespace? nil)
+  (setq ns/colored-whitespace? nil)
   (defun color-whitespace-mode(&rest maybe)
-    (when (not neeasade/colored-whitespace?)
+    (when (not ns/colored-whitespace?)
       (set-face-attribute 'whitespace-space nil :background nil)
       (set-face-attribute 'whitespace-tab nil :background nil)
       (set-face-attribute 'whitespace-newline nil
         :foreground (face-attribute 'whitespace-space :foreground))
-      (setq neeasade/colored-whitespace? t)
+      (setq ns/colored-whitespace? t)
       )
     )
 
@@ -948,7 +952,7 @@ current major mode."
   (use-package hl-todo
     :config
     (let* ((comment-color (face-attribute 'font-lock-comment-face :foreground))
-            (highlight-color (neeasade/color-tone comment-color 30 30)))
+            (highlight-color (ns/color-tone comment-color 30 30)))
 
       (setq hl-todo-keyword-faces
         `(("TODO" . ,highlight-color)
@@ -977,10 +981,10 @@ current major mode."
 
   ;; gross colors, but need something so we have a signifier in unique match case
   ;; todo: maybe fix gross colors
-  ;; (set-face-attribute 'avy-lead-face nil :background (neeasade/color-tone (face-attribute 'default :background) 30 30))
-  ;; (set-face-attribute 'avy-lead-face nil :foreground (neeasade/color-tone (face-attribute 'default :foreground) 30 30))
+  ;; (set-face-attribute 'avy-lead-face nil :background (ns/color-tone (face-attribute 'default :background) 30 30))
+  ;; (set-face-attribute 'avy-lead-face nil :foreground (ns/color-tone (face-attribute 'default :foreground) 30 30))
 
-  (neeasade/spaceline)
+  (ns/spaceline)
   )
 
 (defconfig spaceline
@@ -1097,14 +1101,33 @@ current major mode."
                         (org-agenda-files :maxlevel . 9)
                         )
       )
-    )
 
-  (defun neeasade/org-open-url()
+    (ns/bind-leader-mode 'emacs-lisp "r" 'eros-eval-last-sexp)
+
+    (macroexpand '(ns/bind-leader-mode 'emacs-lisp "r" 'eros-eval-last-sexp))
+
+    (add-hook
+      'org-mode-hook
+      (ns/bind-leader-mode
+        'org
+        "," 'org-ctrl-c-ctrl-c
+        "t" 'org-todo
+        "T" 'org-show-todo-tree
+        "v" 'org-mark-element
+        "a" 'org-agenda
+        "l" 'evil-org-open-links
+        "p" 'org-pomodoro
+        "q" 'tp-set-org-userstory
+        "f" 'ns/org-set-active
+        "b" 'ns/org-open-url
+        )))
+
+  (defun ns/org-open-url()
     (interactive)
     (browse-url (org-entry-get nil "url"))
     )
 
-  (defun neeasade/org-set-active()
+  (defun ns/org-set-active()
     (interactive)
     (org-delete-property-globally "focus")
     (org-set-property "focus" "t")
@@ -1113,61 +1136,46 @@ current major mode."
     )
 
   ;; for externals to call into
-  (defun neeasade/org-get-active()
+  (defun ns/org-get-active()
     (if (not (bound-and-true-p org-active-story))
       (progn
-        (neeasade/org-goto-active)
-        (neeasade/org-set-active)
+        (ns/org-goto-active)
+        (ns/org-set-active)
         )
       org-active-story
       )
     )
 
-  (defun neeasade/org-goto-active()
+  (defun ns/org-goto-active()
     (interactive)
-    (neeasade/find-or-open org-default-notes-file)
+    (ns/find-or-open org-default-notes-file)
     (goto-char (org-find-property "focus"))
     (org-show-context)
     (org-show-subtree)
-    (neeasade/focus-line)
+    (ns/focus-line)
     )
 
-  (add-hook
-    'org-mode-hook
-    (neeasade/bind-leader-mode
-      'org
-      "," 'org-ctrl-c-ctrl-c
-      "t" 'org-todo
-      "T" 'org-show-todo-tree
-      "v" 'org-mark-element
-      "a" 'org-agenda
-      "l" 'evil-org-open-links
-      "p" 'org-pomodoro
-      "q" 'tp-set-org-userstory
-      "f" 'neeasade/org-set-active
-      "b" 'neeasade/org-open-url
-      )
-    )
+
 
   (use-package org-pomodoro
     :config
-    (defun neeasade/toggle-music(action)
-      (let ((command (concat (if enable-home? "player.sh" "mpc") " " action)))
+    (defun ns/toggle-music(action)
+      (let ((command (concat (if ns/enable-home-p "player.sh" "mpc") " " action)))
         (shell-command command)))
 
     (add-hook 'org-pomodoro-started-hook
-      (apply-partially #'neeasade/toggle-music "play"))
+      (apply-partially #'ns/toggle-music "play"))
 
     (add-hook 'org-pomodoro-break-finished-hook
-      (apply-partially #'neeasade/toggle-music "play"))
+      (apply-partially #'ns/toggle-music "play"))
 
     (add-hook 'org-pomodoro-finished-hook
-      (apply-partially #'neeasade/toggle-music "pause"))
+      (apply-partially #'ns/toggle-music "pause"))
     )
 
-  (defun jump-org() (interactive) (neeasade/find-or-open "~/notes/notes.org" ))
-  (neeasade/bind
-    "oo" 'neeasade/org-goto-active
+  (defun jump-org() (interactive) (ns/find-or-open "~/notes/notes.org" ))
+  (ns/bind
+    "oo" 'ns/org-goto-active
     "oc" 'org-capture
     "or" 'org-refile
 
@@ -1182,12 +1190,12 @@ current major mode."
 (defconfig clojure
   (use-package clojure-mode)
   (use-package cider)
-  (neeasade/install-dashdoc "Clojure" 'clojure-mode-hook)
+  (ns/install-dashdoc "Clojure" 'clojure-mode-hook)
 
   ;; TODO: learn lispyville
   ;; (use-package lispy)
 
-  (neeasade/bind-leader-mode
+  (ns/bind-leader-mode
     'clojure
     "er" 'cider-eval-region
     "ei" 'cider-eval-last-sexp
@@ -1196,13 +1204,14 @@ current major mode."
   )
 
 (defconfig nix
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package nix-mode)
   )
 
 (defconfig target-process
-  (neeasade/guard enable-work?)
+  (ns/guard ns/enable-work-p)
   (load "~/.emacs.d/lib/targetprocess.el")
+  (advice-add #'ns/org-set-active :after #'tp-set-active)
   )
 
 (defconfig interface
@@ -1262,35 +1271,35 @@ current major mode."
         (buffer-list)))
 
     (defcommand kill-ranger-buffers ()
-      (neeasade/kill-buffers-by-mode 'ranger-mode))
+      (ns/kill-buffers-by-mode 'ranger-mode))
 
-    (advice-add #'ranger-close :after #'neeasade/kill-ranger-buffers)
+    (advice-add #'ranger-close :after #'ns/kill-ranger-buffers)
 
     (defcommand deer-with-last-shell ()
       (let ((current-buffer (buffer-name (current-buffer))))
         (if (or (s-match "\*spawn-shell.*" current-buffer)
               (s-match "\*shell-[1-9]\*" current-buffer)
               )
-          (setq neeasade-last-shell current-buffer)
-          (setq neeasade-last-shell shell-pop-last-shell-buffer-name)))
+          (setq ns/last-shell current-buffer)
+          (setq ns/last-shell shell-pop-last-shell-buffer-name)))
       (deer))
 
-    (neeasade/bind "d" 'neeasade/deer-with-last-shell)
+    (ns/bind "d" 'ns/deer-with-last-shell)
     )
 
   (defun my-resize-margins ()
-    (let ((margin-size (if neeasade-center (/ (- (frame-width) 120) 2) 0)))
+    (let ((margin-size (if ns/center (/ (- (frame-width) 120) 2) 0)))
       (set-window-margins nil margin-size margin-size)))
 
   (defcommand toggle-margin ()
-    (if (not (bound-and-true-p neeasade-center))
-      (setq neeasade-center nil))
+    (if (not (bound-and-true-p ns/center))
+      (setq ns/center nil))
 
-    (if neeasade-center
+    (if ns/center
       (remove-hook 'window-configuration-change-hook #'my-resize-margins)
       (add-hook 'window-configuration-change-hook #'my-resize-margins))
 
-    (setq neeasade-center (not neeasade-center))
+    (setq ns/center (not ns/center))
     (my-resize-margins))
 
   (defcommand kill-current-buffer()
@@ -1301,7 +1310,7 @@ current major mode."
     (delete-other-windows)
     (evil-window-vsplit))
 
-  (neeasade/bind
+  (ns/bind
     "/"   'counsel-rg
     "TAB" '(switch-to-other-buffer :which-key "prev buffer")
     "SPC" 'counsel-M-x
@@ -1314,8 +1323,8 @@ current major mode."
     "wl" 'evil-window-right
     "wd" 'evil-window-delete
     "ww" 'other-window
-    "wf" 'neeasade/follow-mode
-    "wc" 'neeasade/toggle-margin
+    "wf" 'ns/follow-mode
+    "wc" 'ns/toggle-margin
 
     "wm" 'delete-other-windows ;; window-max
     "wo" 'other-frame
@@ -1324,12 +1333,12 @@ current major mode."
     "a" '(:ignore t :which-key "Applications")
 
     "b" '(:ignore t :which-key "Buffers")
-    "bd" 'neeasade/kill-current-buffer
+    "bd" 'ns/kill-current-buffer
     )
 
   (use-package alert
     :config (setq alert-default-style
-              (if enable-windows?
+              (if ns/enable-windows-p
                 'toaster
                 'libnotify
                 )))
@@ -1356,14 +1365,14 @@ current major mode."
     (add-hook 'window-configuration-change-hook 'dynamic-ajb-height)
     (setq ajb-sort-function 'bs--sort-by-recentf)
 
-    (neeasade/bind
+    (ns/bind
       "bb" 'counsel-ibuffer
       "bs" 'ace-jump-buffer
       "bm" 'ace-jump-same-mode-buffers
       )))
 
 (defconfig music
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package emms)
 
   (defun emms-start()
@@ -1383,13 +1392,13 @@ current major mode."
     (emms-player-mpd-connect)
     )
 
-  (neeasade/bind "am" 'emms-start)
+  (ns/bind "am" 'emms-start)
   )
 
 (defconfig projectile
   (use-package projectile)
   ;; (project-find-file-in)
-  (neeasade/bind
+  (ns/bind
     "p" '(:ignore t :which-key "projects")
     "pf" 'counsel-git
     )
@@ -1397,7 +1406,7 @@ current major mode."
 
 (defconfig javascript
   ;; note: this is huge, takes a bit.
-  (neeasade/install-dashdoc "JavaScript" 'web-mode-hook)
+  (ns/install-dashdoc "JavaScript" 'web-mode-hook)
 
   (defun js-jsx-indent-line-align-closing-bracket ()
     "Workaround sgml-mode and align closing bracket with opening bracket"
@@ -1423,7 +1432,7 @@ current major mode."
 
   (use-package prettier-js
     :config
-    (when enable-work?
+    (when ns/enable-work-p
       (add-hook 'typescript-mode-hook 'prettier-js-mode)
       (add-hook 'web-mode-hook 'prettier-js-mode)
       (add-hook 'js-mode-hook 'prettier-js-mode)))
@@ -1433,7 +1442,7 @@ current major mode."
   ;; doesn't work with multiline input, or import command/multiple files
   (use-package nodejs-repl
     :config
-    (neeasade/bind-leader-mode
+    (ns/bind-leader-mode
       'nodejs-repl
       "er "'nodejs-repl-send-region
       "eb" 'nodejs-repl-load-file
@@ -1443,7 +1452,7 @@ current major mode."
   )
 
 (defconfig typescript
-  (neeasade/install-dashdoc "TypeScript" 'typescript-mode-hook)
+  (ns/install-dashdoc "TypeScript" 'typescript-mode-hook)
   (use-package tide
     :config
     (defun setup-tide-mode ()
@@ -1473,7 +1482,7 @@ current major mode."
       )
 
     ;; https://magit.vc/manual/magit/Performance.html
-    (when enable-windows?
+    (when ns/enable-windows-p
       (setq-ns magit
         ;; diff perf
         diff-highlight-indentation nil
@@ -1492,7 +1501,7 @@ current major mode."
       (setq vc-handled-backends nil)
       ))
 
-  (when enable-linux?
+  (when ns/enable-linux-p
     ;; depends on 'nice' command
     (straight-use-package
       '(magit-todos
@@ -1518,7 +1527,7 @@ current major mode."
     :config
     (setq git-gutter-fr:side 'right-fringe)
     ;; fails when too many buffers open on windows
-    (if enable-linux? (global-git-gutter-mode t))
+    (if ns/enable-linux-p (global-git-gutter-mode t))
     )
 
   (defhydra git-smerge-menu ()
@@ -1547,7 +1556,7 @@ current major mode."
     ("q" nil :exit t))
 
   ;; define a minimal staging mode for when we're on windows.
-  (when enable-windows?
+  (when ns/enable-windows-p
     ;; WORKAROUND https://github.com/magit/magit/issues/2395
     (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
       "Mode for showing staged and unstaged changes."
@@ -1563,7 +1572,7 @@ current major mode."
     )
 
   (defcommand git-status()
-    (if enable-windows? (magit-staging) (magit-status))
+    (if ns/enable-windows-p (magit-staging) (magit-status))
     (if (> (frame-pixel-height) (frame-pixel-width))
       (delete-other-windows)))
 
@@ -1587,13 +1596,13 @@ current major mode."
     "[g" 'git-gutter:previous-hunk
     )
 
-  (neeasade/bind
+  (ns/bind
     "g" '(:ignore t :which-key "git")
     "gb" 'magit-blame
     "gl" 'magit-log-current
     "gm" 'git-smerge-menu/body
     "gd" 'vdiff-mode ; ,h for a hydra!
-    "gs" 'neeasade/git-status
+    "gs" 'ns/git-status
     )
   )
 
@@ -1603,23 +1612,23 @@ current major mode."
     (setq dumb-jump-selector 'ivy)
     (setq dumb-jump-force-searcher 'rg)
     (smart-jump-setup-default-registers)
-    (neeasade/bind
+    (ns/bind
       "j" '(:ignore t :which-key "Jump")
       "jj" 'smart-jump-go
       "jb" 'smart-jump-back
       )
 
-    (advice-add #'smart-jump-go :after #'neeasade/focus-line)
+    (advice-add #'smart-jump-go :after #'ns/focus-line)
     ))
 
 (defconfig irc
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package circe
     :config
-    (setq neeasade/irc-nick "neeasade")
+    (setq ns/irc-nick "ns")
 
     (setq-ns lui
-      logging-directory (neeasade/homefile ".irc")
+      logging-directory (ns/homefile ".irc")
       time-stamp-position 'right-margin
       time-stamp-format "%H:%M"
       ;; fluid width windows
@@ -1630,7 +1639,7 @@ current major mode."
       reduce-lurker-spam t ;; hide part, join, quit
       network-options
       `(("Freenode"
-          :nick ,neeasade/irc-nick
+          :nick ,ns/irc-nick
           :host "irc.freenode.net"
           :tls t
           :nickserv-password ,(pass "freenode")
@@ -1638,7 +1647,7 @@ current major mode."
           )
 
          ("Nixers"
-           :nick ,neeasade/irc-nick
+           :nick ,ns/irc-nick
            :host "irc.unix.chat"
            :port (6667 . 6697)
            :tls t
@@ -1646,12 +1655,12 @@ current major mode."
            )
 
          ("Bitlbee"
-           :nick ,neeasade/irc-nick
+           :nick ,ns/irc-nick
            :host "localhost"
            )
 
          ("Rizon"
-           :nick ,neeasade/irc-nick
+           :nick ,ns/irc-nick
            :host "irc.rizon.net"
            :port (6667 . 6697)
            :tls t
@@ -1705,11 +1714,11 @@ current major mode."
         (
           (body (plist-get args :body))
           (result
-            (if (string= circe-last-nick neeasade/irc-nick)
+            (if (string= circe-last-nick ns/irc-nick)
               (lui-format "         {body}" :body body)
               (lui-format "       ► {body}" :body body)
               )))
-        (setq-local circe-last-nick neeasade/irc-nick)
+        (setq-local circe-last-nick ns/irc-nick)
         result
         )
       )
@@ -1756,7 +1765,7 @@ current major mode."
     (interactive)
     (mapcar '(lambda (network) (circe-maybe-connect (car network)))
       circe-network-options)
-    (neeasade/style-circe))
+    (ns/style-circe))
 
   ;; channel name in prompt
   (add-hook 'circe-chat-mode-hook 'my-circe-prompt)
@@ -1794,7 +1803,7 @@ current major mode."
     (eval-after-load "circe-notifications"
       '(setq circe-notifications-watch-strings
          ;; example: '("people" "you" "like" "to" "hear" "from")))
-         '("neeasade" "bspwm")))
+         '("ns" "bspwm")))
 
     (add-hook 'circe-server-connected-hook 'enable-circe-notifications)
     )
@@ -1813,20 +1822,20 @@ current major mode."
 
   (require 'circe-display-images)
   (setq circe-display-images-max-height 200)
-  (neeasade/bind-leader-mode
+  (ns/bind-leader-mode
     'circe-channel
     "i" 'circe-display-images-toggle-image-at-point)
 
   (enable-circe-display-images)
 
-  (advice-add #'neeasade/style :after #'neeasade/style-circe)
-  (defun neeasade/style-circe()
+  (advice-add #'ns/style :after #'ns/style-circe)
+  (defun ns/style-circe()
     (let*
       ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
         (default-fg (face-attribute 'default :foreground))
         (default-bg (face-attribute 'default :background))
-        (highlight-fg (neeasade/color-tone default-fg 20 20))
-        (fade-fg (neeasade/color-tone default-fg 35 40)))
+        (highlight-fg (ns/color-tone default-fg 20 20))
+        (fade-fg (ns/color-tone default-fg 35 40)))
 
       (mapc
         (lambda(face)
@@ -1838,7 +1847,7 @@ current major mode."
            circe-originator-face))
 
       ;; (set-face-attribute 'lui-track-bar nil :background
-      ;;   (neeasade/color-tone default-bg  10 10))
+      ;;   (ns/color-tone default-bg  10 10))
 
       (set-face-attribute 'circe-prompt-face nil :background nil)
       (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
@@ -1846,13 +1855,13 @@ current major mode."
       ))
 
   ;; todo: mute irc bots colors
-  (neeasade/bind
+  (ns/bind
     "ai" 'connect-all-irc
-    "ji" 'neeasade/jump-irc
+    "ji" 'ns/jump-irc
     ))
 
 (defconfig pdf
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package pdf-tools)
   )
 
@@ -1861,7 +1870,7 @@ current major mode."
   )
 
 (defconfig twitter
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package twittering-mode
     :commands (twittering-start)
     :init
@@ -1975,11 +1984,11 @@ current major mode."
     ("Y"          twittering-push-tweet-onto-kill-ring)
     ("a"          twittering-toggle-activate-buffer))
 
-  ;; (neeasade/bind "at" 'twittering-start)
+  ;; (ns/bind "at" 'twittering-start)
   )
 
 (defconfig slack
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package slack
     :commands (slack-start)
     :init
@@ -1987,7 +1996,7 @@ current major mode."
     (setq slack-prefer-current-team t)
 
     :config
-    (when enable-windows?
+    (when ns/enable-windows-p
       ;; https://github.com/yuya373/emacs-slack/issues/161
       (setq request-backend 'url-retrieve)
       (setq slack-request-timeout 50)
@@ -2005,11 +2014,11 @@ current major mode."
     )
 
   ;; todo: where is slack-info/context for this bind
-  (neeasade/bind-leader-mode
+  (ns/bind-leader-mode
     'slack-info
     "u" 'slack-room-update-messages)
 
-  (neeasade/bind-leader-mode
+  (ns/bind-leader-mode
     'slack
     "c" 'slack-buffer-kill
     "ra" 'slack-message-add-reaction
@@ -2030,7 +2039,7 @@ current major mode."
   ;; "\C-n" 'slack-buffer-goto-next-message
   ;; "\C-p" 'slack-buffer-goto-prev-message)
 
-  (neeasade/bind-leader-mode
+  (ns/bind-leader-mode
     'slack-edit-message
     "k" 'slack-message-cancel-edit
     "s" 'slack-message-send-from-buffer
@@ -2038,23 +2047,22 @@ current major mode."
     "3" 'slack-message-embed-channel
     )
 
-  (neeasade/bind
-    "as" 'slack-start)
-  )
+  (ns/bind
+    "as" 'slack-start))
 
 (defconfig email
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   ;; TODO
   )
 
 (defconfig shell
   (require 'comint)
 
-  (when enable-linux?
+  (when ns/enable-linux-p
     (setq explicit-shell-file-name (getenv "SHELL")))
 
-  (when (and enable-windows? (not enable-docker?))
-    (setq explicit-shell-file-name (neeasade/shell-exec "where bash"))
+  (when (and ns/enable-windows-p (not ns/enable-docker-p))
+    (setq explicit-shell-file-name (ns/shell-exec "where bash"))
     (setq explicit-bash.exe-args '("--login" "-i")))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
@@ -2072,8 +2080,8 @@ current major mode."
     ;; ie clear --> :clear, term, exit
     (defun shx-cmd-term (placeholder)
       (interactive)
-      (let ((term (if enable-windows? "cmd" (getenv "TERMINAL")))
-             ;; (default-directory (neeasade/homefile ""))
+      (let ((term (if ns/enable-windows-p "cmd" (getenv "TERMINAL")))
+             ;; (default-directory (ns/homefile ""))
              )
         (shell-command (format "nohup %s &" term) nil nil))))
 
@@ -2090,24 +2098,24 @@ current major mode."
       (let ((funcname (intern (concat "shell-pop-" (number-to-string index)))))
         (eval `(progn
                  (defun ,funcname () (interactive) (shell-pop ,index))
-                 (neeasade/bind ,(concat "t" (number-to-string index)) ',funcname)))))
+                 (ns/bind ,(concat "t" (number-to-string index)) ',funcname)))))
 
     ;; give us 1-9
     (mapc 'makepop (number-sequence 1 9))
-    (neeasade/bind "'" 'shell-pop)
+    (ns/bind "'" 'shell-pop)
 
     ;; cf https://github.com/kyagi/shell-pop-el/issues/51
     (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
     (defcommand shell-pop-ranger-dir ()
       (let ((ranger-dir (expand-file-name default-directory)))
-        (switch-to-buffer neeasade-last-shell)
+        (switch-to-buffer ns/last-shell)
         (shell-pop--cd-to-cwd-shell ranger-dir))
       ;; note: keep this outsite of let to close properly
       (ranger-kill-buffers-without-window)
       )
 
-    (define-key ranger-mode-map (kbd "s") 'neeasade/shell-pop-ranger-dir)
+    (define-key ranger-mode-map (kbd "s") 'ns/shell-pop-ranger-dir)
     )
 
   ;; fix for term, ansi term
@@ -2120,7 +2128,7 @@ current major mode."
   )
 
 (defconfig autohotkey
-  (neeasade/guard enable-windows?)
+  (ns/guard ns/enable-windows-p)
   (use-package xahk-mode)
   )
 
@@ -2131,7 +2139,7 @@ current major mode."
 (defconfig restclient
   (use-package restclient
     :config
-    (neeasade/bind-leader-mode
+    (ns/bind-leader-mode
       'restclient
       "ei" 'restclient-http-send-current-stay-in-window
       )
@@ -2142,7 +2150,7 @@ current major mode."
 
 (defconfig sql
   ;; todo
-  ;; (neeasade/install-dashdoc "SQLite" ')
+  ;; (ns/install-dashdoc "SQLite" ')
 
   ;; setup: https://github.com/kostafey/ejc-sql#install-jdbc-drivers
   ;; (use-package ejc-sql
@@ -2152,7 +2160,7 @@ current major mode."
   )
 
 (defconfig latex
-  (neeasade/bind-leader-mode 'latex
+  (ns/bind-leader-mode 'latex
     "\\"  'TeX-insert-macro                            ;; C-c C-m
     "-"   'TeX-recenter-output-buffer                  ;; C-c C-l
     "%"   'TeX-comment-or-uncomment-paragraph          ;; C-c %
@@ -2166,7 +2174,7 @@ current major mode."
     "v"   'TeX-view                                    ;; C-c C-v
     )
 
-  (neeasade/install-dashdoc "LaTeX" 'latex-mode-hook)
+  (ns/install-dashdoc "LaTeX" 'latex-mode-hook)
 
   ;; todo: https://github.com/The-Compiler/dotfiles/blob/543e48cd594750188dd3e935ef6dfd77f867ca71/spacemacs#L497
   ;; todo: this doesn't build?
@@ -2181,7 +2189,7 @@ current major mode."
   )
 
 (defconfig ledger
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package ledger-mode)
   (use-package flycheck-ledger)
   (use-package evil-ledger
@@ -2203,7 +2211,7 @@ current major mode."
     (defmacro bind-search (label url hotkey)
       `(progn
          (defengine ,label ,url)
-         (neeasade/bind
+         (ns/bind
            (concat "s" ,hotkey) (intern (concat "engine/search-" (prin1-to-string ',label))))))
 
     (bind-search google "https://google.com/search?q=%s" "s")
@@ -2215,12 +2223,12 @@ current major mode."
     ))
 
 (defconfig filehooks
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
 
   (defvar *afilename-cmd*
     ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
-    `((,(neeasade/homefile ".Xresources") . "xrdb -merge ~/.Xresources")
-       (,(neeasade/homefile ".Xmodmap") . "xmodmap ~/.Xmodmap"))
+    `((,(ns/homefile ".Xresources") . "xrdb -merge ~/.Xresources")
+       (,(ns/homefile ".Xmodmap") . "xmodmap ~/.Xmodmap"))
     "File association list with their respective command.")
 
   (defun my/cmd-after-saved-file ()
@@ -2237,14 +2245,14 @@ current major mode."
   )
 
 (defconfig emoji
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package emojify
     :init (setq emojify-emoji-styles '(unicode github))
     :config (global-emojify-mode)
     ))
 
 (defconfig writing
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
   ;; https://github.com/agzam/mw-thesaurus.el
@@ -2253,15 +2261,15 @@ current major mode."
 ;; use shell frames as terminals.
 (defconfig terminal
   (defcommand stage-terminal ()
-    (let ((default-directory (neeasade/homefile "")))
+    (let ((default-directory (ns/homefile "")))
       (shell "*spawn-shell-staged*")
-      (neeasade/toggle-modeline)
+      (ns/toggle-modeline)
       (delete-window)
       ;; todo: find a way to set initial dirtrack to default-directory
       (dirtrack-mode)
       ))
 
-  (neeasade/stage-terminal)
+  (ns/stage-terminal)
 
   (defcommand spawn-terminal ()
     (select-frame (make-frame))
@@ -2269,7 +2277,7 @@ current major mode."
     (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
     (delete-other-windows)
     (set-window-fringes nil 0 0)
-    (neeasade/stage-terminal)
+    (ns/stage-terminal)
     )
 
   (defcommand kill-spawned-shell (frame)
@@ -2279,15 +2287,15 @@ current major mode."
           (when (s-match "\*spawn-shell.*" (buffer-name buffer))
             (kill-buffer buffer))))))
 
-  (neeasade/bind "at" 'neeasade/spawn-terminal)
-  (add-hook 'delete-frame-hook 'neeasade/kill-spawned-shell))
+  (ns/bind "at" 'ns/spawn-terminal)
+  (add-hook 'delete-frame-hook 'ns/kill-spawned-shell))
 
 
 (defconfig elfeed
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package elfeed
     :config
-    (neeasade/bind "af" 'elfeed)
+    (ns/bind "af" 'elfeed)
     (setq elfeed-feeds
       '(
          "https://hnrss.org/newest?q=emacs"
@@ -2309,38 +2317,38 @@ current major mode."
     ))
 
 (defconfig stackexchange
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   (use-package sx
     :config
-    (neeasade/bind "as" 'sx-tab-all-questions)
+    (ns/bind "as" 'sx-tab-all-questions)
     ))
 
 (defconfig reddit
-  (neeasade/guard enable-home?)
+  (ns/guard ns/enable-home-p)
   ;; todo: this needs some rice love
   ;; text wrapping comments don't align
   ;; could use some better keybinds, UX
   (use-package md4rd
     :config
-    (neeasade/bind "ar" 'md4rd)
+    (ns/bind "ar" 'md4rd)
     (setq md4rd-subs-active
       '(unixporn emacs))
 
     (general-nmap md4rd-mode-map
-      "q" 'neeasade/kill-current-buffer
+      "q" 'ns/kill-current-buffer
       "o" 'md4rd-open
       "r" 'md4rd-reply
       "t" 'md4rd-widget-toggle-line
       ;; "<tab>" 'md4rd-widget-toggle-line
       )
 
-    (add-hook 'md4rd-mode-hook 'neeasade/md4rd)
-    (defun neeasade/md4rd ()
+    (add-hook 'md4rd-mode-hook 'ns/md4rd)
+    (defun ns/md4rd ()
       ;; (setq wrap-prefix "         ")
       )))
 
 (defconfig powershell
-  (neeasade/guard enable-windows?)
+  (ns/guard ns/enable-windows-p)
   (use-package powershell))
 
 (defconfig staging
@@ -2350,7 +2358,7 @@ current major mode."
     (set-face-foreground 'indent-guide-face
       (face-attribute 'font-lock-keyword-face :foreground))
 
-    ;; (set-face-foreground 'indent-guide-face (neeasade/color-tone (face-attribute 'default :background) 15 15))
+    ;; (set-face-foreground 'indent-guide-face (ns/color-tone (face-attribute 'default :background) 15 15))
 
     (setq indent-guide-char "|")
     (indent-guide-global-mode 0)
@@ -2385,13 +2393,13 @@ Version 2017-03-12"
     )
 
   (defcommand toggle-colors ()
-    (if (not (boundp 'neeasade/show-colors))
-      (setq-local neeasade/show-colors nil))
+    (if (not (boundp 'ns/show-colors))
+      (setq-local ns/show-colors nil))
 
-    (setq-local neeasade/show-colors (not neeasade/show-colors))
-    (xah-syntax-color-hex neeasade/show-colors))
+    (setq-local ns/show-colors (not ns/show-colors))
+    (xah-syntax-color-hex ns/show-colors))
 
-  (neeasade/bind "tc" 'neeasade/toggle-colors)
+  (ns/bind "tc" 'ns/toggle-colors)
 
   (defun xah-open-file-at-cursor ()
     "Open the file path under cursor.
@@ -2455,18 +2463,11 @@ Version 2018-02-21"
               (when (y-or-n-p (format "file no exist: 「%s」. Create?" $path))
                 (find-file $path ))))))))
 
-  (neeasade/bind "jf" 'xah-open-file-at-cursor)
+  (ns/bind "jf" 'xah-open-file-at-cursor)
   )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
-
-;; todo: make personal atoms consistent
-;; functions
-;; interactive functions
-;; vars
-;; toggle vars
-;; buffer local vars
 
 (provide 'theworld)
 

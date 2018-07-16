@@ -80,5 +80,3 @@
 	 (concat "https://" tp-subdomain ".tpondemand.com/entity/" tp-active-userstory))
 	(tp-update-git-message)
 	)))
-
-(advice-add #'neeasade/org-set-active :after #'tp-set-active)

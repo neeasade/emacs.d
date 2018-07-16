@@ -4,15 +4,15 @@
 
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
-(defmacro neeasade/load (&rest targets)
+(defmacro ns/load (&rest targets)
   `(mapc (lambda(target)
-           (funcall (intern (concat "neeasade/" (prin1-to-string target)))))
+           (funcall (intern (concat "ns/" (prin1-to-string target)))))
 	 ',targets))
 
-(defmacro neeasade/compose (name &rest targets)
-  `(defconfig ,name (neeasade/load ,@targets)))
+(defmacro ns/compose (name &rest targets)
+  `(defconfig ,name (ns/load ,@targets)))
 
-(neeasade/compose
+(ns/compose
  core
 
  ;; use-package
@@ -28,7 +28,7 @@
  util
  )
 
-(neeasade/compose
+(ns/compose
  extra
 
  company
@@ -53,7 +53,7 @@
  filehooks
  )
 
-(neeasade/compose
+(ns/compose
  development
 
  autohotkey
@@ -71,7 +71,7 @@
  ;; plantuml
  )
 
-(neeasade/compose
+(ns/compose
  communication
 
  irc slack twitter email
@@ -79,12 +79,12 @@
  )
 
 ;; liftoff
-(neeasade/load core extra development communication style)
-(neeasade/check-for-orphans)
-(neeasade/staging)
+(ns/load core extra development communication staging)
+(ns/check-for-orphans)
 
 ;; Emacs is terribly slow on windows
-(neeasade/toggle-bloat-global enable-linux?)
+(ns/toggle-bloat-global ns/enable-linux-p)
 
+(ns/style)
 (provide 'init)
 ;;; init.el ends here
