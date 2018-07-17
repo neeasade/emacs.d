@@ -1623,7 +1623,7 @@ current major mode."
   (ns/guard ns/enable-home-p)
   (use-package circe
     :config
-    (setq ns/irc-nick "ns")
+    (setq ns/irc-nick "neeasade")
 
     (setq-ns lui
       logging-directory (ns/homefile ".irc")
@@ -1801,7 +1801,7 @@ current major mode."
     (eval-after-load "circe-notifications"
       '(setq circe-notifications-watch-strings
          ;; example: '("people" "you" "like" "to" "hear" "from")))
-         '("ns" "bspwm")))
+         '("neeasade" "bspwm")))
 
     (add-hook 'circe-server-connected-hook 'enable-circe-notifications)
     )
