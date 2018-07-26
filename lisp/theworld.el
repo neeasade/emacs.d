@@ -1015,11 +1015,6 @@ current major mode."
         (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))
     ))
 
-(defconfig feebleline
-  ;; todo
-  (load "~/.emacs.d/lib/feebleline.el")
-  )
-
 (defconfig zoom
   (use-package zoom
     :config
