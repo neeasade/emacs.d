@@ -86,6 +86,7 @@
 ;; Emacs is terribly slow on windows
 (ns/toggle-bloat-global ns/enable-linux-p)
 
-(ns/style)
+(ns/style) ;; also gets spaceline
+
 (provide 'init)
 ;;; init.el ends here
