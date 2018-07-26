@@ -493,7 +493,6 @@ buffer is not visiting a file."
   (ns/bind
     "js" (lambda() (interactive) (ns/find-or-open "~/.emacs.d/lisp/scratch.el"))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
-    "ju" 'browse-url
 
     "tw" 'whitespace-mode
     "tn" 'linum-mode
@@ -660,7 +659,8 @@ buffer is not visiting a file."
   (defcommand should-skip()
     (or
       (member (buffer-name) '("scratch.el"))
-      (s-starts-with? "*" (buffer-name))))
+      (s-starts-with? "*" (buffer-name))
+      (s-starts-with? "magit" (buffer-name))))
 
   (defcommand maybe-next () (if (ns/should-skip) (next-buffer)))
   (defcommand maybe-prev () (if (ns/should-skip) (previous-buffer)))
@@ -2061,7 +2061,10 @@ current major mode."
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
     (setq explicit-shell-file-name (ns/shell-exec "where bash"))
-    (setq explicit-bash.exe-args '("--login" "-i")))
+    (setq explicit-bash.exe-args '("--login" "-i"))
+    (setenv "PATH"
+      (concat (ns/homefile "scoop/apps/git-with-openssh/current/usr/bin/") ";"
+        (getenv "PATH"))))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
@@ -2199,6 +2202,7 @@ current major mode."
 (defconfig lsp
   (use-package lsp-ui)
   (use-package lsp-javascript-flow)
+  (use-package cquery)
   )
 
 (defconfig search-engines
@@ -2468,7 +2472,6 @@ Version 2018-02-21"
       (smart-jump-go)))
 
   (ns/bind "jj" 'ns/follow)
-
   )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
