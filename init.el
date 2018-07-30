@@ -51,6 +51,7 @@
  ledger
  emoji
  filehooks
+ writing
  )
 
 (ns/compose
