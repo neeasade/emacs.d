@@ -413,7 +413,7 @@ buffer is not visiting a file."
   (setq
     ;; todo: relook at this setting
     auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
-    backup-directory-alist `(("." . (~ ".emacs.d/backups")))
+    backup-directory-alist `(("." . ,(~ ".emacs.d/backups")))
     coding-system-for-read 'utf-8
     coding-system-for-write 'utf-8
     delete-old-versions -1
