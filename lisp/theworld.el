@@ -1283,6 +1283,9 @@ current major mode."
       (deer))
 
     (ns/bind "d" 'ns/deer-with-last-shell)
+
+    (defcommand open () (async-shell-command (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
+    (define-key ranger-normal-mode-map (kbd "RET") 'ns/open)
     )
 
   (defun my-resize-margins ()
