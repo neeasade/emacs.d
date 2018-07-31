@@ -506,7 +506,6 @@ buffer is not visiting a file."
     "js" (lambda() (interactive) (ns/find-or-open (ns/homefile ".emacs.d/lisp/scratch.el")))
     "jS" (lambda() (interactive) (ns/find-or-open (ns/homefile ".emacs.d/lisp/scratch.txt")))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
-    "ju" 'browse-url
 
     "tw" 'whitespace-mode
     "tn" 'linum-mode
@@ -674,8 +673,7 @@ buffer is not visiting a file."
     (or
       (member (buffer-name) '("scratch.el"))
       (s-starts-with? "*" (buffer-name))
-      (s-starts-with? "magit" (buffer-name))
-      ))
+      (s-starts-with? "magit" (buffer-name))))
 
   (defcommand maybe-next () (if (ns/should-skip) (next-buffer)))
   (defcommand maybe-prev () (if (ns/should-skip) (previous-buffer)))
@@ -1030,11 +1028,6 @@ current major mode."
         (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))
     ))
 
-(defconfig feebleline
-  ;; todo
-  (load "~/.emacs.d/lib/feebleline.el")
-  )
-
 (defconfig zoom
   (use-package zoom
     :config
@@ -1130,7 +1123,6 @@ current major mode."
         "a" 'org-agenda
         "l" 'evil-org-open-links
         "p" 'org-pomodoro
-        "q" 'tp-set-org-userstory
         "f" 'ns/org-set-active
         "b" 'ns/org-open-url
         )))
@@ -1225,6 +1217,7 @@ current major mode."
   (ns/guard ns/enable-work-p)
   (load (~ ".emacs.d/lib/targetprocess.el"))
   (advice-add #'ns/org-set-active :after #'tp-set-active)
+  (ns/bind-leader-mode 'org "Q" 'tp-set-org-userstory)
   )
 
 (defconfig interface
@@ -1609,6 +1602,9 @@ current major mode."
     "[g" 'git-gutter:previous-hunk
     )
 
+  ;; alias:
+  (defcommand magit-history () (magit-log-buffer-file))
+
   (ns/bind
     "g" '(:ignore t :which-key "git")
     "gb" 'magit-blame
@@ -1616,6 +1612,7 @@ current major mode."
     "gm" 'git-smerge-menu/body
     "gd" 'vdiff-mode ; ,h for a hydra!
     "gs" 'ns/git-status
+    "gh" 'ns/magit-history
     )
   )
 
@@ -2076,7 +2073,10 @@ current major mode."
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
     (setq explicit-shell-file-name (ns/shell-exec "where bash"))
-    (setq explicit-bash.exe-args '("--login" "-i")))
+    (setq explicit-bash.exe-args '("--login" "-i"))
+    (setenv "PATH"
+      (concat (ns/homefile "scoop/apps/git-with-openssh/current/usr/bin/") ";"
+        (getenv "PATH"))))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
@@ -2120,6 +2120,7 @@ current major mode."
     ;; cf https://github.com/kyagi/shell-pop-el/issues/51
     (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
+    ;; todo: make this use a fresh shell or something, maybe cleanup empty shells at some point
     (defcommand shell-pop-ranger-dir ()
       (let ((ranger-dir (expand-file-name default-directory)))
         (switch-to-buffer ns/last-shell)
@@ -2214,6 +2215,7 @@ current major mode."
 (defconfig lsp
   (use-package lsp-ui)
   (use-package lsp-javascript-flow)
+  (use-package cquery)
   )
 
 (defconfig search-engines
@@ -2269,6 +2271,21 @@ current major mode."
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
   ;; https://github.com/agzam/mw-thesaurus.el
+
+  (use-package writeroom-mode)
+  (add-hook 'writeroom-mode-hook 'flyspell-mode)
+
+  (setq-default fill-column 80)
+  (add-hook 'writeroom-mode-hook 'auto-fill-mode)
+  ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
+  ;; There is no need for "^" as the regexp is matched at the beginning of line.
+  (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
+
+  ;; toggle focus?
+  (ns/bind "tf" 'writeroom-mode)
+
+  (use-package mw-thesaurus)
+  (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
   )
 
 ;; use shell frames as terminals.
@@ -2483,7 +2500,6 @@ Version 2018-02-21"
       (smart-jump-go)))
 
   (ns/bind "jj" 'ns/follow)
-
   )
 
 (defconfig c
