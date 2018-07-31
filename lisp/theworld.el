@@ -109,6 +109,16 @@
     `(replace-regexp-in-string "\n$" ""
        (shell-command-to-string ,command)))
 
+  (defmacro ns/shell-exec-dontcare (command)
+    ;; todo here: junk buffer
+    (let* (
+            (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
+            (junk-buffer (get-buffer-create bufname))
+            )
+      (shell-command command junk-buffer)
+      (kill-buffer junk-buffer)))
+
+
   (defun mapcar* (f &rest xs)
     "MAPCAR for multiple sequences F XS."
     (if (not (memq nil xs))
@@ -128,7 +138,7 @@
        (seq-partition ',lst 2)
        ))
 
-  (defun ns/homefile (path)
+  (defun ~ (path)
     (concat (getenv (if ns/enable-windows-p "USERPROFILE" "HOME")) "/" path))
 
   ;; binding wrappers
@@ -292,11 +302,11 @@ buffer is not visiting a file."
         (s-chomp (s-chop-prefix "(defconfig " (car item))))
       (s-match-strings-all
         "^(defconfig [^ \(\)]+"
-        (get-string-from-file "~/.emacs.d/lisp/theworld.el"))))
+        (get-string-from-file (~ ".emacs.d/lisp/theworld.el")))))
 
   (defun ns/check-for-orphans()
     "Check to see if any defconfigs are missing from init."
-    (let ((initfile (get-string-from-file "~/.emacs.d/init.el")))
+    (let ((initfile (get-string-from-file (~ ".emacs.d/init.el"))))
       (mapcar
         (lambda(conf)
           (when (not (s-contains? conf initfile))
@@ -308,7 +318,7 @@ buffer is not visiting a file."
       :action
       (lambda (option)
         (interactive)
-        (ns/find-or-open "~/.emacs.d/lisp/theworld.el")
+        (ns/find-or-open (~ ".emacs.d/lisp/theworld.el"))
         (goto-char (point-min))
         (re-search-forward (concat "defconfig " option))
         (ns/focus-line)
@@ -376,7 +386,7 @@ buffer is not visiting a file."
 
   (defun ns/look-at-last-message()
     (interactive)
-    (ns/find-or-open "~/.emacs.d/lisp/scratch.el")
+    (ns/find-or-open (~ ".emacs.d/lisp/scratch.el"))
     (goto-char (point-max))
     (insert "\n")
     (insert (ns/get-last-message))
@@ -401,8 +411,9 @@ buffer is not visiting a file."
 
 (defconfig sanity
   (setq
+    ;; todo: relook at this setting
     auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
-    backup-directory-alist `(("." . "~/.emacs.d/backups"))
+    backup-directory-alist `(("." . ,(~ ".emacs.d/backups")))
     coding-system-for-read 'utf-8
     coding-system-for-write 'utf-8
     delete-old-versions -1
@@ -430,7 +441,7 @@ buffer is not visiting a file."
   (blink-cursor-mode 0)
 
   ;; custom
-  (defconst custom-file "~/.emacs.d/custom.el")
+  (defconst custom-file (~ ".emacs.d/custom.el"))
   (unless (file-exists-p custom-file)
     (write-region "" nil custom-file))
 
@@ -438,11 +449,11 @@ buffer is not visiting a file."
 
   ;; persistent session:
   ;; note: (desktop-clear) to clean/kill everything.
-  (make-directory "~/.emacs.desktop" t)
+  (make-directory (~ ".emacs.desktop") t)
   (setq-ns desktop
     restore-eager 5
     auto-save-timeout 30
-    path (list "~/.emacs.desktop")
+    path (list (~ ".emacs.desktop"))
     )
 
   (desktop-save-mode 1)
@@ -491,9 +502,10 @@ buffer is not visiting a file."
   (setq whitespace-line-column 120)
 
   (ns/bind
-    "js" (lambda() (interactive) (ns/find-or-open "~/.emacs.d/lisp/scratch.el"))
+    ;; TODO: make "jS" a text mode buffer
+    "js" (lambda() (interactive) (ns/find-or-open (ns/homefile ".emacs.d/lisp/scratch.el")))
+    "jS" (lambda() (interactive) (ns/find-or-open (ns/homefile ".emacs.d/lisp/scratch.txt")))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
-    "ju" 'browse-url
 
     "tw" 'whitespace-mode
     "tn" 'linum-mode
@@ -660,7 +672,8 @@ buffer is not visiting a file."
   (defcommand should-skip()
     (or
       (member (buffer-name) '("scratch.el"))
-      (s-starts-with? "*" (buffer-name))))
+      (s-starts-with? "*" (buffer-name))
+      (s-starts-with? "magit" (buffer-name))))
 
   (defcommand maybe-next () (if (ns/should-skip) (next-buffer)))
   (defcommand maybe-prev () (if (ns/should-skip) (previous-buffer)))
@@ -1015,11 +1028,6 @@ current major mode."
         (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))
     ))
 
-(defconfig feebleline
-  ;; todo
-  (load "~/.emacs.d/lib/feebleline.el")
-  )
-
 (defconfig zoom
   (use-package zoom
     :config
@@ -1037,7 +1045,7 @@ current major mode."
 
     :config
     (setq-ns org
-      directory "~/notes"
+      directory (ns/homefile "notes")
       agenda-files (list org-directory)
       default-notes-file  (concat org-directory "/notes.org")
       default-diary-file  (concat org-directory "/diary.org")
@@ -1083,7 +1091,7 @@ current major mode."
          ("d" "Diary" entry (file+datetree org-default-diary-file)
            "* %?\n%U\n" :clock-in t :clock-resume t)
 
-         ("D" "Daily Log" entry (file "~/notes/daily-log.org")
+         ("D" "Daily Log" entry (file (~ "notes/daily-log.org"))
            "* %u %?\n*Summary*: \n\n*Problem*: \n\n*Insight*: \n\n*Tomorrow*: " :clock-in t :clock-resume t)
 
          ("i" "Idea" entry (file org-default-notes-file)
@@ -1115,7 +1123,6 @@ current major mode."
         "a" 'org-agenda
         "l" 'evil-org-open-links
         "p" 'org-pomodoro
-        "q" 'tp-set-org-userstory
         "f" 'ns/org-set-active
         "b" 'ns/org-open-url
         )))
@@ -1171,7 +1178,7 @@ current major mode."
       (apply-partially #'ns/toggle-music "pause"))
     )
 
-  (defun jump-org() (interactive) (ns/find-or-open "~/notes/notes.org" ))
+  (defun jump-org() (interactive) (ns/find-or-open (~ "notes/notes.org" )))
   (ns/bind
     "oo" 'ns/org-goto-active
     "oc" 'org-capture
@@ -1208,8 +1215,9 @@ current major mode."
 
 (defconfig target-process
   (ns/guard ns/enable-work-p)
-  (load "~/.emacs.d/lib/targetprocess.el")
+  (load (~ ".emacs.d/lib/targetprocess.el"))
   (advice-add #'ns/org-set-active :after #'tp-set-active)
+  (ns/bind-leader-mode 'org "Q" 'tp-set-org-userstory)
   )
 
 (defconfig interface
@@ -1381,7 +1389,7 @@ current major mode."
     (setq-ns emms-player-mpd
       server-name "localhost"
       server-port "6600"
-      music-directory "~/Music"
+      music-directory (~ "Music")
       ;; server-password "mypassword"
       )
 
@@ -1479,7 +1487,7 @@ current major mode."
     :config
     (setq-ns magit
       save-repository-buffers 'dontask
-      repository-directories (list "~/git")
+      repository-directories (list (~ "git"))
       )
 
     ;; https://magit.vc/manual/magit/Performance.html
@@ -1512,8 +1520,8 @@ current major mode."
          :upstream (:host github
                      :repo "alphapapa/magit-todos"))
       )
+    (evil-define-key nil magit-todos-section-map "j" nil)
     (magit-todos-mode)
-
     )
 
   (use-package magit-svn :config
@@ -1597,6 +1605,9 @@ current major mode."
     "[g" 'git-gutter:previous-hunk
     )
 
+  ;; alias:
+  (defcommand magit-history () (magit-log-buffer-file))
+
   (ns/bind
     "g" '(:ignore t :which-key "git")
     "gb" 'magit-blame
@@ -1604,6 +1615,7 @@ current major mode."
     "gm" 'git-smerge-menu/body
     "gd" 'vdiff-mode ; ,h for a hydra!
     "gs" 'ns/git-status
+    "gh" 'ns/magit-history
     )
   )
 
@@ -2064,7 +2076,10 @@ current major mode."
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
     (setq explicit-shell-file-name (ns/shell-exec "where bash"))
-    (setq explicit-bash.exe-args '("--login" "-i")))
+    (setq explicit-bash.exe-args '("--login" "-i"))
+    (setenv "PATH"
+      (concat (ns/homefile "scoop/apps/git-with-openssh/current/usr/bin/") ";"
+        (getenv "PATH"))))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
@@ -2108,6 +2123,7 @@ current major mode."
     ;; cf https://github.com/kyagi/shell-pop-el/issues/51
     (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
+    ;; todo: make this use a fresh shell or something, maybe cleanup empty shells at some point
     (defcommand shell-pop-ranger-dir ()
       (let ((ranger-dir (expand-file-name default-directory)))
         (switch-to-buffer ns/last-shell)
@@ -2202,6 +2218,7 @@ current major mode."
 (defconfig lsp
   (use-package lsp-ui)
   (use-package lsp-javascript-flow)
+  (use-package cquery)
   )
 
 (defconfig search-engines
@@ -2257,6 +2274,21 @@ current major mode."
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
   ;; https://github.com/agzam/mw-thesaurus.el
+
+  (use-package writeroom-mode)
+  (add-hook 'writeroom-mode-hook 'flyspell-mode)
+
+  (setq-default fill-column 80)
+  (add-hook 'writeroom-mode-hook 'auto-fill-mode)
+  ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
+  ;; There is no need for "^" as the regexp is matched at the beginning of line.
+  (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
+
+  ;; toggle focus?
+  (ns/bind "tf" 'writeroom-mode)
+
+  (use-package mw-thesaurus)
+  (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
   )
 
 ;; use shell frames as terminals.
@@ -2471,6 +2503,22 @@ Version 2018-02-21"
       (smart-jump-go)))
 
   (ns/bind "jj" 'ns/follow)
+  )
+
+(defconfig c
+  ;; note: depends on clang and cmake
+  (use-package irony)
+  (use-package flycheck-irony)
+
+  ;; jump to it
+  (defcommand recompile ()
+    (let ((compilation-directory (projectile-project-root)))
+      (ns/shell-exec-dontcare
+        (format "cd '%s' && make clean" compilation-directory))
+      (recompile)))
+
+  (ns/bind "jk" 'ns/recompile)
+
 
   )
 
