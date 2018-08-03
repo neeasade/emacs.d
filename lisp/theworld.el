@@ -1083,8 +1083,7 @@ current major mode."
          ((line-column buffer-position)
            :separator " |" )
          (battery :when active)
-         )
-      )
+         ))
 
     ;; set the modeline for all existing buffers
     (dolist (buf (buffer-list))
@@ -1191,40 +1190,32 @@ current major mode."
         "b" 'ns/org-open-url
         )))
 
-  (defun ns/org-open-url()
-    (interactive)
-    (browse-url (org-entry-get nil "url"))
-    )
+  (defcommand org-open-url() (browse-url (org-entry-get nil "url")))
 
-  (defun ns/org-set-active()
-    (interactive)
+  (defcommand org-set-active()
     (org-delete-property-globally "focus")
     (org-set-property "focus" "t")
 
-    (setq org-active-story (substring-no-properties (org-get-heading t t t t)))
+    (setq ns/org-active-story (substring-no-properties (org-get-heading t t t t)))
     )
 
   ;; for externals to call into
   (defun ns/org-get-active()
-    (if (not (bound-and-true-p org-active-story))
+    (if (not (bound-and-true-p ns/org-active-story))
       (progn
         (ns/org-goto-active)
         (ns/org-set-active)
         )
-      org-active-story
-      )
-    )
+      ns/org-active-story
+      ))
 
-  (defun ns/org-goto-active()
-    (interactive)
+  (defcommand org-goto-active()
     (ns/find-or-open org-default-notes-file)
     (goto-char (org-find-property "focus"))
     (org-show-context)
     (org-show-subtree)
     (ns/focus-line)
     )
-
-
 
   (use-package org-pomodoro
     :config
@@ -1242,14 +1233,14 @@ current major mode."
       (apply-partially #'ns/toggle-music "pause"))
     )
 
-  (defun jump-org() (interactive) (ns/find-or-open (~ "notes/notes.org" )))
+  (defcommand jump-org () (ns/find-or-open (~ "notes/notes.org" )))
   (ns/bind
     "oo" 'ns/org-goto-active
     "oc" 'org-capture
     "or" 'org-refile
 
     ;; ehh
-    "on" 'jump-org
+    "on" 'ns/jump-org
     )
 
   ;; todo: into org agendas
