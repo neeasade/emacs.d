@@ -99,6 +99,7 @@
 
 (defconfig bedrock
   (use-package s)
+  (use-package f)
   (use-package hydra)
   (use-package general)
   (use-package request)
@@ -216,12 +217,14 @@
       (load user-init-file nil 'nomessage)
       (message "Reloading init.el... done.")))
 
-  (let ((extend-file (ns/homefile "extend.el")))
+  (let ((extend-file (~ "extend.el")))
     (when (file-exists-p extend-file)
       (eval-and-compile (load extend-file))))
   )
 
 (defconfig util
+  (use-package pcre2el)
+
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
     (with-temp-buffer
@@ -501,19 +504,29 @@ buffer is not visiting a file."
 
   (setq whitespace-line-column 120)
 
+  (defcommand insert-filename ()
+    (insert (f-filename (buffer-file-name))))
+
+  (defcommand insert-filepath ()
+    (insert (buffer-file-name)))
+
   (ns/bind
-    ;; TODO: make "jS" a text mode buffer
-    "js" (lambda() (interactive) (ns/find-or-open (ns/homefile ".emacs.d/lisp/scratch.el")))
-    "jS" (lambda() (interactive) (ns/find-or-open (ns/homefile ".emacs.d/lisp/scratch.txt")))
+    "js" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
+    "jS" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
     "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
 
+    "t" '(:ignore t :which-key "Toggle")
     "tw" 'whitespace-mode
     "tn" 'linum-mode
     "tl" 'toggle-truncate-lines
     "ts" 'ns/style
     "ti" 'reload-init
     "tm" 'ns/toggle-modeline
-    "i" 'insert-char
+
+    "i" '(:ignore t :which-key "Insert")
+    "ic" 'insert-char
+    "if" 'ns/insert-filename
+    "ip" 'ns/insert-filepath
     )
   )
 
@@ -570,7 +583,7 @@ buffer is not visiting a file."
   (use-package evil-escape :config (evil-escape-mode))
   (use-package evil-lion :config (evil-lion-mode))
   (use-package evil-commentary :config (evil-commentary-mode))
-  (use-package evil-anzu) ;; displays current match and total matches.
+  (use-package evil-anzu :config (setq anzu-cons-mode-line-p nil)) ;; displays current match and total matches.
   (use-package evil-matchit :config (global-evil-matchit-mode 1))
   (use-package evil-numbers
     :config
@@ -669,14 +682,26 @@ buffer is not visiting a file."
     "H" 'previous-buffer
     "L" 'next-buffer)
 
-  (defcommand should-skip()
+  (defcommand should-skip (buffername)
     (or
-      (member (buffer-name) '("scratch.el"))
-      (s-starts-with? "*" (buffer-name))
-      (s-starts-with? "magit" (buffer-name))))
+      ;; (member buffername '("scratch.el"))
+      (s-starts-with? "*" buffername)
+      (s-starts-with? "magit" buffername))
+    )
 
-  (defcommand maybe-next () (if (ns/should-skip) (next-buffer)))
-  (defcommand maybe-prev () (if (ns/should-skip) (previous-buffer)))
+  (defcommand maybe-next ()
+    (when (ns/should-skip (buffer-name))
+      (let ((temp (window-next-buffers)))
+        (next-buffer)
+        (set-window-next-buffers nil temp)
+        )))
+
+  (defcommand maybe-prev ()
+    (when (ns/should-skip (buffer-name))
+      (let ((temp (window-prev-buffers)))
+        (previous-buffer)
+        (set-window-prev-buffers nil temp)
+        )))
 
   (advice-add #'next-buffer :after #'ns/maybe-next)
   (advice-add #'previous-buffer :after #'ns/maybe-prev)
@@ -1014,13 +1039,52 @@ current major mode."
       default-separator (get-resource "Emacs.powerline")
       )
 
-    (set-face-attribute 'spaceline-highlight-face nil
-      :background (face-attribute 'spaceline-evil-normal :background))
+    ;; (set-face-attribute 'spaceline-highlight-face nil :background (face-attribute 'spaceline-evil-normal :background))
 
-    (spaceline-spacemacs-theme)
-    (spaceline-toggle-minor-modes-off)
-    (spaceline-toggle-evil-state-off)
-    (spaceline-compile)
+    ;; todo: make a circe segment
+
+    ;; note to self: abandon this, look at switch-to-next, prev-buffer source, grab that and replace return
+    (defun ns/next-buffer-name ()
+      (-first (lambda (bufname) (not (ns/should-skip bufname)))
+        (-map 'buffer-name (window-next-buffers))))
+
+    (defun ns/prev-buffer-name ()
+      (-first (lambda (bufname) (not (ns/should-skip bufname)))
+        (-map 'buffer-name
+          (-map 'first (window-prev-buffers)))))
+
+    (spaceline-define-segment next-buffers
+      "Docstring"
+      ;; A single form whose value is the value of the segment.
+      ;; It may return a string, an image or a list of such.
+      (when t
+        (concat
+          (s-left 8 (ns/prev-buffer-name))
+          " - "
+          (s-left 8 (ns/next-buffer-name)))
+        )
+      :enabled t
+      )
+
+    (spaceline-compile 'main
+      '(
+         anzu
+         (remote-host projectile-root ">>" buffer-id buffer-modified)
+         (flycheck-error flycheck-warning)
+         process
+         )
+      '(
+         ;; maybe
+         (version-control :when active)
+         (next-buffers :when active)
+         (org-clock :when active)
+         (org-pomodoro :when active)
+         info-nodes
+         ((line-column buffer-position)
+           :separator " |" )
+         (battery :when active)
+         )
+      )
 
     ;; set the modeline for all existing buffers
     (dolist (buf (buffer-list))
@@ -1045,7 +1109,7 @@ current major mode."
 
     :config
     (setq-ns org
-      directory (ns/homefile "notes")
+      directory (~ "notes")
       agenda-files (list org-directory)
       default-notes-file  (concat org-directory "/notes.org")
       default-diary-file  (concat org-directory "/diary.org")
@@ -1374,11 +1438,22 @@ current major mode."
     (add-hook 'window-configuration-change-hook 'dynamic-ajb-height)
     (setq ajb-sort-function 'bs--sort-by-recentf)
 
+    ;; todo: kill buffers by regexp command
     (ns/bind
-      "bb" 'counsel-ibuffer
       "bs" 'ace-jump-buffer
       "bm" 'ace-jump-same-mode-buffers
-      )))
+      )
+    )
+
+  (defcommand kill-other-buffers ()
+    "Kill all other buffers."
+    (mapc 'kill-buffer
+      (delq (current-buffer)
+        (remove-if-not 'buffer-file-name (buffer-list)))))
+
+  (ns/bind
+    "bb" 'counsel-ibuffer
+    "bK" 'ns/kill-other-buffers))
 
 (defconfig music
   (ns/guard ns/enable-home-p)
@@ -1505,9 +1580,6 @@ current major mode."
       ;; don't show diff when committing --
       ;; means reviewing will have to be purposeful before
       (remove-hook 'server-switch-hook 'magit-commit-diff)
-
-      ;; disable emacs VC
-      (setq vc-handled-backends nil)
       ))
 
   (when ns/enable-linux-p
@@ -1641,7 +1713,7 @@ current major mode."
     (setq ns/irc-nick "neeasade")
 
     (setq-ns lui
-      logging-directory (ns/homefile ".irc")
+      logging-directory (~ ".irc")
       time-stamp-position 'right-margin
       time-stamp-format "%H:%M"
       ;; fluid width windows
@@ -2078,7 +2150,7 @@ current major mode."
     (setq explicit-shell-file-name (ns/shell-exec "where bash"))
     (setq explicit-bash.exe-args '("--login" "-i"))
     (setenv "PATH"
-      (concat (ns/homefile "scoop/apps/git-with-openssh/current/usr/bin/") ";"
+      (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
         (getenv "PATH"))))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
@@ -2097,7 +2169,7 @@ current major mode."
     (defun shx-cmd-term (placeholder)
       (interactive)
       (let ((term (if ns/enable-windows-p "cmd" (getenv "TERMINAL")))
-             ;; (default-directory (ns/homefile ""))
+             ;; (default-directory (~ ""))
              )
         (shell-command (format "nohup %s &" term) nil nil))))
 
@@ -2218,7 +2290,24 @@ current major mode."
 (defconfig lsp
   (use-package lsp-ui)
   (use-package lsp-javascript-flow)
+  (use-package lsp-javascript-typescript)
+
   (use-package cquery)
+
+
+  (defun my-company-transformer (candidates)
+    (let ((completion-ignore-case t))
+      (all-completions (company-grab-symbol) candidates)))
+
+  (defun my-js-hook nil
+    (make-local-variable 'company-transformers)
+    (push 'my-company-transformer company-transformers))
+
+  (add-hook 'web-mode-hook 'my-js-hook)
+  (add-hook 'web-mode-hook #'lsp-javascript-typescript-enable)
+
+  (remove-hook 'web-mode-hook #'lsp-javascript-flow-enable)
+
   )
 
 (defconfig search-engines
@@ -2245,8 +2334,8 @@ current major mode."
 
   (defvar *afilename-cmd*
     ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
-    `((,(ns/homefile ".Xresources") . "xrdb -merge ~/.Xresources")
-       (,(ns/homefile ".Xmodmap") . "xmodmap ~/.Xmodmap"))
+    `((,(~ ".Xresources") . "xrdb -merge ~/.Xresources")
+       (,(~ ".Xmodmap") . "xmodmap ~/.Xmodmap"))
     "File association list with their respective command.")
 
   (defun my/cmd-after-saved-file ()
@@ -2294,7 +2383,7 @@ current major mode."
 ;; use shell frames as terminals.
 (defconfig terminal
   (defcommand stage-terminal ()
-    (let ((default-directory (ns/homefile "")))
+    (let ((default-directory (~ "")))
       (shell "*spawn-shell-staged*")
       (ns/toggle-modeline)
       (delete-window)
