@@ -32,6 +32,7 @@
      ("emacs.powerline"      . "bar")
      ("st.borderpx"          . "30")
      ("st.font"              . "Go Mono-10")
+     ("st.font_variable"     . "Go-10")
      ))
 
 ;; master
@@ -1088,13 +1089,16 @@ current major mode."
     (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))
 
     ;; set the modeline for all existing buffers
+    ;; todo: make this unset modeline on not matching spawn
     (defcommand refresh-all-modeline ()
       (dolist (buf (buffer-list))
         (when (not (s-starts-with-p "*spawn-shell" (buffer-name buf)))
           (with-current-buffer buf
             (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))))
 
+    ;; todo: somehow this has no effect in init
     (ns/refresh-all-modeline)
+    (ns/bind "tM" 'ns/refresh-all-modeline)
     ))
 
 (defconfig zoom
@@ -1102,9 +1106,7 @@ current major mode."
     :config
     (setq zoom-size '(80 . 24))
     (setq zoom-size '(0.58 . 0.618))
-    (zoom-mode 1)
-    )
-  )
+    (zoom-mode 1)))
 
 (defconfig org
   (use-package org
@@ -2363,7 +2365,6 @@ current major mode."
   )
 
 (defconfig emoji
-  (ns/guard ns/enable-home-p)
   (use-package emojify
     :init (setq emojify-emoji-styles '(unicode github))
     :config
@@ -2607,16 +2608,16 @@ Version 2018-02-21"
 
   (ns/bind "jj" 'ns/follow)
 
-  ;; Use variable width font faces in current buffer
+  ;; todo: find a way to set size here
   (defcommand buffer-face-mode-variable ()
     "Set font to a variable width (proportional) fonts in current buffer"
-    (setq buffer-face-mode-face '(:family "Go" :height 100 :width semi-condensed))
+    (setq buffer-face-mode-face
+      `(:family ,(first (s-split "-" (get-resource "st.font_variable"))) :height 100))
     (buffer-face-mode))
 
-  ;; Use monospaced font faces in current buffer
   (defcommand buffer-face-mode-fixed ()
     "Sets a fixed width (monospace) font in current buffer"
-    (setq buffer-face-mode-face '(:family "Inconsolata" :height 100))
+    (setq buffer-face-mode-face `(:font ,(get-resource "st.font")))
     (buffer-face-mode))
   )
 
@@ -2639,6 +2640,12 @@ Version 2018-02-21"
   (use-package lua-mode)
   ;; note: lua-mode comes with some repl stuff that might come in handy
   )
+
+(defconfig graphiz
+  (use-package graphviz-dot-mode
+    :config
+    ;; (ns/bind)
+    (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
