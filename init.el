@@ -66,6 +66,7 @@
  typescript
  markdown
  powershell
+ lua
  ;; lsp
  ;; terraform
  ;; sql

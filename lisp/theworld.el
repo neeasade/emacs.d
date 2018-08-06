@@ -1085,10 +1085,16 @@ current major mode."
          (battery :when active)
          ))
 
+    (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))
+
     ;; set the modeline for all existing buffers
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-        (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))
+    (defcommand refresh-all-modeline ()
+      (dolist (buf (buffer-list))
+        (when (not (s-starts-with-p "*spawn-shell" (buffer-name buf)))
+          (with-current-buffer buf
+            (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))))
+
+    (ns/refresh-all-modeline)
     ))
 
 (defconfig zoom
@@ -1172,8 +1178,6 @@ current major mode."
       )
 
     (ns/bind-leader-mode 'emacs-lisp "r" 'eros-eval-last-sexp)
-
-    (macroexpand '(ns/bind-leader-mode 'emacs-lisp "r" 'eros-eval-last-sexp))
 
     (add-hook
       'org-mode-hook
@@ -1444,7 +1448,11 @@ current major mode."
 
   (ns/bind
     "bb" 'counsel-ibuffer
-    "bK" 'ns/kill-other-buffers))
+    "bK" 'ns/kill-other-buffers
+    "bk" 'kill-matching-buffers
+    )
+
+  )
 
 (defconfig music
   (ns/guard ns/enable-home-p)
@@ -1697,6 +1705,7 @@ current major mode."
     (advice-add #'smart-jump-go :after #'ns/focus-line)
     ))
 
+;; todo: clean up the 'my' prefix?
 (defconfig irc
   (ns/guard ns/enable-home-p)
   (use-package circe
@@ -1748,23 +1757,30 @@ current major mode."
            :nickserv-identify-confirmation ,(rx bol "Password accepted - you are now recognized." eol)
            )))
 
+    ;; going to make this monospace, main text regular
+    (defun ns/monospace (input)
+      (propertize input 'face 'circe-originator-face))
+
     (defun my/circe-format-truncated-nick (type args)
       (let* ((nick (plist-get args :nick))
               (body (plist-get args :body))
               (maxlen (if (eq type 'action) 7 8))
-              (lui-nick (concat "{nick:" (number-to-string maxlen) "s}")))
+              ;; (lui-nick-trim (concat "{nick:" (number-to-string maxlen) "s}"))
+              (lui-nick (s-pad-left maxlen " " (s-left maxlen nick)))
+              )
+
         (when (> (length nick) maxlen)
-          (setq nick (concat (substring nick 0 (- maxlen 1)) "…"))
-          (setq nick (propertize nick 'face 'circe-originator-face))
-          )
+          (setq nick (concat (substring nick 0 (- maxlen 1)) "…")))
 
         (if (not (boundp 'circe-last-nick))
           (setq-local circe-last-nick ""))
 
         (if (string= circe-last-nick nick)
           (setq nick "        ")
-          (setq-local circe-last-nick nick)
-          )
+          (setq-local circe-last-nick nick))
+
+        (setq nick (ns/monospace nick))
+        (setq lui-nick (ns/monospace lui-nick))
 
         (lui-format
           (pcase type
@@ -1791,8 +1807,8 @@ current major mode."
           (body (plist-get args :body))
           (result
             (if (string= circe-last-nick ns/irc-nick)
-              (lui-format "         {body}" :body body)
-              (lui-format "       ► {body}" :body body)
+              (lui-format (concat (ns/monospace "        ") " {body}") :body body)
+              (lui-format (concat (ns/monospace "       ►") " {body}") :body body)
               )))
         (setq-local circe-last-nick ns/irc-nick)
         result
@@ -1804,9 +1820,8 @@ current major mode."
       notice 'my/circe-format-notice
       say 'my/circe-format-say
       self-say 'my/circe-format-self-say
-      self-action "       ► *{body}*"
+      self-action (concat (ns/monospace "       ► ") "*{body}*")
       )
-
 
     ;; Don't show names list upon joining a channel.
     ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
@@ -1870,7 +1885,7 @@ current major mode."
       fringes-outside-margins t
       right-margin-width 5
       word-wrap t
-      wrap-prefix "         ")
+      wrap-prefix (concat (ns/monospace "        ") " "))
     (setf (cdr (assoc 'continuation fringe-indicator-alist)) nil))
 
   (use-package circe-notifications
@@ -1896,16 +1911,14 @@ current major mode."
           :action (lambda (option) (counsel-switch-to-buffer-or-window option)))
         )))
 
-  (require 'circe-display-images)
-  (setq circe-display-images-max-height 200)
-  (ns/bind-leader-mode
-    'circe-channel
-    "i" 'circe-display-images-toggle-image-at-point)
-
-  (enable-circe-display-images)
+  ;; emacs freezes completely while pulling in the image
+  ;; (require 'circe-display-images)
+  ;; (setq circe-display-images-max-height 200)
+  ;; (ns/bind-leader-mode 'circe-channel "i" 'circe-display-images-toggle-image-at-point)
+  ;; (enable-circe-display-images)
 
   (advice-add #'ns/style :after #'ns/style-circe)
-  (defun ns/style-circe()
+  (defun ns/style-circe ()
     (let*
       ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
         (default-fg (face-attribute 'default :foreground))
@@ -1929,6 +1942,13 @@ current major mode."
       (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
       (set-face-attribute 'lui-button-face nil :foreground highlight-fg) ; url
       ))
+
+  ;; todo: add hook for content font
+  ;; (set-face-attribute 'circe-originator-face nil :family "Go Mono")
+  ;; (set-face-attribute 'circe-prompt-face nil :family "Go Mono")
+
+  (define-key circe-channel-mode-map (kbd "<up>") 'lui-previous-input)
+  (define-key circe-channel-mode-map (kbd "<down>") 'lui-next-input)
 
   ;; todo: mute irc bots colors
   (ns/bind
@@ -2346,7 +2366,9 @@ current major mode."
   (ns/guard ns/enable-home-p)
   (use-package emojify
     :init (setq emojify-emoji-styles '(unicode github))
-    :config (global-emojify-mode)
+    :config
+    (global-emojify-mode)
+    (ns/bind "ie" 'emojify-insert-emoji)
     ))
 
 (defconfig writing
@@ -2577,6 +2599,7 @@ Version 2018-02-21"
               ;; (when (y-or-n-p (format "file no exist: 「%s」. Create?" $path)) (find-file $path))
               nil
               ))))))
+  ;; todo: make this search back for url? ^
 
   (defcommand follow ()
     (if (not (xah-open-file-at-cursor))
@@ -2598,8 +2621,11 @@ Version 2018-02-21"
       (recompile)))
 
   (ns/bind "jk" 'ns/recompile)
+  )
 
-
+(defconfig lua
+  (use-package lua-mode)
+  ;; note: lua-mode comes with some repl stuff that might come in handy
   )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
