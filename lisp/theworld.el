@@ -2606,6 +2606,18 @@ Version 2018-02-21"
       (smart-jump-go)))
 
   (ns/bind "jj" 'ns/follow)
+
+  ;; Use variable width font faces in current buffer
+  (defcommand buffer-face-mode-variable ()
+    "Set font to a variable width (proportional) fonts in current buffer"
+    (setq buffer-face-mode-face '(:family "Go" :height 100 :width semi-condensed))
+    (buffer-face-mode))
+
+  ;; Use monospaced font faces in current buffer
+  (defcommand buffer-face-mode-fixed ()
+    "Sets a fixed width (monospace) font in current buffer"
+    (setq buffer-face-mode-face '(:family "Inconsolata" :height 100))
+    (buffer-face-mode))
   )
 
 (defconfig c
