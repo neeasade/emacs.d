@@ -357,9 +357,8 @@ buffer is not visiting a file."
         (global-font-lock-mode 0)
         (global-git-gutter-mode nil))))
 
-  (defun ns/buffercurl()
+  (defcommand buffercurl ()
     "curl buffer from url grabbed from clipboard"
-    (interactive)
     (use-package simpleclip)
 
     (request
@@ -397,6 +396,29 @@ buffer is not visiting a file."
     (previous-line 1)
     )
 
+  (defun ns/parse-font (font)
+    (let* ((parts (s-split "-" font))
+            (family (first parts))
+            (size (string-to-number (second parts))))
+      ;; height is in 1/10th of pt
+      `(:family ,family :height ,(* 10 size))))
+
+  (defun ns/set-faces-variable (faces)
+    (dolist (face faces)
+      (set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
+
+  (defun ns/set-faces-monospace (faces)
+    (dolist (face faces)
+      (set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
+
+  (defcommand set-buffer-face-variable ()
+    (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
+    (buffer-face-mode t))
+
+  (defcommand set-buffer-face-monospace ()
+    (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
+    (buffer-face-mode t))
+
   (ns/bind
     ;; reconsider these, moved from w -> q for query
     "qf" 'ns/what-face
@@ -410,6 +432,7 @@ buffer is not visiting a file."
     "fE" 'sudo-edit
     "jc" 'ns/jump-config
     "tb" 'ns/toggle-bloat
+    "iu" 'ns/buffercurl
     )
   )
 
@@ -881,7 +904,11 @@ current major mode."
   ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   ;; todo: into yasnippet
-  (use-package yasnippet)
+  (use-package yasnippet
+    :config
+    (yas-global-mode 1))
+
+  (use-package yasnippet-snippets)
 
   (add-hook 'sh-mode-hook
     (lambda () (sh-electric-here-document-mode -1))))
@@ -1122,7 +1149,7 @@ current major mode."
       default-diary-file  (concat org-directory "/diary.org")
       default-habits-file  (concat org-directory "/habits.org")
 
-      ellipsis "…"
+      ellipsis "_"
       startup-indented t
       startup-folded t
       src-fontify-natively t
@@ -1194,7 +1221,13 @@ current major mode."
         "p" 'org-pomodoro
         "f" 'ns/org-set-active
         "b" 'ns/org-open-url
-        )))
+        ))
+
+    ;; give us easy templates/tab completion like yasnippet and the like
+    ;; form is '<<key><tab>', eg <s<tab> expands to src block
+    ;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
+    (require 'org-tempo)
+    )
 
   (defcommand org-open-url() (browse-url (org-entry-get nil "url")))
 
@@ -1247,6 +1280,20 @@ current major mode."
 
     ;; ehh
     "on" 'ns/jump-org
+    )
+
+  (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
+
+  (advice-add #'ns/style :after #'ns/style-org)
+  (defun ns/style-org ()
+    (ns/set-faces-monospace '(org-block org-code))
+
+    (set-face-attribute 'org-block-begin-line nil :height 50)
+    (set-face-attribute 'org-block-end-line nil :height 50)
+    (set-face-attribute 'org-level-1 nil :height 115 :weight 'semi-bold)
+    (set-face-attribute 'org-level-2 nil :height 110 :weight 'semi-bold)
+    (set-face-attribute 'org-level-3 nil :height 105 :weight 'semi-bold)
+    (set-face-attribute 'org-level-4 nil :height 100 :weight 'semi-bold)
     )
 
   ;; todo: into org agendas
@@ -2608,17 +2655,6 @@ Version 2018-02-21"
 
   (ns/bind "jj" 'ns/follow)
 
-  ;; todo: find a way to set size here
-  (defcommand buffer-face-mode-variable ()
-    "Set font to a variable width (proportional) fonts in current buffer"
-    (setq buffer-face-mode-face
-      `(:family ,(first (s-split "-" (get-resource "st.font_variable"))) :height 100))
-    (buffer-face-mode))
-
-  (defcommand buffer-face-mode-fixed ()
-    "Sets a fixed width (monospace) font in current buffer"
-    (setq buffer-face-mode-face `(:font ,(get-resource "st.font")))
-    (buffer-face-mode))
   )
 
 (defconfig c
