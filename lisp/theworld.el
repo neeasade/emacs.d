@@ -357,9 +357,10 @@ buffer is not visiting a file."
         (global-font-lock-mode 0)
         (global-git-gutter-mode nil))))
 
+  (use-package simpleclip)
+
   (defcommand buffercurl ()
     "curl buffer from url grabbed from clipboard"
-    (use-package simpleclip)
 
     (request
       (simpleclip-get-contents)
@@ -405,11 +406,11 @@ buffer is not visiting a file."
 
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
-      (set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
+      (eval `(set-face-attribute face nil ,@(ns/parse-font (get-resource "st.font_variable"))))))
 
   (defun ns/set-faces-monospace (faces)
     (dolist (face faces)
-      (set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
+      (eval `(set-face-attribute face nil ,@(ns/parse-font (get-resource "st.font"))))))
 
   (defcommand set-buffer-face-variable ()
     (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
@@ -1273,10 +1274,43 @@ current major mode."
     )
 
   (defcommand jump-org () (ns/find-or-open (~ "notes/notes.org" )))
+
+  ;; todo: make this insert at focused story?
+  (defcommand make-org-link-to-here ()
+    (simpleclip-copy (concat "[[file:" (buffer-file-name) "::"
+                       (number-to-string (line-number-at-pos)) "]]")))
+
+  (defcommand insert-mark-org-links ()
+    (setq ns/markers
+      (append (cl-remove-if (lambda (m)
+                              (or (evil-global-marker-p (car m))
+                                (not (markerp (cdr m)))))
+                evil-markers-alist)
+        (cl-remove-if (lambda (m)
+                        (or (not (evil-global-marker-p (car m)))
+                          (not (markerp (cdr m)))))
+          (default-value 'evil-markers-alist)))
+      )
+
+    ;; remove automatic marks
+    (dolist (key '(40 41 94 91 93))
+      (setq ns/markers (delq (assoc key ns/markers) ns/markers)))
+
+    (insert (s-join "\n"
+              (mapcar (lambda(mark)
+                        (let ((file (buffer-file-name (marker-buffer mark)))
+                               (linenumber
+                                 (with-current-buffer (marker-buffer mark)
+                                   (line-number-at-pos (marker-position mark)))))
+                          (concat "[[file:" file "::" (number-to-string linenumber) "]]")))
+                (mapcar 'cdr ns/markers)))))
+
   (ns/bind
     "oo" 'ns/org-goto-active
     "oc" 'org-capture
     "or" 'org-refile
+    "ol" 'ns/make-org-link-to-here
+    "om" 'ns/insert-mark-org-links
 
     ;; ehh
     "on" 'ns/jump-org
@@ -1290,6 +1324,8 @@ current major mode."
 
     (set-face-attribute 'org-block-begin-line nil :height 50)
     (set-face-attribute 'org-block-end-line nil :height 50)
+
+    ;; todo: make this get font size + 15, 10, 5, 0
     (set-face-attribute 'org-level-1 nil :height 115 :weight 'semi-bold)
     (set-face-attribute 'org-level-2 nil :height 110 :weight 'semi-bold)
     (set-face-attribute 'org-level-3 nil :height 105 :weight 'semi-bold)
@@ -1451,6 +1487,9 @@ current major mode."
 
     "b" '(:ignore t :which-key "Buffers")
     "bd" 'ns/kill-current-buffer
+
+    "j" '(:ignore t :which-key "Jump")
+    "jd" 'counsel-imenu
     )
 
   (use-package alert
@@ -2207,7 +2246,8 @@ current major mode."
     (setq explicit-shell-file-name (getenv "SHELL")))
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
-    (setq explicit-shell-file-name (ns/shell-exec "where bash"))
+    (setq explicit-shell-file-name (first (s-split "\n" (ns/shell-exec "where bash"))))
+
     (setq explicit-bash.exe-args '("--login" "-i"))
     (setenv "PATH"
       (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
@@ -2651,9 +2691,13 @@ Version 2018-02-21"
 
   (defcommand follow ()
     (if (not (xah-open-file-at-cursor))
-      (smart-jump-go)))
+      (if (string= (ns/what-major-mode) "org-mode")
+        (org-open-at-point)
+        (smart-jump-go))))
 
   (ns/bind "jj" 'ns/follow)
+
+  (use-package deadgrep)
 
   )
 
