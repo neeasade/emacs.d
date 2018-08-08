@@ -404,6 +404,8 @@ buffer is not visiting a file."
       ;; height is in 1/10th of pt
       `(:family ,family :height ,(* 10 size))))
 
+  ;; (defmacro @ (input) (eval `(backquote ,input)))
+
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
       (eval `(set-face-attribute face nil ,@(ns/parse-font (get-resource "st.font_variable"))))))
