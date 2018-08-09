@@ -403,15 +403,15 @@ buffer is not visiting a file."
       ;; height is in 1/10th of pt
       `(:family ,family :height ,(* 10 size))))
 
-  ;; (defmacro @ (input) (eval `(backquote ,input)))
+
 
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
-      (eval `(set-face-attribute face nil ,@(ns/parse-font (get-resource "st.font_variable"))))))
+      (apply #'set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
 
   (defun ns/set-faces-monospace (faces)
     (dolist (face faces)
-      (eval `(set-face-attribute face nil ,@(ns/parse-font (get-resource "st.font"))))))
+      (apply #'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
 
   (defcommand set-buffer-face-variable ()
     (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
