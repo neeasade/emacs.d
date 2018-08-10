@@ -226,10 +226,6 @@
 (defconfig util
   (use-package pcre2el)
 
-  ;; a macro for when something is not on melpa yet (assumes github)
-  (defmacro ns/use-package (name repo &rest config)
-    `(apply 'straight-use-package '(,name :host github :repo ,repo) (list ,@config)))
-
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
     (with-temp-buffer
@@ -408,7 +404,7 @@ buffer is not visiting a file."
       ;; height is in 1/10th of pt
       `(:family ,family :height ,(* 10 size))))
 
-  ;; (defmacro @ (&rest input) (eval `(backquote ,input)))
+  ;; (defmacro @ (input) (eval `(backquote ,input)))
 
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
@@ -1101,8 +1097,7 @@ current major mode."
       :enabled t
       )
 
-    ;; (spaceline-spacemacs-theme)
-    (spaceline-compile
+    (spaceline-compile 'main
       '(
          anzu
          (remote-host projectile-root ">>" buffer-id buffer-modified)
@@ -1333,13 +1328,11 @@ current major mode."
     (set-face-attribute 'org-block-end-line nil :height 50)
 
     ;; todo: make this get font size + 15, 10, 5, 0
-
-    (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
-      (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
-      (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
-      (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
-      (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
-      ))
+    (set-face-attribute 'org-level-1 nil :height 115 :weight 'semi-bold)
+    (set-face-attribute 'org-level-2 nil :height 110 :weight 'semi-bold)
+    (set-face-attribute 'org-level-3 nil :height 105 :weight 'semi-bold)
+    (set-face-attribute 'org-level-4 nil :height 100 :weight 'semi-bold)
+    )
 
   ;; todo: into org agendas
   ;; https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
@@ -1608,10 +1601,7 @@ current major mode."
         ;; short circuit js mode and just do everything in jsx-mode
         (if (equal web-mode-content-type "javascript")
           (web-mode-set-content-type "jsx")
-          (message "now set to: %s" web-mode-content-type))))
-    (setq web-mode-auto-close-style 3)
-
-    )
+          (message "now set to: %s" web-mode-content-type)))))
 
   (use-package prettier-js
     :config
@@ -2703,11 +2693,13 @@ Version 2018-02-21"
 
   (defcommand follow ()
     (if (not (xah-open-file-at-cursor))
-      (if (string= major-mode "org-mode")
+      (if (string= (ns/what-major-mode) "org-mode")
         (org-open-at-point)
         (smart-jump-go))))
 
   (ns/bind "jj" 'ns/follow)
+
+  (use-package deadgrep)
 
   )
 
@@ -2736,14 +2728,6 @@ Version 2018-02-21"
     :config
     ;; (ns/bind)
     (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)))
-
-(defconfig deadgrep
-  (ns/use-package deadgrep "Wilfred/deadgrep"
-    :config
-    (ns/bind "ss" 'deadgrep)
-    (setq deadgrep-max-line-length 180)
-    (general-nmap deadgrep-mode-map
-      "RET" 'deadgrep-visit-result-other-window)))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
