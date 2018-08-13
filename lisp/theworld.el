@@ -226,6 +226,10 @@
 (defconfig util
   (use-package pcre2el)
 
+  ;; a macro for when something is not on melpa yet (assumes github)
+  (defmacro ns/use-package (name repo &rest config)
+    `(apply 'straight-use-package '(,name :host github :repo ,repo) (list ,@config)))
+
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
     (with-temp-buffer
@@ -357,9 +361,10 @@ buffer is not visiting a file."
         (global-font-lock-mode 0)
         (global-git-gutter-mode nil))))
 
+  (use-package simpleclip)
+
   (defcommand buffercurl ()
     "curl buffer from url grabbed from clipboard"
-    (use-package simpleclip)
 
     (request
       (simpleclip-get-contents)
@@ -403,7 +408,7 @@ buffer is not visiting a file."
       ;; height is in 1/10th of pt
       `(:family ,family :height ,(* 10 size))))
 
-
+  ;; (defmacro @ (&rest input) (eval `(backquote ,input)))
 
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
@@ -1096,7 +1101,8 @@ current major mode."
       :enabled t
       )
 
-    (spaceline-compile 'main
+    ;; (spaceline-spacemacs-theme)
+    (spaceline-compile
       '(
          anzu
          (remote-host projectile-root ">>" buffer-id buffer-modified)
@@ -1275,10 +1281,43 @@ current major mode."
     )
 
   (defcommand jump-org () (ns/find-or-open (~ "notes/notes.org" )))
+
+  ;; todo: make this insert at focused story?
+  (defcommand make-org-link-to-here ()
+    (simpleclip-copy (concat "[[file:" (buffer-file-name) "::"
+                       (number-to-string (line-number-at-pos)) "]]")))
+
+  (defcommand insert-mark-org-links ()
+    (setq ns/markers
+      (append (cl-remove-if (lambda (m)
+                              (or (evil-global-marker-p (car m))
+                                (not (markerp (cdr m)))))
+                evil-markers-alist)
+        (cl-remove-if (lambda (m)
+                        (or (not (evil-global-marker-p (car m)))
+                          (not (markerp (cdr m)))))
+          (default-value 'evil-markers-alist)))
+      )
+
+    ;; remove automatic marks
+    (dolist (key '(40 41 94 91 93))
+      (setq ns/markers (delq (assoc key ns/markers) ns/markers)))
+
+    (insert (s-join "\n"
+              (mapcar (lambda(mark)
+                        (let ((file (buffer-file-name (marker-buffer mark)))
+                               (linenumber
+                                 (with-current-buffer (marker-buffer mark)
+                                   (line-number-at-pos (marker-position mark)))))
+                          (concat "[[file:" file "::" (number-to-string linenumber) "]]")))
+                (mapcar 'cdr ns/markers)))))
+
   (ns/bind
     "oo" 'ns/org-goto-active
     "oc" 'org-capture
     "or" 'org-refile
+    "ol" 'ns/make-org-link-to-here
+    "om" 'ns/insert-mark-org-links
 
     ;; ehh
     "on" 'ns/jump-org
@@ -1292,11 +1331,15 @@ current major mode."
 
     (set-face-attribute 'org-block-begin-line nil :height 50)
     (set-face-attribute 'org-block-end-line nil :height 50)
-    (set-face-attribute 'org-level-1 nil :height 115 :weight 'semi-bold)
-    (set-face-attribute 'org-level-2 nil :height 110 :weight 'semi-bold)
-    (set-face-attribute 'org-level-3 nil :height 105 :weight 'semi-bold)
-    (set-face-attribute 'org-level-4 nil :height 100 :weight 'semi-bold)
-    )
+
+    ;; todo: make this get font size + 15, 10, 5, 0
+
+    (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
+      (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
+      (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
+      (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
+      (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
+      ))
 
   ;; todo: into org agendas
   ;; https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
@@ -1453,6 +1496,9 @@ current major mode."
 
     "b" '(:ignore t :which-key "Buffers")
     "bd" 'ns/kill-current-buffer
+
+    "j" '(:ignore t :which-key "Jump")
+    "jd" 'counsel-imenu
     )
 
   (use-package alert
@@ -1562,7 +1608,10 @@ current major mode."
         ;; short circuit js mode and just do everything in jsx-mode
         (if (equal web-mode-content-type "javascript")
           (web-mode-set-content-type "jsx")
-          (message "now set to: %s" web-mode-content-type)))))
+          (message "now set to: %s" web-mode-content-type))))
+    (setq web-mode-auto-close-style 3)
+
+    )
 
   (use-package prettier-js
     :config
@@ -2209,7 +2258,8 @@ current major mode."
     (setq explicit-shell-file-name (getenv "SHELL")))
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
-    (setq explicit-shell-file-name (ns/shell-exec "where bash"))
+    (setq explicit-shell-file-name (first (s-split "\n" (ns/shell-exec "where bash"))))
+
     (setq explicit-bash.exe-args '("--login" "-i"))
     (setenv "PATH"
       (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
@@ -2653,7 +2703,9 @@ Version 2018-02-21"
 
   (defcommand follow ()
     (if (not (xah-open-file-at-cursor))
-      (smart-jump-go)))
+      (if (string= major-mode "org-mode")
+        (org-open-at-point)
+        (smart-jump-go))))
 
   (ns/bind "jj" 'ns/follow)
 
@@ -2684,6 +2736,14 @@ Version 2018-02-21"
     :config
     ;; (ns/bind)
     (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)))
+
+(defconfig deadgrep
+  (ns/use-package deadgrep "Wilfred/deadgrep"
+    :config
+    (ns/bind "ss" 'deadgrep)
+    (setq deadgrep-max-line-length 180)
+    (general-nmap deadgrep-mode-map
+      "RET" 'deadgrep-visit-result-other-window)))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
