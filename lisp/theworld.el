@@ -32,7 +32,7 @@
      ("emacs.powerline"      . "bar")
      ("st.borderpx"          . "30")
      ("st.font"              . "Go Mono-10")
-     ("st.font_variable"     . "Go-10")
+     ("st.font_variable"     . "Go-12")
      ))
 
 ;; master
@@ -412,11 +412,11 @@ buffer is not visiting a file."
 
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
-      (apply #'set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
+      (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
 
   (defun ns/set-faces-monospace (faces)
     (dolist (face faces)
-      (apply #'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
+      (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
 
   (defcommand set-buffer-face-variable ()
     (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
@@ -532,6 +532,10 @@ buffer is not visiting a file."
   ;; don't popup buffers with output when launching things
   (add-to-list 'display-buffer-alist (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil)))
 
+  ;; save recent files
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 50)
+  (run-at-time nil (* 5 60) 'recentf-save-list)
 
   (setq whitespace-line-column 120)
 
@@ -1101,7 +1105,9 @@ current major mode."
       :enabled t
       )
 
-    ;; (spaceline-spacemacs-theme)
+    ;; this is needed to set default for new buffers?
+    (spaceline-spacemacs-theme)
+
     (spaceline-compile
       '(
          anzu
@@ -1331,8 +1337,6 @@ current major mode."
 
     (set-face-attribute 'org-block-begin-line nil :height 50)
     (set-face-attribute 'org-block-end-line nil :height 50)
-
-    ;; todo: make this get font size + 15, 10, 5, 0
 
     (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
       (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
@@ -1577,11 +1581,25 @@ current major mode."
 
 (defconfig projectile
   (use-package projectile)
-  ;; (project-find-file-in)
-  (ns/bind
-    "p" '(:ignore t :which-key "projects")
-    "pf" 'counsel-git
-    )
+
+  (defcommand jump-file ()
+    (let* ( ;; bail out if we're not in a project
+            (project-root (condition-case nil (projectile-project-root) (error nil)))
+            (project-files
+              (if project-root
+                (let* ((default-directory (expand-file-name project-root))
+                        (project-files-relative (s-split "\n" (shell-command-to-string counsel-git-cmd) t)))
+                  (mapcar (lambda (file) (concat default-directory file)) project-files-relative))
+                '()))
+
+            ;; mapc keeps the buffers for some reason, even though buffer-file-name
+            ;; is doc'd to return nil and does in the single case
+            (open-buffers (s-split "\n" (mapconcat 'buffer-file-name (buffer-list) "\n") t))
+            (recent-files recentf-list))
+
+      (ivy-read "file: " (append project-files open-buffers recent-files) :action #'ns/find-or-open)))
+
+  (ns/bind "jf" 'ns/jump-file )
   )
 
 (defconfig javascript
@@ -2044,8 +2062,11 @@ current major mode."
       ))
 
   ;; todo: add hook for content font
-  ;; (set-face-attribute 'circe-originator-face nil :family "Go Mono")
-  ;; (set-face-attribute 'circe-prompt-face nil :family "Go Mono")
+
+  (defun ns/circe-hook ()
+    (ns/set-buffer-face-variable)
+    (ns/set-faces-monospace '(circe-originator-face circe-prompt-face)))
+  (add-hook 'circe-channel-mode-hook 'ns/circe-hook)
 
   (define-key circe-channel-mode-map (kbd "<up>") 'lui-previous-input)
   (define-key circe-channel-mode-map (kbd "<down>") 'lui-next-input)
@@ -2744,6 +2765,9 @@ Version 2018-02-21"
     (setq deadgrep-max-line-length 180)
     (general-nmap deadgrep-mode-map
       "RET" 'deadgrep-visit-result-other-window)))
+
+(defconfig guix
+  (use-package guix))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
