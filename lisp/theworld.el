@@ -32,7 +32,7 @@
      ("emacs.powerline"      . "bar")
      ("st.borderpx"          . "30")
      ("st.font"              . "Go Mono-10")
-     ("st.font_variable"     . "Go-12")
+     ("st.font_variable"     . "Go-10")
      ))
 
 ;; master
@@ -1257,10 +1257,9 @@ current major mode."
     (if (not (bound-and-true-p ns/org-active-story))
       (progn
         (ns/org-goto-active)
-        (ns/org-set-active)
-        )
+        (ns/org-set-active))
       ns/org-active-story
-      ))
+      )))
 
   (defcommand org-goto-active()
     (ns/find-or-open org-default-notes-file)
@@ -1286,7 +1285,7 @@ current major mode."
       (apply-partially #'ns/toggle-music "pause"))
     )
 
-  (defcommand jump-org () (ns/find-or-open (~ "notes/notes.org" )))
+  (defcommand jump-org () (ns/find-or-open org-default-notes-file))
 
   ;; todo: make this insert at focused story?
   (defcommand make-org-link-to-here ()
@@ -1597,7 +1596,7 @@ current major mode."
             (open-buffers (s-split "\n" (mapconcat 'buffer-file-name (buffer-list) "\n") t))
             (recent-files recentf-list))
 
-      (ivy-read "file: " (append project-files open-buffers recent-files) :action #'ns/find-or-open)))
+      (ivy-read "file: " (append project-files open-buffers recent-files) :action #'find-file)))
 
   (ns/bind "jf" 'ns/jump-file )
   )
@@ -1846,7 +1845,7 @@ current major mode."
           :host "irc.freenode.net"
           :tls t
           :nickserv-password ,(pass "freenode")
-          :channels (:after-auth "#nixos" "#github" "#bspwm" "#qutebrowser" "#emacs")
+          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs")
           )
 
          ("Nixers"
@@ -1888,17 +1887,15 @@ current major mode."
               )
 
         (when (> (length nick) maxlen)
-          (setq nick (concat (substring nick 0 (- maxlen 1)) "…")))
+          (setq lui-nick (concat (substring lui-nick 0 (- maxlen 1)) "…")))
 
         (if (not (boundp 'circe-last-nick))
           (setq-local circe-last-nick ""))
 
-        (if (string= circe-last-nick nick)
-          (setq nick "        ")
-          (setq-local circe-last-nick nick))
-
-        (setq nick (ns/monospace nick))
         (setq lui-nick (ns/monospace lui-nick))
+        (if (string= circe-last-nick lui-nick)
+          (setq lui-nick (ns/monospace "        "))
+          (setq-local circe-last-nick lui-nick))
 
         (lui-format
           (pcase type
