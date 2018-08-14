@@ -408,11 +408,11 @@ buffer is not visiting a file."
 
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
-      (eval `(set-face-attribute face nil ,@(ns/parse-font (get-resource "st.font_variable"))))))
+      (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
 
   (defun ns/set-faces-monospace (faces)
     (dolist (face faces)
-      (eval `(set-face-attribute face nil ,@(ns/parse-font (get-resource "st.font"))))))
+      (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
 
   (defcommand set-buffer-face-variable ()
     (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
@@ -528,6 +528,10 @@ buffer is not visiting a file."
   ;; don't popup buffers with output when launching things
   (add-to-list 'display-buffer-alist (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil)))
 
+  ;; save recent files
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 50)
+  (run-at-time nil (* 5 60) 'recentf-save-list)
 
   (setq whitespace-line-column 120)
 
@@ -1097,6 +1101,9 @@ current major mode."
       :enabled t
       )
 
+    ;; this is needed to set default for new buffers?
+    (spaceline-spacemacs-theme)
+
     (spaceline-compile 'main
       '(
          anzu
@@ -1246,8 +1253,7 @@ current major mode."
     (if (not (bound-and-true-p ns/org-active-story))
       (progn
         (ns/org-goto-active)
-        (ns/org-set-active)
-        )
+        (ns/org-set-active))
       ns/org-active-story
       ))
 
@@ -1275,7 +1281,7 @@ current major mode."
       (apply-partially #'ns/toggle-music "pause"))
     )
 
-  (defcommand jump-org () (ns/find-or-open (~ "notes/notes.org" )))
+  (defcommand jump-org () (ns/find-or-open org-default-notes-file))
 
   ;; todo: make this insert at focused story?
   (defcommand make-org-link-to-here ()
@@ -1327,12 +1333,12 @@ current major mode."
     (set-face-attribute 'org-block-begin-line nil :height 50)
     (set-face-attribute 'org-block-end-line nil :height 50)
 
-    ;; todo: make this get font size + 15, 10, 5, 0
-    (set-face-attribute 'org-level-1 nil :height 115 :weight 'semi-bold)
-    (set-face-attribute 'org-level-2 nil :height 110 :weight 'semi-bold)
-    (set-face-attribute 'org-level-3 nil :height 105 :weight 'semi-bold)
-    (set-face-attribute 'org-level-4 nil :height 100 :weight 'semi-bold)
-    )
+    (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
+      (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
+      (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
+      (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
+      (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
+      ))
 
   ;; todo: into org agendas
   ;; https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
@@ -1570,11 +1576,25 @@ current major mode."
 
 (defconfig projectile
   (use-package projectile)
-  ;; (project-find-file-in)
-  (ns/bind
-    "p" '(:ignore t :which-key "projects")
-    "pf" 'counsel-git
-    )
+
+  (defcommand jump-file ()
+    (let* ( ;; bail out if we're not in a project
+            (project-root (condition-case nil (projectile-project-root) (error nil)))
+            (project-files
+              (if project-root
+                (let* ((default-directory (expand-file-name project-root))
+                        (project-files-relative (s-split "\n" (shell-command-to-string counsel-git-cmd) t)))
+                  (mapcar (lambda (file) (concat default-directory file)) project-files-relative))
+                '()))
+
+            ;; mapc keeps the buffers for some reason, even though buffer-file-name
+            ;; is doc'd to return nil and does in the single case
+            (open-buffers (s-split "\n" (mapconcat 'buffer-file-name (buffer-list) "\n") t))
+            (recent-files recentf-list))
+
+      (ivy-read "file: " (append project-files open-buffers recent-files) :action #'find-file)))
+
+  (ns/bind "jf" 'ns/jump-file )
   )
 
 (defconfig javascript
@@ -1818,7 +1838,7 @@ current major mode."
           :host "irc.freenode.net"
           :tls t
           :nickserv-password ,(pass "freenode")
-          :channels (:after-auth "#nixos" "#github" "#bspwm" "#qutebrowser" "#emacs")
+          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs")
           )
 
          ("Nixers"
@@ -1860,17 +1880,15 @@ current major mode."
               )
 
         (when (> (length nick) maxlen)
-          (setq nick (concat (substring nick 0 (- maxlen 1)) "…")))
+          (setq lui-nick (concat (substring lui-nick 0 (- maxlen 1)) "…")))
 
         (if (not (boundp 'circe-last-nick))
           (setq-local circe-last-nick ""))
 
-        (if (string= circe-last-nick nick)
-          (setq nick "        ")
-          (setq-local circe-last-nick nick))
-
-        (setq nick (ns/monospace nick))
         (setq lui-nick (ns/monospace lui-nick))
+        (if (string= circe-last-nick lui-nick)
+          (setq lui-nick (ns/monospace "        "))
+          (setq-local circe-last-nick lui-nick))
 
         (lui-format
           (pcase type
@@ -2034,8 +2052,11 @@ current major mode."
       ))
 
   ;; todo: add hook for content font
-  ;; (set-face-attribute 'circe-originator-face nil :family "Go Mono")
-  ;; (set-face-attribute 'circe-prompt-face nil :family "Go Mono")
+
+  (defun ns/circe-hook ()
+    (ns/set-buffer-face-variable)
+    (ns/set-faces-monospace '(circe-originator-face circe-prompt-face)))
+  (add-hook 'circe-channel-mode-hook 'ns/circe-hook)
 
   (define-key circe-channel-mode-map (kbd "<up>") 'lui-previous-input)
   (define-key circe-channel-mode-map (kbd "<down>") 'lui-next-input)
@@ -2248,7 +2269,8 @@ current major mode."
     (setq explicit-shell-file-name (getenv "SHELL")))
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
-    (setq explicit-shell-file-name (first (s-split "\n" (ns/shell-exec "where bash"))))
+    ;; (setq explicit-shell-file-name (first (s-split "\n" (ns/shell-exec "where bash"))))
+    (setq explicit-shell-file-name (ns/shell-exec "where bash"))
 
     (setq explicit-bash.exe-args '("--login" "-i"))
     (setenv "PATH"
@@ -2728,6 +2750,17 @@ Version 2018-02-21"
     :config
     ;; (ns/bind)
     (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)))
+
+(defconfig deadgrep
+  (ns/use-package deadgrep "Wilfred/deadgrep"
+    :config
+    (ns/bind "ss" 'deadgrep)
+    (setq deadgrep-max-line-length 180)
+    (general-nmap deadgrep-mode-map
+      "RET" 'deadgrep-visit-result-other-window)))
+
+(defconfig guix
+  (use-package guix))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
