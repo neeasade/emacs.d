@@ -143,6 +143,7 @@
   (defun ~ (path)
     (concat (getenv (if ns/enable-windows-p "USERPROFILE" "HOME")) "/" path))
 
+  ;; todo: take a look at general-describe-keybindings later
   ;; binding wrappers
   (defmacro ns/bind (&rest binds)
     `(general-define-key
@@ -197,9 +198,7 @@
   ;; wrap passwordstore
   (defun pass (key)
     (ns/shell-exec
-      (if ns/enable-windows-p
-        (concat "pprint.bat " key)
-        (concat "pass " key " 2>/dev/null"))))
+      (concat "pass " key)))
 
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
@@ -225,6 +224,16 @@
 
 (defconfig util
   (use-package pcre2el)
+
+  ;; a macro for when something is not on melpa yet (assumes github)
+  ;; note: straight-use-package doesn't take config section, need to change the wrap and assume:
+  (defmacro ns/use-package (name repo &rest config)
+    `(progn
+       (straight-use-package '(,name :host github :repo ,repo))
+       ;; assume first arg is :config
+       ,(apply progn config)
+       )
+    )
 
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
@@ -565,12 +574,8 @@ buffer is not visiting a file."
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
   (setq lisp-indent-function 'common-lisp-indent-function)
 
-  ;; todo: look into this package some more
   (use-package helpful
     :config
-    ;; Note that the built-in `describe-function' includes both functions
-    ;; and macros. `helpful-function' is functions only, so we provide
-    ;; `helpful-callable' as a drop-in replacement.
     (global-set-key (kbd "C-h f") #'helpful-callable)
     (global-set-key (kbd "C-h v") #'helpful-variable)
     (global-set-key (kbd "C-h k") #'helpful-key)
@@ -910,12 +915,11 @@ current major mode."
   ;; to always trim it all
   ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-  ;; todo: into yasnippet
+  ;; todo: call yas-describe-tables sometime
+  (use-package yasnippet-snippets)
   (use-package yasnippet
     :config
     (yas-global-mode 1))
-
-  (use-package yasnippet-snippets)
 
   (add-hook 'sh-mode-hook
     (lambda () (sh-electric-here-document-mode -1))))
@@ -1577,22 +1581,32 @@ current major mode."
 (defconfig projectile
   (use-package projectile)
 
+  ;; still assuming git command, maybe lean on projectile for file listing
+  (defun get-project-files (project-root)
+    (let* ((default-directory (expand-file-name project-root))
+            (project-files-relative (s-split "\n" (shell-command-to-string counsel-git-cmd) t)))
+      (mapcar (lambda (file) (concat default-directory file)) project-files-relative)))
+
   (defcommand jump-file ()
     (let* ( ;; bail out if we're not in a project
             (project-root (condition-case nil (projectile-project-root) (error nil)))
             (project-files
               (if project-root
-                (let* ((default-directory (expand-file-name project-root))
-                        (project-files-relative (s-split "\n" (shell-command-to-string counsel-git-cmd) t)))
-                  (mapcar (lambda (file) (concat default-directory file)) project-files-relative))
+                (get-project-files project-root)
                 '()))
 
             ;; mapc keeps the buffers for some reason, even though buffer-file-name
             ;; is doc'd to return nil and does in the single case
             (open-buffers (s-split "\n" (mapconcat 'buffer-file-name (buffer-list) "\n") t))
-            (recent-files recentf-list))
+            (recent-files recentf-list)
 
-      (ivy-read "file: " (append project-files open-buffers recent-files) :action #'find-file)))
+            ;; todo: test getting projects of open buffers listing
+            ;; (misc-project-files (car (mapcar 'get-project-files ns/projectile-roots)))
+            )
+
+      (ivy-read "file: "
+        (-distinct (append project-files open-buffers recent-files))
+        :action #'find-file)))
 
   (ns/bind "jf" 'ns/jump-file )
   )
@@ -2269,7 +2283,9 @@ current major mode."
     (setq explicit-shell-file-name (getenv "SHELL")))
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
-    ;; (setq explicit-shell-file-name (first (s-split "\n" (ns/shell-exec "where bash"))))
+    ;; todo: find out what provides first, we need that here
+    (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
+
     (setq explicit-shell-file-name (ns/shell-exec "where bash"))
 
     (setq explicit-bash.exe-args '("--login" "-i"))
@@ -2715,14 +2731,11 @@ Version 2018-02-21"
 
   (defcommand follow ()
     (if (not (xah-open-file-at-cursor))
-      (if (string= (ns/what-major-mode) "org-mode")
+      (if (string= major-mode "org-mode")
         (org-open-at-point)
         (smart-jump-go))))
 
   (ns/bind "jj" 'ns/follow)
-
-  (use-package deadgrep)
-
   )
 
 (defconfig c
@@ -2757,7 +2770,8 @@ Version 2018-02-21"
     (ns/bind "ss" 'deadgrep)
     (setq deadgrep-max-line-length 180)
     (general-nmap deadgrep-mode-map
-      "RET" 'deadgrep-visit-result-other-window)))
+      "RET" 'deadgrep-visit-result-other-window)
+    ))
 
 (defconfig guix
   (use-package guix))
