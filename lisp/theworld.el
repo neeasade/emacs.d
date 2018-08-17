@@ -197,8 +197,7 @@
 
   ;; wrap passwordstore
   (defun pass (key)
-    (ns/shell-exec
-      (concat "pass " key)))
+    (ns/shell-exec (concat "pass " key)))
 
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
@@ -231,7 +230,7 @@
     `(progn
        (straight-use-package '(,name :host github :repo ,repo))
        ;; assume first arg is :config
-       ,(apply progn config)
+       ,@(cdr config)
        )
     )
 
@@ -467,6 +466,7 @@ buffer is not visiting a file."
     network-security-level 'high
     ;; ouch - todo: revisit this
     gc-cons-threshold 10000000
+    frame-resize-pixelwise t
     )
 
   ;; trim gui
@@ -1167,6 +1167,7 @@ current major mode."
       startup-indented t
       startup-folded t
       src-fontify-natively t
+      startup-align-all-tables t
 
       ;; days before expiration where a deadline becomes active
       deadline-warn-days 14
@@ -1332,7 +1333,7 @@ current major mode."
 
   (advice-add #'ns/style :after #'ns/style-org)
   (defun ns/style-org ()
-    (ns/set-faces-monospace '(org-block org-code))
+    (ns/set-faces-monospace '(org-block org-code org-table))
 
     (set-face-attribute 'org-block-begin-line nil :height 50)
     (set-face-attribute 'org-block-end-line nil :height 50)
@@ -1386,18 +1387,16 @@ current major mode."
       fixed-height-minibuffer t
       )
 
+    ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
+    (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
     (defun dynamic-ivy-height()
       (setq ivy-height (/ (window-total-size) 2)))
 
     (dynamic-ivy-height)
 
-    ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
-    (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
-
     (ivy-mode 1)
 
-    (straight-use-package '(prescient :host github :repo "raxod502/prescient.el"))
-    (ivy-prescient-mode)
+    (ns/use-package prescient "raxod502/prescient.el" :config (ivy-prescient-mode))
     )
 
   ;; counsel
@@ -1406,9 +1405,7 @@ current major mode."
     (use-package rg)
     (setq-ns counsel
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
-      rg-base-command "rg -i -M 120 --no-heading --line-number --color never %s ."
-      ag-base-command "ag --vimgrep --nocolor --nogroup %s"
-      )
+      rg-base-command "rg -i -M 120 --no-heading --line-number --color never %s .")
 
     ;; counsel-rg is crashing emacs on windows
     ;; (can't C-g/esc, can't send USR2 on windows)
@@ -1440,8 +1437,7 @@ current major mode."
     (defcommand deer-with-last-shell ()
       (let ((current-buffer (buffer-name (current-buffer))))
         (if (or (s-match "\*spawn-shell.*" current-buffer)
-              (s-match "\*shell-[1-9]\*" current-buffer)
-              )
+              (s-match "\*shell-[1-9]\*" current-buffer))
           (setq ns/last-shell current-buffer)
           (setq ns/last-shell shell-pop-last-shell-buffer-name)))
       (deer))
@@ -1705,20 +1701,12 @@ current major mode."
       (remove-hook 'server-switch-hook 'magit-commit-diff)
       ))
 
-  (when ns/enable-linux-p
-    ;; depends on 'nice' command
-    (straight-use-package
-      '(magit-todos
-         :type git
-         :host github
-         :repo "alphapapa/magit-todos"
-         :upstream (:host github
-                     :repo "alphapapa/magit-todos"))
-      )
+  (ns/use-package magit-todos "alphapapa/magit-todos"
+    :config
+    (setq magit-todos-nice ns/enable-linux-p)
     (evil-define-key nil magit-todos-section-map "j" nil)
-    (magit-todos-mode)
-    )
-
+    (magit-todos-mode))
+  
   (use-package magit-svn :config
     (add-hook 'magit-mode-hook 'magit-svn-mode))
 
@@ -2775,6 +2763,10 @@ Version 2018-02-21"
 
 (defconfig guix
   (use-package guix))
+
+(defconfig elasticsearch
+  (use-package es-mode)
+  )
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
