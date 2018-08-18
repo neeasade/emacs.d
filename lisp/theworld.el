@@ -111,7 +111,7 @@
     `(replace-regexp-in-string "\n$" ""
        (shell-command-to-string ,command)))
 
-  (defmacro ns/shell-exec-dontcare (command)
+  (defun ns/shell-exec-dontcare (command)
     ;; todo here: junk buffer
     (let* (
             (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
@@ -225,14 +225,11 @@
   (use-package pcre2el)
 
   ;; a macro for when something is not on melpa yet (assumes github)
-  ;; note: straight-use-package doesn't take config section, need to change the wrap and assume:
   (defmacro ns/use-package (name repo &rest config)
     `(progn
-       (straight-use-package '(,name :host github :repo ,repo))
+       (straight-use-package '(,(make-symbol (symbol-name name)) :host github :repo ,repo))
        ;; assume first arg is :config
-       ,@(cdr config)
-       )
-    )
+       ,@(cdr config)))
 
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
@@ -550,6 +547,14 @@ buffer is not visiting a file."
   (defcommand insert-filepath ()
     (insert (buffer-file-name)))
 
+  ;; a report toggle command for debuggong on keybind
+  (defcommand toggle-report ()
+    (if (profiler-running-p)
+      (progn
+        (profiler-report)
+        (profiler-stop))
+      (profiler-cpu-start)))
+
   (ns/bind
     "js" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
     "jS" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
@@ -562,12 +567,14 @@ buffer is not visiting a file."
     "ts" 'ns/style
     "ti" 'reload-init
     "tm" 'ns/toggle-modeline
+    "tp" 'ns/toggle-report
 
     "i" '(:ignore t :which-key "Insert")
     "ic" 'insert-char
     "if" 'ns/insert-filename
     "ip" 'ns/insert-filepath
     )
+
   )
 
 (defconfig elisp
@@ -880,13 +887,13 @@ buffer is not visiting a file."
        (web-mode . web-mode-markup-indent-offset)
        (yaml-mode . yaml-indent-offset))
     "An alist where each key is either a symbol corresponding
-  to a major mode, a list of such symbols, or the symbol t,
-  acting as default. The values are either integers, symbols
-  or lists of these.")
+      to a major mode, a list of such symbols, or the symbol t,
+      acting as default. The values are either integers, symbols
+      or lists of these.")
 
   (defun spacemacs//set-evil-shift-width ()
     "Set the value of `evil-shift-width' based on the indentation settings of the
-current major mode."
+      current major mode."
     (let ((shift-width
             (catch 'break
               (dolist (test spacemacs--indent-variable-alist)
@@ -1397,6 +1404,7 @@ current major mode."
     (ivy-mode 1)
 
     (ns/use-package prescient "raxod502/prescient.el" :config (ivy-prescient-mode))
+
     )
 
   ;; counsel
@@ -1701,11 +1709,13 @@ current major mode."
       (remove-hook 'server-switch-hook 'magit-commit-diff)
       ))
 
-  (ns/use-package magit-todos "alphapapa/magit-todos"
-    :config
-    (setq magit-todos-nice ns/enable-linux-p)
-    (evil-define-key nil magit-todos-section-map "j" nil)
-    (magit-todos-mode))
+  (macroexpand-1
+    '(ns/use-package magit-todos "alphapapa/magit-todos"
+       :config
+       (setq magit-todos-nice ns/enable-linux-p)
+       (evil-define-key nil magit-todos-section-map "j" nil)
+       (magit-todos-mode))
+    )
   
   (use-package magit-svn :config
     (add-hook 'magit-mode-hook 'magit-svn-mode))
@@ -1724,14 +1734,14 @@ current major mode."
 
   (defhydra git-smerge-menu ()
     "
-  movement^^^^               merge action^^           other
-  ---------------------^^^^  -------------------^^    -----------
-  [_n_]^^    next hunk       [_b_] keep base          [_u_] undo
-  [_N_/_p_]  prev hunk       [_m_] keep mine          [_r_] refine
-  [_j_/_k_]  move up/down    [_a_] keep all           [_q_] quit
-  ^^^^                       [_o_] keep other
-  ^^^^                       [_c_] keep current
-  ^^^^                       [_C_] combine with next"
+      movement^^^^               merge action^^           other
+      ---------------------^^^^  -------------------^^    -----------
+      [_n_]^^    next hunk       [_b_] keep base          [_u_] undo
+      [_N_/_p_]  prev hunk       [_m_] keep mine          [_r_] refine
+      [_j_/_k_]  move up/down    [_a_] keep all           [_q_] quit
+      ^^^^                       [_o_] keep other
+      ^^^^                       [_c_] keep current
+      ^^^^                       [_C_] combine with next"
     ("n" smerge-next)
     ("p" smerge-prev)
     ("N" smerge-prev)
@@ -2139,23 +2149,23 @@ current major mode."
 
   (defhydra hydra-twittering (:color blue :hint nil)
     "
-                  ╭────────────┐
-   Tweets                User                        Timeline     │ Twittering │
-  ╭─────────────────────────────────────────────────────────────────┴────────────╯
-  _k_  [_t_] post tweet      _p_  [_f_] follow                  ^_g_^      [_u_] update
-  ^↑^  [_X_] delete tweet    ^↑^  [_F_] unfollow              ^_S-SPC_^    [_._] new
-  ^ ^  [_r_] retweet         ^ ^  [_d_] direct message          ^^↑^^      [^@^] current user
-  ^↓^  [_R_] retweet & edit  ^↓^  [_i_] profile (browser)   _h_ ←   → _l_  [_a_] toggle
-  _j_  [_b_] favorite        _n_   ^ ^                          ^^↓^^
-  ^ ^  [_B_] unfavorite      ^ ^   ^ ^                         ^_SPC_^
-  ^ ^  [_RET_] reply         ^ ^   ^ ^                          ^_G_^
-  ^ ^  [_T_] show Thread
-  ^ ^  [_y_] yank url          Items                     Do
-  ^ ^  [_Y_] yank tweet     ╭───────────────────────────────────────────────────────
-  ^ ^  [_e_] edit mode        _<backtab>_ ← _o_pen → _<tab>_    [_q_] exit
-  ^ ^   ^ ^                   ^         ^   ^ ^      ^     ^    [_/_] search
-  --------------------------------------------------------------------------------
-     "
+      ╭────────────┐
+      Tweets                User                        Timeline     │ Twittering │
+      ╭─────────────────────────────────────────────────────────────────┴────────────╯
+      _k_  [_t_] post tweet      _p_  [_f_] follow                  ^_g_^      [_u_] update
+      ^↑^  [_X_] delete tweet    ^↑^  [_F_] unfollow              ^_S-SPC_^    [_._] new
+      ^ ^  [_r_] retweet         ^ ^  [_d_] direct message          ^^↑^^      [^@^] current user
+      ^↓^  [_R_] retweet & edit  ^↓^  [_i_] profile (browser)   _h_ ←   → _l_  [_a_] toggle
+      _j_  [_b_] favorite        _n_   ^ ^                          ^^↓^^
+      ^ ^  [_B_] unfavorite      ^ ^   ^ ^                         ^_SPC_^
+      ^ ^  [_RET_] reply         ^ ^   ^ ^                          ^_G_^
+      ^ ^  [_T_] show Thread
+      ^ ^  [_y_] yank url          Items                     Do
+      ^ ^  [_Y_] yank tweet     ╭───────────────────────────────────────────────────────
+      ^ ^  [_e_] edit mode        _<backtab>_ ← _o_pen → _<tab>_    [_q_] exit
+      ^ ^   ^ ^                   ^         ^   ^ ^      ^     ^    [_/_] search
+      --------------------------------------------------------------------------------
+      "
     ("\\" hydra-master/body "back")
     ("<ESC>" nil "quit")
     ("q"          twittering-kill-buffer)
@@ -2279,7 +2289,7 @@ current major mode."
     (setq explicit-bash.exe-args '("--login" "-i"))
     (setenv "PATH"
       (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
-        (getenv "PATH"))))
+      (getenv "PATH"))))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
