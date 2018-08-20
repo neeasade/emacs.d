@@ -495,7 +495,8 @@ buffer is not visiting a file."
     path (list (~ ".emacs.desktop"))
     )
 
-  (desktop-save-mode 1)
+  ;; todo: maybe change this, get recent files opened instead (don't care about file states)
+  ;; (desktop-save-mode 1)
 
   (setq browse-url-browser-function 'browse-url-generic)
 
@@ -539,8 +540,8 @@ buffer is not visiting a file."
 
   ;; save recent files
   (recentf-mode 1)
-  (setq recentf-max-menu-items 50)
-  (run-at-time nil (* 5 60) 'recentf-save-list)
+  (setq recentf-max-menu-items 300)
+  ;; (run-at-time nil (* 5 60) 'recentf-save-list)
 
   (setq whitespace-line-column 120)
 
@@ -2273,10 +2274,8 @@ current major mode."
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
     ;; todo: find out what provides first, we need that here
     (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
-
-    (setq explicit-shell-file-name (ns/shell-exec "where bash"))
-
     (setq explicit-bash.exe-args '("--login" "-i"))
+
     (setenv "PATH"
       (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
         (getenv "PATH"))))
