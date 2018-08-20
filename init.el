@@ -2,6 +2,9 @@
 ;;; commentary:
 ;;; code:
 
+(if (not (boundp 'ns/firstrun))
+    (setq ns/firstrun t))
+
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
 (defmacro ns/load (&rest targets)
@@ -89,6 +92,8 @@
 (ns/toggle-bloat-global ns/enable-linux-p)
 
 (ns/style) ;; also gets spaceline
+
+(setq ns/firstrun nil)
 
 (provide 'init)
 ;;; init.el ends here

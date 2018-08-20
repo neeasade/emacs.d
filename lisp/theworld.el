@@ -538,7 +538,8 @@ buffer is not visiting a file."
   ;; save recent files
   (recentf-mode 1)
   (setq recentf-max-menu-items 300)
-  ;; (run-at-time nil (* 5 60) 'recentf-save-list)
+  (when ns/firstrun
+    (run-at-time nil (* 5 60) 'recentf-save-list))
 
   (setq whitespace-line-column 120)
 
@@ -554,7 +555,7 @@ buffer is not visiting a file."
       (progn
         (profiler-report)
         (profiler-stop))
-      (profiler-cpu-start)))
+      (profiler-cpu-start profiler-sampling-interval)))
 
   (ns/bind
     "js" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
@@ -575,7 +576,6 @@ buffer is not visiting a file."
     "if" 'ns/insert-filename
     "ip" 'ns/insert-filepath
     )
-
   )
 
 (defconfig elisp
