@@ -5,6 +5,7 @@
 (if (not (boundp 'ns/firstrun))
     (setq ns/firstrun t))
 
+(setq load-prefer-newer t)
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
 (defmacro ns/load (&rest targets)

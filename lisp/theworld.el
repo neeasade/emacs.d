@@ -219,10 +219,6 @@
   (let ((extend-file (~ "extend.el")))
     (when (file-exists-p extend-file)
       (eval-and-compile (load extend-file))))
-  )
-
-(defconfig util
-  (use-package pcre2el)
 
   ;; a macro for when something is not on melpa yet (assumes github)
   (defmacro ns/use-package (name repo &rest config)
@@ -230,6 +226,10 @@
        (straight-use-package '(,(make-symbol (symbol-name name)) :host github :repo ,repo))
        ;; assume first arg is :config
        ,@(cdr config)))
+  )
+
+(defconfig util
+  (use-package pcre2el)
 
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
