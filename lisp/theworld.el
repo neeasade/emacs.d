@@ -360,7 +360,7 @@ buffer is not visiting a file."
         (global-company-mode -1)
         (global-flycheck-mode -1)
         (global-font-lock-mode 0)
-        (global-git-gutter-mode nil))))
+        (global-git-gutter-mode 0))))
 
   (use-package simpleclip)
 
@@ -549,7 +549,8 @@ buffer is not visiting a file."
   (defcommand insert-filepath ()
     (insert (buffer-file-name)))
 
-  ;; a report toggle command for debuggong on keybind
+  ;; a report toggle command for debugging on keybind
+  (require 'profiler)
   (defcommand toggle-report ()
     (if (profiler-running-p)
       (progn

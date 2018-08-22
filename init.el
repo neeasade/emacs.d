@@ -55,6 +55,7 @@
  emoji
  filehooks
  writing
+ deadgrep
  )
 
 (ns/compose
