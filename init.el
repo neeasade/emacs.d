@@ -57,6 +57,8 @@
  filehooks
  writing
  deadgrep
+ elasticsearch
+ graphiz
  )
 
 (ns/compose
@@ -72,6 +74,7 @@
  markdown
  powershell
  lua
+ guix
  ;; lsp
  ;; terraform
  ;; sql

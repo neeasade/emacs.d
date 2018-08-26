@@ -1146,7 +1146,6 @@ buffer is not visiting a file."
           (with-current-buffer buf
             (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))))
 
-    ;; todo: somehow this has no effect in init
     (ns/refresh-all-modeline)
     (ns/bind "tM" 'ns/refresh-all-modeline)
     ))
@@ -1299,8 +1298,8 @@ buffer is not visiting a file."
 
   ;; todo: make this insert at focused story?
   (defcommand make-org-link-to-here ()
-    (simpleclip-copy (concat "[[file:" (buffer-file-name) "::"
-                       (number-to-string (line-number-at-pos)) "]]")))
+    (insert (concat "[[file:" (buffer-file-name) "::"
+              (number-to-string (line-number-at-pos)) "]]")))
 
   (defcommand insert-mark-org-links ()
     (setq ns/markers
@@ -2772,11 +2771,11 @@ Version 2018-02-21"
     ))
 
 (defconfig guix
+  (neeasade/guard ns/enable-home-p)
   (use-package guix))
 
 (defconfig elasticsearch
-  (use-package es-mode)
-  )
+  (use-package es-mode))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
