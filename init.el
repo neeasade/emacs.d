@@ -2,6 +2,10 @@
 ;;; commentary:
 ;;; code:
 
+(if (not (boundp 'ns/firstrun))
+    (setq ns/firstrun t))
+
+(setq load-prefer-newer t)
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
 (defmacro ns/load (&rest targets)
@@ -52,6 +56,9 @@
  emoji
  filehooks
  writing
+ deadgrep
+ elasticsearch
+ graphiz
  )
 
 (ns/compose
@@ -67,6 +74,7 @@
  markdown
  powershell
  lua
+ guix
  ;; lsp
  ;; terraform
  ;; sql
@@ -89,6 +97,8 @@
 (ns/toggle-bloat-global ns/enable-linux-p)
 
 (ns/style) ;; also gets spaceline
+
+(setq ns/firstrun nil)
 
 (provide 'init)
 ;;; init.el ends here

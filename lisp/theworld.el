@@ -219,10 +219,6 @@
   (let ((extend-file (~ "extend.el")))
     (when (file-exists-p extend-file)
       (eval-and-compile (load extend-file))))
-  )
-
-(defconfig util
-  (use-package pcre2el)
 
   ;; a macro for when something is not on melpa yet (assumes github)
   (defmacro ns/use-package (name repo &rest config)
@@ -230,6 +226,10 @@
        (straight-use-package '(,(make-symbol (symbol-name name)) :host github :repo ,repo))
        ;; assume first arg is :config
        ,@(cdr config)))
+  )
+
+(defconfig util
+  (use-package pcre2el)
 
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
@@ -360,7 +360,7 @@ buffer is not visiting a file."
         (global-company-mode -1)
         (global-flycheck-mode -1)
         (global-font-lock-mode 0)
-        (global-git-gutter-mode nil))))
+        (global-git-gutter-mode 0))))
 
   (use-package simpleclip)
 
@@ -492,7 +492,8 @@ buffer is not visiting a file."
     path (list (~ ".emacs.desktop"))
     )
 
-  (desktop-save-mode 1)
+  ;; todo: maybe change this, get recent files opened instead (don't care about file states)
+  ;; (desktop-save-mode 1)
 
   (setq browse-url-browser-function 'browse-url-generic)
 
@@ -539,7 +540,8 @@ buffer is not visiting a file."
   (setq recentf-max-menu-items 300)
   (setq recentf-max-saved-items 300)
 
-  (run-at-time nil (* 5 60) 'recentf-save-list)
+  (when ns/firstrun
+    (run-at-time nil (* 5 60) 'recentf-save-list))
 
   (setq whitespace-line-column 120)
 
@@ -549,13 +551,14 @@ buffer is not visiting a file."
   (defcommand insert-filepath ()
     (insert (buffer-file-name)))
 
-  ;; a report toggle command for debuggong on keybind
+  ;; a report toggle command for debugging on keybind
+  (require 'profiler)
   (defcommand toggle-report ()
     (if (profiler-running-p)
       (progn
         (profiler-report)
         (profiler-stop))
-      (profiler-cpu-start)))
+      (profiler-cpu-start profiler-sampling-interval)))
 
   (ns/bind
     "js" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
@@ -576,7 +579,6 @@ buffer is not visiting a file."
     "if" 'ns/insert-filename
     "ip" 'ns/insert-filepath
     )
-
   )
 
 (defconfig elisp
@@ -1146,7 +1148,6 @@ buffer is not visiting a file."
           (with-current-buffer buf
             (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))))
 
-    ;; todo: somehow this has no effect in init
     (ns/refresh-all-modeline)
     (ns/bind "tM" 'ns/refresh-all-modeline)
     ))
@@ -1299,8 +1300,8 @@ buffer is not visiting a file."
 
   ;; todo: make this insert at focused story?
   (defcommand make-org-link-to-here ()
-    (simpleclip-copy (concat "[[file:" (buffer-file-name) "::"
-                       (number-to-string (line-number-at-pos)) "]]")))
+    (insert (concat "[[file:" (buffer-file-name) "::"
+              (number-to-string (line-number-at-pos)) "]]")))
 
   (defcommand insert-mark-org-links ()
     (setq ns/markers
@@ -2289,10 +2290,8 @@ buffer is not visiting a file."
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
     ;; todo: find out what provides first, we need that here
     (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
-
-    (setq explicit-shell-file-name (ns/shell-exec "where bash"))
-
     (setq explicit-bash.exe-args '("--login" "-i"))
+
     (setenv "PATH"
       (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
       (getenv "PATH"))))
@@ -2778,11 +2777,11 @@ Version 2018-02-21"
     ))
 
 (defconfig guix
+  (neeasade/guard ns/enable-home-p)
   (use-package guix))
 
 (defconfig elasticsearch
-  (use-package es-mode)
-  )
+  (use-package es-mode))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
