@@ -536,7 +536,9 @@ buffer is not visiting a file."
 
   ;; save recent files
   (recentf-mode 1)
-  (setq recentf-max-menu-items 50)
+  (setq recentf-max-menu-items 300)
+  (setq recentf-max-saved-items 300)
+
   (run-at-time nil (* 5 60) 'recentf-save-list)
 
   (setq whitespace-line-column 120)
@@ -2028,7 +2030,11 @@ buffer is not visiting a file."
       (if (eq (length irc-channels) 0)
         (message "connect to irc first!")
         (ivy-read "channel: " irc-channels
-          :action (lambda (option) (counsel-switch-to-buffer-or-window option)))
+          :action (lambda (option)
+                    (counsel-switch-to-buffer-or-window option)
+                    ;; todo: fix this the right way
+                    (ns/style-circe)
+                    ))
         )))
 
   ;; emacs freezes completely while pulling in the image
