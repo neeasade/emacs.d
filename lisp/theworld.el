@@ -112,7 +112,6 @@
        (shell-command-to-string ,command)))
 
   (defun ns/shell-exec-dontcare (command)
-    ;; todo here: junk buffer
     (let* (
             (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
             (junk-buffer (get-buffer-create bufname))
@@ -464,6 +463,12 @@ buffer is not visiting a file."
     ;; ouch - todo: revisit this
     gc-cons-threshold 10000000
     frame-resize-pixelwise t
+
+    ;; todo: not working for multi caps path case
+    ;; eg /thing/Thing/README.md
+    ;; doesn't complete at /thing/Thing/rea
+    completion-ignore-case  t
+    dabbrev-case-fold-search nil
     )
 
   ;; trim gui
@@ -492,7 +497,7 @@ buffer is not visiting a file."
     path (list (~ ".emacs.desktop"))
     )
 
-  ;; todo: maybe change this, get recent files opened instead (don't care about file states)
+  ;; disabling in favor of recentf
   ;; (desktop-save-mode 1)
 
   (setq browse-url-browser-function 'browse-url-generic)
@@ -1199,6 +1204,9 @@ buffer is not visiting a file."
       pomodoro-keep-killed-pomodoro-time t
       pomodoro-ask-upon-killing nil
 
+      ;; todo: consider note option here.
+      log-done 'time
+
       ;; capture
       capture-templates
       '(
@@ -1407,7 +1415,6 @@ buffer is not visiting a file."
     (ivy-mode 1)
 
     (ns/use-package prescient "raxod502/prescient.el" :config (ivy-prescient-mode))
-
     )
 
   ;; counsel
@@ -1807,7 +1814,7 @@ buffer is not visiting a file."
   (ns/bind
     "g" '(:ignore t :which-key "git")
     "gb" 'magit-blame
-    "gl" 'magit-log-current
+    "gl" 'magit-log-buffer-file
     "gm" 'git-smerge-menu/body
     "gd" 'vdiff-mode ; ,h for a hydra!
     "gs" 'ns/git-status
@@ -2777,7 +2784,7 @@ Version 2018-02-21"
     ))
 
 (defconfig guix
-  (neeasade/guard ns/enable-home-p)
+  (ns/guard ns/enable-home-p)
   (use-package guix))
 
 (defconfig elasticsearch
