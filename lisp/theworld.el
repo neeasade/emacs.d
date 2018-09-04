@@ -545,8 +545,12 @@ buffer is not visiting a file."
   (setq recentf-max-menu-items 300)
   (setq recentf-max-saved-items 300)
 
+  (defun ns/save-files()
+    (let ((inhibit-message t))
+      (recentf-save-list)))
+
   (when ns/firstrun
-    (run-at-time nil (* 5 60) 'recentf-save-list))
+    (run-at-time nil (* 5 60) 'ns/save-files))
 
   (setq whitespace-line-column 120)
 
@@ -1602,24 +1606,34 @@ buffer is not visiting a file."
       (mapcar (lambda (file) (concat default-directory file)) project-files-relative)))
 
   (defcommand jump-file ()
-    (let* ( ;; bail out if we're not in a project
-            (project-root (condition-case nil (projectile-project-root) (error nil)))
-            (project-files
-              (if project-root
-                (get-project-files project-root)
-                '()))
-
-            ;; mapc keeps the buffers for some reason, even though buffer-file-name
-            ;; is doc'd to return nil and does in the single case
-            (open-buffers (s-split "\n" (mapconcat 'buffer-file-name (buffer-list) "\n") t))
+    (let* (
             (recent-files recentf-list)
 
-            ;; todo: test getting projects of open buffers listing
-            ;; (misc-project-files (car (mapcar 'get-project-files ns/projectile-roots)))
+            ;; bail out if we're not in a project
+            ;; (project-root (condition-case nil (projectile-project-root) (error nil)))
+
+            ;; (project-files
+            ;;   (if project-root
+            ;;     (get-project-files project-root)
+            ;;     '()))
+
+            (open-buffers
+              ;; remove nils
+              (-remove (lambda(file) (not file))
+                (mapcar 'buffer-file-name (buffer-list))))
+
+            (open-project-roots
+              (-remove (lambda(file) (not file))
+                (-distinct
+                  (mapcar 'projectile-root-bottom-up
+                    open-buffers))))
+
+            (project-files (-flatten (mapcar 'get-project-files open-project-roots)))
             )
 
       (ivy-read "file: "
-        (-distinct (append project-files open-buffers recent-files))
+        (mapcar (lambda (s) (s-replace (~ "") "~/" s))
+          (-distinct (append project-files open-buffers recent-files)))
         :action #'find-file)))
 
   (ns/bind "jf" 'ns/jump-file )
@@ -2532,6 +2546,8 @@ buffer is not visiting a file."
   )
 
 ;; use shell frames as terminals.
+;; todo: consider hiding this in window manager then popping it
+;; in rather than making a frame at launch time
 (defconfig terminal
   (defcommand stage-terminal ()
     (let ((default-directory (~ "")))
