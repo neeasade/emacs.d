@@ -140,7 +140,9 @@
        ))
 
   (defun ~ (path)
-    (concat (getenv (if ns/enable-windows-p "USERPROFILE" "HOME")) "/" path))
+    (concat
+      (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
+      (if ns/enable-windows-p "\\" "/") path))
 
   ;; todo: take a look at general-describe-keybindings later
   ;; binding wrappers
@@ -1632,7 +1634,12 @@ buffer is not visiting a file."
             )
 
       (ivy-read "file: "
-        (mapcar (lambda (s) (s-replace (~ "") "~/" s))
+        (mapcar (lambda (s)
+                  (s-replace
+                    ;; todo: consider only doing this
+                    ;; replace if we are windows
+                    (s-replace "\\" "/" (~ ""))
+                    "~/" s))
           (-distinct (append project-files open-buffers recent-files)))
         :action #'find-file)))
 
