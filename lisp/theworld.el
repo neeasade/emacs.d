@@ -100,6 +100,7 @@
 
 (defconfig bedrock
   (use-package s)
+  (use-package fn)
   (use-package f)
   (use-package hydra)
   (use-package general)
@@ -826,7 +827,7 @@ buffer is not visiting a file."
   (use-package company
     :config
     (setq-ns company
-      idle-delay (if ns/enable-windows-p 1 0)
+      idle-delay (if ns/enable-windows-p 0.2 0)
       selection-wrap-around t
       tooltip-align-annotations t
       dabbrev-downcase nil
@@ -1016,7 +1017,8 @@ buffer is not visiting a file."
   ;; (fringe-mode (string-to-number (get-resource "st.borderpx")))
 
   ;; sync w/ term background
-  (set-background-color (get-resource "*.background"))
+  (if (get-resource "*.background")
+    (set-background-color (get-resource "*.background")))
 
   ;; assume softer vertical border by matching comment face
   (set-face-attribute 'vertical-border
@@ -1604,33 +1606,41 @@ buffer is not visiting a file."
   ;; still assuming git command, maybe lean on projectile for file listing
   (defun get-project-files (project-root)
     (let* ((default-directory (expand-file-name project-root))
-            (project-files-relative (s-split "\n" (shell-command-to-string counsel-git-cmd) t)))
+            (project-files-relative (s-split "\n" (shell-command-to-string
+                                                    ;; (format "cache_output 3600 %s" counsel-git-cmd)
+                                                    counsel-git-cmd
+                                                    ) t)))
+
       (mapcar (lambda (file) (concat default-directory file)) project-files-relative)))
+
+  (defun ns/current-project-files()
+    ;; current project here is just the one associated with the current buffer
+    (let ((project-root (condition-case nil (projectile-project-root) (error nil))))
+      (if project-root
+        (get-project-files project-root)
+        '())))
+
+  (defun ns/all-project-files(open-buffers)
+    (-flatten
+      (mapcar 'get-project-files
+        (-remove (lambda(file) (not file))
+          (-distinct
+            (mapcar 'projectile-root-bottom-up
+              open-buffers))))))
 
   (defcommand jump-file ()
     (let* (
             (recent-files recentf-list)
-
-            ;; bail out if we're not in a project
-            ;; (project-root (condition-case nil (projectile-project-root) (error nil)))
-
-            ;; (project-files
-            ;;   (if project-root
-            ;;     (get-project-files project-root)
-            ;;     '()))
 
             (open-buffers
               ;; remove nils
               (-remove (lambda(file) (not file))
                 (mapcar 'buffer-file-name (buffer-list))))
 
-            (open-project-roots
-              (-remove (lambda(file) (not file))
-                (-distinct
-                  (mapcar 'projectile-root-bottom-up
-                    open-buffers))))
-
-            (project-files (-flatten (mapcar 'get-project-files open-project-roots)))
+            (project-files
+              (if ns/enable-linux-p
+                (ns/all-project-files open-buffers)
+                (ns/current-project-files)))
             )
 
       (ivy-read "file: "
@@ -2316,17 +2326,17 @@ buffer is not visiting a file."
     (setq explicit-shell-file-name (getenv "SHELL")))
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
-    ;; todo: find out what provides first, we need that here
     (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
     (setq explicit-bash.exe-args '("--login" "-i"))
 
     (setenv "PATH"
-      (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
-      (getenv "PATH"))))
+      (format "%s;%s"
+        (~ "scoop/apps/git-with-openssh/current/usr/bin/")
+        (getenv "PATH"))))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
-  (setq comint-buffer-maximum-size 1000)
+  (setq comint-buffer-maximum-size 2000)
   (setq comint-prompt-read-only t)
 
   (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
@@ -2526,9 +2536,11 @@ buffer is not visiting a file."
   (use-package emojify
     :init (setq emojify-emoji-styles '(unicode github))
     :config
-    (global-emojify-mode)
-    (ns/bind "ie" 'emojify-insert-emoji)
-    ))
+    ;; emojify-mode seems to mess with input, causing a character to
+    ;; occasionally skip, so disabling (global-emojify-mode)
+    (ns/bind
+      "ie" 'emojify-insert-emoji
+      "te" 'emojify-mode)))
 
 (defconfig writing
   (ns/guard ns/enable-home-p)
@@ -2812,6 +2824,14 @@ Version 2018-02-21"
 
 (defconfig elasticsearch
   (use-package es-mode))
+
+(defconfig server
+  (require 'server)
+  (unless (server-running-p)
+    (setq-ns server
+      auth-dir (~ ".emacs.d/server")
+      name "emacs-server-file")
+    (server-start)))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs

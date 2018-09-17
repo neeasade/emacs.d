@@ -30,6 +30,7 @@
  git
  org
  util
+ server
  )
 
 (ns/compose
