@@ -26,7 +26,9 @@
 
 (setq ns/xrdb-fallback-values
   ;; for when we're away from $HOME.
-  `(("*.background"         . ,(face-attribute 'default :background))
+  `(
+     ;; ("*.background"         . ,(face-attribute 'default :background))
+     ("*.background"         . nil)
      ("Emacs.powerlinescale" . "1.1")
      ("Emacs.theme"          . "base16-grayscale-light")
      ("emacs.powerline"      . "bar")
@@ -107,11 +109,20 @@
   (use-package request)
   (require 'seq)
 
+  (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
+
+  ;; apply, but with quotes
+  ;; example:
+  ;; (@ 'message ,@'("asdf"))
+  (defmacro @ (&rest input) (eval (eval `(backquote (list ,@input)))))
+
+
   (defmacro ns/shell-exec(command)
     "trim the newline from shell exec"
     `(replace-regexp-in-string "\n$" ""
        (shell-command-to-string ,command)))
 
+  ;; todo: hide 'shell command succceeded' with no output message after
   (defun ns/shell-exec-dontcare (command)
     (let* (
             (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
@@ -232,6 +243,14 @@
 
 (defconfig util
   (use-package pcre2el)
+
+  ;; eg (ns/make-lines '("a" "b" "c"))
+  (defun ns/make-lines(list)
+    (s-join "\n"
+      (mapcar
+        (fn (if (stringp <>) <>
+              (prin1-to-string <>)))
+        list)))
 
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
@@ -411,8 +430,6 @@ buffer is not visiting a file."
       ;; height is in 1/10th of pt
       `(:family ,family :height ,(* 10 size))))
 
-  ;; (defmacro @ (input) (eval `(backquote ,input)))
-
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
       (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
@@ -515,7 +532,7 @@ buffer is not visiting a file."
 
   ;; Removes *scratch* from buffer after the mode has been set.
   (add-hook 'after-change-major-mode-hook
-    (lambda() (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
+    (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
 
   ;; disable semantic mode, this may bite me lets try it out
   (with-eval-after-load 'semantic
@@ -573,9 +590,9 @@ buffer is not visiting a file."
       (profiler-cpu-start profiler-sampling-interval)))
 
   (ns/bind
-    "js" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
-    "jS" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
-    "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
+    "js" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
+    "jS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
+    "jm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
 
     "t" '(:ignore t :which-key "Toggle")
     "tw" 'whitespace-mode
@@ -1411,6 +1428,7 @@ buffer is not visiting a file."
       re-builders-alist '((ivy-switch-buffer . ivy--regex-plus) (t . ivy--regex-fuzzy))
       initial-inputs-alist nil
       fixed-height-minibuffer t
+      count-format "%d/%d "
       )
 
     ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
@@ -1470,7 +1488,7 @@ buffer is not visiting a file."
 
     (ns/bind "d" 'ns/deer-with-last-shell)
 
-    (defcommand open () (async-shell-command (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
+    (defcommand open () (ns/shell-exec-dontcare (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
     (define-key ranger-normal-mode-map (kbd "RET") 'ns/open)
     )
 
@@ -1606,12 +1624,14 @@ buffer is not visiting a file."
   ;; still assuming git command, maybe lean on projectile for file listing
   (defun get-project-files (project-root)
     (let* ((default-directory (expand-file-name project-root))
-            (project-files-relative (s-split "\n" (shell-command-to-string
-                                                    ;; (format "cache_output 3600 %s" counsel-git-cmd)
-                                                    counsel-git-cmd
-                                                    ) t)))
+            (project-files-relative
+              (s-split "\n"
+                (shell-command-to-string
+                  counsel-git-cmd
+                  ) t)))
 
-      (mapcar (lambda (file) (concat default-directory file)) project-files-relative)))
+      (mapcar (fn (concat default-directory <>)) project-files-relative))
+    )
 
   (defun ns/current-project-files()
     ;; current project here is just the one associated with the current buffer
@@ -1624,9 +1644,8 @@ buffer is not visiting a file."
     (-flatten
       (mapcar 'get-project-files
         (-remove (lambda(file) (not file))
-          (-distinct
-            (mapcar 'projectile-root-bottom-up
-              open-buffers))))))
+          (mapcar 'projectile-root-bottom-up open-buffers)
+          ))))
 
   (defcommand jump-file ()
     (let* (
@@ -1891,7 +1910,7 @@ buffer is not visiting a file."
           :host "irc.freenode.net"
           :tls t
           :nickserv-password ,(pass "freenode")
-          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs")
+          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug")
           )
 
          ("Nixers"
@@ -1912,7 +1931,7 @@ buffer is not visiting a file."
            :host "irc.rizon.net"
            :port (6667 . 6697)
            :tls t
-           :channels (:after-auth "#rice" "#code")
+           :channels (:after-auth "#rice" "#code" "#leliana")
            :nickserv-password ,(pass "rizon/pass")
            :nickserv-mask ,(rx bol "NickServ!service@rizon.net" eol)
            :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
