@@ -1,23 +1,12 @@
 #!/bin/bash
 
-candidates=""
-
-if [ -p /dev/stdin ]; then
-    candidates="$(cat -)"
-else
-    candidates="$(rg --files "$@")"
-fi
-
 # todo: make this an actual temp file-- this was the fastest cross platform way to keep cleanup
 file="$(elisp -r '(~ "fzftemp")')"
 
-echo "$candidates" > "$file"
-
-lisp='(ivy-read "" (s-split "\n" (get-string-from-file "'"$file"'")) :action (lambda(option) option))'
-
-if result="$(elisp "${lisp}")"
-then
-    echo "$result" | sed -e 's/^"//' -e 's/"$//'
+if [ -p /dev/stdin ]; then
+    cat - > "$file"
 else
-    exit 1
+    rg --files "$@" > "$file"
 fi
+
+elisp -r '(ivy-read "" (s-split "\n" (get-string-from-file "'"$file"'")) :action (lambda(option) option))'
