@@ -446,6 +446,18 @@ buffer is not visiting a file."
     (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
     (buffer-face-mode t))
 
+  ;; todo: fix this
+  ;; (defun ns/gradient (start end steps)
+  ;;   (@ 'list
+  ;;     start
+  ;;     ,@(mapcar
+  ;;         (fn (@ 'color-rgb-to-hex ,@<> 2))
+  ;;         (color-gradient (color-name-to-rgb start)
+  ;;           (color-name-to-rgb end)
+  ;;           (- steps 2)))
+  ;;     end
+  ;;     ))
+
   (ns/bind
     ;; reconsider these, moved from w -> q for query
     "qf" 'ns/what-face
@@ -1376,7 +1388,7 @@ buffer is not visiting a file."
 
   (advice-add #'ns/style :after #'ns/style-org)
   (defun ns/style-org ()
-    (ns/set-faces-monospace '(org-block org-code org-table))
+    (ns/set-faces-monospace '(org-block org-code org-table company-tooltip company-tooltip-common company-tooltip-selection))
 
     (set-face-attribute 'org-block-begin-line nil :height 50)
     (set-face-attribute 'org-block-end-line nil :height 50)
