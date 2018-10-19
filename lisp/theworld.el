@@ -14,6 +14,7 @@
   ns/enable-home-p (string= (system-name) "erasmus")
   ns/enable-docker-p (string= (getenv "USER") "emacser")
   ns/enable-work-p ns/enable-windows-p
+  ns/enable-colemak t
   )
 
 ;; docker container user, still act trimmed/assume windows
@@ -469,7 +470,7 @@ buffer is not visiting a file."
     "qh" 'counsel-shell-history
 
     "fE" 'sudo-edit
-    "jc" 'ns/jump-config
+    "gc" 'ns/jump-config
     "tb" 'ns/toggle-bloat
     "iu" 'ns/buffercurl
     )
@@ -602,9 +603,9 @@ buffer is not visiting a file."
       (profiler-cpu-start profiler-sampling-interval)))
 
   (ns/bind
-    "js" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
-    "jS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
-    "jm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
+    "gs" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
+    "gS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
+    "gm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
 
     "t" '(:ignore t :which-key "Toggle")
     "tw" 'whitespace-mode
@@ -651,9 +652,24 @@ buffer is not visiting a file."
     ;; for evil-collection
     :init (setq evil-want-integration nil)
     :config (evil-mode 1)
-    )
+    (when ns/enable-colemak
+      (general-nmap "N" 'evil-join)))
 
-  (use-package evil-collection :config (evil-collection-init))
+  ;; disable: some of the binds get in the way of our colemak remappings.
+  (use-package evil-collection :config
+    (when ns/enable-colemak
+      (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
+        (evil-collection-translate-key 'normal mode-keymaps
+          "n" "j"
+          "e" "k"
+          "j" "e"
+          "k" "n"
+          "K" "N"
+          ))
+      (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
+      )
+
+    (evil-collection-init))
 
   (defun ns/zz-scroll (&rest optional)
     (let* ((scrollcount (/ (window-total-size) 7))
@@ -666,6 +682,27 @@ buffer is not visiting a file."
   (add-function :after (symbol-function 'evil-scroll-line-to-center) #'ns/zz-scroll)
 
   (general-evil-setup t)
+
+  (setq-default evil-escape-key-sequence
+    (if ns/enable-colemak "tn" "fj"))
+
+  (when ns/enable-colemak
+    (defun set-in-evil-states (key def maps)
+      (while maps
+        (define-key (pop maps) key def)))
+
+    (defun set-in-navigation-evil-states (key def)
+      (set-in-evil-states key def (list evil-motion-state-map
+                                    evil-normal-state-map
+                                    evil-visual-state-map)))
+
+    (define-key evil-motion-state-map "k" 'evil-search-next)
+    (define-key evil-motion-state-map "K" 'evil-search-previous)
+    (set-in-navigation-evil-states "n" 'evil-next-line)
+    (set-in-navigation-evil-states "e" 'evil-previous-line)
+    )
+
+  ;; (setq-default evil-escape-key-sequence "ts")
 
   ;; defaults to fd/spacemacs-like config
   (use-package evil-escape :config (evil-escape-mode))
@@ -715,6 +752,7 @@ buffer is not visiting a file."
 
   (use-package evil-snipe
     :config
+    (setq evil-snipe-smart-case t)
     (setq evil-snipe-repeat-scope 'whole-visible)
     (setq evil-snipe-spillover-scope 'whole-visible)
     (evil-snipe-override-mode +1)
@@ -805,6 +843,8 @@ buffer is not visiting a file."
 
     (setq avy-all-windows 'all-frames)
     (setq avy-timeout-seconds 0.2)
+    ;; todo: colemak
+    ;; (setq avy-keys '())
 
     (general-mmap
       "z" 'avy-goto-char-timer)
@@ -1008,7 +1048,7 @@ buffer is not visiting a file."
       (counsel-dash (thing-at-point 'word))))
 
   (ns/bind
-    "jd" 'ns/counsel-dash-word)
+    "gd" 'ns/counsel-dash-word)
   )
 
 (defconfig-base style
@@ -1535,8 +1575,8 @@ buffer is not visiting a file."
     ;; windows
     "w" '(:ignore t :which-key "Windows")
     "wh" 'evil-window-left
-    "wj" 'evil-window-down
-    "wk" 'evil-window-up
+    (concat "w" (if ns/enable-colemak "n" "j")) 'evil-window-down
+    (concat "w" (if ns/enable-colemak "e" "k")) 'evil-window-up
     "wl" 'evil-window-right
     "wd" 'evil-window-delete
     "ww" 'other-window
@@ -1552,8 +1592,8 @@ buffer is not visiting a file."
     "b" '(:ignore t :which-key "Buffers")
     "bd" 'ns/kill-current-buffer
 
-    "j" '(:ignore t :which-key "Jump")
-    "jd" 'counsel-imenu
+    "g" '(:ignore t :which-key "Jump")
+    "gd" 'counsel-imenu
     )
 
   (use-package alert
@@ -1681,10 +1721,12 @@ buffer is not visiting a file."
                     ;; replace if we are windows
                     (s-replace "\\" "/" (~ ""))
                     "~/" s))
-          (-distinct (append project-files open-buffers recent-files)))
+          (-distinct (append open-buffers recent-files project-files)))
         :action #'find-file)))
 
-  (ns/bind "jf" 'ns/jump-file )
+  ;; idk which of these I like better
+  (ns/bind "gk" 'ns/jump-file )
+  (ns/bind "gf" 'ns/jump-file )
   )
 
 (defconfig javascript
@@ -1874,14 +1916,15 @@ buffer is not visiting a file."
   (defcommand magit-history () (magit-log-buffer-file))
 
   (ns/bind
-    "g" '(:ignore t :which-key "git")
-    "gb" 'magit-blame
-    "gl" 'magit-log-buffer-file
-    "gm" 'git-smerge-menu/body
-    "gd" 'vdiff-mode ; ,h for a hydra!
-    "gs" 'ns/git-status
-    "gh" 'ns/magit-history
+    "v" '(:ignore t :which-key "git")
+    "vb" 'magit-blame
+    "vl" 'magit-log-buffer-file
+    "vm" 'git-smerge-menu/body
+    "vd" 'vdiff-mode ; ,h for a hydra!
+    "vs" 'ns/git-status
+    "vh" 'ns/magit-history
     )
+
   )
 
 (defconfig jump
@@ -1891,9 +1934,9 @@ buffer is not visiting a file."
     (setq dumb-jump-force-searcher 'rg)
     (smart-jump-setup-default-registers)
     (ns/bind
-      "j" '(:ignore t :which-key "Jump")
-      "jj" 'smart-jump-go
-      "jb" 'smart-jump-back
+      "g" '(:ignore t :which-key "Jump")
+      "gg" 'smart-jump-go
+      "gb" 'smart-jump-back
       )
 
     (advice-add #'smart-jump-go :after #'ns/focus-line)
@@ -2152,7 +2195,7 @@ buffer is not visiting a file."
   ;; todo: mute irc bots colors
   (ns/bind
     "ai" 'connect-all-irc
-    "ji" 'ns/jump-irc
+    "gi" 'ns/jump-irc
     ))
 
 (defconfig pdf
@@ -2811,7 +2854,7 @@ Version 2018-02-21"
         (org-open-at-point)
         (smart-jump-go))))
 
-  (ns/bind "jj" 'ns/follow)
+  (ns/bind "gj" 'ns/follow)
   )
 
 (defconfig c
