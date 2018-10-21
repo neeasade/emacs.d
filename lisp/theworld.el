@@ -99,8 +99,12 @@
   )
 
 (defconfig bedrock
+  ;; elisp enhancers
+  (use-package fn)
   (use-package s)
   (use-package f)
+
+  ;; other
   (use-package hydra)
   (use-package general)
   (use-package request)
@@ -111,6 +115,10 @@
     `(replace-regexp-in-string "\n$" ""
        (shell-command-to-string ,command)))
 
+  ;; interactive lambda
+  (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
+
+  ;; todo: hide shell command succceeded with no output message after completion
   (defun ns/shell-exec-dontcare (command)
     (let* (
             (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
@@ -196,7 +204,7 @@
 
   ;; wrap passwordstore
   (defun pass (key)
-    (ns/shell-exec (concat "pass " key)))
+    (ns/shell-exec (format "pass %s 2>/dev/null" key)))
 
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
@@ -408,7 +416,6 @@ buffer is not visiting a file."
       ;; height is in 1/10th of pt
       `(:family ,family :height ,(* 10 size))))
 
-  ;; (defmacro @ (input) (eval `(backquote ,input)))
 
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
@@ -425,6 +432,14 @@ buffer is not visiting a file."
   (defcommand set-buffer-face-monospace ()
     (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
     (buffer-face-mode t))
+
+  (defun ns/make-lines(list)
+    (s-join "\n"
+      (mapcar
+        (lambda (item)
+          (if (stringp item) item
+            (prin1-to-string item)))
+        list)))
 
   (ns/bind
     ;; reconsider these, moved from w -> q for query
@@ -512,7 +527,7 @@ buffer is not visiting a file."
 
   ;; Removes *scratch* from buffer after the mode has been set.
   (add-hook 'after-change-major-mode-hook
-    (lambda() (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
+    (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
 
   ;; disable semantic mode, this may bite me lets try it out
   (with-eval-after-load 'semantic
@@ -569,10 +584,15 @@ buffer is not visiting a file."
         (profiler-stop))
       (profiler-cpu-start profiler-sampling-interval)))
 
+  ;; todo: replace linum-mode with this, maybe check running emacs version first?
+  ;; (display-line-numbers-mode)
+  ;; (setq display-line-numbers 'relative)
+  (display-line-numbers-mode 0)
+
   (ns/bind
-    "js" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
-    "jS" (lambda() (interactive) (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
-    "jm" (lambda() (interactive) (counsel-switch-to-buffer-or-window  "*Messages*"))
+    "js" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
+    "jS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
+    "jm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
 
     "t" '(:ignore t :which-key "Toggle")
     "tw" 'whitespace-mode
@@ -1014,7 +1034,7 @@ buffer is not visiting a file."
   ;; (fringe-mode (string-to-number (get-resource "st.borderpx")))
 
   ;; sync w/ term background
-  (set-background-color (get-resource "*.background"))
+  ;; (set-background-color (get-resource "*.background"))
 
   ;; assume softer vertical border by matching comment face
   (set-face-attribute 'vertical-border
@@ -1466,7 +1486,9 @@ buffer is not visiting a file."
 
     (ns/bind "d" 'ns/deer-with-last-shell)
 
-    (defcommand open () (async-shell-command (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
+
+    (defcommand open () (ns/shell-exec-dontcare (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
+
     (define-key ranger-normal-mode-map (kbd "RET") 'ns/open)
     )
 
@@ -1874,7 +1896,7 @@ buffer is not visiting a file."
           :host "irc.freenode.net"
           :tls t
           :nickserv-password ,(pass "freenode")
-          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs")
+          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "k-slug" "#qutebrowser-offtopic")
           )
 
          ("Nixers"
@@ -1895,7 +1917,7 @@ buffer is not visiting a file."
            :host "irc.rizon.net"
            :port (6667 . 6697)
            :tls t
-           :channels (:after-auth "#rice" "#code")
+           :channels (:after-auth "#rice" "#code" "#leliana")
            :nickserv-password ,(pass "rizon/pass")
            :nickserv-mask ,(rx bol "NickServ!service@rizon.net" eol)
            :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
@@ -2520,7 +2542,12 @@ buffer is not visiting a file."
     :init (setq emojify-emoji-styles '(unicode github))
     :config
     (global-emojify-mode)
+
+    ;; todo here: after circe hook disable, if circe enabled
+    ;; (add-hook 'after-init-hook #'global-emojify-mode)
+
     (ns/bind "ie" 'emojify-insert-emoji)
+    (ns/bind "te" 'emojify-mode)
     ))
 
 (defconfig writing
@@ -2762,6 +2789,15 @@ Version 2018-02-21"
         (smart-jump-go))))
 
   (ns/bind "jj" 'ns/follow)
+
+  (defun ns/gradient (start end steps)
+    (@ start
+      ,@(mapcar
+          (fn (@ 'color-rgb-to-hex ,@<> 2))
+          (color-gradient (color-name-to-rgb start)
+            (color-name-to-rgb end)
+            (- steps 2)))
+      end))
   )
 
 (defconfig c
