@@ -14,6 +14,7 @@
   ns/enable-home-p (string= (system-name) "erasmus")
   ns/enable-docker-p (string= (getenv "USER") "emacser")
   ns/enable-work-p ns/enable-windows-p
+  ns/enable-colemak t
   )
 
 ;; docker container user, still act trimmed/assume windows
@@ -26,7 +27,9 @@
 
 (setq ns/xrdb-fallback-values
   ;; for when we're away from $HOME.
-  `(("*.background"         . ,(face-attribute 'default :background))
+  `(
+     ;; ("*.background"         . ,(face-attribute 'default :background))
+     ("*.background"         . nil)
      ("Emacs.powerlinescale" . "1.1")
      ("Emacs.theme"          . "base16-grayscale-light")
      ("emacs.powerline"      . "bar")
@@ -102,6 +105,7 @@
   ;; elisp enhancers
   (use-package fn)
   (use-package s)
+  (use-package fn)
   (use-package f)
 
   ;; other
@@ -109,6 +113,14 @@
   (use-package general)
   (use-package request)
   (require 'seq)
+
+  (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
+
+  ;; apply, but with quotes
+  ;; example:
+  ;; (@ 'message ,@'("asdf"))
+  (defmacro @ (&rest input) (eval (eval `(backquote (list ,@input)))))
+
 
   (defmacro ns/shell-exec(command)
     "trim the newline from shell exec"
@@ -148,7 +160,9 @@
        ))
 
   (defun ~ (path)
-    (concat (getenv (if ns/enable-windows-p "USERPROFILE" "HOME")) "/" path))
+    (concat
+      (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
+      (if ns/enable-windows-p "\\" "/") path))
 
   ;; todo: take a look at general-describe-keybindings later
   ;; binding wrappers
@@ -237,6 +251,14 @@
 
 (defconfig util
   (use-package pcre2el)
+
+  ;; eg (ns/make-lines '("a" "b" "c"))
+  (defun ns/make-lines(list)
+    (s-join "\n"
+      (mapcar
+        (fn (if (stringp <>) <>
+              (prin1-to-string <>)))
+        list)))
 
   (defun get-string-from-file (filePath)
     "Return filePath's file content."
@@ -416,7 +438,6 @@ buffer is not visiting a file."
       ;; height is in 1/10th of pt
       `(:family ,family :height ,(* 10 size))))
 
-
   (defun ns/set-faces-variable (faces)
     (dolist (face faces)
       (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
@@ -452,7 +473,7 @@ buffer is not visiting a file."
     "qh" 'counsel-shell-history
 
     "fE" 'sudo-edit
-    "jc" 'ns/jump-config
+    "gc" 'ns/jump-config
     "tb" 'ns/toggle-bloat
     "iu" 'ns/buffercurl
     )
@@ -590,9 +611,9 @@ buffer is not visiting a file."
   (display-line-numbers-mode 0)
 
   (ns/bind
-    "js" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
-    "jS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
-    "jm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
+    "gs" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
+    "gS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
+    "gm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
 
     "t" '(:ignore t :which-key "Toggle")
     "tw" 'whitespace-mode
@@ -639,9 +660,24 @@ buffer is not visiting a file."
     ;; for evil-collection
     :init (setq evil-want-integration nil)
     :config (evil-mode 1)
-    )
+    (when ns/enable-colemak
+      (general-nmap "N" 'evil-join)))
 
-  (use-package evil-collection :config (evil-collection-init))
+  ;; disable: some of the binds get in the way of our colemak remappings.
+  (use-package evil-collection :config
+    (when ns/enable-colemak
+      (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
+        (evil-collection-translate-key 'normal mode-keymaps
+          "n" "j"
+          "e" "k"
+          "j" "e"
+          "k" "n"
+          "K" "N"
+          ))
+      (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
+      )
+
+    (evil-collection-init))
 
   (defun ns/zz-scroll (&rest optional)
     (let* ((scrollcount (/ (window-total-size) 7))
@@ -654,6 +690,27 @@ buffer is not visiting a file."
   (add-function :after (symbol-function 'evil-scroll-line-to-center) #'ns/zz-scroll)
 
   (general-evil-setup t)
+
+  (setq-default evil-escape-key-sequence
+    (if ns/enable-colemak "tn" "fj"))
+
+  (when ns/enable-colemak
+    (defun set-in-evil-states (key def maps)
+      (while maps
+        (define-key (pop maps) key def)))
+
+    (defun set-in-navigation-evil-states (key def)
+      (set-in-evil-states key def (list evil-motion-state-map
+                                    evil-normal-state-map
+                                    evil-visual-state-map)))
+
+    (define-key evil-motion-state-map "k" 'evil-search-next)
+    (define-key evil-motion-state-map "K" 'evil-search-previous)
+    (set-in-navigation-evil-states "n" 'evil-next-line)
+    (set-in-navigation-evil-states "e" 'evil-previous-line)
+    )
+
+  ;; (setq-default evil-escape-key-sequence "ts")
 
   ;; defaults to fd/spacemacs-like config
   (use-package evil-escape :config (evil-escape-mode))
@@ -703,6 +760,7 @@ buffer is not visiting a file."
 
   (use-package evil-snipe
     :config
+    (setq evil-snipe-smart-case t)
     (setq evil-snipe-repeat-scope 'whole-visible)
     (setq evil-snipe-spillover-scope 'whole-visible)
     (evil-snipe-override-mode +1)
@@ -793,6 +851,8 @@ buffer is not visiting a file."
 
     (setq avy-all-windows 'all-frames)
     (setq avy-timeout-seconds 0.2)
+    ;; todo: colemak
+    ;; (setq avy-keys '())
 
     (general-mmap
       "z" 'avy-goto-char-timer)
@@ -844,7 +904,7 @@ buffer is not visiting a file."
   (use-package company
     :config
     (setq-ns company
-      idle-delay (if ns/enable-windows-p 1 0)
+      idle-delay (if ns/enable-windows-p 0.2 0)
       selection-wrap-around t
       tooltip-align-annotations t
       dabbrev-downcase nil
@@ -996,7 +1056,7 @@ buffer is not visiting a file."
       (counsel-dash (thing-at-point 'word))))
 
   (ns/bind
-    "jd" 'ns/counsel-dash-word)
+    "gd" 'ns/counsel-dash-word)
   )
 
 (defconfig-base style
@@ -1375,7 +1435,7 @@ buffer is not visiting a file."
 
   (advice-add #'ns/style :after #'ns/style-org)
   (defun ns/style-org ()
-    (ns/set-faces-monospace '(org-block org-code org-table))
+    (ns/set-faces-monospace '(org-block org-code org-table company-tooltip company-tooltip-common company-tooltip-selection))
 
     (set-face-attribute 'org-block-begin-line nil :height 50)
     (set-face-attribute 'org-block-end-line nil :height 50)
@@ -1427,6 +1487,7 @@ buffer is not visiting a file."
       re-builders-alist '((ivy-switch-buffer . ivy--regex-plus) (t . ivy--regex-fuzzy))
       initial-inputs-alist nil
       fixed-height-minibuffer t
+      count-format "%d/%d "
       )
 
     ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
@@ -1486,9 +1547,7 @@ buffer is not visiting a file."
 
     (ns/bind "d" 'ns/deer-with-last-shell)
 
-
     (defcommand open () (ns/shell-exec-dontcare (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
-
     (define-key ranger-normal-mode-map (kbd "RET") 'ns/open)
     )
 
@@ -1523,8 +1582,8 @@ buffer is not visiting a file."
     ;; windows
     "w" '(:ignore t :which-key "Windows")
     "wh" 'evil-window-left
-    "wj" 'evil-window-down
-    "wk" 'evil-window-up
+    (concat "w" (if ns/enable-colemak "n" "j")) 'evil-window-down
+    (concat "w" (if ns/enable-colemak "e" "k")) 'evil-window-up
     "wl" 'evil-window-right
     "wd" 'evil-window-delete
     "ww" 'other-window
@@ -1540,8 +1599,8 @@ buffer is not visiting a file."
     "b" '(:ignore t :which-key "Buffers")
     "bd" 'ns/kill-current-buffer
 
-    "j" '(:ignore t :which-key "Jump")
-    "jd" 'counsel-imenu
+    "g" '(:ignore t :which-key "Jump")
+    "gd" 'counsel-imenu
     )
 
   (use-package alert
@@ -1624,41 +1683,57 @@ buffer is not visiting a file."
   ;; still assuming git command, maybe lean on projectile for file listing
   (defun get-project-files (project-root)
     (let* ((default-directory (expand-file-name project-root))
-            (project-files-relative (s-split "\n" (shell-command-to-string counsel-git-cmd) t)))
-      (mapcar (lambda (file) (concat default-directory file)) project-files-relative)))
+            (project-files-relative
+              (s-split "\n"
+                (shell-command-to-string
+                  counsel-git-cmd
+                  ) t)))
+
+      (mapcar (fn (concat default-directory <>)) project-files-relative))
+    )
+
+  (defun ns/current-project-files()
+    ;; current project here is just the one associated with the current buffer
+    (let ((project-root (condition-case nil (projectile-project-root) (error nil))))
+      (if project-root
+        (get-project-files project-root)
+        '())))
+
+  (defun ns/all-project-files(open-buffers)
+    (-flatten
+      (mapcar 'get-project-files
+        (-remove (lambda(file) (not file))
+          (mapcar 'projectile-root-bottom-up open-buffers)
+          ))))
 
   (defcommand jump-file ()
     (let* (
             (recent-files recentf-list)
-
-            ;; bail out if we're not in a project
-            ;; (project-root (condition-case nil (projectile-project-root) (error nil)))
-
-            ;; (project-files
-            ;;   (if project-root
-            ;;     (get-project-files project-root)
-            ;;     '()))
 
             (open-buffers
               ;; remove nils
               (-remove (lambda(file) (not file))
                 (mapcar 'buffer-file-name (buffer-list))))
 
-            (open-project-roots
-              (-remove (lambda(file) (not file))
-                (-distinct
-                  (mapcar 'projectile-root-bottom-up
-                    open-buffers))))
-
-            (project-files (-flatten (mapcar 'get-project-files open-project-roots)))
+            (project-files
+              (if ns/enable-linux-p
+                (ns/all-project-files open-buffers)
+                (ns/current-project-files)))
             )
 
       (ivy-read "file: "
-        (mapcar (lambda (s) (s-replace (~ "") "~/" s))
-          (-distinct (append project-files open-buffers recent-files)))
+        (mapcar (lambda (s)
+                  (s-replace
+                    ;; todo: consider only doing this
+                    ;; replace if we are windows
+                    (s-replace "\\" "/" (~ ""))
+                    "~/" s))
+          (-distinct (append open-buffers recent-files project-files)))
         :action #'find-file)))
 
-  (ns/bind "jf" 'ns/jump-file )
+  ;; idk which of these I like better
+  (ns/bind "gk" 'ns/jump-file )
+  (ns/bind "gf" 'ns/jump-file )
   )
 
 (defconfig javascript
@@ -1848,14 +1923,15 @@ buffer is not visiting a file."
   (defcommand magit-history () (magit-log-buffer-file))
 
   (ns/bind
-    "g" '(:ignore t :which-key "git")
-    "gb" 'magit-blame
-    "gl" 'magit-log-buffer-file
-    "gm" 'git-smerge-menu/body
-    "gd" 'vdiff-mode ; ,h for a hydra!
-    "gs" 'ns/git-status
-    "gh" 'ns/magit-history
+    "v" '(:ignore t :which-key "git")
+    "vb" 'magit-blame
+    "vl" 'magit-log-buffer-file
+    "vm" 'git-smerge-menu/body
+    "vd" 'vdiff-mode ; ,h for a hydra!
+    "vs" 'ns/git-status
+    "vh" 'ns/magit-history
     )
+
   )
 
 (defconfig jump
@@ -1865,9 +1941,9 @@ buffer is not visiting a file."
     (setq dumb-jump-force-searcher 'rg)
     (smart-jump-setup-default-registers)
     (ns/bind
-      "j" '(:ignore t :which-key "Jump")
-      "jj" 'smart-jump-go
-      "jb" 'smart-jump-back
+      "g" '(:ignore t :which-key "Jump")
+      "gg" 'smart-jump-go
+      "gb" 'smart-jump-back
       )
 
     (advice-add #'smart-jump-go :after #'ns/focus-line)
@@ -2126,7 +2202,7 @@ buffer is not visiting a file."
   ;; todo: mute irc bots colors
   (ns/bind
     "ai" 'connect-all-irc
-    "ji" 'ns/jump-irc
+    "gi" 'ns/jump-irc
     ))
 
 (defconfig pdf
@@ -2331,17 +2407,17 @@ buffer is not visiting a file."
     (setq explicit-shell-file-name (getenv "SHELL")))
 
   (when (and ns/enable-windows-p (not ns/enable-docker-p))
-    ;; todo: find out what provides first, we need that here
     (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
     (setq explicit-bash.exe-args '("--login" "-i"))
 
     (setenv "PATH"
-      (concat (~ "scoop/apps/git-with-openssh/current/usr/bin/") ";"
-      (getenv "PATH"))))
+      (format "%s;%s"
+        (~ "scoop/apps/git-with-openssh/current/usr/bin/")
+        (getenv "PATH"))))
 
   ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
   (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
-  (setq comint-buffer-maximum-size 1000)
+  (setq comint-buffer-maximum-size 2000)
   (setq comint-prompt-read-only t)
 
   (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
@@ -2541,14 +2617,11 @@ buffer is not visiting a file."
   (use-package emojify
     :init (setq emojify-emoji-styles '(unicode github))
     :config
-    (global-emojify-mode)
-
-    ;; todo here: after circe hook disable, if circe enabled
-    ;; (add-hook 'after-init-hook #'global-emojify-mode)
-
-    (ns/bind "ie" 'emojify-insert-emoji)
-    (ns/bind "te" 'emojify-mode)
-    ))
+    ;; emojify-mode seems to mess with input, causing a character to
+    ;; occasionally skip, so disabling (global-emojify-mode)
+    (ns/bind
+      "ie" 'emojify-insert-emoji
+      "te" 'emojify-mode)))
 
 (defconfig writing
   (ns/guard ns/enable-home-p)
@@ -2788,7 +2861,7 @@ Version 2018-02-21"
         (org-open-at-point)
         (smart-jump-go))))
 
-  (ns/bind "jj" 'ns/follow)
+  (ns/bind "gj" 'ns/follow)
 
   (defun ns/gradient (start end steps)
     (@ start
@@ -2841,6 +2914,14 @@ Version 2018-02-21"
 
 (defconfig elasticsearch
   (use-package es-mode))
+
+(defconfig server
+  (require 'server)
+  (unless (server-running-p)
+    (setq-ns server
+      auth-dir (~ ".emacs.d/server")
+      name "emacs-server-file")
+    (server-start)))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs

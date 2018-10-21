@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# todo: make this an actual temp file-- this was the fastest cross platform way to keep cleanup
+file="$(elisp -r '(~ "fzftemp")')"
+
+if [ -p /dev/stdin ]; then
+    cat - > "$file"
+else
+    rg --files "$@" > "$file"
+fi
+
+elisp -r '(ivy-read "" (s-split "\n" (get-string-from-file "'"$file"'")) :action (lambda(option) option))'
