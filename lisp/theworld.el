@@ -470,7 +470,7 @@ buffer is not visiting a file."
     "qh" 'counsel-shell-history
 
     "fE" 'sudo-edit
-    "gc" 'ns/jump-config
+    "nc" 'ns/jump-config
     "tb" 'ns/toggle-bloat
     "iu" 'ns/buffercurl
     )
@@ -603,9 +603,9 @@ buffer is not visiting a file."
       (profiler-cpu-start profiler-sampling-interval)))
 
   (ns/bind
-    "gs" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
-    "gS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
-    "gm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
+    "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
+    "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
+    "nm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
 
     "t" '(:ignore t :which-key "Toggle")
     "tw" 'whitespace-mode
@@ -648,6 +648,8 @@ buffer is not visiting a file."
     ))
 
 (defconfig evil
+  (general-evil-setup t)
+
   (use-package evil
     ;; for evil-collection
     :init (setq evil-want-integration nil)
@@ -680,8 +682,6 @@ buffer is not visiting a file."
         )))
 
   (add-function :after (symbol-function 'evil-scroll-line-to-center) #'ns/zz-scroll)
-
-  (general-evil-setup t)
 
   (setq-default evil-escape-key-sequence
     (if ns/enable-colemak "tn" "fj"))
@@ -843,8 +843,8 @@ buffer is not visiting a file."
 
     (setq avy-all-windows 'all-frames)
     (setq avy-timeout-seconds 0.2)
-    ;; todo: colemak
-    ;; (setq avy-keys '())
+    (when ns/enable-colemak
+      (setq avy-keys (string-to-list "arstgkneio")))
 
     (general-mmap
       "z" 'avy-goto-char-timer)
@@ -1048,7 +1048,7 @@ buffer is not visiting a file."
       (counsel-dash (thing-at-point 'word))))
 
   (ns/bind
-    "gd" 'ns/counsel-dash-word)
+    "nd" 'ns/counsel-dash-word)
   )
 
 (defconfig-base style
@@ -1592,8 +1592,8 @@ buffer is not visiting a file."
     "b" '(:ignore t :which-key "Buffers")
     "bd" 'ns/kill-current-buffer
 
-    "g" '(:ignore t :which-key "Jump")
-    "gd" 'counsel-imenu
+    "n" '(:ignore t :which-key "Jump")
+    "nd" 'counsel-imenu
     )
 
   (use-package alert
@@ -1725,8 +1725,8 @@ buffer is not visiting a file."
         :action #'find-file)))
 
   ;; idk which of these I like better
-  (ns/bind "gk" 'ns/jump-file )
-  (ns/bind "gf" 'ns/jump-file )
+  (ns/bind "nk" 'ns/jump-file )
+  (ns/bind "nf" 'ns/jump-file )
   )
 
 (defconfig javascript
@@ -1893,6 +1893,7 @@ buffer is not visiting a file."
       (delete-other-windows)))
 
 
+  ;; todo: tryout this package
   (use-package vdiff
     :config
     (evil-define-key 'normal vdiff-mode-map "," vdiff-mode-prefix-map)
@@ -1916,15 +1917,14 @@ buffer is not visiting a file."
   (defcommand magit-history () (magit-log-buffer-file))
 
   (ns/bind
-    "v" '(:ignore t :which-key "git")
-    "vb" 'magit-blame
-    "vl" 'magit-log-buffer-file
-    "vm" 'git-smerge-menu/body
-    "vd" 'vdiff-mode ; ,h for a hydra!
-    "vs" 'ns/git-status
-    "vh" 'ns/magit-history
+    "g" '(:ignore t :which-key "git")
+    "gb" 'magit-blame
+    "gl" 'magit-log-buffer-file
+    "gm" 'git-smerge-menu/body
+    "gd" 'vdiff-mode ; ,h for a hydra!
+    "gs" 'ns/git-status
+    "gh" 'ns/magit-history
     )
-
   )
 
 (defconfig jump
@@ -1934,9 +1934,9 @@ buffer is not visiting a file."
     (setq dumb-jump-force-searcher 'rg)
     (smart-jump-setup-default-registers)
     (ns/bind
-      "g" '(:ignore t :which-key "Jump")
-      "gg" 'smart-jump-go
-      "gb" 'smart-jump-back
+      "n" '(:ignore t :which-key "Jump")
+      "ng" 'smart-jump-go
+      "nb" 'smart-jump-back
       )
 
     (advice-add #'smart-jump-go :after #'ns/focus-line)
@@ -2195,7 +2195,7 @@ buffer is not visiting a file."
   ;; todo: mute irc bots colors
   (ns/bind
     "ai" 'connect-all-irc
-    "gi" 'ns/jump-irc
+    "ni" 'ns/jump-irc
     ))
 
 (defconfig pdf
@@ -2854,7 +2854,7 @@ Version 2018-02-21"
         (org-open-at-point)
         (smart-jump-go))))
 
-  (ns/bind "gj" 'ns/follow)
+  (ns/bind "nn" 'ns/follow)
   )
 
 (defconfig c
