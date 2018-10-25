@@ -2,10 +2,15 @@
 ;;; commentary:
 ;;; code:
 
+;; todo: a way to undo this if unset maybe?
+;; failed initial runs can cause repeats
 (if (not (boundp 'ns/firstrun))
     (setq ns/firstrun t))
 
 (setq load-prefer-newer t)
+
+(defmacro @ (&rest input) `(eval (backquote ,@input)))
+
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
 (defmacro ns/load (&rest targets)

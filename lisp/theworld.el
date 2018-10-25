@@ -102,9 +102,13 @@
   )
 
 (defconfig bedrock
+  ;; elisp enhancers
+  (use-package fn)
   (use-package s)
   (use-package fn)
   (use-package f)
+
+  ;; other
   (use-package hydra)
   (use-package general)
   (use-package request)
@@ -123,7 +127,10 @@
     `(replace-regexp-in-string "\n$" ""
        (shell-command-to-string ,command)))
 
-  ;; todo: hide 'shell command succceeded' with no output message after
+  ;; interactive lambda
+  (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
+
+  ;; todo: hide shell command succceeded with no output message after completion
   (defun ns/shell-exec-dontcare (command)
     (let* (
             (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
@@ -211,7 +218,7 @@
 
   ;; wrap passwordstore
   (defun pass (key)
-    (ns/shell-exec (concat "pass " key)))
+    (ns/shell-exec (format "pass %s 2>/dev/null" key)))
 
   (defun get-resource (name)
     "Get X resource value, with a fallback value NAME."
@@ -447,17 +454,13 @@ buffer is not visiting a file."
     (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
     (buffer-face-mode t))
 
-  ;; todo: fix this
-  ;; (defun ns/gradient (start end steps)
-  ;;   (@ 'list
-  ;;     start
-  ;;     ,@(mapcar
-  ;;         (fn (@ 'color-rgb-to-hex ,@<> 2))
-  ;;         (color-gradient (color-name-to-rgb start)
-  ;;           (color-name-to-rgb end)
-  ;;           (- steps 2)))
-  ;;     end
-  ;;     ))
+  (defun ns/make-lines(list)
+    (s-join "\n"
+      (mapcar
+        (lambda (item)
+          (if (stringp item) item
+            (prin1-to-string item)))
+        list)))
 
   (ns/bind
     ;; reconsider these, moved from w -> q for query
@@ -601,6 +604,11 @@ buffer is not visiting a file."
         (profiler-report)
         (profiler-stop))
       (profiler-cpu-start profiler-sampling-interval)))
+
+  ;; todo: replace linum-mode with this, maybe check running emacs version first?
+  ;; (display-line-numbers-mode)
+  ;; (setq display-line-numbers 'relative)
+  (display-line-numbers-mode 0)
 
   (ns/bind
     "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
@@ -1086,8 +1094,7 @@ buffer is not visiting a file."
   ;; (fringe-mode (string-to-number (get-resource "st.borderpx")))
 
   ;; sync w/ term background
-  (if (get-resource "*.background")
-    (set-background-color (get-resource "*.background")))
+  ;; (set-background-color (get-resource "*.background"))
 
   ;; assume softer vertical border by matching comment face
   (set-face-attribute 'vertical-border
@@ -1965,7 +1972,7 @@ buffer is not visiting a file."
           :host "irc.freenode.net"
           :tls t
           :nickserv-password ,(pass "freenode")
-          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug")
+          :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "k-slug" "#qutebrowser-offtopic")
           )
 
          ("Nixers"
@@ -2855,6 +2862,15 @@ Version 2018-02-21"
         (smart-jump-go))))
 
   (ns/bind "nn" 'ns/follow)
+
+  (defun ns/gradient (start end steps)
+    (@ start
+      ,@(mapcar
+          (fn (@ 'color-rgb-to-hex ,@<> 2))
+          (color-gradient (color-name-to-rgb start)
+            (color-name-to-rgb end)
+            (- steps 2)))
+      end))
   )
 
 (defconfig c
