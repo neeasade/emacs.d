@@ -1267,6 +1267,7 @@ buffer is not visiting a file."
       startup-folded t
       src-fontify-natively t
       startup-align-all-tables t
+      html-checkbox-type 'html
 
       ;; days before expiration where a deadline becomes active
       deadline-warn-days 14
@@ -1843,8 +1844,12 @@ buffer is not visiting a file."
 
   (use-package evil-magit
     :config
-    (evil-define-key
-      evil-magit-state magit-mode-map "?" 'evil-search-backward))
+    (evil-define-key evil-magit-state magit-mode-map "?" 'evil-search-backward)
+    (when ns/enable-colemak
+      (evil-define-key evil-magit-state magit-mode-map "n" 'evil-next-line)
+      (evil-define-key evil-magit-state magit-mode-map "e" 'evil-previous-line)
+      (evil-define-key evil-magit-state magit-mode-map "k" 'evil-search-next)
+      (evil-define-key evil-magit-state magit-mode-map "K" 'evil-search-previous)))
 
   (use-package git-gutter-fringe
     :config
