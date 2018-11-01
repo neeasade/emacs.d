@@ -103,10 +103,10 @@
 
 (defconfig bedrock
   ;; elisp enhancers
-  (use-package fn)
-  (use-package s)
-  (use-package fn)
-  (use-package f)
+  (use-package fn) ;function
+  (use-package s) ;string
+  (use-package f) ;file
+  (use-package ht) ;hash table
 
   ;; other
   (use-package hydra)
@@ -691,6 +691,9 @@ buffer is not visiting a file."
 
   (add-function :after (symbol-function 'evil-scroll-line-to-center) #'ns/zz-scroll)
 
+  ;; todo: could the above be this?
+  ;; (advice-add #'evil-scroll-line-to-center :after #'ns/zz-scroll)
+
   (setq-default evil-escape-key-sequence
     (if ns/enable-colemak "tn" "fj"))
 
@@ -724,11 +727,10 @@ buffer is not visiting a file."
     (general-nmap (kbd "C-c -") 'evil-numbers/dec-at-pt)
     )
 
-  (use-package evil-fringe-mark
-    :config
-    (setq evil-fringe-mark-show-special nil)
-    (global-evil-fringe-mark-mode t)
-    )
+  ;; this is nice, but I don't use marks often.
+  ;; (use-package evil-fringe-mark
+  ;;   :config (setq evil-fringe-mark-show-special nil)
+  ;;   (global-evil-fringe-mark-mode t))
 
   (use-package evil-goggles
     :config
@@ -1813,6 +1815,8 @@ buffer is not visiting a file."
       save-repository-buffers 'dontask
       repository-directories (list (~ "git"))
       )
+
+    (magit-file-mode 0)
 
     ;; https://magit.vc/manual/magit/Performance.html
     (when ns/enable-windows-p
@@ -2902,7 +2906,21 @@ Version 2018-02-21"
   (use-package graphviz-dot-mode
     :config
     ;; (ns/bind)
-    (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)))
+    ;; todo: should we have a shorter automatic eval default binding?
+    (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview))
+
+  ;; use dot in org mode
+  (org-babel-do-load-languages
+    'org-babel-load-languages
+    '((dot . t)))
+
+  (add-to-list 'org-src-lang-modes (quote ("dot" . graphviz-dot)))
+
+  (defun my-org-confirm-babel-evaluate (lang body)
+    (not (string= lang "dot")))  ; don't ask for dot
+
+  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+  )
 
 (defconfig deadgrep
   (ns/use-package deadgrep "Wilfred/deadgrep"
@@ -2927,6 +2945,34 @@ Version 2018-02-21"
       auth-dir (~ ".emacs.d/server")
       name "emacs-server-file")
     (server-start)))
+
+(defconfig blog
+  (use-package org-static-blog
+    :config
+    (setq ns/blog-name "kraken.docs")
+    (setq-ns org-static-blog
+      publish-title "Notes"
+      publish-url (concat "https://" ns/blog-name)
+      publish-directory (concat "~/git/" ns/blog-name "/blog/")
+      posts-directory (concat "~/git/" ns/blog-name "/posts")
+      drafts-directory  (concat "~/git/" ns/blog-name "/drafts")
+      enable-tags nil
+      )
+
+    (defun ns/after-sitegen-action()
+      ;; todo: move folders over
+      )
+
+    (setq org-static-blog-page-header
+      ;; consider generating from directory contents
+      "
+    <link href=\"https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.css\" rel=\"stylesheet\">
+    <link rel=\"stylesheet\" href=\"https://unpkg.com/sakura.css/css/sakura.css\" type=\"text/css\">
+    "
+      )
+    )
+  )
+
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
