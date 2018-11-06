@@ -567,7 +567,7 @@ buffer is not visiting a file."
       (progn
         (setq ns/modeline mode-line-format)
         (setq mode-line-format nil))
-      (setq mode-line-format ns/modeline))
+      (setq mode-line-format '("%e" (:eval (spaceline-ml-main)))))
     (redraw-frame))
 
   ;; don't ask to kill running processes when killing a buffer.
@@ -1098,6 +1098,11 @@ buffer is not visiting a file."
   (set-face-attribute 'header-line nil :background (face-attribute 'default :background))
   (fringe-mode (window-header-line-height))
 
+  (setq window-divider-default-places t)
+  (setq window-divider-default-bottom-width 0)
+  (setq window-divider-default-right-width 1)
+  (window-divider-mode t)
+
   ;; sync w/ term background
   ;; (set-background-color (get-resource "*.background"))
 
@@ -1251,7 +1256,7 @@ buffer is not visiting a file."
       ;; (force redraw of all frames)
       (ns/apply-frames (fn nil)))
 
-    (ns/refresh-all-modeline nil)
+    (ns/refresh-all-modeline t)
 
     ))
 
@@ -1507,8 +1512,9 @@ buffer is not visiting a file."
 
     ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
     (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
+
     (defun dynamic-ivy-height()
-      (setq ivy-height (/ (window-total-size) 2)))
+      (setq ivy-height (/ (frame-total-lines) 2)))
 
     (dynamic-ivy-height)
 
