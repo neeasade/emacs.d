@@ -622,6 +622,7 @@ buffer is not visiting a file."
     "ts" 'ns/style
     "ti" 'reload-init
     "tm" 'ns/toggle-modeline
+    "m" 'ns/toggle-modeline
     "tp" 'ns/toggle-report
 
     "i" '(:ignore t :which-key "Insert")
@@ -689,10 +690,14 @@ buffer is not visiting a file."
         (evil-scroll-line-down scrollcount)
         )))
 
-  (add-function :after (symbol-function 'evil-scroll-line-to-center) #'ns/zz-scroll)
+  (advice-add #'evil-scroll-line-to-center :after #'ns/zz-scroll)
 
-  ;; todo: could the above be this?
-  ;; (advice-add #'evil-scroll-line-to-center :after #'ns/zz-scroll)
+  (advice-add 'evil-search-next :after
+    (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+
+  (advice-add 'evil-search-previous :after
+    (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+
 
   (setq-default evil-escape-key-sequence
     (if ns/enable-colemak "tn" "fj"))
@@ -1098,11 +1103,6 @@ buffer is not visiting a file."
   (set-face-attribute 'header-line nil :background (face-attribute 'default :background))
   (fringe-mode (window-header-line-height))
 
-  (setq window-divider-default-places t)
-  (setq window-divider-default-bottom-width 0)
-  (setq window-divider-default-right-width 1)
-  (window-divider-mode t)
-
   ;; sync w/ term background
   ;; (set-background-color (get-resource "*.background"))
 
@@ -1253,11 +1253,16 @@ buffer is not visiting a file."
       ;; for new buffers after:
       (setq-default mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) nil))
 
+      (setq window-divider-default-bottom-width (if toggle 0 1))
+      (setq window-divider-default-right-width 1)
+      (setq window-divider-default-places t)
+      (window-divider-mode t)
+
       ;; (force redraw of all frames)
       (ns/apply-frames (fn nil)))
 
     (ns/refresh-all-modeline t)
-
+    (ns/bind "M" (fn! (ns/refresh-all-modeline (not mode-line-format))))
     ))
 
 (defconfig zoom
@@ -1755,6 +1760,7 @@ buffer is not visiting a file."
   ;; idk which of these I like better
   (ns/bind "nk" 'ns/jump-file )
   (ns/bind "nf" 'ns/jump-file )
+  (ns/bind "ne" 'ns/jump-file )
   )
 
 (defconfig javascript
@@ -2768,6 +2774,10 @@ buffer is not visiting a file."
   (use-package powershell))
 
 (defconfig staging
+  ;; makes ctrl ne up down nice on colemak (ivy)
+  (when ns/enable-colemak
+    (global-set-key (kbd "C-e") 'previous-line))
+
   (use-package indent-guide
     :config
 
