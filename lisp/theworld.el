@@ -33,7 +33,7 @@
      ("Emacs.powerlinescale" . "1.1")
      ("Emacs.theme"          . "base16-grayscale-light")
      ("emacs.powerline"      . "bar")
-     ("st.borderpx"          . "30")
+     ("st.borderpx"          . "0")
      ("st.font"              . "Go Mono-10")
      ("st.font_variable"     . "Go-10")
      ))
@@ -1077,23 +1077,26 @@ buffer is not visiting a file."
   (set-face-attribute 'fringe nil :background nil)
   (set-face-background 'font-lock-comment-face nil)
 
-  ;; current frames
-  (mapc (lambda(frame)
-          (interactive)
-          (set-frame-parameter frame 'internal-border-width
-            (string-to-number (get-resource "st.borderpx")))
-          (redraw-frame frame))
-    (frame-list))
+  (defun ns/apply-frames (action)
+    (mapc (lambda(frame)
+            (interactive)
+            (funcall action frame)
+            (redraw-frame frame))
+      (frame-list)))
+
+  ;; (ns/apply-frames
+  ;;   (fn (set-frame-parameter <> 'internal-border-width
+  ;;         (string-to-number (get-resource "st.borderpx")))))
 
   ;; future frames
-  (when (alist-get 'internal-border-width default-frame-alist)
-    (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
-  (add-to-list 'default-frame-alist
-    `(internal-border-width . ,(string-to-number (get-resource "st.borderpx"))))
+  ;; (when (alist-get 'internal-border-width default-frame-alist)
+  ;;   (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
+  ;; (add-to-list 'default-frame-alist
+  ;;   `(internal-border-width . ,(string-to-number (get-resource "st.borderpx"))))
 
-  ;; this is only viable if can get it on internal window edges only (not right now)
-  ;; http://emacsredux.com/blog/2015/01/18/customizing-the-fringes/
-  ;; (fringe-mode (string-to-number (get-resource "st.borderpx")))
+  (setq-default header-line-format " ")
+  (set-face-attribute 'header-line nil :background (face-attribute 'default :background))
+  (fringe-mode (window-header-line-height))
 
   ;; sync w/ term background
   ;; (set-background-color (get-resource "*.background"))
@@ -1111,6 +1114,8 @@ buffer is not visiting a file."
   ;; set font on current and future
   (set-face-attribute 'default nil :font (get-resource "st.font"))
   (set-frame-font (get-resource "st.font") nil t)
+
+  (setq-default indicate-empty-lines nil)
 
   (setq ns/colored-whitespace? nil)
   (defun color-whitespace-mode(&rest maybe)
@@ -1233,14 +1238,21 @@ buffer is not visiting a file."
 
     ;; set the modeline for all existing buffers
     ;; todo: make this unset modeline on not matching spawn
-    (defcommand refresh-all-modeline ()
+    (defcommand refresh-all-modeline (toggle)
       (dolist (buf (buffer-list))
         (when (not (s-starts-with-p "*spawn-shell" (buffer-name buf)))
           (with-current-buffer buf
-            (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))))))
+            (setq mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) nil))
+            )))
 
-    (ns/refresh-all-modeline)
-    (ns/bind "tM" 'ns/refresh-all-modeline)
+      ;; for new buffers after:
+      (setq-default mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) nil))
+
+      ;; (force redraw of all frames)
+      (ns/apply-frames (fn nil)))
+
+    (ns/refresh-all-modeline nil)
+
     ))
 
 (defconfig zoom
@@ -2947,6 +2959,7 @@ Version 2018-02-21"
     (server-start)))
 
 (defconfig blog
+  (use-package htmlize)
   (use-package org-static-blog
     :config
     (setq ns/blog-name "kraken.docs")
