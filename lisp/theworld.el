@@ -797,23 +797,23 @@ buffer is not visiting a file."
 
   ;; todo: get this to hook
   ;; think it depends on gnu archive updating correctly.
-  (use-package evil-org
-    :commands evil-org-mode
-    :after org
-    :init (add-hook 'org-mode-hook 'evil-org-mode)
-    :config
-    (add-hook 'evil-org-mode-hook
-      (lambda ()
-        (evil-org-set-key-theme
-          '(
-             textobjects
-             insert
-             navigation
-             additional
-             shift
-             todo
-             heading
-             )))))
+  ;; (use-package evil-org
+  ;;   :commands evil-org-mode
+  ;;   :after org
+  ;;   :init (add-hook 'org-mode-hook 'evil-org-mode)
+  ;;   :config
+  ;;   (add-hook 'evil-org-mode-hook
+  ;;     (lambda ()
+  ;;       (evil-org-set-key-theme
+  ;;         '(
+  ;;            textobjects
+  ;;            insert
+  ;;            navigation
+  ;;            additional
+  ;;            shift
+  ;;            todo
+  ;;            heading
+  ;;            )))))
 
   ;; persist marks
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
@@ -1279,6 +1279,8 @@ buffer is not visiting a file."
                 :files ("lisp/*.el" "contrib/lisp/*.el"))
 
     :config
+    (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+
     (setq-ns org
       directory (~ "notes")
       agenda-files (list org-directory)
@@ -1292,6 +1294,7 @@ buffer is not visiting a file."
       src-fontify-natively t
       startup-align-all-tables t
       html-checkbox-type 'html
+      export-with-section-numbers nil
 
       ;; days before expiration where a deadline becomes active
       deadline-warn-days 14
@@ -1318,27 +1321,8 @@ buffer is not visiting a file."
 
       ;; capture
       capture-templates
-      '(
-         ("t" "todo" entry (file org-default-notes-file)
-           "* TODO %?\n%u\n%a\n" :clock-in t :clock-resume t)
-
-         ("b" "Blank" entry (file org-default-notes-file)
-           "* %?\n%u")
-
-         ("m" "Meeting" entry (file org-default-notes-file)
-           "* MEETING with %? :MEETING:\n%t" :clock-in t :clock-resume t)
-
-         ("d" "Diary" entry (file+datetree org-default-diary-file)
-           "* %?\n%U\n" :clock-in t :clock-resume t)
-
-         ("D" "Daily Log" entry (file (~ "notes/daily-log.org"))
-           "* %u %?\n*Summary*: \n\n*Problem*: \n\n*Insight*: \n\n*Tomorrow*: " :clock-in t :clock-resume t)
-
-         ("i" "Idea" entry (file org-default-notes-file)
-           "* %? :IDEA: \n%u" :clock-in t :clock-resume t)
-
-         ("n" "Next Task" entry (file+headline org-default-notes-file "Tasks")
-           "** NEXT %? \nDEADLINE: %t")
+      `(
+         ("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks") "* TODO %^{Brief Description}" :prepend t)
          )
 
       ;; current file or any of the agenda-files, max 9 levels deep
@@ -1348,26 +1332,23 @@ buffer is not visiting a file."
                         )
       )
 
-    (ns/bind-leader-mode 'emacs-lisp "r" 'eros-eval-last-sexp)
-
-    (add-hook
-      'org-mode-hook
-      (ns/bind-leader-mode
-        'org
-        "," 'org-ctrl-c-ctrl-c
-        "t" 'org-todo
-        "T" 'org-show-todo-tree
-        "v" 'org-mark-element
-        "a" 'org-agenda
-        "l" 'evil-org-open-links
-        "p" 'org-pomodoro
-        "f" 'ns/org-set-active
-        "b" 'ns/org-open-url
-        ))
+    (ns/bind-leader-mode
+      'org
+      "," 'org-ctrl-c-ctrl-c
+      "t" 'org-todo
+      "T" 'org-show-todo-tree
+      "v" 'org-mark-element
+      "a" 'org-agenda
+      "l" 'evil-org-open-links
+      "p" 'org-pomodoro
+      "f" 'ns/org-set-active
+      "b" 'ns/org-open-url
+      )
 
     ;; give us easy templates/tab completion like yasnippet and the like
     ;; form is '<<key><tab>', eg <s<tab> expands to src block
     ;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
+    (ns/bind "no" 'counsel-org-goto-all)
     (require 'org-tempo)
     )
 
@@ -1758,8 +1739,6 @@ buffer is not visiting a file."
         :action #'find-file)))
 
   ;; idk which of these I like better
-  (ns/bind "nk" 'ns/jump-file )
-  (ns/bind "nf" 'ns/jump-file )
   (ns/bind "ne" 'ns/jump-file )
   )
 
@@ -2455,6 +2434,10 @@ buffer is not visiting a file."
 
   (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
   (define-key comint-mode-map (kbd "<down>") 'comint-next-input)
+
+  (when ns/enable-colemak
+    (define-key comint-mode-map (kbd "C-n") 'comint-next-input)
+    (define-key comint-mode-map (kbd "C-e") 'comint-previous-input))
 
   (use-package shx
     :config
