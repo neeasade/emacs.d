@@ -3,11 +3,11 @@
 ;;; code:
 
 (if (not (boundp 'ns/firstrun)) (setq ns/firstrun t))
-(if ns/firstrun (setq ns/firstrun-action '()))
+(setq ns/firstrun-action '())
 
 (defun ns/add-firstrun-action (action)
   (setq ns/firstrun-action
-	(cons action ns/firstrun-action)))
+		(cons action ns/firstrun-action)))
 
 (setq
  ns/enable-windows-p (eq system-type 'windows-nt)
@@ -34,8 +34,8 @@
 
 (defmacro ns/load (&rest targets)
   `(mapc (lambda(target)
-           (funcall (intern (concat "ns/" (prin1-to-string target)))))
-	 ',targets))
+		   (funcall (intern (concat "ns/" (prin1-to-string target)))))
+		 ',targets))
 
 (defmacro ns/compose (name &rest targets)
   `(defconfig ,name (ns/load ,@targets)))

@@ -15,8 +15,8 @@
 (defmacro defconfig (label &rest body)
   `(defconfig-base ,label
      (let ((config-name ,(prin1-to-string label)))
-	   (message (concat "loading " config-name "..."))
-	   (catch 'config-catch
+       (message (concat "loading " config-name "..."))
+       (catch 'config-catch
          (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
          ,@body
          (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t)
@@ -30,11 +30,12 @@
   `(defun ,(intern (concat "ns/" (prin1-to-string label))) ,args
      (interactive)
      ,@body))
+
 (defconfig use-package
   (require 'package)
   (setq package-enable-at-startup nil)
   (add-to-list 'package-archives
-	'("melpa" . "https://melpa.org/packages/"))
+    '("melpa" . "https://melpa.org/packages/"))
 
   (package-initialize)
 
@@ -53,7 +54,7 @@
   (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
          (bootstrap-version 2))
     (unless (file-exists-p bootstrap-file)
-	  (with-current-buffer
+      (with-current-buffer
         (url-retrieve-synchronously
           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
           'silent 'inhibit-cookies)
@@ -97,11 +98,11 @@
     :config
     ;; cf http://www.flycheck.org/en/latest/user/syntax-checks.html#check-automatically
     (setq-ns flycheck
-	  check-syntax-automatically (if ns/enable-windows-p
-					               '(save mode-enabled idle-change)
-					               '(save mode-enabled idle-change new-line))
-	  idle-change-delay 1
-	  )
+      check-syntax-automatically (if ns/enable-windows-p
+                                   '(save mode-enabled idle-change)
+                                   '(save mode-enabled idle-change new-line))
+      idle-change-delay 1
+      )
 
     ;; (flycheck) disable jshint since we prefer eslint checking
     (setq-default
@@ -134,21 +135,21 @@
   (use-package company
     :config
     (setq-ns company
-	  idle-delay (if ns/enable-windows-p 0.2 0)
-	  selection-wrap-around t
-	  tooltip-align-annotations t
-	  dabbrev-downcase nil
-	  dabbrev-ignore-case t
-	  tooltip-align-annotations t
-	  tooltip-margin 2
-	  global-modes '(not
-			          org-mode
-			          shell-mode
-			          circe-chat-mode
-			          circe-channel-mode
-			          )
-	  tooltip-align-annotations t
-	  )
+      idle-delay (if ns/enable-windows-p 0.2 0)
+      selection-wrap-around t
+      tooltip-align-annotations t
+      dabbrev-downcase nil
+      dabbrev-ignore-case t
+      tooltip-align-annotations t
+      tooltip-margin 2
+      global-modes '(not
+                      org-mode
+                      shell-mode
+                      circe-chat-mode
+                      circe-channel-mode
+                      )
+      tooltip-align-annotations t
+      )
 
     ;; TODO: investigate tab handling like VS completely
     (define-key company-active-map [tab] 'company-complete)
@@ -167,7 +168,7 @@
   (defmacro ns/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled."
     (when (bound-and-true-p ns/enable-dashdocs-p)
-	  (if (helm-dash-docset-installed-p docset)
+      (if (helm-dash-docset-installed-p docset)
         `(progn
            (message (format "%s docset is already installed!" ,docset))
            (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
@@ -184,14 +185,14 @@
   (use-package counsel-dash
     :config
     (setq-ns counsel-dash
-	  min-length 2
-	  docsets-path (concat user-emacs-directory "docsets")
-	  browser-func 'ns/eww-browse-existing-or-new
-	  ))
+      min-length 2
+      docsets-path (concat user-emacs-directory "docsets")
+      browser-func 'ns/eww-browse-existing-or-new
+      ))
 
   (defcommand counsel-dash-word ()
     (if (region-active-p)
-	  (counsel-dash (buffer-substring (region-beginning) (region-end)))
+      (counsel-dash (buffer-substring (region-beginning) (region-end)))
       (counsel-dash (thing-at-point 'word))))
 
   (ns/bind
@@ -460,8 +461,8 @@
     (-flatten
       (mapcar 'get-project-files
         (-remove (lambda(file) (not file))
-		  (mapcar 'projectile-root-bottom-up open-buffers)
-		  ))))
+          (mapcar 'projectile-root-bottom-up open-buffers)
+          ))))
 
   (defcommand jump-file ()
     (let* (
@@ -479,14 +480,14 @@
             )
 
       (ivy-read "file: "
-		(mapcar (lambda (s)
-			      (s-replace
-			        ;; todo: consider only doing this
-			        ;; replace if we are windows
-			        (s-replace "\\" "/" (~ ""))
-			        "~/" s))
-		  (-distinct (append open-buffers recent-files project-files)))
-		:action #'find-file)))
+        (mapcar (lambda (s)
+                  (s-replace
+                    ;; todo: consider only doing this
+                    ;; replace if we are windows
+                    (s-replace "\\" "/" (~ ""))
+                    "~/" s))
+          (-distinct (append open-buffers recent-files project-files)))
+        :action #'find-file)))
 
   ;; idk which of these I like better
   (ns/bind "ne" 'ns/jump-file )
@@ -512,11 +513,11 @@
   (use-package web-mode
     :config
     (add-hook 'web-mode-hook
-	  (lambda ()
-		;; short circuit js mode and just do everything in jsx-mode
-		(if (equal web-mode-content-type "javascript")
-		  (web-mode-set-content-type "jsx")
-		  (message "now set to: %s" web-mode-content-type)))))
+      (lambda ()
+        ;; short circuit js mode and just do everything in jsx-mode
+        (if (equal web-mode-content-type "javascript")
+          (web-mode-set-content-type "jsx")
+          (message "now set to: %s" web-mode-content-type)))))
 
   (use-package prettier-js
     :config
@@ -697,18 +698,18 @@
 
 (defconfig latex
   (ns/bind-leader-mode 'latex
-	"\\"  'TeX-insert-macro                            ;; C-c C-m
-	"-"   'TeX-recenter-output-buffer                  ;; C-c C-l
-	"%"   'TeX-comment-or-uncomment-paragraph          ;; C-c %
-	";"   'TeX-comment-or-uncomment-region             ;; C-c ; or C-c :
-	   ;; TeX-command-run-all runs compile and open the viewer
-	   "a"   'TeX-command-run-all                         ;; C-c C-a
-	   "b"   'latex/build
-	   "k"   'TeX-kill-job                                ;; C-c C-k
-	   "l"   'TeX-recenter-output-buffer                  ;; C-c C-l
-	   "m"   'TeX-insert-macro                            ;; C-c C-m
-	   "v"   'TeX-view                                    ;; C-c C-v
-	   )
+    "\\"  'TeX-insert-macro                            ;; C-c C-m
+    "-"   'TeX-recenter-output-buffer                  ;; C-c C-l
+    "%"   'TeX-comment-or-uncomment-paragraph          ;; C-c %
+    ";"   'TeX-comment-or-uncomment-region             ;; C-c ; or C-c :
+    ;; TeX-command-run-all runs compile and open the viewer
+    "a"   'TeX-command-run-all                         ;; C-c C-a
+    "b"   'latex/build
+    "k"   'TeX-kill-job                                ;; C-c C-k
+    "l"   'TeX-recenter-output-buffer                  ;; C-c C-l
+    "m"   'TeX-insert-macro                            ;; C-c C-m
+    "v"   'TeX-view                                    ;; C-c C-v
+    )
 
   (ns/install-dashdoc "LaTeX" 'latex-mode-hook)
 
@@ -763,7 +764,7 @@
 
     ;; bind spc s 'hotkey' to a search url with a label
     (defmacro bind-search (label url hotkey)
-	  `(progn
+      `(progn
          (defengine ,label ,url)
          (ns/bind
            (concat "s" ,hotkey) (intern (concat "engine/search-" (prin1-to-string ',label))))))
@@ -836,12 +837,12 @@
 (defconfig terminal
   (defcommand stage-terminal ()
     (let ((default-directory (~ "")))
-	  (shell "*spawn-shell-staged*")
-	  (ns/toggle-modeline)
-	  (delete-window)
-	  ;; todo: find a way to set initial dirtrack to default-directory
-	  (dirtrack-mode)
-	  ))
+      (shell "*spawn-shell-staged*")
+      (ns/toggle-modeline)
+      (delete-window)
+      ;; todo: find a way to set initial dirtrack to default-directory
+      (dirtrack-mode)
+      ))
 
   (ns/stage-terminal)
 
@@ -871,7 +872,7 @@
     :config
     (ns/bind "af" 'elfeed)
     (setq elfeed-feeds
-	  '(
+      '(
          "https://hnrss.org/newest?q=emacs"
          "http://pragmaticemacs.com/feed/"
          "http://xkcd.com/rss.xml"
@@ -879,8 +880,8 @@
 
     ;; Entries older than 2 weeks are marked as read
     (add-hook 'elfeed-new-entry-hook
-	  (elfeed-make-tagger :before "2 weeks ago"
-		:remove 'unread))
+      (elfeed-make-tagger :before "2 weeks ago"
+        :remove 'unread))
     )
 
   (use-package elfeed-goodies
@@ -906,15 +907,15 @@
     :config
     (ns/bind "ar" 'md4rd)
     (setq md4rd-subs-active
-	  '(unixporn emacs))
+      '(unixporn emacs))
 
     (general-nmap md4rd-mode-map
-	  "q" 'ns/kill-current-buffer
-	  "o" 'md4rd-open
-	  "r" 'md4rd-reply
-	  "t" 'md4rd-widget-toggle-line
-	  ;; "<tab>" 'md4rd-widget-toggle-line
-	  )
+      "q" 'ns/kill-current-buffer
+      "o" 'md4rd-open
+      "r" 'md4rd-reply
+      "t" 'md4rd-widget-toggle-line
+      ;; "<tab>" 'md4rd-widget-toggle-line
+      )
 
     (add-hook 'md4rd-mode-hook 'ns/md4rd)
     (defun ns/md4rd ()
@@ -967,12 +968,12 @@
 
 (defconfig deadgrep
   (ns/use-package deadgrep "Wilfred/deadgrep"
-	:config
-	(ns/bind "ss" 'deadgrep)
-	(setq deadgrep-max-line-length 180)
-	(general-nmap deadgrep-mode-map
-	  "RET" 'deadgrep-visit-result-other-window)
-	))
+    :config
+    (ns/bind "ss" 'deadgrep)
+    (setq deadgrep-max-line-length 180)
+    (general-nmap deadgrep-mode-map
+      "RET" 'deadgrep-visit-result-other-window)
+    ))
 
 (defconfig guix
   (ns/guard ns/enable-home-p)
@@ -985,8 +986,8 @@
   (require 'server)
   (unless (server-running-p)
     (setq-ns server
-	  auth-dir (~ ".emacs.d/server")
-	  name "emacs-server-file")
+      auth-dir (~ ".emacs.d/server")
+      name "emacs-server-file")
     (server-start)))
 
 (defconfig blog
@@ -995,25 +996,25 @@
     :config
     (setq ns/blog-name "kraken.docs")
     (setq-ns org-static-blog
-	  publish-title "Notes"
-	  publish-url (concat "https://" ns/blog-name)
-	  publish-directory (concat "~/git/" ns/blog-name "/blog/")
-	  posts-directory (concat "~/git/" ns/blog-name "/posts")
-	  drafts-directory  (concat "~/git/" ns/blog-name "/drafts")
-	  enable-tags nil
-	  )
+      publish-title "Notes"
+      publish-url (concat "https://" ns/blog-name)
+      publish-directory (concat "~/git/" ns/blog-name "/blog/")
+      posts-directory (concat "~/git/" ns/blog-name "/posts")
+      drafts-directory  (concat "~/git/" ns/blog-name "/drafts")
+      enable-tags nil
+      )
 
     (defun ns/after-sitegen-action()
       ;; todo: move folders over
       )
 
     (setq org-static-blog-page-header
-	  ;; consider generating from directory contents
-	  "
+      ;; consider generating from directory contents
+      "
     <link href=\"https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.css\" rel=\"stylesheet\">
     <link rel=\"stylesheet\" href=\"https://unpkg.com/sakura.css/css/sakura.css\" type=\"text/css\">
     "
-	  )
+      )
     )
   )
 

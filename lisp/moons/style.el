@@ -17,7 +17,7 @@
           (interactive)
           (funcall action frame)
           (redraw-frame frame))
-	(frame-list)))
+    (frame-list)))
 
 ;; (ns/apply-frames
 ;;   (fn (set-frame-parameter <> 'internal-border-width
@@ -38,13 +38,13 @@
 
 ;; assume softer vertical border by matching comment face
 (set-face-attribute 'vertical-border
-		    nil :foreground (face-attribute 'font-lock-comment-face :foreground))
+  nil :foreground (face-attribute 'font-lock-comment-face :foreground))
 
 ;; this doesn't persist across new frames even though the docs say it should
 (set-face-attribute 'fringe nil :background nil)
 (add-hook 'after-make-frame-functions
-	  (lambda (frame)
-	    (set-face-attribute 'fringe nil :background nil)))
+  (lambda (frame)
+    (set-face-attribute 'fringe nil :background nil)))
 
 ;; set font on current and future
 (set-face-attribute 'default nil :font (get-resource "st.font"))
@@ -58,7 +58,7 @@
     (set-face-attribute 'whitespace-space nil :background nil)
     (set-face-attribute 'whitespace-tab nil :background nil)
     (set-face-attribute 'whitespace-newline nil
-			:foreground (face-attribute 'whitespace-space :foreground))
+      :foreground (face-attribute 'whitespace-space :foreground))
     (setq ns/colored-whitespace? t)
     )
   )
@@ -69,14 +69,14 @@
 (use-package hl-todo
   :config
   (let* ((comment-color (face-attribute 'font-lock-comment-face :foreground))
-         (highlight-color (ns/color-tone comment-color 30 30)))
+          (highlight-color (ns/color-tone comment-color 30 30)))
 
     (setq hl-todo-keyword-faces
-          `(("TODO" . ,highlight-color)
-            ("todo" . ,highlight-color)
-            ("NOTE" . ,highlight-color)
-            ("note" . ,highlight-color)
-            )))
+      `(("TODO" . ,highlight-color)
+         ("todo" . ,highlight-color)
+         ("NOTE" . ,highlight-color)
+         ("note" . ,highlight-color)
+         )))
 
   (global-hl-todo-mode)
   )
@@ -85,12 +85,12 @@
 ;; (set-face-bold-p doesn't cover everything, some fonts use slant and underline as bold...)
 (mapc (lambda (face)
         (set-face-attribute face nil
-			    :weight 'normal
-			    :slant 'normal
-			    :underline nil
-			    ;;:inherit nil
-			    ))
-      (face-list))
+          :weight 'normal
+          :slant 'normal
+          :underline nil
+          ;;:inherit nil
+          ))
+  (face-list))
 
 (use-package dimmer
   :config (setq dimmer-fraction 0.5)

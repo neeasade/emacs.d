@@ -1,17 +1,17 @@
 (defun spacemacs/compute-powerline-height ()
   "Return an adjusted powerline height."
   (let ((scale (if (and (boundp 'powerline-scale) powerline-scale)
-                   powerline-scale 1)))
+                 powerline-scale 1)))
     (truncate (* scale (frame-char-height)))))
 
 (use-package spaceline
   :config
   (require 'spaceline-config)
   (setq-ns powerline
-	   scale (string-to-number (get-resource "Emacs.powerlinescale"))
-	   height (spacemacs/compute-powerline-height)
-	   default-separator (get-resource "Emacs.powerline")
-	   )
+    scale (string-to-number (get-resource "Emacs.powerlinescale"))
+    height (spacemacs/compute-powerline-height)
+    default-separator (get-resource "Emacs.powerline")
+    )
 
   ;; (set-face-attribute 'spaceline-highlight-face nil :background (face-attribute 'spaceline-evil-normal :background))
 
@@ -20,12 +20,12 @@
   ;; note to self: abandon this, look at switch-to-next, prev-buffer source, grab that and replace return
   (defun ns/next-buffer-name ()
     (-first (lambda (bufname) (not (ns/should-skip bufname)))
-            (-map 'buffer-name (window-next-buffers))))
+      (-map 'buffer-name (window-next-buffers))))
 
   (defun ns/prev-buffer-name ()
     (-first (lambda (bufname) (not (ns/should-skip bufname)))
-            (-map 'buffer-name
-		  (-map 'first (window-prev-buffers)))))
+      (-map 'buffer-name
+        (-map 'first (window-prev-buffers)))))
 
   (spaceline-define-segment next-buffers
     "Docstring"
@@ -33,9 +33,9 @@
     ;; It may return a string, an image or a list of such.
     (when t
       (concat
-       (s-left 8 (ns/prev-buffer-name))
-       " - "
-       (s-left 8 (ns/next-buffer-name)))
+        (s-left 8 (ns/prev-buffer-name))
+        " - "
+        (s-left 8 (ns/next-buffer-name)))
       )
     :enabled t
     )
@@ -44,23 +44,23 @@
   (spaceline-spacemacs-theme)
 
   (spaceline-compile 'main
-      '(
-        anzu
-        (remote-host projectile-root ">>" buffer-id buffer-modified)
-        (flycheck-error flycheck-warning)
-        process
-        )
     '(
-      ;; maybe
-      (version-control :when active)
-      (next-buffers :when active)
-      (org-clock :when active)
-      (org-pomodoro :when active)
-      info-nodes
-      ((line-column buffer-position)
-       :separator " |" )
-      (battery :when active)
-      ))
+       anzu
+       (remote-host projectile-root ">>" buffer-id buffer-modified)
+       (flycheck-error flycheck-warning)
+       process
+       )
+    '(
+       ;; maybe
+       (version-control :when active)
+       (next-buffers :when active)
+       (org-clock :when active)
+       (org-pomodoro :when active)
+       info-nodes
+       ((line-column buffer-position)
+         :separator " |" )
+       (battery :when active)
+       ))
 
   (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))
 

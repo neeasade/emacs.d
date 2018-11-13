@@ -9,38 +9,38 @@
 
 ;; disable: some of the binds get in the way of our colemak remappings.
 (use-package evil-collection :config
-	     (when ns/enable-colemak
-	       (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
-		 (evil-collection-translate-key 'normal mode-keymaps
-		   "n" "j"
-		   "e" "k"
-		   "j" "e"
-		   "k" "n"
-		   "K" "N"
-		   ))
-	       (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
-	       )
+  (when ns/enable-colemak
+    (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
+      (evil-collection-translate-key 'normal mode-keymaps
+        "n" "j"
+        "e" "k"
+        "j" "e"
+        "k" "n"
+        "K" "N"
+        ))
+    (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
+    )
 
-	     (evil-collection-init))
+  (evil-collection-init))
 
 (defun ns/zz-scroll (&rest optional)
   (let* ((scrollcount (/ (window-total-size) 7))
-	 (halfheight (/ (window-total-size) 2))
-	 (scrollcheck (- halfheight scrollcount)))
+          (halfheight (/ (window-total-size) 2))
+          (scrollcheck (- halfheight scrollcount)))
     (if (> (line-number-at-pos) scrollcheck)
-	(evil-scroll-line-down scrollcount)
+      (evil-scroll-line-down scrollcount)
       )))
 
 (advice-add #'evil-scroll-line-to-center :after #'ns/zz-scroll)
 
 (advice-add 'evil-search-next :after
-	    (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+  (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
 
 (advice-add 'evil-search-previous :after
-	    (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+  (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
 
 (setq-default evil-escape-key-sequence
-	      (if ns/enable-colemak "tn" "fj"))
+  (if ns/enable-colemak "tn" "fj"))
 
 (when ns/enable-colemak
   (defun set-in-evil-states (key def maps)
@@ -49,8 +49,8 @@
 
   (defun set-in-navigation-evil-states (key def)
     (set-in-evil-states key def (list evil-motion-state-map
-				      evil-normal-state-map
-				      evil-visual-state-map)))
+                                  evil-normal-state-map
+                                  evil-visual-state-map)))
 
   (define-key evil-motion-state-map "k" 'evil-search-next)
   (define-key evil-motion-state-map "K" 'evil-search-previous)
@@ -89,19 +89,19 @@
 (use-package evil-embrace
   :config
   (general-define-key
-   :states 'normal
-   "c" (general-key-dispatch 'evil-change "s" #'embrace-change)
-   "d" (general-key-dispatch 'evil-delete "s" #'embrace-delete))
+    :states 'normal
+    "c" (general-key-dispatch 'evil-change "s" #'embrace-change)
+    "d" (general-key-dispatch 'evil-delete "s" #'embrace-delete))
 
   (general-define-key
-   :states 'visual
-   ;; `evil-change' is not bound in `evil-visual-state-map' by default but
-   ;; inherited from `evil-normal-state-map'
-   ;; if you don't want "c" to be affected in visual state, you should add this
-   "c" #'evil-change
-   "d" #'evil-delete
-   "s" #'embrace-add
-   )
+    :states 'visual
+    ;; `evil-change' is not bound in `evil-visual-state-map' by default but
+    ;; inherited from `evil-normal-state-map'
+    ;; if you don't want "c" to be affected in visual state, you should add this
+    "c" #'evil-change
+    "d" #'evil-delete
+    "s" #'embrace-add
+    )
 
   (evil-embrace-enable-evil-surround-integration))
 
@@ -160,14 +160,14 @@
 
 ;; match qutebrowser fwd back
 (general-nmap
-    "H" 'previous-buffer
+  "H" 'previous-buffer
   "L" 'next-buffer)
 
 (defcommand should-skip (buffername)
   (or
-   ;; (member buffername '("scratch.el"))
-   (s-starts-with? "*" buffername)
-   (s-starts-with? "magit" buffername))
+    ;; (member buffername '("scratch.el"))
+    (s-starts-with? "*" buffername)
+    (s-starts-with? "magit" buffername))
   )
 
 (defcommand maybe-next ()
@@ -188,7 +188,7 @@
 (advice-add #'previous-buffer :after #'ns/maybe-prev)
 
 (general-nmap
-    "]s" 'flyspell-goto-next-error
+  "]s" 'flyspell-goto-next-error
   "[b" 'evil-prev-buffer
   "]b" 'evil-next-buffer
   )

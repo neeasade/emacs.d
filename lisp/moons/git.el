@@ -1,23 +1,23 @@
 (use-package magit
   :config
   (setq-ns magit
-	   save-repository-buffers 'dontask
-	   repository-directories (list (~ "git"))
-	   )
+    save-repository-buffers 'dontask
+    repository-directories (list (~ "git"))
+    )
 
   (magit-file-mode 0)
 
   ;; https://magit.vc/manual/magit/Performance.html
   (when ns/enable-windows-p
     (setq-ns magit
-	     ;; diff perf
-	     diff-highlight-indentation nil
-	     diff-highlight-trailing nil
-	     diff-paint-whitespace nil
-	     diff-highlight-hunk-body nil
-	     diff-refine-hunk nil
-	     refresh-status-buffer nil
-	     )
+      ;; diff perf
+      diff-highlight-indentation nil
+      diff-highlight-trailing nil
+      diff-paint-whitespace nil
+      diff-highlight-hunk-body nil
+      diff-refine-hunk nil
+      refresh-status-buffer nil
+      )
 
     ;; don't show diff when committing --
     ;; means reviewing will have to be purposeful before
@@ -25,15 +25,15 @@
     ))
 
 (macroexpand-1
- '(ns/use-package magit-todos "alphapapa/magit-todos"
-   :config
-   (setq magit-todos-nice ns/enable-linux-p)
-   (evil-define-key nil magit-todos-section-map "j" nil)
-   (magit-todos-mode))
- )
+  '(ns/use-package magit-todos "alphapapa/magit-todos"
+     :config
+     (setq magit-todos-nice ns/enable-linux-p)
+     (evil-define-key nil magit-todos-section-map "j" nil)
+     (magit-todos-mode))
+  )
 
 (use-package magit-svn :config
-	     (add-hook 'magit-mode-hook 'magit-svn-mode))
+  (add-hook 'magit-mode-hook 'magit-svn-mode))
 
 (use-package evil-magit
   :config
@@ -80,11 +80,11 @@
 (when ns/enable-windows-p
   ;; WORKAROUND https://github.com/magit/magit/issues/2395
   (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
-		       "Mode for showing staged and unstaged changes."
-		       :group 'magit-status)
+    "Mode for showing staged and unstaged changes."
+    :group 'magit-status)
   (defun magit-staging-refresh-buffer ()
     (magit-insert-section (status)
-        (magit-insert-untracked-files)
+      (magit-insert-untracked-files)
       (magit-insert-unstaged-changes)
       (magit-insert-staged-changes)))
   (defun magit-staging ()
@@ -95,7 +95,7 @@
 (defcommand git-status()
   (if ns/enable-windows-p (magit-staging) (magit-status))
   (if (> (frame-pixel-height) (frame-pixel-width))
-      (delete-other-windows)))
+    (delete-other-windows)))
 
 
 ;; todo: tryout this package
@@ -114,7 +114,7 @@
   )
 
 (general-nmap
-    "]g" 'git-gutter:next-hunk
+  "]g" 'git-gutter:next-hunk
   "[g" 'git-gutter:previous-hunk
   )
 
@@ -122,11 +122,11 @@
 (defcommand magit-history () (magit-log-buffer-file))
 
 (ns/bind
- "g" '(:ignore t :which-key "git")
- "gb" 'magit-blame
- "gl" 'magit-log-buffer-file
- "gm" 'git-smerge-menu/body
- "gd" 'vdiff-mode ; ,h for a hydra!
- "gs" 'ns/git-status
- "gh" 'ns/magit-history
- )
+  "g" '(:ignore t :which-key "git")
+  "gb" 'magit-blame
+  "gl" 'magit-log-buffer-file
+  "gm" 'git-smerge-menu/body
+  "gd" 'vdiff-mode ; ,h for a hydra!
+  "gs" 'ns/git-status
+  "gh" 'ns/magit-history
+  )

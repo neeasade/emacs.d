@@ -20,7 +20,7 @@
 (defmacro ns/shell-exec(command)
   "trim the newline from shell exec"
   `(replace-regexp-in-string "\n$" ""
-			     (shell-command-to-string ,command)))
+     (shell-command-to-string ,command)))
 
 ;; interactive lambda
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
@@ -28,9 +28,9 @@
 ;; todo: hide shell command succceeded with no output message after completion
 (defun ns/shell-exec-dontcare (command)
   (let* (
-         (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
-         (junk-buffer (get-buffer-create bufname))
-         )
+          (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
+          (junk-buffer (get-buffer-create bufname))
+          )
     (shell-command command junk-buffer)
     (kill-buffer junk-buffer)))
 
@@ -38,49 +38,49 @@
 (defun mapcar* (f &rest xs)
   "MAPCAR for multiple sequences F XS."
   (if (not (memq nil xs))
-      (cons (apply f (mapcar 'car xs))
-            (apply 'mapcar* f (mapcar 'cdr xs)))))
+    (cons (apply f (mapcar 'car xs))
+      (apply 'mapcar* f (mapcar 'cdr xs)))))
 
 ;; setq namespace
 (defmacro setq-ns (namespace &rest lst)
   `(mapcar*
-    (lambda (pair)
-      (let ((key (car pair))
-            (value (car (cdr pair))))
-        (set
-         (intern (concat (prin1-to-string ',namespace) "-" (prin1-to-string key)))
-         (eval value)
-         )))
-    (seq-partition ',lst 2)
-    ))
+     (lambda (pair)
+       (let ((key (car pair))
+              (value (car (cdr pair))))
+         (set
+           (intern (concat (prin1-to-string ',namespace) "-" (prin1-to-string key)))
+           (eval value)
+           )))
+     (seq-partition ',lst 2)
+     ))
 
 (defun ~ (path)
   (concat
-   (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
-   (if ns/enable-windows-p "\\" "/") path))
+    (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
+    (if ns/enable-windows-p "\\" "/") path))
 
 ;; todo: take a look at general-describe-keybindings later
 ;; binding wrappers
 (defmacro ns/bind (&rest binds)
   `(general-define-key
-    :states '(normal visual)
-    :prefix "SPC"
-    ,@binds
-    ))
+     :states '(normal visual)
+     :prefix "SPC"
+     ,@binds
+     ))
 
 (defmacro ns/bind-mode(keymaps &rest binds)
   `(general-define-key
-    :prefix "SPC"
-    :states '(visual normal)
-    :keymaps ,keymaps
-    ,@binds))
+     :prefix "SPC"
+     :states '(visual normal)
+     :keymaps ,keymaps
+     ,@binds))
 
 (defmacro ns/bind-leader-mode (mode &rest binds)
   `(general-define-key
-    :prefix ","
-    :states '(visual normal)
-    :keymaps (intern (concat (symbol-name ,mode) "-mode-map"))
-    ,@binds))
+     :prefix ","
+     :states '(visual normal)
+     :keymaps (intern (concat (symbol-name ,mode) "-mode-map"))
+     ,@binds))
 
 ;; this was removed
 ;; cf https://github.com/abo-abo/swiper/pull/1570/files#diff-c7fad2f9905e642928fa92ae655e23d0L4500
@@ -92,22 +92,22 @@
  the buffer."
   (let ((buffer (get-buffer buffer-name)))
     (if (not buffer)
-        (shell buffer-name)
+      (shell buffer-name)
       (let (window-of-buffer-visible)
         (catch 'found
           (walk-windows (lambda (window)
                           (and (equal (window-buffer window) buffer)
-                               (throw 'found (setq window-of-buffer-visible window))))))
+                            (throw 'found (setq window-of-buffer-visible window))))))
         (if window-of-buffer-visible
-            (select-window window-of-buffer-visible)
+          (select-window window-of-buffer-visible)
           (switch-to-buffer buffer))))))
 
 (defcommand find-or-open (filepath)
   "Find or open FILEPATH."
   (let
-      ((filename (file-name-nondirectory filepath)))
+    ((filename (file-name-nondirectory filepath)))
     (if (get-buffer filename)
-        (counsel-switch-to-buffer-or-window filename)
+      (counsel-switch-to-buffer-or-window filename)
       (find-file filepath)
       )))
 
@@ -118,17 +118,17 @@
 (defun get-resource (name)
   "Get X resource value, with a fallback value NAME."
   (let ((default (cdr (assoc name ns/xrdb-fallback-values)))
-        (result (if (executable-find "xrq")
-                    (ns/shell-exec (format "xrq '%s' 2>/dev/null" name))
-                  "")))
+         (result (if (executable-find "xrq")
+                   (ns/shell-exec (format "xrq '%s' 2>/dev/null" name))
+                   "")))
     (if (string= result "") default result)))
 
 (defun reload-init()
   "Reload init.el with straight.el."
   (interactive)
   (straight-transaction
-      (straight-mark-transaction-as-init)
-      (message "Reloading init.el...")
+    (straight-mark-transaction-as-init)
+    (message "Reloading init.el...")
     (load user-init-file nil 'nomessage)
     (message "Reloading init.el... done.")))
 

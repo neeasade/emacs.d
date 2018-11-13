@@ -5,6 +5,6 @@ end_of_line = lf
 insert_final_newline = true
 
 # Code files
-[{lisp/*.el, init.el}]
+[*.el]
 indent_size = 2
 indent_style = space

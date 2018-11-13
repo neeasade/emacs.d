@@ -8,9 +8,9 @@
   (setq explicit-bash.exe-args '("--login" "-i"))
 
   (setenv "PATH"
-	  (format "%s;%s"
-		  (~ "scoop/apps/git-with-openssh/current/usr/bin/")
-		  (getenv "PATH"))))
+    (format "%s;%s"
+      (~ "scoop/apps/git-with-openssh/current/usr/bin/")
+      (getenv "PATH"))))
 
 ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
 (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
@@ -32,17 +32,17 @@
   (defun shx-cmd-term (placeholder)
     (interactive)
     (let ((term (if ns/enable-windows-p "cmd" (getenv "TERMINAL")))
-          ;; (default-directory (~ ""))
-          )
+           ;; (default-directory (~ ""))
+           )
       (shell-command (format "nohup %s &" term) nil nil))))
 
 (use-package shell-pop
   :config
   (setq-ns shell-pop
-	   window-position "top"
-	   window-size 33 ;; percent
-	   full-span t
-	   )
+    window-position "top"
+    window-size 33 ;; percent
+    full-span t
+    )
 
   ;; interactive shell-pop bound to spc t index shell
   (defun makepop (index)

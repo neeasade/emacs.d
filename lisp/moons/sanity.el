@@ -1,29 +1,29 @@
 (setq
- ;; todo: relook at this setting
- auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
- backup-directory-alist `(("." . ,(~ ".emacs.d/backups")))
- coding-system-for-read 'utf-8
- coding-system-for-write 'utf-8
- delete-old-versions -1
- global-auto-revert-mode t
- inhibit-startup-screen t
- initial-scratch-message ""
- ring-bell-function 'ignore
- sentence-end-double-space nil
- vc-follow-symlinks t ;; auto follow symlinks
- vc-make-backup-files t
- version-control t
- network-security-level 'high
- ;; ouch - todo: revisit this
- gc-cons-threshold 10000000
- frame-resize-pixelwise t
+  ;; todo: relook at this setting
+  auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
+  backup-directory-alist `(("." . ,(~ ".emacs.d/backups")))
+  coding-system-for-read 'utf-8
+  coding-system-for-write 'utf-8
+  delete-old-versions -1
+  global-auto-revert-mode t
+  inhibit-startup-screen t
+  initial-scratch-message ""
+  ring-bell-function 'ignore
+  sentence-end-double-space nil
+  vc-follow-symlinks t ;; auto follow symlinks
+  vc-make-backup-files t
+  version-control t
+  network-security-level 'high
+  ;; ouch - todo: revisit this
+  gc-cons-threshold 10000000
+  frame-resize-pixelwise t
 
- ;; todo: not working for multi caps path case
- ;; eg /thing/Thing/README.md
- ;; doesn't complete at /thing/Thing/rea
- completion-ignore-case  t
- dabbrev-case-fold-search nil
- )
+  ;; todo: not working for multi caps path case
+  ;; eg /thing/Thing/README.md
+  ;; doesn't complete at /thing/Thing/rea
+  completion-ignore-case  t
+  dabbrev-case-fold-search nil
+  )
 
 ;; trim gui
 (menu-bar-mode -1)
@@ -46,10 +46,10 @@
 ;; note: (desktop-clear) to clean/kill everything.
 (make-directory (~ ".emacs.desktop") t)
 (setq-ns desktop
-	 restore-eager 5
-	 auto-save-timeout 30
-	 path (list (~ ".emacs.desktop"))
-	 )
+  restore-eager 5
+  auto-save-timeout 30
+  path (list (~ ".emacs.desktop"))
+  )
 
 ;; disabling in favor of recentf
 ;; (desktop-save-mode 1)
@@ -57,24 +57,21 @@
 (setq browse-url-browser-function 'browse-url-generic)
 
 (if ns/enable-windows-p
-    (if (executable-find "qutebrowser")
-	(setq browse-url-generic-program "qutebrowser")
-      (setq browse-url-browser-function 'browse-url-default-windows-browser)
-      )
+  (if (executable-find "qutebrowser")
+    (setq browse-url-generic-program "qutebrowser")
+    (setq browse-url-browser-function 'browse-url-default-windows-browser)
+    )
   (setq browse-url-generic-program (getenv "BROWSER"))
   )
 
 ;; Removes *scratch* from buffer after the mode has been set.
 (add-hook 'after-change-major-mode-hook
-	  (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
+  (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
 
 ;; disable semantic mode, this may bite me lets try it out
 (with-eval-after-load 'semantic
   (add-to-list 'semantic-inhibit-functions (lambda () t))
   )
-
-;; set default to be handled by global bloat toggle
-(global-font-lock-mode 0)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -82,9 +79,9 @@
   (make-local-variable 'ns/modeline)
 
   (if mode-line-format
-      (progn
-        (setq ns/modeline mode-line-format)
-        (setq mode-line-format nil))
+    (progn
+      (setq ns/modeline mode-line-format)
+      (setq mode-line-format nil))
     (setq mode-line-format '("%e" (:eval (spaceline-ml-main)))))
   (redraw-frame))
 
@@ -103,8 +100,7 @@
   (let ((inhibit-message t))
     (recentf-save-list)))
 
-(when ns/firstrun
-  (run-at-time nil (* 5 60) 'ns/save-files))
+(ns/add-firstrun-action '(run-at-time nil (* 5 60) 'ns/save-files))
 
 (setq whitespace-line-column 120)
 
@@ -118,9 +114,9 @@
 (require 'profiler)
 (defcommand toggle-report ()
   (if (profiler-running-p)
-      (progn
-        (profiler-report)
-        (profiler-stop))
+    (progn
+      (profiler-report)
+      (profiler-stop))
     (profiler-cpu-start profiler-sampling-interval)))
 
 ;; todo: replace linum-mode with this, maybe check running emacs version first?
@@ -129,22 +125,22 @@
 (display-line-numbers-mode 0)
 
 (ns/bind
- "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
- "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
- "nm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
+  "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
+  "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
+  "nm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
 
- "t" '(:ignore t :which-key "Toggle")
- "tw" 'whitespace-mode
- "tn" 'linum-mode
- "tl" 'toggle-truncate-lines
- "ts" 'ns/style
- "ti" 'reload-init
- "tm" 'ns/toggle-modeline
- "m" 'ns/toggle-modeline
- "tp" 'ns/toggle-report
+  "t" '(:ignore t :which-key "Toggle")
+  "tw" 'whitespace-mode
+  "tn" 'linum-mode
+  "tl" 'toggle-truncate-lines
+  "ts" 'ns/style
+  "ti" 'reload-init
+  "tm" 'ns/toggle-modeline
+  "m" 'ns/toggle-modeline
+  "tp" 'ns/toggle-report
 
- "i" '(:ignore t :which-key "Insert")
- "ic" 'insert-char
- "if" 'ns/insert-filename
- "ip" 'ns/insert-filepath
- )
+  "i" '(:ignore t :which-key "Insert")
+  "ic" 'insert-char
+  "if" 'ns/insert-filename
+  "ip" 'ns/insert-filepath
+  )
