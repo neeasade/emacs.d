@@ -650,9 +650,6 @@
   ;; TODO
   )
 
-(defconfig shell (load "shell"))
-
-
 (defconfig jekyll
   (use-package jekyll-modes)
   )
@@ -1016,6 +1013,7 @@
 (defconfig staging (load "~/.emacs.d/lisp/moons/staging.el"))
 (defconfig bedrock (load "~/.emacs.d/lisp/moons/bedrock.el"))
 (defconfig util (load "~/.emacs.d/lisp/moons/util.el"))
+(defconfig shell (load "~/.emacs.d/lisp/moons/shell.el"))
 (defconfig sanity (load "~/.emacs.d/lisp/moons/sanity.el"))
 (defconfig editing (load "~/.emacs.d/lisp/moons/editing.el"))
 (defconfig spaceline (load "~/.emacs.d/lisp/moons/spaceline.el"))
