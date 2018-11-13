@@ -1,16 +1,35 @@
-;;; init.el --- pull in the world, mold it to my liking.
+;;; init.el --- this file has the knobs
 ;;; commentary:
 ;;; code:
 
-;; todo: a way to undo this if unset maybe?
-;; failed initial runs can cause repeats
-(if (not (boundp 'ns/firstrun))
-    (setq ns/firstrun t))
+(if (not (boundp 'ns/firstrun)) (setq ns/firstrun t))
+(if ns/firstrun (setq ns/firstrun-action '()))
+
+(defun ns/add-firstrun-action (action)
+  (setq ns/firstrun-action
+	(cons action ns/firstrun-action)))
+
+(setq
+ ns/enable-windows-p (eq system-type 'windows-nt)
+ ns/enable-linux-p (eq system-type 'gnu/linux)
+ ns/enable-home-p (string= (system-name) "erasmus")
+ ns/enable-docker-p (string= (getenv "USER") "emacser")
+ ns/enable-work-p ns/enable-windows-p
+ ns/enable-colemak t
+ ;; for when we're away from $HOME.
+ ns/xrdb-fallback-values
+ `(
+   ;; ("*.background"         . ,(face-attribute 'default :background))
+   ("*.background"         . nil)
+   ("Emacs.powerlinescale" . "1.1")
+   ("Emacs.theme"          . "base16-grayscale-light")
+   ("emacs.powerline"      . "bar")
+   ("st.borderpx"          . "0")
+   ("st.font"              . "Go Mono-10")
+   ("st.font_variable"     . "Go-10")
+   ))
 
 (setq load-prefer-newer t)
-
-(defmacro @ (&rest input) `(eval (backquote ,@input)))
-
 (eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
 
 (defmacro ns/load (&rest targets)
@@ -96,15 +115,14 @@
  )
 
 ;; liftoff
-(ns/load core extra development communication staging)
-(ns/check-for-orphans)
+(ns/load core extra development communication staging check-for-orphans)
 
-;; Emacs is terribly slow on windows
-(ns/toggle-bloat-global ns/enable-linux-p)
-
-(ns/style) ;; also gets spaceline
-
-(setq ns/firstrun nil)
+(when ns/firstrun
+  ;; Emacs is terribly slow on windows
+  (ns/toggle-bloat-global ns/enable-linux-p)
+  (ns/style)
+  (ns/firstrun-action)
+  (setq ns/firstrun nil))
 
 (provide 'init)
 ;;; init.el ends here
