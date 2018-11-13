@@ -229,13 +229,6 @@
   (use-package nix-mode)
   )
 
-(defconfig target-process
-  (ns/guard ns/enable-work-p)
-  (load (~ ".emacs.d/lib/targetprocess.el"))
-  (advice-add #'ns/org-set-active :after #'tp-set-active)
-  (ns/bind-leader-mode 'org "Q" 'tp-set-org-userstory)
-  )
-
 (defconfig interface
   ;; todo: into occur/search buffer solution for better finding when don't know what we're looking for
   (use-package ivy
@@ -1030,6 +1023,7 @@
 (defconfig twitter (load "~/.emacs.d/lisp/moons/twitter.el"))
 (defconfig git (load "~/.emacs.d/lisp/moons/git.el"))
 (defconfig org (load "~/.emacs.d/lisp/moons/org.el"))
+(defconfig targetprocess (load "~/.emacs.d/lisp/moons/targetprocess.el"))
 (defconfig-base style (interactive) (load "~/.emacs.d/lisp/moons/style.el"))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el

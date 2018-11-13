@@ -1,3 +1,5 @@
+(ns/guard ns/enable-work-p)
+
 ;; ref: https://emacs.stackexchange.com/questions/3197/best-way-to-retrieve-values-in-nested-assoc-lists
 (defun assoc-recursive (alist &rest keys)
   "Recursively find KEYs in ALIST."
@@ -74,9 +76,13 @@
 (defun tp-set-active()
   (setq tp-active-userstory (org-entry-get nil "targetprocess"))
   (if tp-active-userstory
-      (progn
-	(org-set-property
-	 "url"
-	 (concat "https://" tp-subdomain ".tpondemand.com/entity/" tp-active-userstory))
-	(tp-update-git-message)
-	)))
+    (progn
+	    (org-set-property
+	      "url"
+	      (concat "https://" tp-subdomain ".tpondemand.com/entity/" tp-active-userstory))
+	    (tp-update-git-message)
+	    )))
+
+(advice-add #'ns/org-set-active :after #'tp-set-active)
+
+;; (ns/bind-leader-mode 'org "Q" 'tp-set-org-userstory)
