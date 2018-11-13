@@ -1,15 +1,25 @@
-auto-save-list
 %backup%~
-backups
-custom.el
+*.*~
 .cache
 .emacs.desktop
 .emacs.desktop.lock
-tramp
+auto-save-list
+backups
+bookmarks
+custom.el
+docsets
+elpa
 emms
-*.*~
+emojis
+eshell
+network-security.data
+recentf
+request
+tramp
+url
 
 lisp/scratch.el
+lisp/scratch.txt
 
 straight/*
 !straight/versions
