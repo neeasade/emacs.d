@@ -118,12 +118,11 @@
 (ns/load core extra development communication staging check-for-orphans)
 
 (when ns/firstrun
+  (setq ns/firstrun nil)
   ;; Emacs is terribly slow on windows
   (ns/toggle-bloat-global ns/enable-linux-p)
   (ns/style)
-  (eval ns/firstrun-action)
-  (eval (cons 'progn ns/firstrun-action))
-  (setq ns/firstrun nil))
+  (eval (cons 'progn ns/firstrun-action)))
 
 (provide 'init)
 ;;; init.el ends here

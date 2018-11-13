@@ -41,6 +41,7 @@
 
 (setq-default evil-escape-key-sequence
   (if ns/enable-colemak "tn" "fj"))
+(use-package evil-escape :config (evil-escape-mode))
 
 (when ns/enable-colemak
   (defun set-in-evil-states (key def maps)
@@ -58,10 +59,6 @@
   (set-in-navigation-evil-states "e" 'evil-previous-line)
   )
 
-;; (setq-default evil-escape-key-sequence "ts")
-
-;; defaults to fd/spacemacs-like config
-(use-package evil-escape :config (evil-escape-mode))
 (use-package evil-lion :config (evil-lion-mode))
 (use-package evil-commentary :config (evil-commentary-mode))
 (use-package evil-anzu :config (setq anzu-cons-mode-line-p nil)) ;; displays current match and total matches.
@@ -108,8 +105,8 @@
 (use-package evil-snipe
   :config
   (setq evil-snipe-smart-case t)
-  (setq evil-snipe-repeat-scope 'whole-visible)
-  (setq evil-snipe-spillover-scope 'whole-visible)
+  (setq evil-snipe-repeat-scope 'whole-line)
+  (setq evil-snipe-spillover-scope 'whole-line)
   (evil-snipe-override-mode +1)
   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
 

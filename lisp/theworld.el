@@ -247,10 +247,11 @@
       (setq ivy-height (/ (frame-total-lines) 2)))
 
     (dynamic-ivy-height)
-
     (ivy-mode 1)
 
-    (ns/use-package prescient "raxod502/prescient.el" :config (ivy-prescient-mode))
+    (use-package prescient :config (prescient-persist-mode))
+    (use-package ivy-prescient :config (ivy-prescient-mode))
+    (use-package company-prescient :config (company-prescient-mode))
     )
 
   ;; counsel
