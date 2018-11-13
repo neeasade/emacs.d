@@ -121,7 +121,8 @@
   ;; Emacs is terribly slow on windows
   (ns/toggle-bloat-global ns/enable-linux-p)
   (ns/style)
-  (ns/firstrun-action)
+  (eval ns/firstrun-action)
+  (eval (cons 'progn ns/firstrun-action))
   (setq ns/firstrun nil))
 
 (provide 'init)

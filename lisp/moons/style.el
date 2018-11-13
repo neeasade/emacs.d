@@ -102,5 +102,3 @@
 ;; (set-face-attribute 'avy-lead-face nil :foreground (ns/color-tone (face-attribute 'default :foreground) 30 30))
 
 (ns/spaceline)
-
-(ns/add-firstrun-action '(ns/style))
