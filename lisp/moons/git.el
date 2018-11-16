@@ -24,6 +24,7 @@
     (remove-hook 'server-switch-hook 'magit-commit-diff)
     ))
 
+;; todo: what
 (macroexpand-1
   '(ns/use-package magit-todos "alphapapa/magit-todos"
      :config

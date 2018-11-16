@@ -377,19 +377,17 @@
 
   (use-package ace-jump-buffer
     :config
-    (defun dynamic-ajb-height()
-      (setq ajb-max-window-height (/ (window-total-size) 2)))
-
-    (dynamic-ajb-height)
-    (add-hook 'window-configuration-change-hook 'dynamic-ajb-height)
     (setq ajb-sort-function 'bs--sort-by-recentf)
 
-    ;; todo: kill buffers by regexp command
+    (add-hook 'window-configuration-change-hook 'dynamic-ajb-height)
+    (defun dynamic-ajb-height()
+      (setq ajb-max-window-height (/ (frame-total-lines) 2)))
+
+    (dynamic-ajb-height)
+
     (ns/bind
       "bs" 'ace-jump-buffer
-      "bm" 'ace-jump-same-mode-buffers
-      )
-    )
+      "bm" 'ace-jump-same-mode-buffers))
 
   (defcommand kill-other-buffers ()
     "Kill all other buffers."
@@ -401,9 +399,7 @@
     "bb" 'counsel-ibuffer
     "bK" 'ns/kill-other-buffers
     "bk" 'kill-matching-buffers
-    )
-
-  )
+    ))
 
 (defconfig music
   (ns/guard ns/enable-home-p)
