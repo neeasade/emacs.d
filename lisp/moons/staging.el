@@ -125,10 +125,9 @@ Version 2018-02-21"
 (ns/bind "nn" 'ns/follow)
 
 (defun ns/gradient (start end steps)
-  (@ start
-    ,@(mapcar
-        (fn (@ 'color-rgb-to-hex ,@<> 2))
-        (color-gradient (color-name-to-rgb start)
-			    (color-name-to-rgb end)
-			    (- steps 2)))
-    end))
+  (mapcar (lambda (c) (eval `(color-rgb-to-hex ,@c 2)))
+    (color-gradient (color-name-to-rgb start)
+      (color-name-to-rgb end)
+      steps)))
+
+(ns/gradient "#000000" "#ffffff" 3)

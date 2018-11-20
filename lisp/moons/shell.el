@@ -58,14 +58,12 @@
   ;; cf https://github.com/kyagi/shell-pop-el/issues/51
   (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
-  ;; todo: make this use a fresh shell or something, maybe cleanup empty shells at some point
   (defcommand shell-pop-ranger-dir ()
     (let ((ranger-dir (expand-file-name default-directory)))
-      (switch-to-buffer ns/last-shell)
+      (ns/pickup-shell)
       (shell-pop--cd-to-cwd-shell ranger-dir))
     ;; note: keep this outsite of let to close properly
-    (ranger-kill-buffers-without-window)
-    )
+    (ranger-kill-buffers-without-window))
 
   (define-key ranger-mode-map (kbd "s") 'ns/shell-pop-ranger-dir)
   )

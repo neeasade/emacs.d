@@ -4,7 +4,8 @@
               :files ("lisp/*.el" "contrib/lisp/*.el"))
 
   :config
-  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+  (when ns/enable-evil-p
+    (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
 
   (setq-ns org
     directory (~ "notes")

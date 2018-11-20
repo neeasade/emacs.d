@@ -833,8 +833,12 @@
 
   (ns/stage-terminal)
 
+
   (defcommand spawn-terminal ()
     (select-frame (make-frame))
+    (ns/pickup-shell))
+
+  (defcommand pickup-shell ()
     (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
     (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
     (delete-other-windows)
@@ -972,9 +976,10 @@
 (defconfig server
   (require 'server)
   (unless (server-running-p)
-    (setq-ns server
-      auth-dir (~ ".emacs.d/server")
-      name "emacs-server-file")
+    (when ns/enable-windows-p
+      (setq-ns server
+        auth-dir (~ ".emacs.d/server")
+        name "emacs-server-file"))
     (server-start)))
 
 (defconfig blog

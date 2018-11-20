@@ -1,13 +1,5 @@
 (use-package pcre2el)
 
-;; eg (ns/make-lines '("a" "b" "c"))
-(defun ns/make-lines(list)
-  (s-join "\n"
-    (mapcar
-      (fn (if (stringp <>) <>
-            (prin1-to-string <>)))
-      list)))
-
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
   (with-temp-buffer
