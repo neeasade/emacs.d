@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # todo: make this an actual temp file-- this was the fastest cross platform way to keep cleanup
 file="$(elisp -r '(~ "fzftemp")')"
