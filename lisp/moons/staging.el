@@ -129,5 +129,3 @@ Version 2018-02-21"
     (color-gradient (color-name-to-rgb start)
       (color-name-to-rgb end)
       steps)))
-
-(ns/gradient "#000000" "#ffffff" 3)

@@ -65,14 +65,13 @@
   `(general-define-key
      :states '(normal visual)
      :prefix "SPC"
-     ,@binds
-     ))
+     ,@binds))
 
-(defmacro ns/bind-mode(keymaps &rest binds)
+(defmacro ns/bind-mode (mode &rest binds)
   `(general-define-key
      :prefix "SPC"
      :states '(visual normal)
-     :keymaps ,keymaps
+     :keymaps (intern (concat (symbol-name ,mode) "-mode-map"))
      ,@binds))
 
 (defmacro ns/bind-leader-mode (mode &rest binds)
