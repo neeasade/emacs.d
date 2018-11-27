@@ -212,6 +212,7 @@
 
 (advice-add #'ns/style :after #'ns/style-circe)
 (defun ns/style-circe ()
+  "Make chat pretty."
   (let*
     ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
       (default-fg (face-attribute 'default :foreground))

@@ -42,6 +42,11 @@
   (when ns/enable-colemak
     (evil-define-key evil-magit-state magit-mode-map "n" 'evil-next-line)
     (evil-define-key evil-magit-state magit-mode-map "e" 'evil-previous-line)
+    ;; doesn't work
+    (evil-define-key 'visual evil-magit-state magit-mode-map "n" 'evil-next-line)
+    (evil-define-key 'visual evil-magit-state magit-mode-map "e" 'evil-previous-line)
+    ;; (evil-define-key 'visual magit-status-mode-map (kbd "s") 'magit-stage-item)
+
     (evil-define-key evil-magit-state magit-mode-map "k" 'evil-search-next)
     (evil-define-key evil-magit-state magit-mode-map "K" 'evil-search-previous)))
 
@@ -95,7 +100,7 @@
 
 (defcommand git-status()
   (if ns/enable-windows-p (magit-staging) (magit-status))
-  (if (> (frame-pixel-height) (frame-pixel-width))
+  (if (> (frame-pixel-width) (frame-pixel-height))
     (delete-other-windows)))
 
 

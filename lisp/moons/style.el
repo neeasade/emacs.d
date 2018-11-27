@@ -19,19 +19,20 @@
           (redraw-frame frame))
     (frame-list)))
 
-;; (ns/apply-frames
-;;   (fn (set-frame-parameter <> 'internal-border-width
-;;         (string-to-number (get-resource "st.borderpx")))))
+;; todo: combine the header footer padding toggle stuff with this
+(ns/apply-frames
+  (fn (set-frame-parameter <> 'internal-border-width
+        (string-to-number (get-resource "st.borderpx")))))
 
 ;; future frames
-;; (when (alist-get 'internal-border-width default-frame-alist)
-;;   (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
-;; (add-to-list 'default-frame-alist
-;;   `(internal-border-width . ,(string-to-number (get-resource "st.borderpx"))))
+(when (alist-get 'internal-border-width default-frame-alist)
+  (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
 
-(setq-default header-line-format " ")
-(set-face-attribute 'header-line nil :background (face-attribute 'default :background))
-(fringe-mode (window-header-line-height))
+(add-to-list 'default-frame-alist
+  `(internal-border-width . ,(string-to-number (get-resource "st.borderpx"))))
+
+;; (set-face-attribute 'header-line nil :background (face-attribute 'default :background))
+;; (fringe-mode (window-header-line-height))
 
 ;; sync w/ term background
 ;; (set-background-color (get-resource "*.background"))

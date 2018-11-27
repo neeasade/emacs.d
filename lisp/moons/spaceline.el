@@ -70,16 +70,25 @@
     (dolist (buf (buffer-list))
       (when (not (s-starts-with-p "*spawn-shell" (buffer-name buf)))
         (with-current-buffer buf
-          (setq mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) nil))
+          (setq mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) " "))
           )))
 
     ;; for new buffers after:
-    (setq-default mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) nil))
+    (setq-default mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) " "))
 
     (setq window-divider-default-bottom-width (if toggle 0 1))
-    (setq window-divider-default-right-width 1)
-    (setq window-divider-default-places t)
-    (window-divider-mode t)
+
+    (when (not toggle)
+      (setq window-divider-default-right-width 1)
+      ;; (setq window-divider-default-places 'right)
+      (setq window-divider-default-places t)
+
+      (set-face-attribute 'window-divider nil :foreground
+        (face-attribute 'font-lock-comment-face :foreground))
+      (set-face-attribute 'mode-line nil :background nil)
+      (set-face-attribute 'mode-line-inactive nil :background nil)
+      (window-divider-mode t)
+      )
 
     ;; (force redraw of all frames)
     (ns/apply-frames (fn nil)))
