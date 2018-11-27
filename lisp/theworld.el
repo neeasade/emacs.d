@@ -548,9 +548,22 @@
   )
 
 (defconfig csharp
-  (use-package csharp-mode)
-  (use-package omnisharp)
-  )
+  ;; limitation: can only work with one server/solution at a time currently
+  ;; todo: bind:
+  ;; omnisharp-start-omnisharp-server
+  ;; omnisharp-stop-omnisharp-server
+  (use-package omnisharp
+    :config
+    (when (not (omnisharp--resolve-omnisharp-server-executable-path))
+      (omnisharp-install-server))
+
+    (add-hook 'csharp-mode-hook 'omnisharp-mode)
+    (add-to-list 'company-backends 'company-omnisharp)
+
+    ;; (ns/bind-leader-mode 'csharp-mode "s" 'omnisharp-start-omnisharp-server)
+    (ns/bind-mode 'csharp "nu" 'omnisharp-find-usages)
+    (ns/bind-mode 'csharp "nU" 'omnisharp-find-usages-with-ido)
+    ))
 
 
 (defconfig jump

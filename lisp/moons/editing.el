@@ -81,11 +81,9 @@
 ;; to always trim it all
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-;; todo: call yas-describe-tables sometime
+;; todo: call yas-describe-tables sometime/look into snippets to use more often
 (use-package yasnippet-snippets)
-(use-package yasnippet
-  :config
-  (yas-global-mode 1))
+(use-package yasnippet :config (yas-global-mode 1))
 
 (add-hook 'sh-mode-hook
   (lambda () (sh-electric-here-document-mode -1)))
