@@ -19,20 +19,33 @@
           (redraw-frame frame))
     (frame-list)))
 
+
+;; todo: make this apply to all open buffers and futur buffers
+;; see the dance we do in spaceline config
+(setq header-line-format nil)
+
+(fringe-mode)
+(setq ns/frame-padding (string-to-number (get-resource "st.borderpx")))
+
+(when (s-equals-p (get-resource "Emacs.padding_source") "auto")
+  (setq ns/frame-padding 0)
+
+  (setq header-line-format " ")
+  (set-face-attribute 'header-line nil :background (face-attribute 'default :background))
+
+  (fringe-mode (window-header-line-height)))
+
 ;; todo: combine the header footer padding toggle stuff with this
 (ns/apply-frames
   (fn (set-frame-parameter <> 'internal-border-width
-        (string-to-number (get-resource "st.borderpx")))))
+        ns/frame-padding)))
 
 ;; future frames
 (when (alist-get 'internal-border-width default-frame-alist)
   (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
 
 (add-to-list 'default-frame-alist
-  `(internal-border-width . ,(string-to-number (get-resource "st.borderpx"))))
-
-;; (set-face-attribute 'header-line nil :background (face-attribute 'default :background))
-;; (fringe-mode (window-header-line-height))
+  `(internal-border-width . ,ns/frame-padding))
 
 ;; sync w/ term background
 ;; (set-background-color (get-resource "*.background"))
@@ -61,11 +74,9 @@
     (set-face-attribute 'whitespace-newline nil
       :foreground (face-attribute 'whitespace-space :foreground))
     (setq ns/colored-whitespace? t)
-    )
-  )
+    ))
 
 (advice-add 'whitespace-mode :after #'color-whitespace-mode )
-;; (advice-add 'whitespace-mode :after #'color-whitespace-mode )
 
 (use-package hl-todo
   :config

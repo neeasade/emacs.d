@@ -23,8 +23,9 @@
      ("*.background"         . nil)
      ("Emacs.powerlinescale" . "1.1")
      ("Emacs.theme"          . "base16-grayscale-light")
-     ("emacs.powerline"      . "bar")
-     ("st.borderpx"          . "0")
+     ("Emacs.powerline"      . "bar")
+     ("Emacs.padding_source" . "auto") ;; auto or st
+     ("st.borderpx"          . "30")
      ("st.font"              . "Go Mono-10")
      ("st.font_variable"     . "Go-10")
      ))
