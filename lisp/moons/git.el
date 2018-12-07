@@ -103,7 +103,6 @@
   (if (> (frame-pixel-width) (frame-pixel-height))
     (delete-other-windows)))
 
-
 ;; todo: tryout this package
 (use-package vdiff
   :config
@@ -125,7 +124,6 @@
   )
 
 ;; alias:
-(defcommand magit-history () (magit-log-buffer-file))
 
 (ns/bind
   "g" '(:ignore t :which-key "git")
@@ -134,5 +132,4 @@
   "gm" 'git-smerge-menu/body
   "gd" 'vdiff-mode ; ,h for a hydra!
   "gs" 'ns/git-status
-  "gh" 'ns/magit-history
   )

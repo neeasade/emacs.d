@@ -498,16 +498,26 @@
 
   ;; use web-mode for .js files
   (add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
 
   (use-package rjsx-mode)
+  (defun ns/webhook ()
+    ;; (if (string-equal "tsx" (file-name-extension buffer-file-name))
+    ;;   (if (equal web-mode-content-type "javascript")
+    ;;     (progn
+    ;;       (web-mode-set-content-type "jsx")
+    ;;       (setup-tide-mode)
+    ;;       )
+    ;;     )
+    ;;   (message "now set to: %s" web-mode-content-type))
+    (when (string-equal "tsx" (file-name-extension buffer-file-name))
+      (setup-tide-mode))
+    )
+
   (use-package web-mode
     :config
     (add-hook 'web-mode-hook
-      (lambda ()
-        ;; short circuit js mode and just do everything in jsx-mode
-        (if (equal web-mode-content-type "javascript")
-          (web-mode-set-content-type "jsx")
-          (message "now set to: %s" web-mode-content-type)))))
+      'ns/webhook))
 
   (use-package prettier-js
     :config
@@ -542,7 +552,10 @@
       )
 
     (add-hook 'typescript-mode-hook #'setup-tide-mode)
-    ;; formats the buffer before saving
+
+    ;; todo: check this
+    (flycheck-add-mode 'typescript-tslint 'web-mode)
+
     ;; (add-hook 'before-save-hook 'tide-format-before-save)
     )
   )
