@@ -1,4 +1,6 @@
 (ns/guard ns/enable-home-p)
+
+
 (use-package circe
   :config
   (setq ns/irc-nick "neeasade")
@@ -12,7 +14,7 @@
     )
 
   (setq-ns circe
-    reduce-lurker-spam t ;; hide part, join, quit
+    reduce-lurker-spam nil ;; hide part, join, quit
     network-options
     `(("Freenode"
         :nick ,ns/irc-nick
@@ -52,64 +54,82 @@
   (defun ns/monospace (input)
     (propertize input 'face 'circe-originator-face))
 
-  (defun my/circe-format-truncated-nick (type args)
-    (let* ((nick (plist-get args :nick))
+  (defun ns/circe-format-all (type args)
+    ;; all the circe-format-x things we care about will go through here
+    (let* (
+            (nick (plist-get args :nick))
             (body (plist-get args :body))
-            (maxlen (if (eq type 'action) 7 8))
-            ;; (lui-nick-trim (concat "{nick:" (number-to-string maxlen) "s}"))
-            (lui-nick (s-pad-left maxlen " " (s-left maxlen nick)))
+            (reason (plist-get args :reason))
+            ;; mode-change
+            (setter (plist-get args :setter))
+            (change (plist-get args :change))
+            (target (plist-get args :target))
+            ;; nick change
+            (old-nick (plist-get args :old-nick))
+            (new-nick (plist-get args :new-nick))
             )
 
-      (when (> (length nick) maxlen)
-        (setq lui-nick (concat (substring lui-nick 0 (- maxlen 1)) "…")))
+      (when (eq type 'say)
+        (when (string= nick ns/irc-nick) (setq nick "-"))
 
-      (if (not (boundp 'circe-last-nick))
-        (setq-local circe-last-nick ""))
+        (if (not (boundp 'circe-last-nick))
+          (setq-local circe-last-nick ""))
 
-      (setq lui-nick (ns/monospace lui-nick))
-      (if (string= circe-last-nick lui-nick)
-        (setq lui-nick (ns/monospace "        "))
-        (setq-local circe-last-nick lui-nick))
+        ;; if it's a bot, make it faceless.
+        ;; todo: extend this to a channel map
+        (when (string= nick "cappuccino")
+          (setq nick ""))
+
+        (if (string= nick circe-last-nick)
+          (setq nick "")
+          (setq-local circe-last-nick nick))
+        )
+
+      ;; auto fill/trim left to 8 columns
+      (defun make-message (left body)
+        (concat
+          (ns/monospace
+            (s-pad-left 8 " "
+              (concat
+                (s-left
+                  (if (> (length left) 8) 7 8)
+                  left)
+                (when (> (length left) 8) "…"))))
+          (propertize (concat " " body)
+            'face 'default)))
+
+      (setq reason
+        (if (string= "[No reason given]" reason)
+          ""
+          (format " (%s)" reason)))
 
       (lui-format
         (pcase type
-          ('say (concat lui-nick " {body}"))
-          ('action (concat "*" lui-nick " {body}*"))
-          ('notice (concat lui-nick " ! {body} !")))
-        :nick nick :body body)))
-
-  (defun my/circe-format-action (&rest args)
-    (my/circe-format-truncated-nick 'action args))
-
-  (defun my/circe-format-notice (&rest args)
-    (my/circe-format-truncated-nick 'notice args))
-
-  (defun my/circe-format-say (&rest args)
-    (my/circe-format-truncated-nick 'say args))
-
-  (defun my/circe-format-self-say (&rest args)
-    (if (not (boundp 'circe-last-nick))
-      (setq-local circe-last-nick ""))
-
-    (let*
-      (
-        (body (plist-get args :body))
-        (result
-          (if (string= circe-last-nick ns/irc-nick)
-            (lui-format (concat (ns/monospace "        ") " {body}") :body body)
-            (lui-format (concat (ns/monospace "       ►") " {body}") :body body)
-            )))
-      (setq-local circe-last-nick ns/irc-nick)
-      result
-      )
-    )
+          ('say (make-message nick body))
+          ;; do it this way to remove lui highlight
+          ('action (make-message ">" (format "%s %s." nick body)))
+          ('notice (make-message "!" body))
+          ('part (make-message ">" (format "%s has left the party%s." nick reason)))
+          ('quit (make-message ">" (format "%s has left the party%s." nick reason)))
+          ('join (make-message ">" (format "%s has joined the party." nick)))
+          ('nick-change (make-message ">" (format "%s is now %s." old-nick new-nick)))
+          ;; ('mode-change (make-message ">" "{change} by {setter} ({target})"))
+          ('mode-change (make-message ">" (format "%s by %s (%s)" change setter target)))
+          )
+        :nick nick :body body :reason reason)))
 
   (setq-ns circe-format
-    action 'my/circe-format-action
-    notice 'my/circe-format-notice
-    say 'my/circe-format-say
-    self-say 'my/circe-format-self-say
-    self-action (concat (ns/monospace "       ► ") "*{body}*")
+    notice (fn (ns/circe-format-all 'notice <rest>))
+    action (fn (ns/circe-format-all 'action <rest>))
+    self-action (fn (ns/circe-format-all 'action <rest>))
+    say (fn (ns/circe-format-all 'say <rest>))
+    self-say (fn (ns/circe-format-all 'say <rest>))
+    server-nick-change (fn (ns/circe-format-all 'nick-change <rest>))
+    server-join (fn (ns/circe-format-all 'join <rest>))
+    server-part (fn (ns/circe-format-all 'part <rest>))
+    server-quit (fn (ns/circe-format-all 'quit <rest>))
+    server-quit-channel (fn (ns/circe-format-all 'quit <rest>))
+    server-mode-change (fn (ns/circe-format-all 'mode-change <rest>))
     )
 
   ;; Don't show names list upon joining a channel.
@@ -190,10 +210,10 @@
 
 (defcommand jump-irc()
   (let ((irc-channels
-          (remove-if-not
-            (lambda (s) (s-match "#.*" s))
-            (mapcar 'buffer-name (buffer-list))
-            )))
+          (mapcar 'buffer-name
+            (-concat
+              (ns/buffers-by-mode 'circe-channel-mode)
+              (ns/buffers-by-mode 'circe-query-mode)))))
     (if (eq (length irc-channels) 0)
       (message "connect to irc first!")
       (ivy-read "channel: " irc-channels
@@ -201,8 +221,7 @@
                   (counsel-switch-to-buffer-or-window option)
                   ;; todo: fix this the right way
                   (ns/style-circe)
-                  ))
-      )))
+                  )))))
 
 ;; emacs freezes completely while pulling in the image
 ;; (require 'circe-display-images)
@@ -211,6 +230,7 @@
 ;; (enable-circe-display-images)
 
 (advice-add #'ns/style :after #'ns/style-circe)
+
 (defun ns/style-circe ()
   "Make chat pretty."
   (let*
@@ -226,6 +246,7 @@
       '(circe-server-face
          lui-time-stamp-face
          circe-prompt-face
+
          circe-my-message-face
          circe-originator-face))
 
@@ -235,13 +256,20 @@
     (set-face-attribute 'circe-prompt-face nil :background nil)
     (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
     (set-face-attribute 'lui-button-face nil :foreground highlight-fg) ; url
+    (ns/set-faces-monospace '(circe-originator-face circe-prompt-face))
+
+    ;; apply the hook to everyone to update body font
+    (dolist (b (-concat
+                 (ns/buffers-by-mode 'circe-channel-mode)
+                 (ns/buffers-by-mode 'circe-query-mode)
+                 ))
+      (with-current-buffer b (ns/circe-hook)))
     ))
 
-;; todo: add hook for content font
-
+;; todo: loop to circe buffers to appy this
 (defun ns/circe-hook ()
-  (ns/set-buffer-face-variable)
-  (ns/set-faces-monospace '(circe-originator-face circe-prompt-face)))
+  (ns/set-buffer-face-variable))
+
 (add-hook 'circe-channel-mode-hook 'ns/circe-hook)
 
 (define-key circe-channel-mode-map (kbd "<up>") 'lui-previous-input)

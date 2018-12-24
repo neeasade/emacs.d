@@ -207,6 +207,12 @@ buffer is not visiting a file."
           (prin1-to-string item)))
       list)))
 
+(defun ns/buffers-by-mode (mode)
+  (remove-if-not
+    (fn (eq mode
+          (buffer-local-value 'major-mode <>)))
+    (buffer-list)))
+
 (ns/bind
   ;; reconsider these, moved from w -> q for query
   "qf" 'ns/what-face
