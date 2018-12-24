@@ -215,7 +215,6 @@
 
   ;; TODO: learn lispyville
   ;; (use-package lispy)
-
   (ns/bind-leader-mode
     'clojure
     "er" 'cider-eval-region
@@ -552,6 +551,7 @@
   ;; todo: bind:
   ;; omnisharp-start-omnisharp-server
   ;; omnisharp-stop-omnisharp-server
+  (ns/guard ns/enable-work-p)
   (use-package omnisharp
     :config
     (when (not (omnisharp--resolve-omnisharp-server-executable-path))
@@ -782,7 +782,7 @@
 
   (defvar *afilename-cmd*
     ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
-    `((,(~ ".Xresources") . "xrdb -merge ~/.Xresources")
+    `((,(~ ".Xresources") . "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst")
        (,(~ ".Xmodmap") . "xmodmap ~/.Xmodmap"))
     "File association list with their respective command.")
 
