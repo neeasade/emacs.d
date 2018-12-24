@@ -1,6 +1,5 @@
 (ns/guard ns/enable-home-p)
 
-
 (use-package circe
   :config
   (setq ns/irc-nick "neeasade")
@@ -99,24 +98,27 @@
             'face 'default)))
 
       (setq reason
-        (if (string= "[No reason given]" reason)
+        (if
+          (or
+            (string= "[No reason given]" reason)
+            (string= "" reason)
+            )
           ""
           (format " (%s)" reason)))
 
-      (lui-format
-        (pcase type
-          ('say (make-message nick body))
-          ;; do it this way to remove lui highlight
-          ('action (make-message ">" (format "%s %s." nick body)))
-          ('notice (make-message "!" body))
-          ('part (make-message ">" (format "%s has left the party%s." nick reason)))
-          ('quit (make-message ">" (format "%s has left the party%s." nick reason)))
-          ('join (make-message ">" (format "%s has joined the party." nick)))
-          ('nick-change (make-message ">" (format "%s is now %s." old-nick new-nick)))
-          ;; ('mode-change (make-message ">" "{change} by {setter} ({target})"))
-          ('mode-change (make-message ">" (format "%s by %s (%s)" change setter target)))
-          )
-        :nick nick :body body :reason reason)))
+      (defun make-action-message (message)
+        (make-message ">" message))
+
+      (pcase type
+        ('say (make-message nick body))
+        ('notice (make-message "!" body))
+        ('action (make-action-message (format "%s %s." nick body)))
+        ('part (make-action-message (format "%s has left the party%s." nick reason)))
+        ('quit (make-action-message (format "%s has left the party%s." nick reason)))
+        ('join (make-action-message (format "%s has joined the party." nick)))
+        ('nick-change (make-action-message (format "%s is now %s." old-nick new-nick)))
+        ('mode-change (make-action-message (format "%s by %s (%s)" change setter target)))
+        )))
 
   (setq-ns circe-format
     notice (fn (ns/circe-format-all 'notice <rest>))
