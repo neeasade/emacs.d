@@ -20,7 +20,7 @@
         :host "irc.freenode.net"
         :tls t
         :nickserv-password ,(pass "freenode")
-        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "k-slug" "#qutebrowser-offtopic")
+        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic")
         )
 
        ("Nixers"
@@ -108,8 +108,10 @@
                 )
           (setq reason ""))
 
-        (when (not string= "" reason)
-          (format " (%s)" reason)))
+        (when (not (string= "" reason))
+          (setq reason (format " (%s)" reason))
+          )
+        )
 
       (defun make-action-message (message)
         (make-message ">" message))
