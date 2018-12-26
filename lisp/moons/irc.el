@@ -97,13 +97,18 @@
           (propertize (concat " " body)
             'face 'default)))
 
-      (setq reason
-        (if
-          (or
-            (string= "[No reason given]" reason)
-            (string= "" reason)
-            )
-          ""
+      (when reason
+        (when (or
+                (string= "[No reason given]" reason)
+                (string= "Remote host closed the connection" reason)
+                (string= "Quit: My MacBook has gone to sleep. ZZZzzz…" reason)
+                (s-contains? "Ping Timeout" reason)
+                (s-contains? "Quit: WeeChat" reason)
+                (s-contains? "Quit: ERC" reason)
+                )
+          (setq reason ""))
+
+        (when (not string= "" reason)
           (format " (%s)" reason)))
 
       (defun make-action-message (message)
@@ -187,6 +192,7 @@
 
 (add-hook 'lui-mode-hook 'my-circe-set-margin)
 (defun my-circe-set-margin ()
+  ;; timestamp
   (setq right-margin-width 5)
   (setq left-margin-width 0))
 
