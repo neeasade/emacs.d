@@ -264,6 +264,10 @@
 (general-nmap :keymaps 'circe-highlight-mode-map
   "RET" (fn! (ns/goto-highlight (ns/get-current-line))))
 
+(general-nmap :keymaps 'circe-highlight-mode-map
+  :prefix "SPC"
+  "nn" (fn! (ns/goto-highlight (ns/get-current-line))))
+
 (setq-ns circe-format
   notice              (fn (ns/circe-format-all 'notice      <rest>))
   action              (fn (ns/circe-format-all 'action      <rest>))
@@ -351,6 +355,14 @@
 
   (add-hook 'circe-server-connected-hook 'enable-circe-notifications)
   )
+
+;; todo: make this a count from somewhere on the modeline
+;; make it clickable/take you to first one
+;; alteratively that would be a cool panel plugin rather
+(defun ns/circe-unread-query-buffers ()
+  (-intersection
+    tracking-buffers
+    (mapcar 'buffer-name (ns/buffers-by-mode 'circe-query-mode))))
 
 (defcommand jump-irc()
   (let ((irc-channels
