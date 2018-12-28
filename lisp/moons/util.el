@@ -6,6 +6,10 @@
     (insert-file-contents filePath)
     (buffer-string)))
 
+(defun s-clean (s)
+  "remove text properies from S."
+  (set-text-properties 0 (length s) nil s) s)
+
 (defun ns/get-current-line ()
   (save-excursion
     (goto-char (point-at-bol))

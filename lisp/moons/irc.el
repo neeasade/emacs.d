@@ -1,7 +1,10 @@
 (ns/guard ns/enable-home-p)
 
 (use-package circe)
+
 (setq ns/irc-nick "neeasade")
+(setq ns/circe-highlights
+  `(,ns/irc-nick "bspwm"))
 
 (setq-ns lui
   logging-directory (~ ".irc")
@@ -13,6 +16,8 @@
 
 (setq-ns circe
   reduce-lurker-spam nil ;; hide part, join, quit
+  default-quit-message "o/"
+  default-part-message "o/"
   network-options
   `(("Freenode"
       :nick ,ns/irc-nick
@@ -79,6 +84,11 @@
           "%s got stuck in tvtropes again."
           "%s got spooped."
           "%s has been eaten by their cat."
+          "%s was MURDERED by ben shapiro!"
+          "%s has rage quit."
+          "%s has joined an amish colony."
+          "%s never existed at all."
+          "%s's mom showed up to take them home."
           )))
     (format
       (nth (random (- (length options) 1)) options)
@@ -122,13 +132,71 @@
           "%s has joined. Stay a while and listen!"
           "Roses are red, violets are blue, %s joined this server with you"
           "%s has joined the party."
+          "%s is back from meatspace."
           )))
     (format
       (nth (random (- (length options) 1)) options)
       nick)))
 
-(setq ns/circe-highlights
-  `(,ns/irc-nick "bspwm"))
+(defun ns/circe-clear-reason (reason nick)
+  "Clear out default REASONs."
+  (if
+    (or
+      (string= "" reason)
+      (string= "Quit: leaving" reason)
+      (string= "Quit: Excess flood" reason)
+      (string= "[No reason given]" reason)
+      (string= "Remote host closed the connection" reason)
+      (string= "Quit: My MacBook has gone to sleep. ZZZzzz…" reason)
+      (string= "Quit: Leaving" reason)
+      (string= "Quit: Coyote finally caught me" reason)
+      (string= (format "Quit: %s" nick) reason)
+      (s-contains? "Read error:" reason)
+      (s-contains? "Ping timeout" reason)
+      (s-contains? "Quit: WeeChat" reason)
+      (s-contains? "Quit: ERC" reason)
+      ;; assume adverts for clients
+      (s-contains? "http" reason)
+      )
+    nil reason))
+
+(defun ns/circe-handle-say (nick body)
+  "update state for say, return nick, highmon"
+  (when (string= nick ns/irc-nick) (setq nick "-"))
+
+  (if (not (boundp 'circe-last-nick))
+    (setq-local circe-last-nick ""))
+
+  ;; bots
+  (when (or (-contains-p
+              '(
+                 "cappuccino"
+                 "linkreader"
+                 ) nick)
+          (s-ends-with-p "bot" nick))
+    (setq nick circe-last-nick))
+
+  ;; don't double print nicks
+  (if (string= nick circe-last-nick)
+    (setq nick "")
+    (setq-local circe-last-nick nick))
+
+  ;; highlight buffer
+  (when (not (get-buffer "*circe-highlight*"))
+    (generate-new-buffer "*circe-highlight*")
+    (with-current-buffer "*circe-highlight*" (circe-highlight-mode)))
+
+  (when (-any-p (fn (s-contains-p <> body)) ns/circe-highlights)
+    (let ((channel (buffer-name))
+           (poster circe-last-nick))
+      (with-current-buffer "*circe-highlight*"
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (insert (format "%s:%s:%s\n" channel poster body))))))
+
+  nick
+  )
 
 (defun ns/circe-format-all (type args)
   "Meta circe formatter by TYPE for ARGS."
@@ -145,88 +213,29 @@
           (new-nick (plist-get args :new-nick))
           )
 
-    (when (eq type 'say)
-      (when (string= nick ns/irc-nick) (setq nick "-"))
-
-      (if (not (boundp 'circe-last-nick))
-        (setq-local circe-last-nick ""))
-
-      ;; if it's a bot, make it faceless.
-      ;; todo: extend this to a channel map
-      (when (string= nick "cappuccino")
-        (setq nick circe-last-nick))
-
-      (if (string= nick circe-last-nick)
-        (setq nick "")
-        (setq-local circe-last-nick nick))
-
-      ;; highlight tracker mon
-      ;; todo: ANY pending message in query buffers
-      (when (not (get-buffer "*circe-highlight*"))
-        ;; todo: set the mode of this buffer to a text-mode derived highlight mode
-        (generate-new-buffer "*circe-highlight*")
-        (with-current-buffer "*circe-highlight*" (circe-highlight-mode)))
-
-      ;; ignore focused window
-      ;; alteratively, could check just not in *a* window
-      (when (not (string= (buffer-name) (buffer-name (window-buffer))))
-        (when
-          (or
-            ;; catch all querys for now.
-            ;; if we want to get smart about this later,
-            ;; dedup tracking-buffers var vs circe-query-mode buffers
-            ;; and insert on goto highlight buffer or something
-            (eq major-mode 'circe-query-mode)
-            ;; match highlights
-            (-any-p (fn (s-contains-p <> body)) ns/circe-highlights)
-            )
-
-          (let ((channel (buffer-name))
-                 (op circe-last-nick))
-            (with-current-buffer "*circe-highlight*"
-              (save-restriction
-                (widen)
-                (goto-char (point-min))
-                (insert (format "%s:%s:%s\n" channel op body)))))))
-      )
-
+    (when (eq type 'say) (setq nick (ns/circe-handle-say nick body)))
     (when reason
-      (when
-        (or
-          (string= "" reason)
-          (string= "Quit: Excess flood" reason)
-          (string= "[No reason given]" reason)
-          (string= "Remote host closed the connection" reason)
-          (string= "Quit: My MacBook has gone to sleep. ZZZzzz…" reason)
-          (string= "Quit: Leaving" reason)
-          (string= "Quit: Coyote finally caught me" reason)
-          (string= (format "Quit: %s" nick) reason)
-          (s-contains? "Read error:" reason)
-          (s-contains? "Ping timeout" reason)
-          (s-contains? "Quit: WeeChat" reason)
-          (s-contains? "Quit: ERC" reason)
-          ;; assume adverts for clients
-          (s-contains? "http" reason)
-          )
-        (setq reason nil)))
-
-    (defun ns/make-action-message (message)
-      (ns/make-message "*" message))
+      (setq reason (ns/circe-clear-reason reason nick))
+      (setq reason
+        (if reason
+          (if (s-contains-p ":" reason)
+            (format "%s %s" nick reason)
+            (format "%s left: %s" nick reason))
+          (ns/part-message nick))))
 
     (pcase type
       ('say (ns/make-message nick body))
       ('notice (ns/make-message "!" body))
-      ('part (ns/make-message "<" (if reason (format "%s left: %s" nick reason) (ns/part-message nick))))
-      ('quit (ns/make-message "<" (if reason (format "%s left: %s" nick reason) (ns/part-message nick))))
+      ('part (ns/make-message "<" reason))
+      ('quit (ns/make-message "<" reason))
       ;; ('join (ns/make-action-message (format "%s has joined the party." nick)))
       ('join (ns/make-message ">" (ns/join-message nick)))
 
-      ('action (ns/make-action-message (format "%s %s." nick body)))
-      ('nick-change (ns/make-action-message (format "%s is now %s." old-nick new-nick)))
-      ('mode-change (ns/make-action-message (format "%s by %s (%s)" change setter target)))
+      ('action (ns/make-message "*" (format "%s %s." nick body)))
+      ('nick-change (ns/make-message "*" (format "%s is now %s." old-nick new-nick)))
+      ('mode-change (ns/make-message "*" (format "%s by %s (%s)" change setter target)))
       )))
 
-;; eg #temp<2>: neeasade_: neeasade: ok
 (defun ns/goto-highlight (input)
   (interactive)
   (let (
@@ -282,20 +291,12 @@
   server-mode-change  (fn (ns/circe-format-all 'mode-change <rest>))
   )
 
-(setq circe-default-quit-message "")
 
-;; Don't show names list upon joining a channel.
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
+;; Don't show names list upon joining a channel.
+;;     this makes /names disable entirely though
 ;; (circe-set-display-handler "353" 'circe-display-ignore)
 ;; (circe-set-display-handler "366" 'circe-display-ignore)
-
-;; (require 'circe-color-nicks)
-;; (enable-circe-color-nicks)
-
-;; Last reading position.
-;; (enable-lui-track-bar)
-;; todo: this hook should be buffer not frame maybe
-;; (add-hook 'focus-out-hook 'lui-track-bar-move)
 
 (defun circe-network-connected-p (network)
   "Return non-nil if there's any Circe server-buffer whose `circe-server-netwok' is NETWORK."
@@ -319,9 +320,8 @@
   (ns/style-circe))
 
 ;; channel name in prompt
-(add-hook 'circe-chat-mode-hook 'my-circe-prompt)
-(defun my-circe-prompt ()
-  (lui-set-prompt (ns/make-message (buffer-name) "")))
+(add-hook 'circe-chat-mode-hook
+  (fn (lui-set-prompt (ns/make-message (buffer-name) ""))))
 
 ;; prevent too long pastes/prompt on it:
 (require 'lui-autopaste)
@@ -330,31 +330,19 @@
 (load "lui-logging" nil t)
 (enable-lui-logging-globally)
 
-(add-hook 'lui-mode-hook 'my-circe-set-margin)
-(defun my-circe-set-margin ()
-  ;; timestamp
-  (setq right-margin-width 5)
-  (setq left-margin-width 0))
-
 (add-hook 'lui-mode-hook 'my-lui-setup)
 (defun my-lui-setup ()
-  (setq
-    fringes-outside-margins t
+  (setq fringes-outside-margins t
     right-margin-width 5
+    left-margin-width 0
     word-wrap t
     wrap-prefix (ns/make-message "" ""))
   (setf (cdr (assoc 'continuation fringe-indicator-alist)) nil))
 
-
-(use-package circe-notifications
-  :config
+(use-package circe-notifications :config
   (autoload 'enable-circe-notifications "circe-notifications" nil t)
-  (eval-after-load "circe-notifications"
-    '(setq circe-notifications-watch-strings
-       ns/circe-highlights))
-
-  (add-hook 'circe-server-connected-hook 'enable-circe-notifications)
-  )
+  (eval-after-load "circe-notifications" '(setq circe-notifications-watch-strings ns/circe-highlights))
+  (add-hook 'circe-server-connected-hook 'enable-circe-notifications))
 
 ;; todo: make this a count from somewhere on the modeline
 ;; make it clickable/take you to first one
@@ -364,7 +352,7 @@
     tracking-buffers
     (mapcar 'buffer-name (ns/buffers-by-mode 'circe-query-mode))))
 
-(defcommand jump-irc()
+(defcommand jump-irc ()
   (let ((irc-channels
           (mapcar 'buffer-name
             (-concat
@@ -375,18 +363,17 @@
       (ivy-read "channel: " irc-channels
         :action (lambda (option)
                   (counsel-switch-to-buffer-or-window option)
-                  ;; todo: fix this the right way
                   (ns/style-circe)
                   )))))
 
-;; emacs freezes completely while pulling in the image
+;; emacs freezes completely while pulling in the image fuckkkk
 ;; (require 'circe-display-images)
 ;; (setq circe-display-images-max-height 200)
 ;; (ns/bind-leader-mode 'circe-channel "i" 'circe-display-images-toggle-image-at-point)
 ;; (enable-circe-display-images)
 
+(add-hook 'circe-channel-mode-hook 'ns/set-buffer-face-variable)
 (advice-add #'ns/style :after #'ns/style-circe)
-
 (defun ns/style-circe ()
   "Make chat pretty."
   (let*
@@ -410,7 +397,8 @@
     ;;   (ns/color-tone default-bg  10 10))
 
     (set-face-attribute 'circe-prompt-face nil :background nil)
-    (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
+    ;; (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
+    (set-face-attribute 'circe-highlight-nick-face nil :foreground default-fg)
     (set-face-attribute 'lui-button-face nil :foreground highlight-fg) ; url
     (ns/set-faces-monospace '(circe-originator-face circe-prompt-face))
 
@@ -419,27 +407,23 @@
                  (ns/buffers-by-mode 'circe-channel-mode)
                  (ns/buffers-by-mode 'circe-query-mode)
                  ))
-      (with-current-buffer b (ns/circe-hook)))
+      (with-current-buffer b (ns/set-buffer-face-variable)))
     ))
 
-;; todo: loop to circe buffers to appy this
-(defun ns/circe-hook ()
-  (ns/set-buffer-face-variable))
+;; todo: consider C-n, C-e as well.
+(general-imap :keymaps 'circe-channel-mode-map "<up>" 'lui-previous-input)
+(general-imap :keymaps 'circe-channel-mode-map "<down>" 'lui-next-input)
+(general-nmap :keymaps 'circe-channel-mode-map "<up>" 'lui-previous-input)
+(general-nmap :keymaps 'circe-channel-mode-map "<down>" 'lui-next-input)
 
-(add-hook 'circe-channel-mode-hook 'ns/circe-hook)
+(defun circe-command-NP (&optional ignored)
+  (interactive "sAction: ")
+  (circe-command-ME (concat "is now playing " (ns/shell-exec "music infoname"))))
 
-(define-key circe-channel-mode-map (kbd "<up>") 'lui-previous-input)
-(define-key circe-channel-mode-map (kbd "<down>") 'lui-next-input)
-
-(defun ns/goto-highlight-buffer ()
-  (interactive)
-  (counsel-switch-to-buffer-or-window "*circe-highlight*"))
-
-;; todo: mute irc bots colors
 (ns/bind
   "ai" 'connect-all-irc
   "ni" 'ns/jump-irc
-  "nI" 'ns/goto-highlight-buffer
+  "nI" (fn! (counsel-switch-to-buffer-or-window "*circe-highlight*"))
   ;; ehhh
   "nr" 'ns/goto-last-highlight
   )
