@@ -16,8 +16,8 @@
 
 (setq-ns circe
   reduce-lurker-spam nil ;; hide part, join, quit
-  default-quit-message "o/"
-  default-part-message "o/"
+  default-quit-message ""
+  default-part-message ""
   network-options
   `(("Freenode"
       :nick ,ns/irc-nick
@@ -198,6 +198,26 @@
   nick
   )
 
+(defun ns/circe-expand-change (change)
+  (let ((op (substring change 0 1))
+         (grant (substring change 1 2))
+         (person (second (s-split " " change)))
+         (mode-map #s(hash-table size 5 test equal
+                       data
+                       (
+                         "q" "owner"
+                         "a" "admin"
+                         "o" "operator"
+                         "h" "half-operator"
+                         "v" "voice"
+                         ))))
+    (s-join " "
+      (list
+        (if (string= op "+") "gives" "removes")
+        (gethash grant mode-map)
+        (if (string= op "+") "to" "from")
+        person))))
+
 (defun ns/circe-format-all (type args)
   "Meta circe formatter by TYPE for ARGS."
   (let* (
@@ -211,6 +231,10 @@
           ;; nick change
           (old-nick (plist-get args :old-nick))
           (new-nick (plist-get args :new-nick))
+
+          ;; topic
+          (new-topic (plist-get args :new-topic))
+          (channel (plist-get args :channel))
           )
 
     (when (eq type 'say) (setq nick (ns/circe-handle-say nick body)))
@@ -223,6 +247,9 @@
             (format "%s left: %s" nick reason))
           (ns/part-message nick))))
 
+    (when change
+      (setq change (ns/circe-expand-change change)))
+
     (pcase type
       ('say (ns/make-message nick body))
       ('notice (ns/make-message "!" body))
@@ -233,7 +260,8 @@
 
       ('action (ns/make-message "*" (format "%s %s." nick body)))
       ('nick-change (ns/make-message "*" (format "%s is now %s." old-nick new-nick)))
-      ('mode-change (ns/make-message "*" (format "%s by %s (%s)" change setter target)))
+      ('topic (ns/make-message channel new-topic))
+      ('mode-change (ns/make-message "*" (format "%s %s (%s)." setter change target)))
       )))
 
 (defun ns/goto-highlight (input)
@@ -280,6 +308,7 @@
 (setq-ns circe-format
   notice              (fn (ns/circe-format-all 'notice      <rest>))
   action              (fn (ns/circe-format-all 'action      <rest>))
+  server-message      (fn (ns/circe-format-all 'notice      <rest>))
   self-action         (fn (ns/circe-format-all 'action      <rest>))
   say                 (fn (ns/circe-format-all 'say         <rest>))
   self-say            (fn (ns/circe-format-all 'say         <rest>))
@@ -287,10 +316,10 @@
   server-join         (fn (ns/circe-format-all 'join        <rest>))
   server-part         (fn (ns/circe-format-all 'part        <rest>))
   server-quit         (fn (ns/circe-format-all 'quit        <rest>))
+  server-topic        (fn (ns/circe-format-all 'topic       <rest>))
   server-quit-channel (fn (ns/circe-format-all 'quit        <rest>))
   server-mode-change  (fn (ns/circe-format-all 'mode-change <rest>))
   )
-
 
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
 ;; Don't show names list upon joining a channel.
