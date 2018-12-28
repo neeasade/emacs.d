@@ -167,14 +167,28 @@
         (generate-new-buffer "*circe-highlight*")
         (with-current-buffer "*circe-highlight*" (circe-highlight-mode)))
 
-      (when (-any-p (fn (s-contains-p <> body)) ns/circe-highlights)
-        (let ((channel (buffer-name))
-               (op circe-last-nick))
-          (with-current-buffer "*circe-highlight*"
-            (save-restriction
-              (widen)
-              (goto-char (point-min))
-              (insert (format "%s:%s:%s\n" channel op body)))))))
+      ;; ignore focused window
+      ;; alteratively, could check just not in *a* window
+      (when (not (string= (buffer-name) (buffer-name (window-buffer))))
+        (when
+          (or
+            ;; catch all querys for now.
+            ;; if we want to get smart about this later,
+            ;; dedup tracking-buffers var vs circe-query-mode buffers
+            ;; and insert on goto highlight buffer or something
+            (eq major-mode 'circe-query-mode)
+            ;; match highlights
+            (-any-p (fn (s-contains-p <> body)) ns/circe-highlights)
+            )
+
+          (let ((channel (buffer-name))
+                 (op circe-last-nick))
+            (with-current-buffer "*circe-highlight*"
+              (save-restriction
+                (widen)
+                (goto-char (point-min))
+                (insert (format "%s:%s:%s\n" channel op body)))))))
+      )
 
     (when reason
       (when
@@ -250,9 +264,6 @@
 (general-nmap :keymaps 'circe-highlight-mode-map
   "RET" (fn! (ns/goto-highlight (ns/get-current-line))))
 
-(general-imap :keymaps 'circe-highlight-mode-map
-  "RET" (fn! (ns/goto-highlight (ns/get-current-line))))
-
 (setq-ns circe-format
   notice              (fn (ns/circe-format-all 'notice      <rest>))
   action              (fn (ns/circe-format-all 'action      <rest>))
@@ -271,8 +282,8 @@
 
 ;; Don't show names list upon joining a channel.
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
-(circe-set-display-handler "353" 'circe-display-ignore)
-(circe-set-display-handler "366" 'circe-display-ignore)
+;; (circe-set-display-handler "353" 'circe-display-ignore)
+;; (circe-set-display-handler "366" 'circe-display-ignore)
 
 ;; (require 'circe-color-nicks)
 ;; (enable-circe-color-nicks)
@@ -408,8 +419,15 @@
 (define-key circe-channel-mode-map (kbd "<up>") 'lui-previous-input)
 (define-key circe-channel-mode-map (kbd "<down>") 'lui-next-input)
 
+(defun ns/goto-highlight-buffer ()
+  (interactive)
+  (counsel-switch-to-buffer-or-window "*circe-highlight*"))
+
 ;; todo: mute irc bots colors
 (ns/bind
   "ai" 'connect-all-irc
   "ni" 'ns/jump-irc
+  "nI" 'ns/goto-highlight-buffer
+  ;; ehhh
+  "nr" 'ns/goto-last-highlight
   )
