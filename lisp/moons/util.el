@@ -6,6 +6,13 @@
     (insert-file-contents filePath)
     (buffer-string)))
 
+(defun ns/get-current-line ()
+  (save-excursion
+    (goto-char (point-at-bol))
+    (let ((b (point))
+           (e (progn (end-of-line) (point))))
+      (buffer-substring-no-properties b e))))
+
 (defcommand what-line ()
   "Print the current line number (in the buffer) of point."
   (save-restriction

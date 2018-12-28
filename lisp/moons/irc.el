@@ -62,8 +62,76 @@
     (propertize (concat " " body)
       'face 'default)))
 
+(defun ns/part-message (nick)
+  "Generate a random part message for NICK."
+  (let
+    ((options
+       '(
+          "%s has left the party."
+          "%s fell off a cliff."
+          "%s drank too much and passed out."
+          "%s fell into the lava."
+          "rocx kidnapped %s!"
+          "%s was taken by thanos."
+          "%s went down a youtube hole."
+          "%s ate too much shrimp."
+          "%s left and joined a circus."
+          "%s got stuck in tvtropes again."
+          "%s got spooped."
+          "%s has been eaten by their cat."
+          )))
+    (format
+      (nth (random (- (length options) 1)) options)
+      nick)))
+
+(defun ns/join-message (nick)
+  "Generate a random join message for NICK."
+  (let
+    ((options
+       '(
+          "%s just joined. Everyone, look busy!"
+          "%s joined. You must construct additional pylons."
+          "Ermagherd. %s is here."
+          "A wild %s appeared."
+          "Swoooosh. %s just landed."
+          "Brace yourselves. %s just joined the server."
+          "%s just joined. Hide your bananas."
+          "%s just arrived. Seems OP - please nerf."
+          "%s just slid into the server."
+          "A %s has spawned in the server."
+          "Big %s showed up!"
+          ;; "Where’s %s? In the server!"
+          "%s hopped into the server. Kangaroo!!"
+          "%s just showed up. Hold my beer."
+          "Challenger approaching - %s has appeared!"
+          "It's a bird! It's a plane! Nevermind, it's just %s."
+          "It's %s! Praise the sun!"
+          ;; "Never gonna give %s up. Never gonna let [!!{username}!!](usernameOnClick) down."
+          "Ha! %s has joined! You activated my trap card!"
+          "Hey! Listen! %s has joined!"
+          ;; "We've been expecting you %s"
+          ;; "It's dangerous to go alone, take %s!"
+          "%s has joined the server! It's super effective!"
+          "Cheers, love! %s is here!"
+          "%s is here, as the prophecy foretold."
+          "%s has arrived. Party's over."
+          "Ready player %s"
+          ;; todo dynamic this?
+          ;; "%s is here to kick butt and chew bubblegum. And %s is all out of gum."
+          "Hello. Is it %s you're looking for?"
+          "%s has joined. Stay a while and listen!"
+          "Roses are red, violets are blue, %s joined this server with you"
+          "%s has joined the party."
+          )))
+    (format
+      (nth (random (- (length options) 1)) options)
+      nick)))
+
+(setq ns/circe-highlights
+  `(,ns/irc-nick "bspwm"))
+
 (defun ns/circe-format-all (type args)
-  ;; all the circe-format-x things we care about will go through here
+  "Meta circe formatter by TYPE for ARGS."
   (let* (
           (nick (plist-get args :nick))
           (body (plist-get args :body))
@@ -86,40 +154,104 @@
       ;; if it's a bot, make it faceless.
       ;; todo: extend this to a channel map
       (when (string= nick "cappuccino")
-        (setq nick ""))
+        (setq nick circe-last-nick))
 
       (if (string= nick circe-last-nick)
         (setq nick "")
         (setq-local circe-last-nick nick))
-      )
+
+      ;; highlight tracker mon
+      ;; todo: ANY pending message in query buffers
+      (when (not (get-buffer "*circe-highlight*"))
+        ;; todo: set the mode of this buffer to a text-mode derived highlight mode
+        (generate-new-buffer "*circe-highlight*")
+        (with-current-buffer "*circe-highlight*" (circe-highlight-mode)))
+
+      (when (-any-p (fn (s-contains-p <> body)) ns/circe-highlights)
+        (let ((channel (buffer-name))
+               (op circe-last-nick))
+          (with-current-buffer "*circe-highlight*"
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              (insert (format "%s:%s:%s\n" channel op body)))))))
 
     (when reason
-      (when (or
-              (string= "[No reason given]" reason)
-              (string= "Remote host closed the connection" reason)
-              (string= "Quit: My MacBook has gone to sleep. ZZZzzz…" reason)
-              (s-contains? "Ping Timeout" reason)
-              (s-contains? "Quit: WeeChat" reason)
-              (s-contains? "Quit: ERC" reason)
-              )
-        (setq reason ""))
-
-      (when (not (string= "" reason))
-        (setq reason (format " (%s)" reason))))
+      (when
+        (or
+          (string= "" reason)
+          (string= "Quit: Excess flood" reason)
+          (string= "[No reason given]" reason)
+          (string= "Remote host closed the connection" reason)
+          (string= "Quit: My MacBook has gone to sleep. ZZZzzz…" reason)
+          (string= "Quit: Leaving" reason)
+          (string= "Quit: Coyote finally caught me" reason)
+          (string= (format "Quit: %s" nick) reason)
+          (s-contains? "Read error:" reason)
+          (s-contains? "Ping timeout" reason)
+          (s-contains? "Quit: WeeChat" reason)
+          (s-contains? "Quit: ERC" reason)
+          ;; assume adverts for clients
+          (s-contains? "http" reason)
+          )
+        (setq reason nil)))
 
     (defun ns/make-action-message (message)
-      (ns/make-message ">" message))
+      (ns/make-message "*" message))
 
     (pcase type
       ('say (ns/make-message nick body))
       ('notice (ns/make-message "!" body))
+      ('part (ns/make-message "<" (if reason (format "%s left: %s" nick reason) (ns/part-message nick))))
+      ('quit (ns/make-message "<" (if reason (format "%s left: %s" nick reason) (ns/part-message nick))))
+      ;; ('join (ns/make-action-message (format "%s has joined the party." nick)))
+      ('join (ns/make-message ">" (ns/join-message nick)))
+
       ('action (ns/make-action-message (format "%s %s." nick body)))
-      ('part (ns/make-action-message (format "%s has left the party%s." nick reason)))
-      ('quit (ns/make-action-message (format "%s has left the party%s." nick reason)))
-      ('join (ns/make-action-message (format "%s has joined the party." nick)))
       ('nick-change (ns/make-action-message (format "%s is now %s." old-nick new-nick)))
       ('mode-change (ns/make-action-message (format "%s by %s (%s)" change setter target)))
       )))
+
+;; eg #temp<2>: neeasade_: neeasade: ok
+(defun ns/goto-highlight (input)
+  (interactive)
+  (let (
+         (buf (nth 0 (s-split ":" input)))
+         (op (nth 1 (s-split ":" input)))
+         (message (s-join ":" (cdr (cdr (s-split ":" input)))))
+         )
+    (counsel-switch-to-buffer-or-window buf)
+    (goto-char (point-max))
+    (search-backward message)
+    ))
+
+(defun ns/goto-last-highlight ()
+  (interactive)
+  (if (get-buffer "*circe-highlight*")
+    (let ((last-highlight
+            (with-current-buffer "*circe-highlight*"
+              (save-excursion
+                (goto-char (point-min))
+                (let ((b (point))
+                       (e (progn (end-of-line) (point))))
+                  (buffer-substring-no-properties b e)))
+              )))
+      (if (not (string= "" last-highlight))
+        (ns/goto-highlight last-highlight)
+        (message "no highlights!")))
+    (message "no highlights!")))
+
+(define-derived-mode circe-highlight-mode
+  text-mode "circe-highlight"
+  "Major mode for circe-highlight-buffer."
+  ;; (setq-local case-fold-search nil)
+  )
+
+(general-nmap :keymaps 'circe-highlight-mode-map
+  "RET" (fn! (ns/goto-highlight (ns/get-current-line))))
+
+(general-imap :keymaps 'circe-highlight-mode-map
+  "RET" (fn! (ns/goto-highlight (ns/get-current-line))))
 
 (setq-ns circe-format
   notice              (fn (ns/circe-format-all 'notice      <rest>))
@@ -134,6 +266,8 @@
   server-quit-channel (fn (ns/circe-format-all 'quit        <rest>))
   server-mode-change  (fn (ns/circe-format-all 'mode-change <rest>))
   )
+
+(setq circe-default-quit-message "")
 
 ;; Don't show names list upon joining a channel.
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
@@ -165,7 +299,7 @@
 
 (defun connect-all-irc()
   (interactive)
-  (mapcar '(lambda (network) (circe-maybe-connect (car network)))
+  (mapcar #'(lambda (network) (circe-maybe-connect (car network)))
     circe-network-options)
   (ns/style-circe))
 
@@ -196,13 +330,13 @@
     wrap-prefix (ns/make-message "" ""))
   (setf (cdr (assoc 'continuation fringe-indicator-alist)) nil))
 
+
 (use-package circe-notifications
   :config
   (autoload 'enable-circe-notifications "circe-notifications" nil t)
   (eval-after-load "circe-notifications"
     '(setq circe-notifications-watch-strings
-       ;; example: '("people" "you" "like" "to" "hear" "from")))
-       '("neeasade" "bspwm")))
+       ns/circe-highlights))
 
   (add-hook 'circe-server-connected-hook 'enable-circe-notifications)
   )
