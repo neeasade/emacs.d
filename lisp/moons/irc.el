@@ -54,7 +54,7 @@
        )))
 
 ;; auto fill/trim left to 8 columns
-(defun ns/make-message (left body)
+(defun ns/make-message (left body &optional left-face message-face)
   (concat
     (propertize
       (s-pad-left 8 " "
@@ -63,9 +63,10 @@
             (if (> (length left) 8) 7 8)
             left)
           (when (> (length left) 8) "…")))
-      'face 'circe-originator-face)
+      'face
+      (if left-face left-face 'circe-originator-face))
     (propertize (concat " " body)
-      'face 'default)))
+      'face (if message-face message-face 'default))))
 
 (defun ns/part-message (nick)
   "Generate a random part message for NICK."
@@ -162,7 +163,7 @@
 
 (defun ns/circe-handle-say (nick body)
   "update state for say, return nick, highmon"
-  (when (string= nick ns/irc-nick) (setq nick "-"))
+  (when (string= nick ns/irc-nick) (setq nick "(me)"))
 
   (if (not (boundp 'circe-last-nick))
     (setq-local circe-last-nick ""))
@@ -202,11 +203,12 @@
   (let ((op (substring change 0 1))
          (grant (substring change 1 2))
          (person (second (s-split " " change)))
-         (mode-map #s(hash-table size 5 test equal
+         (mode-map #s(hash-table size 6 test equal
                        data
                        (
                          "q" "owner"
                          "a" "admin"
+                         "b" "ban"
                          "o" "operator"
                          "h" "half-operator"
                          "v" "voice"
@@ -214,7 +216,7 @@
     (s-join " "
       (list
         (if (string= op "+") "gives" "removes")
-        (gethash grant mode-map)
+        (if (gethash grant mode-map) (gethash grant mode-map) grant)
         (if (string= op "+") "to" "from")
         person))))
 
@@ -237,7 +239,7 @@
           (channel (plist-get args :channel))
           )
 
-    (when (eq type 'say) (setq nick (ns/circe-handle-say nick body)))
+    (when (or (eq type 'say) (eq type 'self-say)) (setq nick (ns/circe-handle-say nick body)))
     (when reason
       (setq reason (ns/circe-clear-reason reason nick))
       (setq reason
@@ -252,11 +254,12 @@
 
     (pcase type
       ('say (ns/make-message nick body))
+      ('self-say (ns/make-message nick body nil 'circe-my-message-face))
       ('notice (ns/make-message "!" body))
-      ('part (ns/make-message "<" reason))
-      ('quit (ns/make-message "<" reason))
-      ;; ('join (ns/make-action-message (format "%s has joined the party." nick)))
-      ('join (ns/make-message ">" (ns/join-message nick)))
+      ('part (ns/make-message "<" reason nil 'circe-server-face))
+      ('quit (ns/make-message "<" reason nil 'circe-server-face))
+
+      ('join (ns/make-message ">" (ns/join-message nick) nil 'circe-server-face))
 
       ('action (ns/make-message "*" (format "%s %s." nick body)))
       ('nick-change (ns/make-message "*" (format "%s is now %s." old-nick new-nick)))
@@ -311,7 +314,7 @@
   server-message      (fn (ns/circe-format-all 'notice      <rest>))
   self-action         (fn (ns/circe-format-all 'action      <rest>))
   say                 (fn (ns/circe-format-all 'say         <rest>))
-  self-say            (fn (ns/circe-format-all 'say         <rest>))
+  self-say            (fn (ns/circe-format-all 'self-say         <rest>))
   server-nick-change  (fn (ns/circe-format-all 'nick-change <rest>))
   server-join         (fn (ns/circe-format-all 'join        <rest>))
   server-part         (fn (ns/circe-format-all 'part        <rest>))
@@ -409,23 +412,19 @@
       (highlight-fg (ns/color-tone default-fg 20 20))
       (fade-fg (ns/color-tone default-fg 35 40)))
 
-    (mapc
-      (lambda(face)
-        (set-face-attribute face nil :foreground fade-fg))
-      '(circe-server-face
-         lui-time-stamp-face
-         circe-prompt-face
+    (set-face-attribute 'circe-server-face          nil  :foreground fade-fg)
+    (set-face-attribute 'lui-time-stamp-face        nil  :foreground fade-fg)
+    (set-face-attribute 'circe-prompt-face          nil  :foreground fade-fg)
+    (set-face-attribute 'circe-my-message-face      nil  :foreground fade-fg)
+    (set-face-attribute 'circe-highlight-nick-face  nil  :foreground highlight-fg)
+    (set-face-attribute 'circe-originator-face      nil  :foreground highlight-fg)
 
-         circe-my-message-face
-         circe-originator-face))
-
-    ;; (set-face-attribute 'lui-track-bar nil :background
-    ;;   (ns/color-tone default-bg  10 10))
+    ;; urls
+    (set-face-attribute 'lui-button-face nil :foreground highlight-fg)
+    (set-face-attribute 'lui-button-face nil :underline nil)
 
     (set-face-attribute 'circe-prompt-face nil :background nil)
-    ;; (set-face-attribute 'circe-highlight-nick-face nil :foreground highlight-fg)
-    (set-face-attribute 'circe-highlight-nick-face nil :foreground default-fg)
-    (set-face-attribute 'lui-button-face nil :foreground highlight-fg) ; url
+
     (ns/set-faces-monospace '(circe-originator-face circe-prompt-face))
 
     ;; apply the hook to everyone to update body font
