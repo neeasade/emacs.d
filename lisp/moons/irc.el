@@ -373,9 +373,6 @@
   (eval-after-load "circe-notifications" '(setq circe-notifications-watch-strings ns/circe-highlights))
   (add-hook 'circe-server-connected-hook 'enable-circe-notifications))
 
-;; todo: make this a count from somewhere on the modeline
-;; make it clickable/take you to first one
-;; alteratively that would be a cool panel plugin rather
 (defun ns/circe-unread-query-buffers ()
   (-intersection
     tracking-buffers
