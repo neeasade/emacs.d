@@ -163,7 +163,7 @@
 
 (defun ns/circe-handle-say (nick body)
   "update state for say, return nick, highmon"
-  (when (string= nick ns/irc-nick) (setq nick "(me)"))
+  (when (string= nick ns/irc-nick) (setq nick "me"))
 
   (if (not (boundp 'circe-last-nick))
     (setq-local circe-last-nick ""))
