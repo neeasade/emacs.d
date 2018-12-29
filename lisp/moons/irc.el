@@ -237,6 +237,7 @@
           ;; topic
           (new-topic (plist-get args :new-topic))
           (channel (plist-get args :channel))
+          (topic-ago (plist-get args :topic-ago))
           )
 
     (when (or (eq type 'say) (eq type 'self-say)) (setq nick (ns/circe-handle-say nick body)))
@@ -249,22 +250,26 @@
             (format "%s left: %s" nick reason))
           (ns/part-message nick))))
 
-    (when change
-      (setq change (ns/circe-expand-change change)))
-
     (pcase type
       ('say (ns/make-message nick body))
-      ('self-say (ns/make-message nick body nil 'circe-my-message-face))
+      ('self-say (ns/make-message nick body 'circe-originator-fade-face 'circe-my-message-face))
+
+      ('part (ns/make-message "<" reason 'circe-originator-fade-face 'circe-server-face))
+      ('quit (ns/make-message "<" reason 'circe-originator-fade-face 'circe-server-face))
+      ('join (ns/make-message ">" (ns/join-message nick) 'circe-originator-fade-face 'circe-server-face))
+
       ('notice (ns/make-message "!" body))
-      ('part (ns/make-message "<" reason nil 'circe-server-face))
-      ('quit (ns/make-message "<" reason nil 'circe-server-face))
-
-      ('join (ns/make-message ">" (ns/join-message nick) nil 'circe-server-face))
-
       ('action (ns/make-message "*" (format "%s %s." nick body)))
       ('nick-change (ns/make-message "*" (format "%s is now %s." old-nick new-nick)))
       ('topic (ns/make-message channel new-topic))
-      ('mode-change (ns/make-message "*" (format "%s %s (%s)." setter change target)))
+      ('topic-time (ns/make-message channel
+                     (format "Topic was set %s ago." topic-ago)
+                     'circe-originator-fade-face
+                     'circe-server-face
+                     ))
+      ('mode-change (ns/make-message "*"
+                      (format "%s %s (%s)." setter (ns/circe-expand-change change) target)
+                      'circe-originator-fade-face 'circe-server-face))
       )))
 
 (defun ns/goto-highlight (input)
@@ -322,6 +327,7 @@
   server-topic        (fn (ns/circe-format-all 'topic       <rest>))
   server-quit-channel (fn (ns/circe-format-all 'quit        <rest>))
   server-mode-change  (fn (ns/circe-format-all 'mode-change <rest>))
+  server-topic-time (fn (ns/circe-format-all 'topic-time <rest>))
   )
 
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
@@ -419,13 +425,18 @@
     (set-face-attribute 'circe-highlight-nick-face  nil  :foreground highlight-fg)
     (set-face-attribute 'circe-originator-face      nil  :foreground highlight-fg)
 
+    (defface circe-originator-fade-face
+      `((t :foreground ,fade-fg))
+      "circe actions and self-say characters"
+      )
+
     ;; urls
     (set-face-attribute 'lui-button-face nil :foreground highlight-fg)
     (set-face-attribute 'lui-button-face nil :underline nil)
 
     (set-face-attribute 'circe-prompt-face nil :background nil)
 
-    (ns/set-faces-monospace '(circe-originator-face circe-prompt-face))
+    (ns/set-faces-monospace '(circe-originator-face circe-prompt-face circe-originator-fade-face))
 
     ;; apply the hook to everyone to update body font
     (dolist (b (-concat
@@ -452,3 +463,29 @@
   ;; ehhh
   "nr" 'ns/goto-last-highlight
   )
+
+;; if this ever changes we're gonna break everything woo
+(defun circe--irc-display-format (format target nick userhost event args)
+  (let* ((target+name (circe--irc-display-target target nick args))
+          (target (car target+name))
+          (name (cdr target+name))
+          (origin (if userhost
+                    (format "%s (%s)" nick userhost)
+                    (format "%s" nick))))
+    (with-current-buffer (or target
+                           (circe-server-last-active-buffer))
+      (let ((circe--irc-format-server-numeric
+              (if target
+                ;; changing these two lines
+                ;; (format "*** %s" format)
+                ;; (format "*** [%s] %s" name format))))
+                (format (make-message "*" "%s") format)
+                (format (make-message name "%s") format))))
+        (circe-display 'circe--irc-format-server-numeric
+          :nick (or nick "(unknown)")
+          :userhost (or userhost "server")
+          :origin origin
+          :event event
+          :command event
+          :target name
+          :indexed-args args)))))
