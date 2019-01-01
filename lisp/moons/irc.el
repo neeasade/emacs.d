@@ -168,19 +168,32 @@
   (if (not (boundp 'circe-last-nick))
     (setq-local circe-last-nick ""))
 
+  (if (not (boundp 'circe-last-message))
+    (setq-local circe-last-message ""))
+
   ;; bots
   (when (or (-contains-p
               '(
                  "cappuccino"
+                 "EggServ"
                  "linkreader"
                  ) nick)
           (s-ends-with-p "bot" nick))
-    (setq nick circe-last-nick))
+    ;; peek at last message hese
+    (when (or
+            (s-contains-p "http" circe-last-message)
+            (s-starts-with-p "." circe-last-message)
+            (s-starts-with-p "!" circe-last-message)
+            )
+      (setq nick circe-last-nick)
+      ))
 
   ;; don't double print nicks
   (if (string= nick circe-last-nick)
     (setq nick "")
     (setq-local circe-last-nick nick))
+
+  (setq-local circe-last-message body)
 
   ;; highlight buffer
   (when (not (get-buffer "*circe-highlight*"))
