@@ -87,9 +87,10 @@
           "%s has been eaten by their cat."
           "%s was MURDERED by ben shapiro!"
           "%s has rage quit."
-          "%s has joined an amish colony."
+          "%s has joined an lunar amish colony."
           "%s never existed at all."
           "%s's mom showed up to take them home."
+          "%s is blasting off AGAINNnnnn...."
           )))
     (format
       (nth (random (- (length options) 1)) options)

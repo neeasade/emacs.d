@@ -6,7 +6,7 @@
 (let ((theme (intern (get-resource "Emacs.theme"))))
   (when (boundp 'ns/loaded-theme)
     (disable-theme ns/loaded-theme))
-  (load-theme theme)
+  (load-theme theme t)
   (setq ns/loaded-theme theme))
 
 (set-face-attribute 'fringe nil :background nil)

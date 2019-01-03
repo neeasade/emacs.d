@@ -9,5 +9,5 @@ target="$(mktemp)"
 ) > "$target"
 
 mode="${1:-text-mode}"
-elisp "(ns/find-or-open \"${target}\") (${mode})"
+elisp "(ns/find-or-open \"${target}\") (${mode}) (Man-cleanup-manpage)"
 rm "$target"
