@@ -220,13 +220,12 @@
     "er" 'cider-eval-region
     "ei" 'cider-eval-last-sexp
     "eb" 'cider-evil-file
-    )
-  )
+    "ee" 'cider-eval-defun-at-point
+    ))
 
 (defconfig nix
   (ns/guard ns/enable-home-p)
-  (use-package nix-mode)
-  )
+  (use-package nix-mode))
 
 (defconfig interface
   ;; todo: into occur/search buffer solution for better finding when don't know what we're looking for
@@ -881,7 +880,6 @@
 
   (ns/bind "at" 'ns/spawn-terminal)
   (add-hook 'delete-frame-hook 'ns/kill-spawned-shell))
-
 
 (defconfig elfeed
   (ns/guard ns/enable-home-p)
