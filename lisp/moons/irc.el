@@ -412,8 +412,12 @@
       (message "connect to irc first!")
       (ivy-read "channel: " irc-channels
         :action (lambda (option)
+                  (interactive)
                   (counsel-switch-to-buffer-or-window option)
-                  (ns/style-circe)
+                  (evil-goto-line)
+                  (evil-scroll-line-to-bottom nil) ; nil -> the current line
+                  ;; this still needed?
+                  ;; (ns/style-circe)
                   )))))
 
 ;; emacs freezes completely while pulling in the image fuckkkk
