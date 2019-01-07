@@ -14,8 +14,6 @@
   vc-make-backup-files t
   version-control t
   network-security-level 'high
-  ;; ouch - todo: revisit this
-  gc-cons-threshold 10000000
   frame-resize-pixelwise t
 
   ;; todo: not working for multi caps path case
@@ -24,6 +22,10 @@
   completion-ignore-case  t
   dabbrev-case-fold-search nil
   )
+
+;; 1G
+(setq gc-cons-threshold (eval-when-compile (* 1024 1024 1024)))
+(run-with-idle-timer 2 t (lambda () (garbage-collect)))
 
 ;; trim gui
 (menu-bar-mode -1)

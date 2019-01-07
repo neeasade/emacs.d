@@ -96,12 +96,15 @@
 (defconfig flycheck
   (use-package flycheck
     :config
+
     ;; cf http://www.flycheck.org/en/latest/user/syntax-checks.html#check-automatically
     (setq-ns flycheck
       check-syntax-automatically (if ns/enable-windows-p
                                    '(save mode-enabled idle-change)
                                    '(save mode-enabled idle-change new-line))
+
       idle-change-delay 1
+      global-modes '(not circe-channel-mode circe-query-mode)
       )
 
     ;; (flycheck) disable jshint since we prefer eslint checking
@@ -147,6 +150,7 @@
                       shell-mode
                       circe-chat-mode
                       circe-channel-mode
+                      circe-query-mode
                       )
       tooltip-align-annotations t
       )
