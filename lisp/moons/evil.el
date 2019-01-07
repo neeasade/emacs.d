@@ -39,8 +39,14 @@
 (advice-add 'evil-search-previous :after
   (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
 
+
+
+;; for reference, alteratively tried:
+;; https://github.com/noctuid/general.el#mapping-under-non-prefix-keys
+;; but it's very laggy/intensive by comparison (measured in the profiler)
 (setq-default evil-escape-key-sequence
   (if ns/enable-colemak "tn" "fj"))
+
 (use-package evil-escape :config (evil-escape-mode))
 
 (when ns/enable-colemak

@@ -218,10 +218,9 @@ buffer is not visiting a file."
           (prin1-to-string item)))
       list)))
 
-(defun ns/buffers-by-mode (mode)
+(defun ns/buffers-by-mode (&rest modes)
   (remove-if-not
-    (fn (eq mode
-          (buffer-local-value 'major-mode <>)))
+    (fn (-contains-p modes (buffer-local-value 'major-mode <>)))
     (buffer-list)))
 
 (ns/bind

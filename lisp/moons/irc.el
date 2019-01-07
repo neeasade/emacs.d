@@ -91,6 +91,8 @@
           "%s never existed at all."
           "%s's mom showed up to take them home."
           "%s is blasting off AGAINNnnnn...."
+          "%s left to catch the dogecoin dip."
+          "%s gave all their money to their brother day trader."
           )))
     (format
       (nth (random (- (length options) 1)) options)
@@ -184,6 +186,7 @@
     (when (or
             (s-contains-p "http" circe-last-message)
             (s-starts-with-p "." circe-last-message)
+            (s-starts-with-p "s/" circe-last-message)
             (s-starts-with-p "!" circe-last-message)
             )
       (setq nick circe-last-nick)
@@ -404,15 +407,17 @@
 (defcommand jump-irc ()
   (let ((irc-channels
           (mapcar 'buffer-name
-            (-concat
-              (ns/buffers-by-mode 'circe-channel-mode)
-              (ns/buffers-by-mode 'circe-query-mode)))))
+            (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))))
     (if (eq (length irc-channels) 0)
       (message "connect to irc first!")
       (ivy-read "channel: " irc-channels
         :action (lambda (option)
+                  (interactive)
                   (counsel-switch-to-buffer-or-window option)
-                  (ns/style-circe)
+                  (evil-goto-line)
+                  (evil-scroll-line-to-bottom nil) ; nil -> the current line
+                  ;; this still needed?
+                  ;; (ns/style-circe)
                   )))))
 
 ;; emacs freezes completely while pulling in the image fuckkkk
@@ -453,14 +458,11 @@
     (ns/set-faces-monospace '(circe-originator-face circe-prompt-face circe-originator-fade-face))
 
     ;; apply the hook to everyone to update body font
-    (dolist (b (-concat
-                 (ns/buffers-by-mode 'circe-channel-mode)
-                 (ns/buffers-by-mode 'circe-query-mode)
-                 ))
-      (with-current-buffer b (ns/set-buffer-face-variable)))
-    ))
+    (dolist (b (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))
+      (with-current-buffer b (ns/set-buffer-face-variable)))))
 
 ;; todo: consider C-n, C-e as well.
+;; todo: need query mode here too
 (general-imap :keymaps 'circe-channel-mode-map "<up>" 'lui-previous-input)
 (general-imap :keymaps 'circe-channel-mode-map "<down>" 'lui-next-input)
 (general-nmap :keymaps 'circe-channel-mode-map "<up>" 'lui-previous-input)

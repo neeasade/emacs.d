@@ -177,7 +177,11 @@
     (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
     (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
     (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
-    ))
+    )
+
+  (dolist (b (ns/buffers-by-mode 'org-mode))
+    (with-current-buffer b (ns/set-buffer-face-variable)))
+  )
 
 ;; todo: into org agendas
 ;; https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
