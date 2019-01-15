@@ -336,7 +336,7 @@
   server-message      (fn (ns/circe-format-all 'notice      <rest>))
   self-action         (fn (ns/circe-format-all 'action      <rest>))
   say                 (fn (ns/circe-format-all 'say         <rest>))
-  self-say            (fn (ns/circe-format-all 'self-say         <rest>))
+  self-say            (fn (ns/circe-format-all 'self-say    <rest>))
   server-nick-change  (fn (ns/circe-format-all 'nick-change <rest>))
   server-join         (fn (ns/circe-format-all 'join        <rest>))
   server-part         (fn (ns/circe-format-all 'part        <rest>))
@@ -344,7 +344,7 @@
   server-topic        (fn (ns/circe-format-all 'topic       <rest>))
   server-quit-channel (fn (ns/circe-format-all 'quit        <rest>))
   server-mode-change  (fn (ns/circe-format-all 'mode-change <rest>))
-  server-topic-time (fn (ns/circe-format-all 'topic-time <rest>))
+  server-topic-time (fn (ns/circe-format-all 'topic-time    <rest>))
   )
 
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703

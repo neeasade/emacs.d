@@ -17,13 +17,21 @@
 ;; (@ 'message ,@'("asdf"))
 (defmacro @ (&rest input) (eval (eval `(backquote (list ,@input)))))
 
+(defmacro ->> (&rest body)
+  (let ((result (pop body)))
+    (dolist (form body result)
+      (setq result (append form (list result))))))
+
+(defmacro -> (&rest body)
+  (let ((result (pop body)))
+    (dolist (form body result)
+      (setq result (append (list (car form) result)
+                     (cdr form))))))
+
 (defmacro ns/shell-exec(command)
   "trim the newline from shell exec"
   `(replace-regexp-in-string "\n$" ""
      (shell-command-to-string ,command)))
-
-;; interactive lambda
-(defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 
 ;; todo: hide shell command succceeded with no output message after completion
 (defun ns/shell-exec-dontcare (command)
@@ -33,7 +41,6 @@
           )
     (shell-command command junk-buffer)
     (kill-buffer junk-buffer)))
-
 
 (defun mapcar* (f &rest xs)
   "MAPCAR for multiple sequences F XS."
