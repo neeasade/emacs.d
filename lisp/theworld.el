@@ -227,11 +227,23 @@
 
   ;; TODO: learn lispyville
   ;; (use-package lispy)
+
+  (defun ns/smart-cider-eval ()
+    (interactive)
+    (if (use-region-p)
+      (cider-eval-region (region-beginning) (region-end))
+      (if (s-blank-p (s-trim (thing-at-point 'line)))
+        (cider-eval-last-sexp nil)
+        (cider-eval-defun-at-point nil))))
+
+  (ns/bind-mode 'clojure
+    "e" 'ns/smart-cider-eval)
+
   (ns/bind-leader-mode
     'clojure
     "er" 'cider-eval-region
     "ei" 'cider-eval-last-sexp
-    "eb" 'cider-evil-file
+    "eb" 'cider-eval-file
     "ee" 'cider-eval-defun-at-point
     )
 
