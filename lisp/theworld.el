@@ -81,6 +81,18 @@
     :config
     (setq eros-eval-result-duration 20)
     (eros-mode 1)
+
+    (defun ns/smart-elisp-eval ()
+      (interactive)
+      (if (use-region-p)
+        (eval-region (region-beginning) (region-end))
+        (if (s-blank-p (s-trim (thing-at-point 'line)))
+          (eros-eval-last-sexp nil)
+          (eros-eval-defun nil))))
+
+    (ns/bind-mode 'emacs-lisp
+      "e" 'ns/smart-elisp-eval)
+
     (ns/bind-leader-mode
       'emacs-lisp
       "er" 'eval-region
@@ -421,9 +433,9 @@
     (add-to-list 'company-backends 'company-omnisharp)
 
     ;; (ns/bind-leader-mode 'csharp-mode "s" 'omnisharp-start-omnisharp-server)
+    ;; todo: add this keybind for other modes
     (ns/bind-mode 'csharp "nu" 'omnisharp-find-usages)
-    (ns/bind-mode 'csharp "nU" 'omnisharp-find-usages-with-ido)
-    ))
+    (ns/bind-mode 'csharp "nU" 'omnisharp-find-usages-with-ido)))
 
 
 (defconfig jump
