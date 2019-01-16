@@ -74,8 +74,7 @@
     (global-set-key (kbd "C-h f") #'helpful-callable)
     (global-set-key (kbd "C-h v") #'helpful-variable)
     (global-set-key (kbd "C-h k") #'helpful-key)
-    (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol)
-    )
+    (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol))
 
   (use-package eros
     :config
@@ -99,7 +98,6 @@
       "ei" 'eros-eval-last-sexp
       "ee" 'eros-eval-defun
       )))
-
 
 (defconfig flycheck
   (use-package flycheck
@@ -170,11 +168,7 @@
   (use-package company-quickhelp
     :init
     (company-quickhelp-mode 1)
-    (setq company-quickhelp-delay 0.3)
-    )
-  )
-
-
+    (setq company-quickhelp-delay 0.3)))
 
 (defconfig dashdocs
   (defmacro ns/install-dashdoc (docset mode-hook)
@@ -208,10 +202,7 @@
       (counsel-dash (thing-at-point 'word))))
 
   (ns/bind
-    "nd" 'ns/counsel-dash-word)
-  )
-
-
+    "nd" 'ns/counsel-dash-word))
 
 (defconfig zoom
   (use-package zoom
@@ -247,13 +238,6 @@
     "ee" 'cider-eval-defun-at-point
     )
 
-  ;; lint
-  ;; (use-package flycheck-clojure
-  ;;   :config
-  ;;   (eval-after-load 'flycheck '(flycheck-clojure-setup))
-  ;;   (add-hook 'after-init-hook #'global-flycheck-mode)
-  ;;   )
-
   ;; todo: check for joker exe and promp to put in path if this is used
   (use-package flycheck-joker
     :config
@@ -263,9 +247,7 @@
   (use-package flycheck-pos-tip
     :config
     (eval-after-load 'flycheck
-      '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages)))
-
-  )
+      '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))))
 
 (defconfig nix
   (ns/guard ns/enable-home-p)
@@ -292,8 +274,7 @@
     (emms-player-mpd-connect)
     )
 
-  (ns/bind "am" 'emms-start)
-  )
+  (ns/bind "am" 'emms-start))
 
 (defconfig projectile
   (use-package projectile)
@@ -349,9 +330,7 @@
           (-distinct (append open-buffers recent-files project-files)))
         :action #'find-file)))
 
-  ;; idk which of these I like better
-  (ns/bind "ne" 'ns/jump-file )
-  )
+  (ns/bind "ne" 'ns/jump-file ))
 
 (defconfig javascript
   ;; note: this is huge, takes a bit.
@@ -381,8 +360,7 @@
     ;;     )
     ;;   (message "now set to: %s" web-mode-content-type))
     (when (string-equal "tsx" (file-name-extension buffer-file-name))
-      (setup-tide-mode))
-    )
+      (setup-tide-mode)))
 
   (use-package web-mode
     :config
@@ -407,8 +385,7 @@
       "eb" 'nodejs-repl-load-file
       "ee" 'nodejs-repl-send-line
       "ei" 'nodejs-repl-send-last-expression
-      ))
-  )
+      )))
 
 (defconfig typescript
   (ns/install-dashdoc "TypeScript" 'typescript-mode-hook)
@@ -427,8 +404,7 @@
     (flycheck-add-mode 'typescript-tslint 'web-mode)
 
     ;; (add-hook 'before-save-hook 'tide-format-before-save)
-    )
-  )
+    ))
 
 (defconfig csharp
   ;; limitation: can only work with one server/solution at a time currently
@@ -449,7 +425,6 @@
     (ns/bind-mode 'csharp "nu" 'omnisharp-find-usages)
     (ns/bind-mode 'csharp "nU" 'omnisharp-find-usages-with-ido)))
 
-
 (defconfig jump
   (use-package smart-jump
     :config
@@ -462,19 +437,15 @@
       "nb" 'smart-jump-back
       )
 
-    (advice-add #'smart-jump-go :after #'ns/focus-line)
-    ))
+    (advice-add #'smart-jump-go :after #'ns/focus-line)))
 
 
 (defconfig pdf
   (ns/guard ns/enable-home-p)
-  (use-package pdf-tools)
-  )
+  (use-package pdf-tools))
 
 (defconfig terraform
-  (use-package terraform-mode)
-  )
-
+  (use-package terraform-mode))
 
 (defconfig slack
   (ns/guard ns/enable-home-p)
@@ -536,8 +507,7 @@
     "3" 'slack-message-embed-channel
     )
 
-  (ns/bind
-    "as" 'slack-start))
+  (ns/bind "as" 'slack-start))
 
 (defconfig email
   (ns/guard ns/enable-home-p)
@@ -545,13 +515,11 @@
   )
 
 (defconfig jekyll
-  (use-package jekyll-modes)
-  )
+  (use-package jekyll-modes))
 
 (defconfig autohotkey
   (ns/guard ns/enable-windows-p)
-  (use-package xahk-mode)
-  )
+  (use-package xahk-mode))
 
 (defconfig markdown
   ;; (use-package markdownmode)
@@ -603,8 +571,7 @@
 
 (defconfig plantuml
   (use-package plantuml)
-  (use-package flycheck-plantuml)
-  )
+  (use-package flycheck-plantuml))
 
 (defconfig ledger
   (ns/guard ns/enable-home-p)
@@ -612,9 +579,7 @@
   (use-package flycheck-ledger)
   (use-package evil-ledger
     :config
-    (add-hook 'ledger-mode-hook #'evil-ledger-mode)
-    )
-  )
+    (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
 (defconfig lsp
   (use-package lsp-ui)
@@ -635,9 +600,7 @@
   (add-hook 'web-mode-hook 'my-js-hook)
   (add-hook 'web-mode-hook #'lsp-javascript-typescript-enable)
 
-  (remove-hook 'web-mode-hook #'lsp-javascript-flow-enable)
-
-  )
+  (remove-hook 'web-mode-hook #'lsp-javascript-flow-enable))
 
 (defconfig search-engines
   (use-package engine-mode
@@ -655,8 +618,7 @@
     (bind-search stack-overflow "https://stackoverflow.com/search?q=%s" "o")
     (bind-search github "https://github.com/search?ref=simplesearch&q=%s" "g")
     (bind-search youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s" "y")
-    (engine-mode t)
-    ))
+    (engine-mode t)))
 
 (defconfig filehooks
   (ns/guard ns/enable-home-p)

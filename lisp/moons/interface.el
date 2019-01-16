@@ -29,13 +29,7 @@
   (use-package rg)
   (setq-ns counsel
     grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
-    rg-base-command "rg -i -M 120 --no-heading --line-number --color never %s .")
-
-  ;; counsel-rg is crashing emacs on windows
-  ;; (can't C-g/esc, can't send USR2 on windows)
-  ;; (toggle-debug-on-error nil)
-  ;; (toggle-debug-on-quit nil)
-  )
+    rg-base-command "rg -i -M 120 --no-heading --line-number --color never %s ."))
 
 (use-package ranger
   :init (setq ranger-override-dired t)
