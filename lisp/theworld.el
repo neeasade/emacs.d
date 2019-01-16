@@ -866,21 +866,22 @@
   )
 
 ;; big bois
-(defconfig bedrock (load "~/.emacs.d/lisp/moons/bedrock.el"))
-(defconfig editing (load "~/.emacs.d/lisp/moons/editing.el"))
-(defconfig evil (load "~/.emacs.d/lisp/moons/evil.el"))
-(defconfig git (load "~/.emacs.d/lisp/moons/git.el"))
-(defconfig interface (load "~/.emacs.d/lisp/moons/interface.el"))
-(defconfig irc (load "~/.emacs.d/lisp/moons/irc.el"))
-(defconfig org (load "~/.emacs.d/lisp/moons/org.el"))
-(defconfig sanity (load "~/.emacs.d/lisp/moons/sanity.el"))
-(defconfig shell (load "~/.emacs.d/lisp/moons/shell.el"))
-(defconfig spaceline (load "~/.emacs.d/lisp/moons/spaceline.el"))
-(defconfig staging (load "~/.emacs.d/lisp/moons/staging.el"))
+;; having them listed like this gives ns/jump-config something to search for
+(defconfig bedrock       (load "~/.emacs.d/lisp/moons/bedrock.el"))
+(defconfig editing       (load "~/.emacs.d/lisp/moons/editing.el"))
+(defconfig evil          (load "~/.emacs.d/lisp/moons/evil.el"))
+(defconfig git           (load "~/.emacs.d/lisp/moons/git.el"))
+(defconfig interface     (load "~/.emacs.d/lisp/moons/interface.el"))
+(defconfig irc           (load "~/.emacs.d/lisp/moons/irc.el"))
+(defconfig org           (load "~/.emacs.d/lisp/moons/org.el"))
+(defconfig sanity        (load "~/.emacs.d/lisp/moons/sanity.el"))
+(defconfig shell         (load "~/.emacs.d/lisp/moons/shell.el"))
+(defconfig spaceline     (load "~/.emacs.d/lisp/moons/spaceline.el"))
+(defconfig staging       (load "~/.emacs.d/lisp/moons/staging.el"))
 (defconfig targetprocess (load "~/.emacs.d/lisp/moons/targetprocess.el"))
-(defconfig twitter (load "~/.emacs.d/lisp/moons/twitter.el"))
-(defconfig util (load "~/.emacs.d/lisp/moons/util.el"))
-(defconfig-base style (interactive) (load "~/.emacs.d/lisp/moons/style.el"))
+(defconfig twitter       (load "~/.emacs.d/lisp/moons/twitter.el"))
+(defconfig util          (load "~/.emacs.d/lisp/moons/util.el"))
+(defconfig-base style    (interactive) (load "~/.emacs.d/lisp/moons/style.el"))
 
 ;; todo: consider https://github.com/Bad-ptr/persp-mode.el
 ;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
