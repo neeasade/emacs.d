@@ -185,9 +185,8 @@
     ;; peek at last message hese
     (when (or
             (s-contains-p "http" circe-last-message)
-            (s-starts-with-p "." circe-last-message)
+            (-contains-p (string-to-list ",.!~[") (string-to-char circe-last-message))
             (s-starts-with-p "s/" circe-last-message)
-            (s-starts-with-p "!" circe-last-message)
             )
       (setq nick circe-last-nick)
       ))
@@ -495,8 +494,8 @@
                 ;; changing these two lines
                 ;; (format "*** %s" format)
                 ;; (format "*** [%s] %s" name format))))
-                (format (make-message "*" "%s") format)
-                (format (make-message name "%s") format))))
+                (format (ns/make-message "*" "%s") format)
+                (format (ns/make-message name "%s") format))))
         (circe-display 'circe--irc-format-server-numeric
           :nick (or nick "(unknown)")
           :userhost (or userhost "server")

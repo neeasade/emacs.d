@@ -9,8 +9,8 @@
 ;;; code:
 
 (defmacro defconfig-base (label &rest body)
-  `(defun ,(intern (concat "ns/" (prin1-to-string label))) nil
-     ,@body))
+  `(defun ,(intern (concat "ns/" (prin1-to-string label)))
+     nil ,@body))
 
 (defmacro defconfig (label &rest body)
   `(defconfig-base ,label
@@ -144,7 +144,7 @@
   (use-package company
     :config
     (setq-ns company
-      idle-delay (if ns/enable-windows-p 0.2 0)
+      idle-delay 0.3
       selection-wrap-around t
       tooltip-align-annotations t
       dabbrev-downcase nil
