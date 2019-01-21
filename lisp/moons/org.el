@@ -10,7 +10,7 @@
   directory (~ "notes")
   agenda-files (list org-directory)
   default-notes-file  (concat org-directory "/notes.org")
-  default-diary-file  (concat org-directory "/diary.org")
+  default-diary-file  (concat org-directory "/journal.org")
   default-habits-file  (concat org-directory "/habits.org")
 
   ellipsis "_"
@@ -45,16 +45,27 @@
   ;; todo: consider note option here.
   log-done 'time
 
+  ;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
+
   ;; capture
   ;; todo: into templates
   capture-templates
   `(
-     ("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks") "* TODO %^{Brief Description}" :prepend t)
+     ("t" "Todo" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t :immediate-finish t)
+     ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t)
+     ("i" "Idea" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t :immediate-finish t)
+     ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t)
+     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %U")
+     ("j" "Journal" entry (file+datetree ,org-default-diary-file) "* %?\n%U\n" :clock-in t :clock-resume t)
      )
 
   ;; current file or any of the agenda-files, max 9 levels deep
   refile-targets '((nil :maxlevel . 9)
-                    (org-agenda-files :maxlevel . 9)))
+                    (org-agenda-files :maxlevel . 9))
+
+  outline-path-complete-in-steps nil         ; Refile in a single go
+  refile-use-outline-path t                  ; Show full paths for refiling
+  )
 
 (ns/bind-leader-mode
   'org
@@ -179,8 +190,8 @@
 (defun ns/style-org ()
   (ns/set-faces-monospace '(org-block org-code org-table company-tooltip company-tooltip-common company-tooltip-selection))
 
-  (set-face-attribute 'org-block-begin-line nil :height 50)
-  (set-face-attribute 'org-block-end-line nil :height 50)
+  (set-face-attribute 'org-block-begin-line nil :height 65)
+  (set-face-attribute 'org-block-end-line nil :height 65)
 
   (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
     (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
