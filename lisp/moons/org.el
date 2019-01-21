@@ -15,7 +15,7 @@
     default-habits-file  (concat org-directory "/habits.org")
 
     ellipsis "_"
-    startup-indented t
+    startup-indented nil
     startup-folded t
     src-fontify-natively t
     startup-align-all-tables t
@@ -164,6 +164,7 @@
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
+(add-hook 'org-mode-hook 'org-indent-mode)
 
 (advice-add #'ns/style :after #'ns/style-org)
 (defun ns/style-org ()
@@ -183,5 +184,25 @@
     (with-current-buffer b (ns/set-buffer-face-variable)))
   )
 
-;; todo: into org agendas
-;; https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
+;; putting in this file to make sure it's after evil org mode
+(when ns/enable-evil-p
+  (ns/use-package evil-org "Somelauw/evil-org-mode")
+  (require 'evil-org-agenda)
+  (require 'evil-org)
+  (add-hook 'org-mode-hook 'evil-org-mode)
+
+  ;; cf https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org
+  ;; todo: review textobjects https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org#text-objects
+  (setq org-special-ctrl-a/e t)
+  (evil-org-set-key-theme '(textobjects navigation))
+  ;; mapping: org-insert-heading org-insert-todo-heading
+  ;; conflict: gl align op with gl org-down-element
+
+  (general-define-key
+    :states '(normal insert)
+    :keymaps 'org-mode-map
+    ;; should these be switched? I like carrying trees by default
+    (kbd "C-t") 'org-shiftmetaright
+    (kbd "C-d") 'org-shiftmetaleft
+    (kbd "C-S-T") 'org-metaright
+    (kbd "C-S-D") 'org-metaleft))

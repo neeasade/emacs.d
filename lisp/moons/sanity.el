@@ -16,6 +16,10 @@
   network-security-level 'high
   frame-resize-pixelwise t
 
+  ;; set to 0 for default/centering behavior
+  scroll-conservatively 1
+
+
   ;; todo: not working for multi caps path case
   ;; eg /thing/Thing/README.md
   ;; doesn't complete at /thing/Thing/rea
@@ -23,9 +27,10 @@
   dabbrev-case-fold-search nil
   )
 
-;; 1G
-(setq gc-cons-threshold (eval-when-compile (* 1024 1024 1024)))
-(run-with-idle-timer 2 t (lambda () (garbage-collect)))
+;; 2G
+(setq gc-cons-threshold (eval-when-compile (* 2 1024 1024 1024)))
+(defun ns/idle () (garbage-collect))
+(ns/add-firstrun-action '(run-with-idle-timer 2 t 'ns/idle))
 
 ;; trim gui
 (menu-bar-mode -1)

@@ -329,6 +329,10 @@
   :prefix "SPC"
   "nn" (fn! (ns/goto-highlight (ns/get-current-line))))
 
+;; mabye
+;; (defun ns/circe-map (type) (fn (ns/circe-format-all type <rest>)))
+;; (ns/circe-map 'notice)
+
 (setq-ns circe-format
   notice              (fn (ns/circe-format-all 'notice      <rest>))
   action              (fn (ns/circe-format-all 'action      <rest>))
@@ -366,6 +370,9 @@
   (if (or (not (circe-network-connected-p network))
         (y-or-n-p (format "Already connected to %s, reconnect? " network)))
     (circe network)))
+
+;; options: nil, post-command, post-output, t (both)
+(setq lui-scroll-behavior t)
 
 (defun connect-all-irc()
   (interactive)

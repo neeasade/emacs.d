@@ -140,23 +140,8 @@
 
 ;; todo: get this to hook
 ;; think it depends on gnu archive updating correctly.
-;; (use-package evil-org
-;;   :commands evil-org-mode
-;;   :after org
-;;   :init (add-hook 'org-mode-hook 'evil-org-mode)
-;;   :config
-;;   (add-hook 'evil-org-mode-hook
-;;     (lambda ()
-;;       (evil-org-set-key-theme
-;;         '(
-;;            textobjects
-;;            insert
-;;            navigation
-;;            additional
-;;            shift
-;;            todo
-;;            heading
-;;            )))))
+
+
 
 ;; persist marks
 (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
