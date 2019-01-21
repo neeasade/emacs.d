@@ -105,13 +105,14 @@
   "wl" 'evil-window-right
   "wd" 'evil-window-delete
   "ww" 'other-window
+  "ws" 'split-window-horizontally
+  "wS" 'split-window-vertically
   "wf" 'ns/follow-mode
   "wc" 'ns/toggle-margin
 
   "wm" 'delete-other-windows ;; window-max
   "wo" 'other-frame
 
-  ;; Applications
   "a" '(:ignore t :which-key "Applications")
 
   "b" '(:ignore t :which-key "Buffers")

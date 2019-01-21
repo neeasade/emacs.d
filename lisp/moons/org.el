@@ -203,17 +203,14 @@
       '((up . "e")
          (down . "n")
          (left . "h")
-         (right . "l")
-         )))
+         (right . "l"))))
 
   ;; cf https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org
   ;; todo: review textobjects https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org#text-objects
   (setq org-special-ctrl-a/e t)
   (evil-org-set-key-theme '(textobjects navigation))
 
-  ;; mapping: org-insert-heading org-insert-todo-heading
-  ;; conflict: gl align op with gl org-down-element
-
+  ;; todo: consider mapping: org-insert-todo-heading
   (general-define-key
     :states '(normal insert)
     :keymaps 'org-mode-map
@@ -221,4 +218,5 @@
     (kbd "C-t") 'org-shiftmetaright
     (kbd "C-d") 'org-shiftmetaleft
     (kbd "C-S-T") 'org-metaright
-    (kbd "C-S-D") 'org-metaleft))
+    (kbd "C-S-D") 'org-metaleft
+    (kbd "E") 'org-toggle-heading))
