@@ -65,15 +65,24 @@
   (set-in-navigation-evil-states "e" 'evil-previous-line)
   )
 
-(use-package evil-lion :config (evil-lion-mode))
+(use-package evil-lion
+  :config
+  (evil-define-key 'normal prog-mode-map
+    (kbd "g l") 'evil-lion-left
+    (kbd "g L") 'evil-lion-right)
+
+  (evil-define-key 'visual prog-mode-map
+    (kbd "g l") 'evil-lion-left
+    (kbd "g L") 'evil-lion-right))
+
 (use-package evil-commentary :config (evil-commentary-mode))
 (use-package evil-anzu :config (setq anzu-cons-mode-line-p nil)) ;; displays current match and total matches.
 (use-package evil-matchit :config (global-evil-matchit-mode 1))
+
 (use-package evil-numbers
   :config
   (general-nmap (kbd "C-c +") 'evil-numbers/inc-at-pt)
-  (general-nmap (kbd "C-c -") 'evil-numbers/dec-at-pt)
-  )
+  (general-nmap (kbd "C-c -") 'evil-numbers/dec-at-pt))
 
 ;; this is nice, but I don't use marks often.
 ;; (use-package evil-fringe-mark

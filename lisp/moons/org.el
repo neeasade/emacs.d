@@ -1,82 +1,78 @@
 (use-package org
   :straight (:host github
               :repo "emacsmirror/org"
-              :files ("lisp/*.el" "contrib/lisp/*.el"))
+              :files ("lisp/*.el" "contrib/lisp/*.el")))
 
-  :config
-  (when ns/enable-evil-p
-    (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
+(when ns/enable-evil-p
+  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
 
-  (setq-ns org
-    directory (~ "notes")
-    agenda-files (list org-directory)
-    default-notes-file  (concat org-directory "/notes.org")
-    default-diary-file  (concat org-directory "/diary.org")
-    default-habits-file  (concat org-directory "/habits.org")
+(setq-ns org
+  directory (~ "notes")
+  agenda-files (list org-directory)
+  default-notes-file  (concat org-directory "/notes.org")
+  default-diary-file  (concat org-directory "/diary.org")
+  default-habits-file  (concat org-directory "/habits.org")
 
-    ellipsis "_"
-    startup-indented nil
-    startup-folded t
-    src-fontify-natively t
-    startup-align-all-tables t
-    html-checkbox-type 'html
-    export-with-section-numbers nil
+  ellipsis "_"
+  startup-indented nil
+  startup-folded t
+  src-fontify-natively t
+  startup-align-all-tables t
+  html-checkbox-type 'html
+  export-with-section-numbers nil
 
-    ;; days before expiration where a deadline becomes active
-    deadline-warn-days 14
-    todo-keywords
-    '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-       (sequence "WAITING(w@/!)" "INACTIVE(i@/!)" "|" "CANCELLED(c@/!)" "MEETING"))
+  ;; days before expiration where a deadline becomes active
+  deadline-warn-days 14
+  todo-keywords
+  '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+     (sequence "WAITING(w@/!)" "INACTIVE(i@/!)" "|" "CANCELLED(c@/!)" "MEETING"))
 
-    blank-before-new-entry '((heading . t) (plainlist-item . nil))
-    tag-alist '(
-                 ("test" . ?t)
-                 ("endtest" . ?e)
-                 )
+  blank-before-new-entry '((heading . t) (plainlist-item . nil))
+  tag-alist '(
+               ("test" . ?t)
+               ("endtest" . ?e)
+               )
 
-    ;; clock
-    clock-x11idle-program-name "x11idle"
-    clock-idle-time 5
-    clock-sound nil
-    pomodoro-play-sounds nil
-    pomodoro-keep-killed-pomodoro-time t
-    pomodoro-ask-upon-killing nil
+  ;; clock
+  clock-x11idle-program-name "x11idle"
+  clock-idle-time 5
+  clock-sound nil
 
-    ;; todo: consider note option here.
-    log-done 'time
+  pomodoro-play-sounds nil
+  pomodoro-keep-killed-pomodoro-time t
+  pomodoro-ask-upon-killing nil
 
-    ;; capture
-    capture-templates
-    `(
-       ("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks") "* TODO %^{Brief Description}" :prepend t)
-       )
+  ;; todo: consider note option here.
+  log-done 'time
 
-    ;; current file or any of the agenda-files, max 9 levels deep
-    refile-targets '(
-                      (nil :maxlevel . 9)
-                      (org-agenda-files :maxlevel . 9)
-                      )
-    )
+  ;; capture
+  ;; todo: into templates
+  capture-templates
+  `(
+     ("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks") "* TODO %^{Brief Description}" :prepend t)
+     )
 
-  (ns/bind-leader-mode
-    'org
-    "," 'org-ctrl-c-ctrl-c
-    "t" 'org-todo
-    "T" 'org-show-todo-tree
-    "v" 'org-mark-element
-    "a" 'org-agenda
-    "l" 'evil-org-open-links
-    "p" 'org-pomodoro
-    "f" 'ns/org-set-active
-    "b" 'ns/org-open-url
-    )
+  ;; current file or any of the agenda-files, max 9 levels deep
+  refile-targets '((nil :maxlevel . 9)
+                    (org-agenda-files :maxlevel . 9)))
 
-  ;; give us easy templates/tab completion like yasnippet and the like
-  ;; form is '<<key><tab>', eg <s<tab> expands to src block
-  ;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
-  (ns/bind "no" 'counsel-org-goto-all)
-  (require 'org-tempo)
+(ns/bind-leader-mode
+  'org
+  "," 'org-ctrl-c-ctrl-c
+  "t" 'org-todo
+  "T" 'org-show-todo-tree
+  "v" 'org-mark-element
+  "a" 'org-agenda
+  "l" 'evil-org-open-links
+  "p" 'org-pomodoro
+  "f" 'ns/org-set-active
+  "b" 'ns/org-open-url
   )
+
+;; give us easy templates/tab completion like yasnippet and the like
+;; form is '<<key><tab>', eg <s<tab> expands to src block
+;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
+(require 'org-tempo)
 
 (defcommand org-open-url() (browse-url (org-entry-get nil "url")))
 
@@ -101,14 +97,12 @@
   (goto-char (org-find-property "focus"))
   (org-show-context)
   (org-show-subtree)
-  (ns/focus-line)
-  )
+  (ns/focus-line))
 
 (use-package org-pomodoro
   :config
-  (defun ns/toggle-music(action)
-    (let ((command (concat (if ns/enable-home-p "player.sh" "mpc") " " action)))
-      (shell-command command)))
+  (defun ns/toggle-music (action)
+    (shell-command (format "%s %s" (if ns/enable-home-p "player.sh" "mpc") action)))
 
   (add-hook 'org-pomodoro-started-hook
     (apply-partially #'ns/toggle-music "play"))
@@ -117,16 +111,30 @@
     (apply-partially #'ns/toggle-music "play"))
 
   (add-hook 'org-pomodoro-finished-hook
-    (apply-partially #'ns/toggle-music "pause"))
-  )
+    (apply-partially #'ns/toggle-music "pause")))
 
-(defcommand jump-org () (ns/find-or-open org-default-notes-file))
-
-;; todo: make this insert at focused story?
+;; insert an org link to the current location on the focused heading in notes.org
 (defcommand make-org-link-to-here ()
-  (insert (concat "[[file:" (buffer-file-name) "::"
-            (number-to-string (line-number-at-pos)) "]]")))
+  (let* ((line (number-to-string (line-number-at-pos)))
+          (link (format "file:%s::%s" (buffer-file-name) line))
+          ;; (label (format "%s:%s" (buffer-name) line))
+          (filepath (s-replace (s-replace "\\" "/" (~ "")) "~/" (buffer-file-name)))
+          (label (format "%s:%s" filepath line))
+          (org-link (format "[[%s][%s]]\n" link label)))
 
+    (with-current-buffer (find-file-noselect org-default-notes-file)
+      (save-excursion
+        (goto-char (org-find-property "focus"))
+        ;; cf https://stackoverflow.com/questions/52121961/emacs-org-mode-insert-text-after-heading-properties
+        (goto-char (org-element-property :contents-begin (org-element-at-point)))
+        (let ((first-element (org-element-at-point)))
+          (when (eq 'property-drawer (car first-element))
+            (goto-char (org-element-property :end first-element))))
+
+        (insert org-link)))))
+
+;; todo: use this more it's cool
+;; todo: consider removing marks after inserting org link
 (defcommand insert-mark-org-links ()
   (setq ns/markers
     (append (cl-remove-if (lambda (m)
@@ -136,8 +144,7 @@
       (cl-remove-if (lambda (m)
                       (or (not (evil-global-marker-p (car m)))
                         (not (markerp (cdr m)))))
-        (default-value 'evil-markers-alist)))
-    )
+        (default-value 'evil-markers-alist))))
 
   ;; remove automatic marks
   (dolist (key '(40 41 94 91 93))
@@ -153,14 +160,16 @@
               (mapcar 'cdr ns/markers)))))
 
 (ns/bind
-  "oo" 'ns/org-goto-active
+  "oo" (fn! (ns/find-or-open org-default-notes-file))
+  "of" 'ns/org-goto-active
   "oc" 'org-capture
   "or" 'org-refile
   "ol" 'ns/make-org-link-to-here
   "om" 'ns/insert-mark-org-links
+  "ow" 'widen
+  "on" 'org-narrow-to-subtree
 
-  ;; ehh
-  "on" 'ns/jump-org
+  "no" 'counsel-org-goto-all
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
@@ -177,24 +186,31 @@
     (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
     (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
     (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
-    (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
-    )
+    (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold))
 
   (dolist (b (ns/buffers-by-mode 'org-mode))
-    (with-current-buffer b (ns/set-buffer-face-variable)))
-  )
+    (with-current-buffer b (ns/set-buffer-face-variable))))
 
-;; putting in this file to make sure it's after evil org mode
+;; putting in this file to make sure it's after org mode
 (when ns/enable-evil-p
   (ns/use-package evil-org "Somelauw/evil-org-mode")
   (require 'evil-org-agenda)
   (require 'evil-org)
   (add-hook 'org-mode-hook 'evil-org-mode)
 
+  (when ns/enable-colemak
+    (setq evil-org-movement-bindings
+      '((up . "e")
+         (down . "n")
+         (left . "h")
+         (right . "l")
+         )))
+
   ;; cf https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org
   ;; todo: review textobjects https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org#text-objects
   (setq org-special-ctrl-a/e t)
   (evil-org-set-key-theme '(textobjects navigation))
+
   ;; mapping: org-insert-heading org-insert-todo-heading
   ;; conflict: gl align op with gl org-down-element
 

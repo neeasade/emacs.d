@@ -37,8 +37,11 @@
   (setq-ns ranger
     show-literal nil
     show-hidden t
-    cleanup-eagerly t
-    )
+    cleanup-eagerly t)
+
+  (when ns/enable-colemak
+    (define-key ranger-mode-map (kbd "n") 'ranger-next-file)
+    (define-key ranger-mode-map (kbd "e") 'ranger-prev-file))
 
   ;; call with eg 'dired-mode
   (defcommand kill-buffers-by-mode (mode)

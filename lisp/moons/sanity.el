@@ -135,6 +135,7 @@
   "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
   "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
   "nm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
+  "nU" 'undo-tree-visualize
 
   "t" '(:ignore t :which-key "Toggle")
   "tw" 'whitespace-mode

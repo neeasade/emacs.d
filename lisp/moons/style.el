@@ -90,6 +90,10 @@
          ("note" . ,highlight-color)
          )))
 
+  (general-nmap
+    "]t" 'hl-todo-next
+    "[t" 'hl-todo-previous)
+
   (global-hl-todo-mode)
   )
 
