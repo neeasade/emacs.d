@@ -47,15 +47,14 @@
 
   ;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
 
-  ;; capture
-  ;; todo: into templates
+  ;; cf https://orgmode.org/manual/Capture-templates.html#Capture-templates
   capture-templates
   `(
      ("t" "Todo" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t :immediate-finish t)
      ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %i%?" :prepend t)
      ("i" "Idea" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t :immediate-finish t)
      ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %i%?" :prepend t)
-     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %U")
+     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %T")
      ("j" "Journal" entry (file+datetree ,org-default-diary-file) "* %?\n%U\n" :clock-in t :clock-resume t)
      )
 
@@ -232,9 +231,13 @@
     (kbd "C-S-D") 'org-metaleft
     (kbd "E") 'org-toggle-heading))
 
-(use-package org-wild-notifier
-  :straight (:host github :repo  "neeasade/org-wild-notifier.el"
-              :branch "patch-1"))
-
-(setq org-wild-notifier-alert-time 10)
-(setq org-wild-notifier-keyword-whitelist nil)
+;; notify on timestamps
+(ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
+  :config
+  (setq-ns org-wild-notifier
+    alert-time 1
+    notification-title "Reminder"
+    keyword-whitelist nil
+    keyword-blacklist nil
+    alert-times-property "alert_times")
+  (org-wild-notifier-mode))
