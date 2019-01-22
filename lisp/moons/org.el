@@ -235,7 +235,7 @@
 (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
   :config
   (setq-ns org-wild-notifier
-    alert-time 1
+    alert-time 7
     notification-title "Reminder"
     keyword-whitelist nil
     keyword-blacklist nil
