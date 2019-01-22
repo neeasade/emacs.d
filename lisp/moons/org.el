@@ -52,9 +52,9 @@
   capture-templates
   `(
      ("t" "Todo" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t :immediate-finish t)
-     ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t)
+     ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %i%?" :prepend t)
      ("i" "Idea" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t :immediate-finish t)
-     ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t)
+     ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %i%?" :prepend t)
      ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %U")
      ("j" "Journal" entry (file+datetree ,org-default-diary-file) "* %?\n%U\n" :clock-in t :clock-resume t)
      )
@@ -231,3 +231,10 @@
     (kbd "C-S-T") 'org-metaright
     (kbd "C-S-D") 'org-metaleft
     (kbd "E") 'org-toggle-heading))
+
+(use-package org-wild-notifier
+  :straight (:host github :repo  "neeasade/org-wild-notifier.el"
+              :branch "patch-1"))
+
+(setq org-wild-notifier-alert-time 10)
+(setq org-wild-notifier-keyword-whitelist nil)
