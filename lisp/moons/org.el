@@ -1,3 +1,17 @@
+;; initially loaded org modules
+;; cf https://github.com/emacsmirror/org/tree/master/lisp
+(setq org-modules
+  '(
+     org-bibtex
+     org-clock
+     org-capture
+     org-agenda
+     org-src
+     org-gnus
+     org-info
+     org-mhe
+     ))
+
 (use-package org
   :straight (:host github
               :repo "emacsmirror/org"
@@ -29,8 +43,13 @@
 
   blank-before-new-entry '((heading . t) (plainlist-item . nil))
   tag-alist '(
-               ("test" . ?t)
-               ("endtest" . ?e)
+               ("work" . ?w)
+               ("personal" . ?p)
+               ("emacs" . ?e)
+               ("dotfiles" . ?d)
+               ("project" . ?P)
+               ("active" . ?a)
+               ("inactive" . ?i)
                )
 
   ;; clock
@@ -47,14 +66,21 @@
 
   ;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
 
+  ;; new setup outline
+  ;; * Inbox
+  ;; ** Tasks
+  ;; ** Ideas
+  ;; ** Reminders
+
   ;; cf https://orgmode.org/manual/Capture-templates.html#Capture-templates
+  ;; todo: template for 'cool link to checkout later ' like a blog
   capture-templates
   `(
      ("t" "Todo" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t :immediate-finish t)
      ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %i%?" :prepend t)
      ("i" "Idea" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t :immediate-finish t)
      ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %i%?" :prepend t)
-     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %T")
+     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %t")
      ("j" "Journal" entry (file+datetree ,org-default-diary-file) "* %?\n%U\n" :clock-in t :clock-resume t)
      )
 
@@ -178,6 +204,7 @@
   "om" 'ns/insert-mark-org-links
   "ow" 'widen
   "on" 'org-narrow-to-subtree
+  "oa" 'org-agenda
 
   "no" 'counsel-org-goto-all
   )
@@ -220,6 +247,17 @@
   (setq org-special-ctrl-a/e t)
   (evil-org-set-key-theme '(textobjects navigation))
 
+  ;; todo: review these https://github.com/Somelauw/evil-org-mode/blob/master/evil-org-agenda.el
+  (evil-org-agenda-set-keys)
+  (evil-define-key 'motion org-agenda-mode-map
+    "n" 'org-agenda-next-line
+    "e" 'org-agenda-previous-line
+    (kbd "C-n") 'org-agenda-next-item
+    (kbd "C-e") 'org-agenda-previous-item
+    "N" 'org-agenda-priority-down
+    "E" 'org-agenda-priority-up
+    )
+
   ;; todo: consider mapping: org-insert-todo-heading
   (general-define-key
     :states '(normal insert)
@@ -235,7 +273,7 @@
 (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
   :config
   (setq-ns org-wild-notifier
-    alert-time 1
+    alert-time 7
     notification-title "Reminder"
     keyword-whitelist nil
     keyword-blacklist nil
