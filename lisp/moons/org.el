@@ -68,6 +68,8 @@
   ;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
 
   ;; new setup outline
+  ;; todo: edna
+  ;; :TRIGGER:  next-sibling chain!("TRIGGER")  todo!("NEXT") self delete-property!("TRIGGER")
   ;; * Inbox
   ;; ** Tasks
   ;; ** Ideas
@@ -263,12 +265,17 @@
   (general-define-key
     :states '(normal insert)
     :keymaps 'org-mode-map
-    ;; should these be switched? I like carrying trees by default
+    ;; should these be switched? I like carrying trees by default I think
     (kbd "C-t") 'org-shiftmetaright
     (kbd "C-d") 'org-shiftmetaleft
     (kbd "C-S-T") 'org-metaright
     (kbd "C-S-D") 'org-metaleft
-    (kbd "E") 'org-toggle-heading))
+    )
+
+  (general-define-key
+    :states 'normal
+    :keymaps 'org-mode-map
+    (kbd "E") 'org-toggle-heading)
 
 ;; notify on timestamps
 (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
