@@ -147,11 +147,6 @@
   (evil-normal-state)
   (evil-visual-restore))
 
-;; todo: get this to hook
-;; think it depends on gnu archive updating correctly.
-
-
-
 ;; persist marks
 (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
 

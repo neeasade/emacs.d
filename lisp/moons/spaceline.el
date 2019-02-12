@@ -4,43 +4,39 @@
                  powerline-scale 1)))
     (truncate (* scale (frame-char-height)))))
 
-(use-package spaceline
-  :config
-  (require 'spaceline-config)
-  (setq-ns powerline
-    scale (string-to-number (get-resource "Emacs.powerlinescale"))
-    height (spacemacs/compute-powerline-height)
-    default-separator (get-resource "Emacs.powerline")
-    )
+(use-package spaceline)
+(require 'spaceline-config)
 
-  ;; (set-face-attribute 'spaceline-highlight-face nil :background (face-attribute 'spaceline-evil-normal :background))
+(setq-ns powerline
+  scale (string-to-number (get-resource "Emacs.powerlinescale"))
+  height (spacemacs/compute-powerline-height)
+  default-separator (get-resource "Emacs.powerline"))
 
-  ;; todo: make a circe segment
+;; todo: make a circe segment
+;; note to self: abandon this, look at switch-to-next, prev-buffer source, grab that and replace return
 
-  ;; note to self: abandon this, look at switch-to-next, prev-buffer source, grab that and replace return
-  (defun ns/next-buffer-name ()
-    (-first (lambda (bufname) (not (ns/should-skip bufname)))
-      (-map 'buffer-name (window-next-buffers))))
+(defun ns/next-buffer-name ()
+  (-first (lambda (bufname) (not (ns/should-skip bufname)))
+    (-map 'buffer-name (window-next-buffers))))
 
-  (defun ns/prev-buffer-name ()
-    (-first (lambda (bufname) (not (ns/should-skip bufname)))
-      (-map 'buffer-name
-        (-map 'first (window-prev-buffers)))))
+(defun ns/prev-buffer-name ()
+  (-first (lambda (bufname) (not (ns/should-skip bufname)))
+    (-map 'buffer-name
+      (-map 'first (window-prev-buffers)))))
 
-  (spaceline-define-segment next-buffers
-    "Docstring"
-    ;; A single form whose value is the value of the segment.
-    ;; It may return a string, an image or a list of such.
-    (when t
-      (concat
-        (s-left 8 (ns/prev-buffer-name))
-        " - "
-        (s-left 8 (ns/next-buffer-name)))
-      )
-    :enabled t
-    )
+(spaceline-define-segment next-buffers
+  "Docstring"
+  ;; A single form whose value is the value of the segment.
+  ;; It may return a string, an image or a list of such.
+  (when t
+    (concat
+      (s-left 8 (ns/prev-buffer-name))
+      " - "
+      (s-left 8 (ns/next-buffer-name))))
+  :enabled t
+  )
 
-  ;; this is needed to set default for new buffers?
+(defun ns/set-spaceline ()
   (spaceline-spacemacs-theme)
 
   (spaceline-compile 'main
@@ -60,40 +56,41 @@
        ((line-column buffer-position)
          :separator " |" )
        (battery :when active)
-       ))
+       )))
 
-  (setq mode-line-format '("%e" (:eval (spaceline-ml-main))))
+;; set the modeline for all existing buffers
+;; todo: make this unset modeline on not matching spawn
+(defcommand refresh-all-modeline (toggle)
+  (when toggle (ns/set-spaceline))
 
-  ;; set the modeline for all existing buffers
-  ;; todo: make this unset modeline on not matching spawn
-  (defcommand refresh-all-modeline (toggle)
-    (dolist (buf (buffer-list))
-      (when (not (s-starts-with-p "*spawn-shell" (buffer-name buf)))
-        (with-current-buffer buf
-          (setq mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) nil))
-          )))
+  (ns/setq-local-all
+    'mode-line-format
+    (if toggle
+      ''("%e" (:eval (spaceline-ml-main)))
+      ;; if we don't want modeline, we still might want
+      ;; padding on the bottom if we aren't using frame padding
+      (if (s-equals-p (get-resource "Emacs.padding_source") "st") nil " " )
+      ))
 
-    ;; for new buffers after:
-    (setq-default mode-line-format (if toggle '("%e" (:eval (spaceline-ml-main))) nil))
+  (when
+    (and
+      (not (s-equals-p (get-resource "Emacs.padding_source") "st"))
+      (not toggle))
+    (set-face-attribute 'mode-line          nil :background nil)
+    (set-face-attribute 'mode-line-inactive nil :background nil))
 
-    (setq window-divider-default-bottom-width (if toggle 0 1))
-
-    (when (not toggle)
-      (setq window-divider-default-right-width 1)
-      ;; (setq window-divider-default-places 'right)
-      (setq window-divider-default-places t)
-
-      (set-face-attribute 'window-divider nil :foreground
-        (face-attribute 'font-lock-comment-face :foreground))
-
-      (set-face-attribute 'mode-line-inactive nil :background nil)
-      )
-
-    (window-divider-mode (not toggle))
-
-    ;; (force redraw of all frames)
-    (ns/apply-frames (fn nil)))
-
-  (ns/refresh-all-modeline t)
-  (ns/bind "M" (fn! (ns/refresh-all-modeline (not mode-line-format))))
+  (setq window-divider-default-bottom-width (if toggle 0 1))
+  (ns/apply-frames (fn (set-frame-parameter <> 'bottom-divider-width (if toggle 0 1))))
+  ;; force redraw of all frames
+  (ns/apply-frames (fn nil))
   )
+
+(ns/refresh-all-modeline t)
+
+(ns/bind "M"
+  (fn! (ns/refresh-all-modeline
+         (s-blank-p
+           (s-trim
+             (if (stringp mode-line-format)
+               mode-line-format
+               "not blank"))))))

@@ -276,6 +276,7 @@
     :states 'normal
     :keymaps 'org-mode-map
     (kbd "E") 'org-toggle-heading)
+  )
 
 ;; notify on timestamps
 (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"

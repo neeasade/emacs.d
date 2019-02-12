@@ -19,40 +19,45 @@
           (redraw-frame frame))
     (frame-list)))
 
+;; handle 2 padding approaches
+;; use internal border on frames, or fake it with fringe mode and a header line on each buffer
+(let ((st-padding-p (s-equals-p (get-resource "Emacs.padding_source") "st"))
+       (st-padding (string-to-number (get-resource "st.borderpx"))))
 
-;; todo: make this apply to all open buffers and futur buffers
-;; see the dance we do in spaceline config
-(setq header-line-format nil)
+  (ns/setq-local-all 'header-line-format
+    (if st-padding-p nil " "))
 
-(fringe-mode)
-(setq ns/frame-padding (string-to-number (get-resource "st.borderpx")))
+  (when (not st-padding-p)
+    (set-face-attribute 'header-line nil :background (face-attribute 'default :background)))
 
-(when (s-equals-p (get-resource "Emacs.padding_source") "auto")
-  (setq ns/frame-padding 0)
+  ;; 8 is the default
+  (fringe-mode (if st-padding-p 8 (window-header-line-height)))
 
-  (setq header-line-format " ")
-  (set-face-attribute 'header-line nil :background (face-attribute 'default :background))
+  ;; current frame padding update
+  (ns/apply-frames
+    (fn (set-frame-parameter <> 'internal-border-width
+          (if st-padding-p st-padding 0))))
 
-  (fringe-mode (window-header-line-height)))
+  ;; future frames
+  (when (alist-get 'internal-border-width default-frame-alist)
+    (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
 
-;; todo: combine the header footer padding toggle stuff with this
-(ns/apply-frames
-  (fn (set-frame-parameter <> 'internal-border-width
-        ns/frame-padding)))
-
-;; future frames
-(when (alist-get 'internal-border-width default-frame-alist)
-  (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
-
-(add-to-list 'default-frame-alist
-  `(internal-border-width . ,ns/frame-padding))
+  (add-to-list 'default-frame-alist
+    `(internal-border-width . ,(if st-padding-p st-padding 0))))
 
 ;; sync w/ term background
+;; todo: revisit
 ;; (set-background-color (get-resource "*.background"))
 
+(setq window-divider-default-right-width 1)
+(ns/apply-frames (fn (set-frame-parameter <> 'right-divider-width 1)))
+(setq window-divider-default-places t)
+
 ;; assume softer vertical border by matching comment face
-(set-face-attribute 'vertical-border
-  nil :foreground (face-attribute 'font-lock-comment-face :foreground))
+(set-face-attribute 'window-divider nil :foreground (face-attribute 'font-lock-comment-face :foreground))
+(set-face-attribute 'vertical-border nil :foreground (face-attribute 'font-lock-comment-face :foreground))
+
+(window-divider-mode t)
 
 ;; this doesn't persist across new frames even though the docs say it should
 (set-face-attribute 'fringe nil :background nil)

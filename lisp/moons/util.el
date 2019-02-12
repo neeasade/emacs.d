@@ -238,3 +238,16 @@ buffer is not visiting a file."
   "tb" 'ns/toggle-bloat
   "iu" 'ns/buffercurl
   )
+
+;; update buffer local variables across all open buffers
+;; notmodes are modes to ignore
+(defun ns/setq-local-all (symbol value &optional notmodes)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (if notmodes
+        (when (not (-contains-p notmodes major-mode))
+          (eval `(setq-local ,symbol ,value)))
+        (eval `(setq-local ,symbol ,value))
+        )))
+
+  (eval `(setq-default ,symbol ,value)))
