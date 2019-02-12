@@ -251,3 +251,11 @@ buffer is not visiting a file."
         )))
 
   (eval `(setq-default ,symbol ,value)))
+
+;; callback on all open frames
+(defun ns/apply-frames (action)
+  (mapc (lambda(frame)
+          (interactive)
+          (funcall action frame)
+          (redraw-frame frame))
+    (frame-list)))

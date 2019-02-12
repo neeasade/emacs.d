@@ -14,7 +14,6 @@
 
 ;; todo: make a circe segment
 ;; note to self: abandon this, look at switch-to-next, prev-buffer source, grab that and replace return
-
 (defun ns/next-buffer-name ()
   (-first (lambda (bufname) (not (ns/should-skip bufname)))
     (-map 'buffer-name (window-next-buffers))))

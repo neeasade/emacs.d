@@ -12,13 +12,6 @@
 (set-face-attribute 'fringe nil :background nil)
 (set-face-background 'font-lock-comment-face nil)
 
-(defun ns/apply-frames (action)
-  (mapc (lambda(frame)
-          (interactive)
-          (funcall action frame)
-          (redraw-frame frame))
-    (frame-list)))
-
 ;; handle 2 padding approaches
 ;; use internal border on frames, or fake it with fringe mode and a header line on each buffer
 (let ((st-padding-p (s-equals-p (get-resource "Emacs.padding_source") "st"))
@@ -49,6 +42,7 @@
 ;; todo: revisit
 ;; (set-background-color (get-resource "*.background"))
 
+;; window divider stuff
 (setq window-divider-default-right-width 1)
 (ns/apply-frames (fn (set-frame-parameter <> 'right-divider-width 1)))
 (setq window-divider-default-places t)
@@ -59,11 +53,10 @@
 
 (window-divider-mode t)
 
-;; this doesn't persist across new frames even though the docs say it should
-(set-face-attribute 'fringe nil :background nil)
-(add-hook 'after-make-frame-functions
-  (lambda (frame)
-    (set-face-attribute 'fringe nil :background nil)))
+;; clear fringe background
+(defun ns/set-fringe-bg (frame) (set-face-attribute 'fringe frame :background nil))
+(ns/apply-frames 'ns/set-fringe-bg)
+(add-hook 'after-make-frame-functions 'ns/set-fringe-bg)
 
 ;; set font on current and future
 (set-face-attribute 'default nil :font (get-resource "st.font"))
@@ -71,15 +64,12 @@
 
 (setq-default indicate-empty-lines nil)
 
-(setq ns/colored-whitespace? nil)
-(defun color-whitespace-mode(&rest maybe)
-  (when (not ns/colored-whitespace?)
-    (set-face-attribute 'whitespace-space nil :background nil)
-    (set-face-attribute 'whitespace-tab nil :background nil)
-    (set-face-attribute 'whitespace-newline nil
-      :foreground (face-attribute 'whitespace-space :foreground))
-    (setq ns/colored-whitespace? t)
-    ))
+(defun color-whitespace-mode (&rest _)
+  (set-face-attribute 'whitespace-space nil :background nil)
+  (set-face-attribute 'whitespace-tab nil :background nil)
+  (set-face-attribute 'whitespace-newline nil
+    :foreground (face-attribute 'whitespace-space :foreground))
+  (setq ns/colored-whitespace? t))
 
 (advice-add 'whitespace-mode :after #'color-whitespace-mode )
 
@@ -99,8 +89,7 @@
     "]t" 'hl-todo-next
     "[t" 'hl-todo-previous)
 
-  (global-hl-todo-mode)
-  )
+  (global-hl-todo-mode))
 
 ;; NO BOLD
 ;; (set-face-bold-p doesn't cover everything, some fonts use slant and underline as bold...)
@@ -112,10 +101,6 @@
           ;;:inherit nil
           ))
   (face-list))
-
-(use-package dimmer
-  :config (setq dimmer-fraction 0.5)
-  (dimmer-mode 0))
 
 ;; gross colors, but need something so we have a signifier in unique match case
 ;; todo: maybe fix gross colors
