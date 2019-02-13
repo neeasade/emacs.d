@@ -148,3 +148,8 @@
      (straight-use-package '(,(make-symbol (symbol-name name)) :host github :repo ,repo))
      ;; assume first arg is :config
      ,@(cdr config)))
+
+;; imap + nmap
+(defun ns/inmap (keymap key func)
+  (general-imap :keymaps keymap key func)
+  (general-nmap :keymaps keymap key func))

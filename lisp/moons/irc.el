@@ -462,11 +462,6 @@
     (dolist (b (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))
       (with-current-buffer b (ns/set-buffer-face-variable)))))
 
-;; imap + nmap
-(defun ns/inmap (keymap key func)
-  (general-imap :keymaps keymap key func)
-  (general-nmap :keymaps keymap key func))
-
 (ns/inmap 'circe-channel-mode-map "<up>"      'lui-previous-input)
 (ns/inmap 'circe-channel-mode-map "<down>"    'lui-next-input)
 (ns/inmap 'circe-channel-mode-map (kbd "C-e") 'lui-previous-input)

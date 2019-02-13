@@ -17,12 +17,10 @@
 (setq comint-buffer-maximum-size 2000)
 (setq comint-prompt-read-only t)
 
-(define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
-(define-key comint-mode-map (kbd "<down>") 'comint-next-input)
-
-(when ns/enable-colemak
-  (define-key comint-mode-map (kbd "C-n") 'comint-next-input)
-  (define-key comint-mode-map (kbd "C-e") 'comint-previous-input))
+(ns/inmap 'comint-mode-map "<up>"      'comint-previous-input)
+(ns/inmap 'comint-mode-map "<down>"    'comint-next-input)
+(ns/inmap 'comint-mode-map (kbd "C-e") 'comint-previous-input)
+(ns/inmap 'comint-mode-map (kbd "C-n") 'comint-next-input)
 
 (use-package shx
   :config
