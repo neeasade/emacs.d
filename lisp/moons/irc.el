@@ -462,14 +462,21 @@
     (dolist (b (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))
       (with-current-buffer b (ns/set-buffer-face-variable)))))
 
-;; todo: consider C-n, C-e as well.
-;; todo: need query mode here too
-(general-imap :keymaps 'circe-channel-mode-map "<up>" 'lui-previous-input)
-(general-imap :keymaps 'circe-channel-mode-map "<down>" 'lui-next-input)
-(general-nmap :keymaps 'circe-channel-mode-map "<up>" 'lui-previous-input)
-(general-nmap :keymaps 'circe-channel-mode-map "<down>" 'lui-next-input)
+;; imap + nmap
+(defun ns/inmap (keymap key func)
+  (general-imap :keymaps keymap key func)
+  (general-nmap :keymaps keymap key func))
 
-(defun circe-command-NP (&optional ignored)
+(ns/inmap 'circe-channel-mode-map "<up>"      'lui-previous-input)
+(ns/inmap 'circe-channel-mode-map "<down>"    'lui-next-input)
+(ns/inmap 'circe-channel-mode-map (kbd "C-e") 'lui-previous-input)
+(ns/inmap 'circe-channel-mode-map (kbd "C-n") 'lui-next-input)
+(ns/inmap 'circe-query-mode-map "<up>"        'lui-previous-input)
+(ns/inmap 'circe-query-mode-map "<down>"      'lui-next-input)
+(ns/inmap 'circe-query-mode-map (kbd "C-e")   'lui-previous-input)
+(ns/inmap 'circe-query-mode-map (kbd "C-n")   'lui-next-input)
+
+(defun circe-command-NP (&optional _)
   (interactive "sAction: ")
   (circe-command-ME (concat "is now playing " (ns/shell-exec "music infoname"))))
 
