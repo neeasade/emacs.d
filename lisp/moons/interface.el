@@ -39,9 +39,8 @@
     show-hidden t
     cleanup-eagerly t)
 
-  (when ns/enable-colemak
-    (define-key ranger-mode-map (kbd "n") 'ranger-next-file)
-    (define-key ranger-mode-map (kbd "e") 'ranger-prev-file))
+  (define-key ranger-mode-map (kbd "n") 'ranger-next-file)
+  (define-key ranger-mode-map (kbd "e") 'ranger-prev-file)
 
   ;; call with eg 'dired-mode
   (defcommand kill-buffers-by-mode (mode)
@@ -100,8 +99,8 @@
   ;; windows
   "w" '(:ignore t :which-key "Windows")
   "wh" 'evil-window-left
-  (concat "w" (if ns/enable-colemak "n" "j")) 'evil-window-down
-  (concat "w" (if ns/enable-colemak "e" "k")) 'evil-window-up
+  "wn" 'evil-window-down
+  "we" 'evil-window-up
   "wl" 'evil-window-right
   "wd" 'evil-window-delete
   "ww" 'other-window

@@ -1,6 +1,4 @@
-;; makes ctrl ne up down nice on colemak (ivy)
-(when ns/enable-colemak
-  (global-set-key (kbd "C-e") 'previous-line))
+(global-set-key (kbd "C-e") 'previous-line)
 
 (use-package indent-guide
   :config

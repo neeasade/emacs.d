@@ -37,16 +37,15 @@
 (use-package evil-magit
   :config
   (evil-define-key evil-magit-state magit-mode-map "?" 'evil-search-backward)
-  (when ns/enable-colemak
-    (evil-define-key evil-magit-state magit-mode-map "n" 'evil-next-line)
-    (evil-define-key evil-magit-state magit-mode-map "e" 'evil-previous-line)
-    ;; doesn't work
-    (evil-define-key 'visual evil-magit-state magit-mode-map "n" 'evil-next-line)
-    (evil-define-key 'visual evil-magit-state magit-mode-map "e" 'evil-previous-line)
-    ;; (evil-define-key 'visual magit-status-mode-map (kbd "s") 'magit-stage-item)
+  (evil-define-key evil-magit-state magit-mode-map "n" 'evil-next-line)
+  (evil-define-key evil-magit-state magit-mode-map "e" 'evil-previous-line)
+  ;; todo: doesn't work
+  (evil-define-key 'visual evil-magit-state magit-mode-map "n" 'evil-next-line)
+  (evil-define-key 'visual evil-magit-state magit-mode-map "e" 'evil-previous-line)
+  ;; (evil-define-key 'visual magit-status-mode-map (kbd "s") 'magit-stage-item)
 
-    (evil-define-key evil-magit-state magit-mode-map "k" 'evil-search-next)
-    (evil-define-key evil-magit-state magit-mode-map "K" 'evil-search-previous)))
+  (evil-define-key evil-magit-state magit-mode-map "k" 'evil-search-next)
+  (evil-define-key evil-magit-state magit-mode-map "K" 'evil-search-previous))
 
 (use-package git-gutter-fringe
   :config

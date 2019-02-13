@@ -15,7 +15,6 @@
   ns/enable-home-p (string= (getenv "USER") "neeasade")
   ns/enable-docker-p (string= (getenv "USER") "emacser")
   ns/enable-work-p ns/enable-windows-p
-  ns/enable-colemak t
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
   `(

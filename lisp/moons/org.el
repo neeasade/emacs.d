@@ -238,12 +238,11 @@
   (require 'evil-org)
   (add-hook 'org-mode-hook 'evil-org-mode)
 
-  (when ns/enable-colemak
-    (setq evil-org-movement-bindings
-      '((up . "e")
-         (down . "n")
-         (left . "h")
-         (right . "l"))))
+  (setq evil-org-movement-bindings
+    '((up . "e")
+       (down . "n")
+       (left . "h")
+       (right . "l")))
 
   ;; cf https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org
   ;; todo: review textobjects https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org#text-objects

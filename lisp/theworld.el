@@ -71,6 +71,7 @@
 
   (use-package helpful
     :config
+    ;; todo: make this contextual dashdocs
     (global-set-key (kbd "C-h f") #'helpful-callable)
     (global-set-key (kbd "C-h v") #'helpful-variable)
     (global-set-key (kbd "C-h k") #'helpful-key)

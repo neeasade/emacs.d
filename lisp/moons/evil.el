@@ -4,22 +4,19 @@
   ;; for evil-collection
   :init (setq evil-want-integration nil)
   :config (evil-mode 1)
-  (when ns/enable-colemak
-    (general-nmap "N" 'evil-join)))
+  (general-nmap "N" 'evil-join))
 
 ;; disable: some of the binds get in the way of our colemak remappings.
 (use-package evil-collection :config
-  (when ns/enable-colemak
-    (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
-      (evil-collection-translate-key 'normal mode-keymaps
-        "n" "j"
-        "e" "k"
-        "j" "e"
-        "k" "n"
-        "K" "N"
-        ))
-    (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
-    )
+  (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
+    (evil-collection-translate-key 'normal mode-keymaps
+      "n" "j"
+      "e" "k"
+      "j" "e"
+      "k" "n"
+      "K" "N"
+      ))
+  (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
 
   (evil-collection-init))
 
@@ -44,26 +41,22 @@
 ;; for reference, alteratively tried:
 ;; https://github.com/noctuid/general.el#mapping-under-non-prefix-keys
 ;; but it's very laggy/intensive by comparison (measured in the profiler)
-(setq-default evil-escape-key-sequence
-  (if ns/enable-colemak "tn" "fj"))
-
+(setq-default evil-escape-key-sequence "tn")
 (use-package evil-escape :config (evil-escape-mode))
 
-(when ns/enable-colemak
-  (defun set-in-evil-states (key def maps)
-    (while maps
-      (define-key (pop maps) key def)))
+(defun set-in-evil-states (key def maps)
+  (while maps
+    (define-key (pop maps) key def)))
 
-  (defun set-in-navigation-evil-states (key def)
-    (set-in-evil-states key def (list evil-motion-state-map
-                                  evil-normal-state-map
-                                  evil-visual-state-map)))
+(defun set-in-navigation-evil-states (key def)
+  (set-in-evil-states key def (list evil-motion-state-map
+                                evil-normal-state-map
+                                evil-visual-state-map)))
 
-  (define-key evil-motion-state-map "k" 'evil-search-next)
-  (define-key evil-motion-state-map "K" 'evil-search-previous)
-  (set-in-navigation-evil-states "n" 'evil-next-line)
-  (set-in-navigation-evil-states "e" 'evil-previous-line)
-  )
+(define-key evil-motion-state-map "k" 'evil-search-next)
+(define-key evil-motion-state-map "K" 'evil-search-previous)
+(set-in-navigation-evil-states "n" 'evil-next-line)
+(set-in-navigation-evil-states "e" 'evil-previous-line)
 
 (use-package evil-lion
   :config
@@ -190,7 +183,6 @@
 
   (setq avy-all-windows 'all-frames)
   (setq avy-timeout-seconds 0.2)
-  (when ns/enable-colemak
-    (setq avy-keys (string-to-list "arstgkneio")))
+  (setq avy-keys (string-to-list "arstgkneio"))
 
   (general-nmap "s" 'avy-goto-char-timer))
