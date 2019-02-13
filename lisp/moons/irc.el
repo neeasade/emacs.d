@@ -480,7 +480,7 @@
   "ni" 'ns/jump-irc
   "nI" (fn! (counsel-switch-to-buffer-or-window "*circe-highlight*"))
   ;; ehhh
-  "nr" 'ns/goto-last-highlight
+  ;; "nr" 'ns/goto-last-highlight
   )
 
 ;; if this ever changes we're gonna break everything woo

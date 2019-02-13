@@ -9,6 +9,7 @@
 (use-package general)
 (use-package request)
 (require 'seq)
+(require 'cl-macs)
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 
@@ -33,12 +34,9 @@
   `(replace-regexp-in-string "\n$" ""
      (shell-command-to-string ,command)))
 
-;; todo: hide shell command succceeded with no output message after completion
 (defun ns/shell-exec-dontcare (command)
-  (let* (
-          (bufname (concat "*killme-shell" (number-to-string (random)) "*"))
-          (junk-buffer (get-buffer-create bufname))
-          )
+  (let* ((bufname (concat "*killme-shell" (number-to-string (random)) "*"))
+          (junk-buffer (get-buffer-create bufname)))
     (shell-command command junk-buffer)
     (kill-buffer junk-buffer)))
 
@@ -56,10 +54,8 @@
               (value (car (cdr pair))))
          (set
            (intern (concat (prin1-to-string ',namespace) "-" (prin1-to-string key)))
-           (eval value)
-           )))
-     (seq-partition ',lst 2)
-     ))
+           (eval value))))
+     (seq-partition ',lst 2)))
 
 (defun ~ (path)
   (concat

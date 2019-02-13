@@ -76,7 +76,7 @@
   ;; ** Reminders
 
   ;; cf https://orgmode.org/manual/Capture-templates.html#Capture-templates
-  ;; todo: template for 'cool link to checkout later ' like a blog
+  ;; todo: elisp function to capture from qutebrowser inbox url to browse later
   capture-templates
   `(
      ("t" "Todo" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t :immediate-finish t)
@@ -172,8 +172,9 @@
 
         (insert org-link)))))
 
-;; todo: use this more it's cool
-;; todo: consider removing marks after inserting org link
+(defcommand evil-delete-marks ()
+  (evil-delete-marks "ABCDEFGHIJKLMNOPQRSTUPWXYZ"))
+
 (defcommand insert-mark-org-links ()
   (setq ns/markers
     (append (cl-remove-if (lambda (m)
@@ -268,14 +269,12 @@
     (kbd "C-t") 'org-shiftmetaright
     (kbd "C-d") 'org-shiftmetaleft
     (kbd "C-S-T") 'org-metaright
-    (kbd "C-S-D") 'org-metaleft
-    )
+    (kbd "C-S-D") 'org-metaleft)
 
   (general-define-key
     :states 'normal
     :keymaps 'org-mode-map
-    (kbd "E") 'org-toggle-heading)
-  )
+    (kbd "E") 'org-toggle-heading))
 
 ;; notify on timestamps
 (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
