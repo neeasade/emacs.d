@@ -19,15 +19,12 @@
   ;; set to 0 for default/centering behavior
   scroll-conservatively 1
 
-
-  ;; todo: not working for multi caps path case
-  ;; eg /thing/Thing/README.md
-  ;; doesn't complete at /thing/Thing/rea
   completion-ignore-case  t
   dabbrev-case-fold-search nil
   )
 
 ;; 2G
+;; todo: reconsider this, auto wrap large operations or something
 (setq gc-cons-threshold (eval-when-compile (* 2 1024 1024 1024)))
 (defun ns/idle () (garbage-collect))
 (ns/add-firstrun-action '(run-with-idle-timer 2 t 'ns/idle))
@@ -126,11 +123,6 @@
       (profiler-stop))
     (profiler-cpu-start profiler-sampling-interval)))
 
-;; todo: replace linum-mode with this, maybe check running emacs version first?
-;; (display-line-numbers-mode)
-;; (setq display-line-numbers 'relative)
-(display-line-numbers-mode 0)
-
 (ns/bind
   "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
   "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
@@ -139,7 +131,7 @@
 
   "t" '(:ignore t :which-key "Toggle")
   "tw" 'whitespace-mode
-  "tn" 'linum-mode
+  "tn" (fn! (setq-local display-line-numbers (if display-line-numbers nil 'relative)))
   "tl" 'toggle-truncate-lines
   "ts" 'ns/style
   "ti" 'reload-init

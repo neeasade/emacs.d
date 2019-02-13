@@ -24,14 +24,12 @@
     (remove-hook 'server-switch-hook 'magit-commit-diff)
     ))
 
-;; todo: what
-(macroexpand-1
-  '(ns/use-package magit-todos "alphapapa/magit-todos"
-     :config
-     (setq magit-todos-nice ns/enable-linux-p)
-     (evil-define-key nil magit-todos-section-map "j" nil)
-     (magit-todos-mode))
-  )
+;; todo: revisit this when you have internet, also test on windows
+;; (ns/use-package magit-todos "alphapapa/magit-todos"
+;;   :config
+;;   (setq magit-todos-nice ns/enable-linux-p)
+;;   (evil-define-key nil magit-todos-section-map "j" nil)
+;;   (magit-todos-mode))
 
 (use-package magit-svn :config
   (add-hook 'magit-mode-hook 'magit-svn-mode))
