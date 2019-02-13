@@ -872,7 +872,6 @@
 (defconfig shell         (load "~/.emacs.d/lisp/moons/shell.el"))
 (defconfig spaceline     (load "~/.emacs.d/lisp/moons/spaceline.el"))
 (defconfig staging       (load "~/.emacs.d/lisp/moons/staging.el"))
-(defconfig targetprocess (load "~/.emacs.d/lisp/moons/targetprocess.el"))
 (defconfig twitter       (load "~/.emacs.d/lisp/moons/twitter.el"))
 (defconfig util          (load "~/.emacs.d/lisp/moons/util.el"))
 (defconfig-base style    (interactive) (load "~/.emacs.d/lisp/moons/style.el"))

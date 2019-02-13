@@ -77,7 +77,6 @@
   search-engines
 
   blog
-  targetprocess
   music
   pdf
   ledger
