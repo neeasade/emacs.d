@@ -24,10 +24,11 @@
      ("Emacs.powerlinescale" . "1.1")
      ("Emacs.theme"          . "base16-grayscale-light")
      ("Emacs.powerline"      . "bar")
-     ("Emacs.padding_source" . "auto") ;; auto or st
+     ("Emacs.padding_source" . "font") ;; font or st
      ("st.borderpx"          . "30")
-     ("st.font"              . "Go Mono-10")
-     ("st.font_variable"     . "Go-10")
+     ;; default to whatever loads
+     ("st.font"              . ,(font-get (face-attribute 'default :font) :name))
+     ("st.font_variable"     . ,(font-get (face-attribute 'default :font) :name))
      ))
 
 (setq load-prefer-newer t)
@@ -53,8 +54,8 @@
   editing
   shell
   git
-  org
   util
+  org
   server
   )
 

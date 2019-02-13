@@ -3,6 +3,30 @@
 ;; https://github.com/waymondo/apropospriate-theme
 ;;(use-package ujelly-theme)
 
+(defun ns/update-xrdb-font (font &optional variable)
+  (let ((key (if variable "st.font_variable" "st.font")))
+    (setq ns/xrdb-fallback-values
+      (delq (assoc key ns/xrdb-fallback-values) ns/xrdb-fallback-values))
+
+    (setq ns/xrdb-fallback-values
+      (cons `(,key . ,font) ns/xrdb-fallback-values))))
+
+;; if no query, check for some fallback fonts.
+(when (not (executable-find "xrq"))
+  (mapc
+    (fn (when (find-font (font-spec :name <>))
+          (ns/update-xrdb-font <>)))
+    '("Dejavu Sans Mono-14"
+       "Lucida Console-14"
+       "Go Mono-14"))
+  (mapc
+    (fn (when (find-font (font-spec :name <>))
+          (ns/update-xrdb-font <> t)))
+    '("Dejavu Sans-14"
+       "Lucida Console-14"
+       "Go-14"
+       "Charter-14")))
+
 (let ((theme (intern (get-resource "Emacs.theme"))))
   (when (boundp 'ns/loaded-theme)
     (disable-theme ns/loaded-theme))

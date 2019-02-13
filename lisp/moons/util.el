@@ -188,7 +188,11 @@ buffer is not visiting a file."
   )
 
 (defun ns/parse-font (font)
-  (let* ((parts (s-split "-" font))
+  (let* ((parts-in (s-split "-" font))
+          ;; if there is no -, assume it is something like 'Monospace 11', just replace all spaces with dashes
+          (parts (if (< (length parts-in) 2)
+                   (s-split "-" (s-replace " " "-" font))
+                   parts-in))
           (family (first parts))
           (size (string-to-number (second parts))))
     ;; height is in 1/10th of pt

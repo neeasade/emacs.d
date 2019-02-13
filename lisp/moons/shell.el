@@ -67,7 +67,11 @@
                       (if (string= (buffer-name (current-buffer)) "*shell-9*")
                         shell-pop-last-shell-buffer-index nil))))
 
-  (ns/bind "\"" 'shell-pop-9)
+  (ns/bind "\"" (fn!
+                  (if (string= (buffer-name (current-buffer)) "*shell-9*")
+                    (evil-window-delete)
+                    (shell-pop-9)
+                    )))
 
   ;; cf https://github.com/kyagi/shell-pop-el/issues/51
   (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
