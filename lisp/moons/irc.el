@@ -334,20 +334,20 @@
 ;; (ns/circe-map 'notice)
 
 (setq-ns circe-format
-  notice              (fn (ns/circe-format-all 'notice      <rest>))
-  action              (fn (ns/circe-format-all 'action      <rest>))
-  server-message      (fn (ns/circe-format-all 'notice      <rest>))
-  self-action         (fn (ns/circe-format-all 'action      <rest>))
-  say                 (fn (ns/circe-format-all 'say         <rest>))
-  self-say            (fn (ns/circe-format-all 'self-say    <rest>))
-  server-nick-change  (fn (ns/circe-format-all 'nick-change <rest>))
-  server-join         (fn (ns/circe-format-all 'join        <rest>))
-  server-part         (fn (ns/circe-format-all 'part        <rest>))
-  server-quit         (fn (ns/circe-format-all 'quit        <rest>))
-  server-topic        (fn (ns/circe-format-all 'topic       <rest>))
-  server-quit-channel (fn (ns/circe-format-all 'quit        <rest>))
-  server-mode-change  (fn (ns/circe-format-all 'mode-change <rest>))
-  server-topic-time (fn (ns/circe-format-all 'topic-time    <rest>))
+  notice              (lambda (&rest rest) (ns/circe-format-all 'notice      rest))
+  action              (lambda (&rest  rest) (ns/circe-format-all 'action      rest))
+  server-message      (lambda (&rest  rest) (ns/circe-format-all 'notice      rest))
+  self-action         (lambda (&rest  rest) (ns/circe-format-all 'action      rest))
+  say                 (lambda (&rest  rest) (ns/circe-format-all 'say         rest))
+  self-say            (lambda (&rest  rest) (ns/circe-format-all 'self-say    rest))
+  server-nick-change  (lambda (&rest  rest) (ns/circe-format-all 'nick-change rest))
+  server-join         (lambda (&rest  rest) (ns/circe-format-all 'join        rest))
+  server-part         (lambda (&rest  rest) (ns/circe-format-all 'part        rest))
+  server-quit         (lambda (&rest  rest) (ns/circe-format-all 'quit        rest))
+  server-topic        (lambda (&rest  rest) (ns/circe-format-all 'topic       rest))
+  server-quit-channel (lambda (&rest  rest) (ns/circe-format-all 'quit        rest))
+  server-mode-change  (lambda (&rest  rest) (ns/circe-format-all 'mode-change rest))
+  server-topic-time (lambda (&rest  rest) (ns/circe-format-all 'topic-time    rest))
   )
 
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
@@ -399,11 +399,6 @@
     word-wrap t
     wrap-prefix (ns/make-message "" ""))
   (setf (cdr (assoc 'continuation fringe-indicator-alist)) nil))
-
-(use-package circe-notifications :config
-  (autoload 'enable-circe-notifications "circe-notifications" nil t)
-  (eval-after-load "circe-notifications" '(setq circe-notifications-watch-strings ns/circe-highlights))
-  (add-hook 'circe-server-connected-hook 'enable-circe-notifications))
 
 (defun ns/circe-unread-query-buffers ()
   (-intersection

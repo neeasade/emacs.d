@@ -194,7 +194,8 @@
       min-length 2
       docsets-path (concat user-emacs-directory "docsets")
       browser-func 'ns/eww-browse-existing-or-new
-      ))
+      )
+    (make-directory counsel-dash-docsets-path t))
 
   (defcommand counsel-dash-word ()
     (if (region-active-p)
@@ -238,10 +239,11 @@
     "ee" 'cider-eval-defun-at-point
     )
 
-  ;; todo: check for joker exe and promp to put in path if this is used
-  (use-package flycheck-joker
-    :config
-    (require 'flycheck-joker))
+  (if (executable-find "joker")
+    (use-package flycheck-joker
+      :config (require 'flycheck-joker))
+    ;; todo: consider auto-getting this
+    (message "init: if you want clojure flycheck support, install joker"))
 
   ;; todo: this should move to flycheck setup:
   (use-package flycheck-pos-tip
@@ -255,6 +257,8 @@
 
 (defconfig music
   (ns/guard ns/enable-home-p)
+  (ns/guard (executable-find "mpd"))
+
   (use-package emms)
 
   (defun emms-start()
@@ -323,8 +327,6 @@
       (ivy-read "file: "
         (mapcar (lambda (s)
                   (s-replace
-                    ;; todo: consider only doing this
-                    ;; replace if we are windows
                     (s-replace "\\" "/" (~ ""))
                     "~/" s))
           (-distinct (append open-buffers recent-files project-files)))
@@ -408,9 +410,6 @@
 
 (defconfig csharp
   ;; limitation: can only work with one server/solution at a time currently
-  ;; todo: bind:
-  ;; omnisharp-start-omnisharp-server
-  ;; omnisharp-stop-omnisharp-server
   (ns/guard ns/enable-work-p)
   (use-package omnisharp
     :config
@@ -473,7 +472,6 @@
       )
     )
 
-  ;; todo: where is slack-info/context for this bind
   (ns/bind-leader-mode
     'slack-info
     "u" 'slack-room-update-messages)
@@ -624,7 +622,6 @@
   (ns/guard ns/enable-home-p)
 
   (defvar *afilename-cmd*
-    ;; todo: consider more here -- sxhkd, bspwmrc? ~/.wm_theme (if smart-load ever comes to fruition)
     `((,(~ ".Xresources") . "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst")
        (,(~ ".Xmodmap") . "xmodmap ~/.Xmodmap"))
     "File association list with their respective command.")
@@ -675,8 +672,6 @@
   )
 
 ;; use shell frames as terminals.
-;; todo: consider hiding this in window manager then popping it
-;; in rather than making a frame at launch time
 (defconfig terminal
   (defcommand stage-terminal ()
     (let ((default-directory (~ "")))
@@ -684,11 +679,10 @@
       (ns/toggle-modeline)
       (delete-window)
       ;; todo: find a way to set initial dirtrack to default-directory
-      (dirtrack-mode)
-      ))
+      ;; todo: make dirtrack smarter
+      (dirtrack-mode)))
 
   (ns/stage-terminal)
-
 
   (defcommand spawn-terminal ()
     (select-frame (make-frame))
@@ -841,7 +835,7 @@
   (use-package htmlize)
   (use-package org-static-blog
     :config
-    (setq ns/blog-name "kraken.docs")
+    (setq ns/blog-name "neeasade.github.io")
     (setq-ns org-static-blog
       publish-title "Notes"
       publish-url (concat "https://" ns/blog-name)

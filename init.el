@@ -94,15 +94,15 @@
 
   autohotkey
   clojure
-  csharp
+  ;; csharp
   elisp
   nix
-  javascript
-  typescript
+  ;; javascript
+  ;; typescript
   markdown
   powershell
   lua
-  guix
+  ;; guix
   ;; lsp
   ;; terraform
   ;; sql
@@ -113,8 +113,13 @@
 (ns/compose
   communication
 
-  irc slack twitter email
-  reddit stackexchange elfeed
+  irc 
+  ;; slack 
+  ;; twitter 
+  email
+  reddit 
+  stackexchange 
+  elfeed
   )
 
 ;; liftoff
