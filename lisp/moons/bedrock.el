@@ -115,7 +115,8 @@
 
 ;; wrap passwordstore
 (defun pass (key)
-  (ns/shell-exec (format "pass %s 2>/dev/null" key)))
+  (if (executable-find "pass")
+    (ns/shell-exec (format "pass %s 2>/dev/null" key)) ""))
 
 (defun get-resource (name)
   "Get X resource value, with a fallback value NAME."
