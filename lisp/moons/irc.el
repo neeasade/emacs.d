@@ -333,6 +333,7 @@
 ;; (defun ns/circe-map (type) (fn (ns/circe-format-all type <rest>)))
 ;; (ns/circe-map 'notice)
 
+;; todo: this is way broke
 (setq-ns circe-format
   notice              (lambda (&rest rest) (ns/circe-format-all 'notice      rest))
   action              (lambda (&rest  rest) (ns/circe-format-all 'action      rest))

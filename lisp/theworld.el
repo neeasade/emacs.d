@@ -71,11 +71,23 @@
 
   (use-package helpful
     :config
-    ;; todo: make this contextual dashdocs
     (global-set-key (kbd "C-h f") #'helpful-callable)
     (global-set-key (kbd "C-h v") #'helpful-variable)
     (global-set-key (kbd "C-h k") #'helpful-key)
-    (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol))
+    (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol)
+
+    ;; todo: make this work, figure out what goes to helpful-callable in interactive arg
+    (defun ns/helpful-or-dashdoc ()
+      (interactive)
+      (if (eq 'emacs-lisp-mode major-mode)
+        (helpful-callable)
+        (if ns/enable-dashdocs-p
+          (ns/counsel-dash-word)
+          (message "dash docs not enabled!")
+          )))
+
+    ;; (ns/bind "nd" 'ns/helpful-or-dash-doc)
+    )
 
   (use-package eros
     :config
@@ -90,8 +102,7 @@
           (eros-eval-last-sexp nil)
           (eros-eval-defun nil))))
 
-    (ns/bind-mode 'emacs-lisp
-      "e" 'ns/smart-elisp-eval)
+    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
 
     (ns/bind-leader-mode
       'emacs-lisp
@@ -876,9 +887,6 @@
 (defconfig twitter       (load "~/.emacs.d/lisp/moons/twitter.el"))
 (defconfig util          (load "~/.emacs.d/lisp/moons/util.el"))
 (defconfig-base style    (interactive) (load "~/.emacs.d/lisp/moons/style.el"))
-
-;; todo: consider https://github.com/Bad-ptr/persp-mode.el
-;; todo: consider https://scripter.co/accessing-devdocs-from-emacs/ instead of dashdocs
 
 (provide 'theworld)
 

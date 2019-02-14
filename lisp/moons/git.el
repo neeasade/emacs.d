@@ -34,25 +34,22 @@
 (use-package magit-svn :config
   (add-hook 'magit-mode-hook 'magit-svn-mode))
 
+;; todo: does this actually give us anything?
 (use-package evil-magit
   :config
-  (evil-define-key evil-magit-state magit-mode-map "?" 'evil-search-backward)
-  (evil-define-key evil-magit-state magit-mode-map "n" 'evil-next-line)
-  (evil-define-key evil-magit-state magit-mode-map "e" 'evil-previous-line)
-  ;; todo: doesn't work
-  (evil-define-key 'visual evil-magit-state magit-mode-map "n" 'evil-next-line)
-  (evil-define-key 'visual evil-magit-state magit-mode-map "e" 'evil-previous-line)
-  ;; (evil-define-key 'visual magit-status-mode-map (kbd "s") 'magit-stage-item)
-
-  (evil-define-key evil-magit-state magit-mode-map "k" 'evil-search-next)
-  (evil-define-key evil-magit-state magit-mode-map "K" 'evil-search-previous))
+  (general-nmap magit-mode-map "n" 'evil-next-line)
+  (general-nmap magit-mode-map "e" 'evil-previous-line)
+  (general-vmap magit-mode-map "n" 'evil-next-line)
+  (general-vmap magit-mode-map "e" 'evil-previous-line)
+  (general-nmap magit-mode-map "k" 'evil-search-next)
+  (general-nmap magit-mode-map "K" 'evil-search-previous)
+  (general-nmap magit-mode-map "?" 'evil-search-backward))
 
 (use-package git-gutter-fringe
   :config
   (setq git-gutter-fr:side 'right-fringe)
   ;; fails when too many buffers open on windows
-  (if ns/enable-linux-p (global-git-gutter-mode t))
-  )
+  (if ns/enable-linux-p (global-git-gutter-mode t)))
 
 (defhydra git-smerge-menu ()
   "
@@ -105,6 +102,7 @@
   :config
   (evil-define-key 'normal vdiff-mode-map "," vdiff-mode-prefix-map)
 
+  ;; todo: general-nmap this
   (evil-define-minor-mode-key 'normal 'vdiff-mode "]c" 'vdiff-next-hunk)
   (evil-define-minor-mode-key 'normal 'vdiff-mode "[c" 'vdiff-previous-hunk)
   (evil-define-minor-mode-key 'normal 'vdiff-mode "zc" 'vdiff-close-fold)
