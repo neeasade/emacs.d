@@ -34,6 +34,8 @@
            )
       (shell-command (format "nohup %s &" term) nil nil))))
 
+(add-hook 'shell-mode-hook 'shell-dirtrack-mode)
+
 (use-package shell-pop
   :config
   (setq-ns shell-pop

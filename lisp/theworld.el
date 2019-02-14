@@ -144,7 +144,12 @@
   (general-nmap
     "]e" 'flycheck-next-error
     "[e" 'flycheck-previous-error
-    ))
+    )
+
+  (use-package flycheck-pos-tip
+    :config
+    (eval-after-load 'flycheck
+      '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))))
 
 (defconfig treemacs
   (use-package treemacs)
@@ -173,7 +178,6 @@
       tooltip-align-annotations t
       )
 
-    ;; TODO: investigate tab handling like VS completely
     (define-key company-active-map [tab] 'company-complete)
     )
 
@@ -257,11 +261,7 @@
     ;; todo: consider auto-getting this
     (message "init: if you want clojure flycheck support, install joker"))
 
-  ;; todo: this should move to flycheck setup:
-  (use-package flycheck-pos-tip
-    :config
-    (eval-after-load 'flycheck
-      '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))))
+  )
 
 (defconfig nix
   (ns/guard ns/enable-home-p)
@@ -409,12 +409,9 @@
       (interactive)
       (tide-setup)
       (eldoc-mode +1)
-      (tide-hl-identifier-mode +1)
-      )
+      (tide-hl-identifier-mode +1))
 
     (add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-    ;; todo: check this
     (flycheck-add-mode 'typescript-tslint 'web-mode)
 
     ;; (add-hook 'before-save-hook 'tide-format-before-save)
@@ -431,10 +428,8 @@
     (add-hook 'csharp-mode-hook 'omnisharp-mode)
     (add-to-list 'company-backends 'company-omnisharp)
 
-    ;; (ns/bind-leader-mode 'csharp-mode "s" 'omnisharp-start-omnisharp-server)
-    ;; todo: add this keybind for other modes
-    (ns/bind-mode 'csharp "nu" 'omnisharp-find-usages)
-    (ns/bind-mode 'csharp "nU" 'omnisharp-find-usages-with-ido)))
+    (ns/bind-mode 'csharp "nr" 'omnisharp-find-usages)
+    (ns/bind-mode 'csharp "nR" 'omnisharp-find-usages-with-ido)))
 
 (defconfig jump
   (use-package smart-jump
@@ -446,6 +441,8 @@
       "n" '(:ignore t :which-key "Jump")
       "ng" 'smart-jump-go
       "nb" 'smart-jump-back
+      ;; todo: find an rg alternative? why does it have to be ag?
+      "nr" 'smart-jump-find-references-with-ag
       )
 
     (advice-add #'smart-jump-go :after #'ns/focus-line)))
@@ -503,11 +500,10 @@
     "u" 'slack-room-update-messages
     "2" 'slack-message-embed-mention
     "3" 'slack-message-embed-channel
+    "\C-n" 'slack-buffer-goto-next-message
+    "\C-e" 'slack-buffer-goto-prev-message
     )
 
-  ;; todo: something for these maybe
-  ;; "\C-n" 'slack-buffer-goto-next-message
-  ;; "\C-p" 'slack-buffer-goto-prev-message)
 
   (ns/bind-leader-mode
     'slack-edit-message
@@ -665,13 +661,13 @@
   (ns/guard ns/enable-home-p)
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
-  ;; https://github.com/agzam/mw-thesaurus.el
 
   (use-package writeroom-mode)
   (add-hook 'writeroom-mode-hook 'flyspell-mode)
 
-  (setq-default fill-column 80)
+  (setq-default fill-column 100)
   (add-hook 'writeroom-mode-hook 'auto-fill-mode)
+
   ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
   ;; There is no need for "^" as the regexp is matched at the beginning of line.
   (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
@@ -689,10 +685,7 @@
     (let ((default-directory (~ "")))
       (shell "*spawn-shell-staged*")
       (ns/toggle-modeline)
-      (delete-window)
-      ;; todo: find a way to set initial dirtrack to default-directory
-      ;; todo: make dirtrack smarter
-      (dirtrack-mode)))
+      (delete-window)))
 
   (ns/stage-terminal)
 
@@ -705,8 +698,7 @@
     (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
     (delete-other-windows)
     (set-window-fringes nil 0 0)
-    (ns/stage-terminal)
-    )
+    (ns/stage-terminal))
 
   (defcommand kill-spawned-shell (frame)
     (let ((windows (window-list frame)))

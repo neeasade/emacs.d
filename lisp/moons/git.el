@@ -51,6 +51,7 @@
   ;; fails when too many buffers open on windows
   (if ns/enable-linux-p (global-git-gutter-mode t)))
 
+;; todo: make this colemak
 (defhydra git-smerge-menu ()
   "
       movement^^^^               merge action^^           other
