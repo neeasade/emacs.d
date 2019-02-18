@@ -45,10 +45,10 @@
   blank-before-new-entry '((heading . t) (plainlist-item . nil))
   tag-alist '(
                ("work" . ?w)
-               ("personal" . ?p)
+               ("personal" . ?P)
                ("emacs" . ?e)
                ("dotfiles" . ?d)
-               ("project" . ?P)
+               ("project" . ?p)
                ("active" . ?a)
                ("inactive" . ?i)
                )
