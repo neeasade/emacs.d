@@ -187,13 +187,13 @@
     (setq company-quickhelp-delay 0.3)))
 
 (defconfig dashdocs
-  (defun ns/install-dashdoc (docset mode-hook)
+  (defmacro ns/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
-    (when (bound-and-true-p ns/enable-dashdocs-p)
-      (when (not (helm-dash-docset-installed-p docset))
-        (message (format "Installing %s docset..." docset))
-        (counsel-dash-install-docset (subst-char-in-string ?\s ?_ docset)))
-      (add-hook mode-hook (lambda() (setq-local counsel-dash-docsets `(,docset))))))
+    `(when (bound-and-true-p ns/enable-dashdocs-p)
+       (when (not (helm-dash-docset-installed-p ,docset))
+         (message (format "Installing %s docset..." ,docset))
+         (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))
+       (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
 
   (ns/guard ns/enable-home-p)
 
