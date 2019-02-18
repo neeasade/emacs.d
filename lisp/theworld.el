@@ -64,9 +64,9 @@
   (setq straight-cache-autoloads t)
   )
 
-
 (defconfig elisp
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
+
   (setq lisp-indent-function 'common-lisp-indent-function)
 
   (use-package helpful
@@ -187,39 +187,31 @@
     (setq company-quickhelp-delay 0.3)))
 
 (defconfig dashdocs
-  (defmacro ns/install-dashdoc (docset mode-hook)
-    "Install dash DOCSET if dashdocs enabled."
+  (defun ns/install-dashdoc (docset mode-hook)
+    "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
     (when (bound-and-true-p ns/enable-dashdocs-p)
-      (if (helm-dash-docset-installed-p docset)
-        `(progn
-           (message (format "%s docset is already installed!" ,docset))
-           (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
-           )
-        `(progn
-           (message (format "Installing %s docset..." ,docset))
-           (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset))
-           (add-hook ,mode-hook (lambda() (setq-local counsel-dash-docsets '(,docset))))
-           ))))
+      (when (not (helm-dash-docset-installed-p docset))
+        (message (format "Installing %s docset..." docset))
+        (counsel-dash-install-docset (subst-char-in-string ?\s ?_ docset)))
+      (add-hook mode-hook (lambda() (setq-local counsel-dash-docsets `(,docset))))))
 
   (ns/guard ns/enable-home-p)
 
   (use-package dash)
-  (use-package counsel-dash
-    :config
-    (setq-ns counsel-dash
-      min-length 2
-      docsets-path (concat user-emacs-directory "docsets")
-      browser-func 'ns/eww-browse-existing-or-new
-      )
-    (make-directory counsel-dash-docsets-path t))
+  (use-package counsel-dash)
+
+  (setq-ns counsel-dash
+    min-length 2
+    docsets-path (~ ".local/share/Zeal/Zeal/docsets")
+    browser-func 'ns/eww-browse-existing-or-new)
+  (make-directory counsel-dash-docsets-path t)
 
   (defcommand counsel-dash-word ()
     (if (region-active-p)
       (counsel-dash (buffer-substring (region-beginning) (region-end)))
       (counsel-dash (thing-at-point 'word))))
 
-  (ns/bind
-    "nd" 'ns/counsel-dash-word))
+  (ns/bind "nd" 'ns/counsel-dash-word))
 
 (defconfig zoom
   (use-package zoom
