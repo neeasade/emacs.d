@@ -25,12 +25,13 @@
       (beginning-of-line)
       (1+ (count-lines 1 (point))))))
 
-;; todo: this isn't working with anchors in other frames
 (defun ns/eww-browse-existing-or-new (url)
   "If eww is displayed, use that for URL, else open here."
-  (if (get-buffer-window "*eww*" 0)
-    (url-retrieve url 'eww-render
-      (list url nil (get-buffer "*eww*")))
+  (if (get-buffer-window "*eww*" 'visible)
+    (save-excursion
+      (select-window (get-buffer-window "*eww*" 'visible))
+      (ns/zz-scroll)
+      (eww url))
     (eww url)))
 
 (defun ns/color-is-light-p (name)
