@@ -50,13 +50,12 @@
 ;; note: (desktop-clear) to clean/kill everything.
 (make-directory (~ ".emacs.desktop") t)
 (setq-ns desktop
-  restore-eager 5
+  restore-eager 0
   auto-save-timeout 30
-  path (list (~ ".emacs.desktop"))
-  )
+  path (list (~ ".emacs.desktop")))
 
 ;; disabling in favor of recentf
-;; (desktop-save-mode 1)
+(desktop-save-mode 0)
 
 (setq browse-url-browser-function 'browse-url-generic)
 

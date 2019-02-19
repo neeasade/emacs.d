@@ -128,7 +128,8 @@
   ;; Emacs is terribly slow on windows
   (ns/toggle-bloat-global ns/enable-linux-p)
   (ns/style)
-  (eval (cons 'progn ns/firstrun-action)))
+  (eval (cons 'progn ns/firstrun-action))
+  (mapc 'find-file (seq-take recentf-list 5)))
 
 (provide 'init)
 ;;; init.el ends here

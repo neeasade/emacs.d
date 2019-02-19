@@ -106,12 +106,10 @@
 
 (defcommand find-or-open (filepath)
   "Find or open FILEPATH."
-  (let
-    ((filename (file-name-nondirectory filepath)))
+  (let ((filename (file-name-nondirectory filepath)))
     (if (get-buffer filename)
       (counsel-switch-to-buffer-or-window filename)
-      (find-file filepath)
-      )))
+      (find-file filepath))))
 
 ;; wrap passwordstore
 (defun pass (key)

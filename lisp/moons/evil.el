@@ -1,7 +1,10 @@
+;; evil-collection
+(setq evil-want-keybinding t)
+
 (general-evil-setup t)
 
 (use-package evil
-  ;; for evil-collection
+  ;; evil-collection
   :init (setq evil-want-integration nil)
   :config (evil-mode 1)
   (general-nmap "N" 'evil-join))

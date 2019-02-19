@@ -4,13 +4,12 @@
   (setq explicit-shell-file-name (getenv "SHELL")))
 
 (when (and ns/enable-windows-p (not ns/enable-docker-p))
-  (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
-  (setq explicit-bash.exe-args '("--login" "-i"))
-
   (setenv "PATH"
     (format "%s;%s"
       (~ "scoop/apps/git-with-openssh/current/usr/bin/")
-      (getenv "PATH"))))
+      (getenv "PATH")))
+  (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
+  (setq explicit-bash.exe-args '("--login" "-i")))
 
 ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
 (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
@@ -34,6 +33,7 @@
            )
       (shell-command (format "nohup %s &" term) nil nil))))
 
+;; todo: see if there is a smarter version of this
 (add-hook 'shell-mode-hook 'shell-dirtrack-mode)
 
 (use-package shell-pop
@@ -82,8 +82,7 @@
     ;; note: keep this outsite of let to close properly
     (ranger-kill-buffers-without-window))
 
-  (define-key ranger-mode-map (kbd "s") 'ns/shell-pop-ranger-dir)
-  )
+  (define-key ranger-mode-map (kbd "s") 'ns/shell-pop-ranger-dir))
 
 ;; fix for term, ansi term
 ;; https://github.com/hlissner/emacs-doom-themes/issues/54
