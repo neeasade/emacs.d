@@ -201,9 +201,10 @@
   (use-package counsel-dash)
 
   (setq-ns counsel-dash
-    min-length 2
+    min-length 0
     docsets-path (~ ".local/share/Zeal/Zeal/docsets")
     browser-func 'ns/eww-browse-existing-or-new)
+
   (make-directory counsel-dash-docsets-path t)
 
   (defcommand counsel-dash-word ()
@@ -831,29 +832,23 @@
   (use-package htmlize)
   (use-package org-static-blog
     :config
-    (setq ns/blog-name "neeasade.github.io")
+    (defun ns/blog-dir (dir) (concat "~/git/notes.neeasade.net/" dir))
+
     (setq-ns org-static-blog
+      publish-url "https://notes.neeasade.net"
       publish-title "Notes"
-      publish-url (concat "https://" ns/blog-name)
-      publish-directory (concat "~/git/" ns/blog-name "/blog/")
-      posts-directory (concat "~/git/" ns/blog-name "/posts")
-      drafts-directory  (concat "~/git/" ns/blog-name "/drafts")
+      publish-directory (ns/blog-dir "site")
+      posts-directory (ns/blog-dir "posts")
+      ;; abuse drafts to make static pages (drafts are not listed on the index screen)
+      drafts-directory (ns/blog-dir "pages")
       enable-tags nil
-      )
-
-    (defun ns/after-sitegen-action()
-      ;; todo: move folders over
-      )
-
-    (setq org-static-blog-page-header
-      ;; consider generating from directory contents
-      "
-    <link href=\"https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.css\" rel=\"stylesheet\">
-    <link rel=\"stylesheet\" href=\"https://unpkg.com/sakura.css/css/sakura.css\" type=\"text/css\">
-    "
-      )
-    )
-  )
+      ;; <head>
+      page-header (get-string-from-file (ns/blog-dir "inc/header"))
+      ;; before every page (menu links)
+      page-preamble (get-string-from-file (ns/blog-dir "inc/preamble"))
+      ;; after the content of every post
+      page-postamble (get-string-from-file (ns/blog-dir "inc/postamble"))
+      )))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
