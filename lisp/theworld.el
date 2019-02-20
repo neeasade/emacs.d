@@ -442,7 +442,7 @@
 
 
 (defconfig pdf
-  (ns/guard ns/enable-home-p)
+  (ns/guard ns/enable-linux-p)
   (use-package pdf-tools))
 
 (defconfig terraform
