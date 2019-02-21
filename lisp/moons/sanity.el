@@ -59,22 +59,18 @@
 
 (setq browse-url-browser-function 'browse-url-generic)
 
-(if ns/enable-windows-p
-  (if (executable-find "qutebrowser")
-    (setq browse-url-generic-program "qutebrowser")
-    (setq browse-url-browser-function 'browse-url-default-windows-browser)
-    )
-  (setq browse-url-generic-program (getenv "BROWSER"))
-  )
+(when ns/enable-windows-p
+  (setq browse-url-browser-function 'browse-url-default-windows-browser))
+
+(when (executable-find "qutebrowser")
+  (setq browse-url-generic-program "qutebrowser"))
+
+(when (getenv "BROWSER")
+  (setq browse-url-generic-program (getenv "BROWSER")))
 
 ;; Removes *scratch* from buffer after the mode has been set.
 (add-hook 'after-change-major-mode-hook
   (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
-
-;; disable semantic mode, this may bite me lets try it out
-(with-eval-after-load 'semantic
-  (add-to-list 'semantic-inhibit-functions (lambda () t))
-  )
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
