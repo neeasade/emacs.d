@@ -837,10 +837,10 @@
     (setq-ns org-static-blog
       publish-url "https://notes.neeasade.net"
       publish-title "Notes"
-      publish-directory (ns/blog-dir "site")
-      posts-directory (ns/blog-dir "posts")
+      publish-directory (ns/blog-dir "site/")
+      posts-directory (ns/blog-dir "posts/")
       ;; abuse drafts to make static pages (drafts are not listed on the index screen)
-      drafts-directory (ns/blog-dir "pages")
+      drafts-directory (ns/blog-dir "pages/")
       enable-tags nil
       ;; <head>
       page-header (get-string-from-file (ns/blog-dir "inc/header"))
@@ -848,7 +848,23 @@
       page-preamble (get-string-from-file (ns/blog-dir "inc/preamble"))
       ;; after the content of every post
       page-postamble (get-string-from-file (ns/blog-dir "inc/postamble"))
-      )))
+      )
+
+    (setq org-export-with-toc  nil)
+    (setq org-static-blog-index-length 1)
+
+    (defun ns/org-blog-clean-all ()
+      (mapc (fn (f-delete <>))
+        (f-entries org-static-blog-publish-directory
+          (fn (and (s-ends-with-p ".html" <>)
+                (not (s-equals-p "archive.html" <>)))))))
+
+    ;; (ns/org-blog-clean-all)
+    ;; (org-static-blog-publish)
+    ;; (advice-add #'org-static-blog-publish :before #'ns/org-blog-clean-all)
+    ;; (advice-remove #'org-static-blog-publish #'ns/org-blog-clean-all)
+    )
+  )
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
