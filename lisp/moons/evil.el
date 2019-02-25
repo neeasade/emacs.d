@@ -1,5 +1,5 @@
 ;; evil-collection
-(setq evil-want-keybinding t)
+(setq evil-want-keybinding nil)
 
 (general-evil-setup t)
 

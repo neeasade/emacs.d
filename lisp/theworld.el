@@ -221,6 +221,24 @@
     (setq zoom-size '(0.58 . 0.618))
     (zoom-mode 1)))
 
+(defconfig python
+  (ns/install-dashdoc "Python" 'python-mode-hook)
+
+  ;; todo: mode eval-in-repl to it's own thing, probably
+  (use-package eval-in-repl)
+  (require 'eval-in-repl)
+  (require 'eval-in-repl-python)
+
+  (setq eir-jump-after-eval nil)
+  (setq eir-always-split-script-window nil)
+  (setq eir-delete-other-windowsnil)
+  (setq eir-repl-placement 'left)
+
+  ;; run this first to start the repl
+  ;; (eir-run-python)
+  (ns/bind-mode 'python "e" 'eir-eval-in-python)
+  )
+
 (defconfig clojure
   (use-package clojure-mode)
   (use-package cider)
@@ -341,7 +359,7 @@
 
 (defconfig javascript
   ;; note: this is huge, takes a bit.
-  (ns/install-dashdoc "JavaScript" 'web-mode-hook)
+  ;; (ns/install-dashdoc "JavaScript" 'web-mode-hook)
 
   (defun js-jsx-indent-line-align-closing-bracket ()
     "Workaround sgml-mode and align closing bracket with opening bracket"
@@ -376,10 +394,9 @@
 
   (use-package prettier-js
     :config
-    (when ns/enable-work-p
-      (add-hook 'typescript-mode-hook 'prettier-js-mode)
-      (add-hook 'web-mode-hook 'prettier-js-mode)
-      (add-hook 'js-mode-hook 'prettier-js-mode)))
+    (add-hook 'typescript-mode-hook 'prettier-js-mode)
+    (add-hook 'web-mode-hook 'prettier-js-mode)
+    (add-hook 'js-mode-hook 'prettier-js-mode))
 
   ;; notes for using this
   ;; kill shx-mode
@@ -413,6 +430,7 @@
 (defconfig csharp
   ;; limitation: can only work with one server/solution at a time currently
   (ns/guard ns/enable-work-p)
+  (ns/guard ns/enable-windows-p)
   (use-package omnisharp
     :config
     (when (not (omnisharp--resolve-omnisharp-server-executable-path))
@@ -442,7 +460,7 @@
 
 
 (defconfig pdf
-  (ns/guard ns/enable-home-p)
+  (ns/guard ns/enable-linux-p)
   (use-package pdf-tools))
 
 (defconfig terraform
