@@ -106,6 +106,7 @@
   ;; sql
   ;; jekyll
   ;; plantuml
+  python
   )
 
 (ns/compose

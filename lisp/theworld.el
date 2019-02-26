@@ -231,7 +231,7 @@
 
   (setq eir-jump-after-eval nil)
   (setq eir-always-split-script-window nil)
-  (setq eir-delete-other-windowsnil)
+  (setq eir-delete-other-windows nil)
   (setq eir-repl-placement 'left)
 
   ;; run this first to start the repl
@@ -782,6 +782,8 @@
   (use-package powershell))
 
 (defconfig c
+  (ns/install-dashdoc "C" 'c-mode-hook)
+
   ;; note: depends on clang and cmake
   (use-package irony)
   (use-package flycheck-irony)
@@ -793,8 +795,7 @@
         (format "cd '%s' && make clean" compilation-directory))
       (recompile)))
 
-  (ns/bind "jk" 'ns/recompile)
-  )
+  (ns/bind "jk" 'ns/recompile))
 
 (defconfig lua
   (use-package lua-mode)
