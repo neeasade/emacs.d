@@ -41,7 +41,8 @@
   (spaceline-compile 'main
     '(
        anzu
-       (remote-host projectile-root ">>" buffer-id buffer-modified)
+       ;; (remote-host projectile-root ">>" buffer-id buffer-modified)
+       (buffer-id buffer-modified)
        (flycheck-error flycheck-warning)
        process
        )

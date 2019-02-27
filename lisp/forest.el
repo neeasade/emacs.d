@@ -1,4 +1,4 @@
-;;; theworld.el --- make the thing
+;;; forest.el --- forest.el
 ;;; commentary:
 ;;; functions             | ns/asdf
 ;;; pred functions        | ns/asdf-p
@@ -158,6 +158,7 @@
   )
 
 (defconfig company
+
   (use-package company
     :config
     (setq-ns company
@@ -195,7 +196,7 @@
          (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))
        (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
 
-  (ns/guard ns/enable-home-p)
+  ;; (ns/guard ns/enable-home-p)
 
   (use-package dash)
   (use-package counsel-dash)
@@ -222,7 +223,7 @@
     (zoom-mode 1)))
 
 (defconfig python
-  (ns/install-dashdoc "Python" 'python-mode-hook)
+  ;; (ns/install-dashdoc "Python2" 'python-mode-hook)
 
   ;; todo: mode eval-in-repl to it's own thing, probably
   (use-package eval-in-repl)
@@ -342,9 +343,9 @@
                 (mapcar 'buffer-file-name (buffer-list))))
 
             (project-files
-              (if ns/enable-linux-p
-                (ns/all-project-files open-buffers)
-                (ns/current-project-files)))
+              (ns/current-project-files)
+              ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files)))
+              )
             )
 
       (ivy-read "file: "
@@ -871,21 +872,21 @@
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-(defconfig bedrock       (load "~/.emacs.d/lisp/moons/bedrock.el"))
-(defconfig editing       (load "~/.emacs.d/lisp/moons/editing.el"))
-(defconfig evil          (load "~/.emacs.d/lisp/moons/evil.el"))
-(defconfig git           (load "~/.emacs.d/lisp/moons/git.el"))
-(defconfig interface     (load "~/.emacs.d/lisp/moons/interface.el"))
-(defconfig irc           (load "~/.emacs.d/lisp/moons/irc.el"))
-(defconfig org           (load "~/.emacs.d/lisp/moons/org.el"))
-(defconfig sanity        (load "~/.emacs.d/lisp/moons/sanity.el"))
-(defconfig shell         (load "~/.emacs.d/lisp/moons/shell.el"))
-(defconfig spaceline     (load "~/.emacs.d/lisp/moons/spaceline.el"))
-(defconfig staging       (load "~/.emacs.d/lisp/moons/staging.el"))
-(defconfig twitter       (load "~/.emacs.d/lisp/moons/twitter.el"))
-(defconfig util          (load "~/.emacs.d/lisp/moons/util.el"))
-(defconfig-base style    (interactive) (load "~/.emacs.d/lisp/moons/style.el"))
+(defconfig bedrock       (load "~/.emacs.d/lisp/trees/bedrock.el"))
+(defconfig editing       (load "~/.emacs.d/lisp/trees/editing.el"))
+(defconfig evil          (load "~/.emacs.d/lisp/trees/evil.el"))
+(defconfig git           (load "~/.emacs.d/lisp/trees/git.el"))
+(defconfig interface     (load "~/.emacs.d/lisp/trees/interface.el"))
+(defconfig irc           (load "~/.emacs.d/lisp/trees/irc.el"))
+(defconfig org           (load "~/.emacs.d/lisp/trees/org.el"))
+(defconfig sanity        (load "~/.emacs.d/lisp/trees/sanity.el"))
+(defconfig shell         (load "~/.emacs.d/lisp/trees/shell.el"))
+(defconfig spaceline     (load "~/.emacs.d/lisp/trees/spaceline.el"))
+(defconfig staging       (load "~/.emacs.d/lisp/trees/staging.el"))
+(defconfig twitter       (load "~/.emacs.d/lisp/trees/twitter.el"))
+(defconfig util          (load "~/.emacs.d/lisp/trees/util.el"))
+(defconfig-base style    (interactive) (load "~/.emacs.d/lisp/trees/style.el"))
 
-(provide 'theworld)
+(provide 'forest)
 
-;;; theworld.el ends here
+;;; forest.el ends here

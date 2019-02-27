@@ -93,7 +93,7 @@ buffer is not visiting a file."
         (s-chomp (s-chop-prefix "(defconfig " (car item))))
       (s-match-strings-all
         "^(defconfig [^ \(\)]+"
-        (get-string-from-file (~ ".emacs.d/lisp/theworld.el"))))))
+        (get-string-from-file (~ ".emacs.d/lisp/forest.el"))))))
 
 (defun ns/check-for-orphans()
   "Check to see if any defconfigs are missing from init."
@@ -110,10 +110,10 @@ buffer is not visiting a file."
     (lambda (option)
       (interactive)
       ;; arst
-      (if (f-exists-p (concat "~/.emacs.d/lisp/moons/" option ".el"))
-        (ns/find-or-open (concat "~/.emacs.d/lisp/moons/" option ".el"))
+      (if (f-exists-p (concat "~/.emacs.d/lisp/trees/" option ".el"))
+        (ns/find-or-open (concat "~/.emacs.d/lisp/trees/" option ".el"))
         (progn
-          (ns/find-or-open (~ ".emacs.d/lisp/theworld.el"))
+          (ns/find-or-open (~ ".emacs.d/lisp/forest.el"))
           (goto-char (point-min))
           (re-search-forward (concat "defconfig " option))))
       (ns/focus-line)

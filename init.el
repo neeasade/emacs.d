@@ -31,7 +31,7 @@
      ))
 
 (setq load-prefer-newer t)
-(eval-and-compile (load "~/.emacs.d/lisp/theworld.el"))
+(eval-and-compile (load "~/.emacs.d/lisp/forest.el"))
 
 (defmacro ns/load (&rest targets)
   `(mapc (lambda(target)

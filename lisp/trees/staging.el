@@ -160,3 +160,4 @@ Everything past that can be tailored to your liking.
   (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t))
 
 (add-hook 'shell-mode-hook 'ns/shell-track)
+
