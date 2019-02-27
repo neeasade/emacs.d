@@ -314,7 +314,8 @@
               (s-split "\n"
                 (shell-command-to-string
                   counsel-git-cmd
-                  ) t)))
+                  ) t)
+              ))
 
       (mapcar (fn (concat default-directory <>)) project-files-relative))
     )
@@ -335,8 +336,6 @@
 
   (defcommand jump-file ()
     (let* (
-            (recent-files recentf-list)
-
             (open-buffers
               ;; remove nils
               (-remove (lambda(file) (not file))
@@ -344,16 +343,12 @@
 
             (project-files
               (ns/current-project-files)
-              ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files)))
+              ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files))
               )
             )
 
       (ivy-read "file: "
-        (mapcar (lambda (s)
-                  (s-replace
-                    (s-replace "\\" "/" (~ ""))
-                    "~/" s))
-          (-distinct (append open-buffers recent-files project-files)))
+        (append recentf-list project-files open-buffers)
         :action #'find-file)))
 
   (ns/bind "ne" 'ns/jump-file ))
