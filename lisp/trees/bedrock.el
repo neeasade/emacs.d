@@ -133,10 +133,6 @@
     (load user-init-file nil 'nomessage)
     (message "Reloading init.el... done.")))
 
-(let ((extend-file (~ "extend.el")))
-  (when (file-exists-p extend-file)
-    (eval-and-compile (load extend-file))))
-
 ;; a macro for when something is not on melpa yet (assumes github)
 (defmacro ns/use-package (name repo &rest config)
   `(progn

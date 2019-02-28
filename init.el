@@ -130,7 +130,10 @@
   (ns/toggle-bloat-global ns/enable-linux-p)
   (ns/style)
   (eval (cons 'progn ns/firstrun-action))
-  (mapc 'find-file (seq-take recentf-list 5)))
+  (mapc 'find-file (seq-take recentf-list 5))
+  (let ((extend-file (~ "extend.el")))
+    (when (file-exists-p extend-file)
+      (eval-and-compile (load extend-file)))))
 
 (provide 'init)
 ;;; init.el ends here
