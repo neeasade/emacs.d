@@ -25,11 +25,12 @@
     ))
 
 ;; todo: revisit this when you have internet, also test on windows
-;; (ns/use-package magit-todos "alphapapa/magit-todos"
-;;   :config
-;;   (setq magit-todos-nice ns/enable-linux-p)
-;;   (evil-define-key nil magit-todos-section-map "j" nil)
-;;   (magit-todos-mode))
+(ns/use-package magit-todos "alphapapa/magit-todos"
+  :config
+  (setq magit-todos-nice ns/enable-linux-p)
+  (evil-define-key nil magit-todos-section-map "j" nil)
+  (evil-define-key nil magit-todos-section-map "e" nil)
+  (magit-todos-mode))
 
 (use-package magit-svn :config
   (add-hook 'magit-mode-hook 'magit-svn-mode))
@@ -43,7 +44,12 @@
   (general-vmap magit-mode-map "e" 'evil-previous-line)
   (general-nmap magit-mode-map "k" 'evil-search-next)
   (general-nmap magit-mode-map "K" 'evil-search-previous)
-  (general-nmap magit-mode-map "?" 'evil-search-backward))
+  (general-nmap magit-mode-map "?" 'evil-search-backward)
+
+  (general-nmap magit-status-mode-map "e" 'evil-previous-line)
+  (general-nmap magit-status-mode-map "n" 'evil-next-line)
+
+  )
 
 (use-package git-gutter-fringe
   :config

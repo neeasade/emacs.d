@@ -347,8 +347,7 @@
               )
             )
 
-      (ivy-read "file: "
-        (append recentf-list project-files open-buffers)
+      (ivy-read "file: " (append recentf-list project-files open-buffers)
         :action #'find-file)))
 
   (ns/bind "ne" 'ns/jump-file ))

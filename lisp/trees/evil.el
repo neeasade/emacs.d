@@ -187,3 +187,6 @@
   (setq avy-keys (string-to-list "arstgkneio"))
 
   (general-nmap "s" 'avy-goto-char-timer))
+
+;; break a bad habit by noping :b
+(evil-ex-define-cmd "b" nil)
