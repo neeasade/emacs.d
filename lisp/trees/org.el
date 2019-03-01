@@ -210,6 +210,7 @@
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
 
+  ;; todo: after this, open heading and center
   "no" 'counsel-org-goto-all
   )
 
@@ -277,12 +278,12 @@
     (kbd "E") 'org-toggle-heading))
 
 ;; notify on timestamps
-(ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
-  :config
-  (setq-ns org-wild-notifier
-    alert-time 7
-    notification-title "Reminder"
-    keyword-whitelist nil
-    keyword-blacklist nil
-    alert-times-property "alert_times")
-  (org-wild-notifier-mode))
+;; (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
+;;   :config
+;;   (setq-ns org-wild-notifier
+;;     alert-time 7
+;;     notification-title "Reminder"
+;;     keyword-whitelist nil
+;;     keyword-blacklist nil
+;;     alert-times-property "alert_times")
+;;   (org-wild-notifier-mode))

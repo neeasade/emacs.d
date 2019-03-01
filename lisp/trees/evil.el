@@ -189,4 +189,4 @@
   (general-nmap "s" 'avy-goto-char-timer))
 
 ;; break a bad habit by noping :b
-(evil-ex-define-cmd "b" nil)
+;; (evil-ex-define-cmd "b" nil)
