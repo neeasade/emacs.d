@@ -703,7 +703,10 @@
     (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
     (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
     (delete-other-windows)
-    (set-window-fringes nil 0 0)
+
+    (when (string= (get-resource "Emacs.padding_source") "st")
+      (set-window-fringes nil 0 0))
+
     (ns/stage-terminal))
 
   (defcommand kill-spawned-shell (frame)
@@ -718,6 +721,7 @@
 
 (defconfig elfeed
   (ns/guard ns/enable-home-p)
+  (ns/guard nil)
   (use-package elfeed
     :config
     (ns/bind "af" 'elfeed)
@@ -844,41 +848,37 @@
 
 (defconfig blog
   (use-package htmlize)
-  (use-package org-static-blog
-    :config
-    (defun ns/blog-dir (dir) (concat "~/git/notes.neeasade.net/" dir))
+  (use-package org-static-blog)
+  (defun ns/blog-dir (dir) (concat "~/git/notes.neeasade.net/" dir))
+  (ns/guard (f-exists-p (ns/blog-dir "")))
 
-    (setq-ns org-static-blog
-      publish-url "https://notes.neeasade.net"
-      publish-title "Notes"
-      publish-directory (ns/blog-dir "site/")
-      posts-directory (ns/blog-dir "posts/")
-      ;; abuse drafts to make static pages (drafts are not listed on the index screen)
-      drafts-directory (ns/blog-dir "pages/")
-      enable-tags nil
-      ;; <head>
-      page-header (get-string-from-file (ns/blog-dir "inc/header"))
-      ;; before every page (menu links)
-      page-preamble (get-string-from-file (ns/blog-dir "inc/preamble"))
-      ;; after the content of every post
-      page-postamble (get-string-from-file (ns/blog-dir "inc/postamble"))
-      )
+  (setq-ns org-static-blog
+    publish-url "https://notes.neeasade.net"
+    publish-title "Notes"
+    publish-directory (ns/blog-dir "site/")
+    posts-directory (ns/blog-dir "posts/")
+    ;; abuse drafts to make static pages (drafts are not listed on the index screen)
+    drafts-directory (ns/blog-dir "pages/")
+    enable-tags nil
+    ;; <head>
+    page-header (get-string-from-file (ns/blog-dir "inc/header"))
+    ;; before every page (menu links)
+    page-preamble (get-string-from-file (ns/blog-dir "inc/preamble"))
+    ;; after the content of every post
+    page-postamble (get-string-from-file (ns/blog-dir "inc/postamble")))
 
-    (setq org-export-with-toc  nil)
-    (setq org-static-blog-index-length 1)
+  (defun ns/org-blog-clean-all ()
+    (mapc (fn (f-delete <>))
+      (f-entries org-static-blog-publish-directory
+        (fn (and (s-ends-with-p ".html" <>)
+              (not (s-equals-p "archive.html" <>)))))))
+  ;; (ns/org-blog-clean-all)
 
-    (defun ns/org-blog-clean-all ()
-      (mapc (fn (f-delete <>))
-        (f-entries org-static-blog-publish-directory
-          (fn (and (s-ends-with-p ".html" <>)
-                (not (s-equals-p "archive.html" <>)))))))
+  (defun ns/blog-after-hook ()
+    (f-delete (ns/blog-dir "site/index.html") t)
+    (f-copy (ns/blog-dir "site/archive.html") (ns/blog-dir "site/index.html")))
 
-    ;; (ns/org-blog-clean-all)
-    ;; (org-static-blog-publish)
-    ;; (advice-add #'org-static-blog-publish :before #'ns/org-blog-clean-all)
-    ;; (advice-remove #'org-static-blog-publish #'ns/org-blog-clean-all)
-    )
-  )
+  (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for

@@ -32,9 +32,12 @@
   startup-folded t
   src-fontify-natively t
   startup-align-all-tables t
+
+  ;; export options
   html-checkbox-type 'html
   html-postamble nil
   export-with-section-numbers nil
+  export-with-toc nil
 
   ;; days before expiration where a deadline becomes active
   deadline-warn-days 14
