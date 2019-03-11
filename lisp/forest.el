@@ -211,7 +211,7 @@
   (defcommand counsel-dash-word ()
     (if (region-active-p)
       (counsel-dash (buffer-substring (region-beginning) (region-end)))
-      (counsel-dash (thing-at-point 'word))))
+      (counsel-dash "")))
 
   (ns/bind "nd" 'ns/counsel-dash-word))
 
@@ -223,7 +223,7 @@
     (zoom-mode 1)))
 
 (defconfig python
-  ;; (ns/install-dashdoc "Python2" 'python-mode-hook)
+  (ns/install-dashdoc "Python 2" 'python-mode-hook)
 
   ;; todo: mode eval-in-repl to it's own thing, probably
   (use-package eval-in-repl)
