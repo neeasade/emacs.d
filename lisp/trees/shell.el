@@ -67,6 +67,7 @@
                       (if (string= (buffer-name (current-buffer)) "*shell-9*")
                         shell-pop-last-shell-buffer-index nil))))
 
+  ;; todo: if a shell-pop-1-8 is open, close it before doing this (not just the active window)
   (ns/bind "\"" (fn!
                   (if (string= (buffer-name (current-buffer)) "*shell-9*")
                     (evil-window-delete)

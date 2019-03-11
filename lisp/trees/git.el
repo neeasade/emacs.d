@@ -129,7 +129,7 @@
 
 (ns/bind
   "g" '(:ignore t :which-key "git")
-  "gb" 'magit-blame
+  "gb" 'magit-blame-addition
   "gl" 'magit-log-buffer-file
   "gm" 'git-smerge-menu/body
   "gd" 'vdiff-mode ; ,h for a hydra!
