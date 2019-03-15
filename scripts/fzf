@@ -9,4 +9,4 @@ else
     rg --files "$@" > "$file"
 fi
 
-elisp -r '(ivy-read "" (s-split "\n" (get-string-from-file "'"$file"'")) :action (lambda(option) option))'
+elisp -r '(ivy-read "" (s-split "\n" (f-read "'"$file"'")) :action (lambda(option) option))'

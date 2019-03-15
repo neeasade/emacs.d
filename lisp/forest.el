@@ -859,13 +859,7 @@
     posts-directory (ns/blog-dir "posts/")
     ;; abuse drafts to make static pages (drafts are not listed on the index screen)
     drafts-directory (ns/blog-dir "pages/")
-    enable-tags nil
-    ;; <head>
-    page-header (get-string-from-file (ns/blog-dir "inc/header"))
-    ;; before every page (menu links)
-    page-preamble (get-string-from-file (ns/blog-dir "inc/preamble"))
-    ;; after the content of every post
-    page-postamble (get-string-from-file (ns/blog-dir "inc/postamble")))
+    enable-tags nil)
 
   (defun ns/org-blog-clean-all ()
     (mapc (fn (f-delete <>))
@@ -878,7 +872,15 @@
     (f-delete (ns/blog-dir "site/index.html") t)
     (f-copy (ns/blog-dir "site/archive.html") (ns/blog-dir "site/index.html")))
 
-  (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook))
+  (defun ns/blog-before-hook ()
+    (setq
+      org-static-blog-page-header (f-read (ns/blog-dir "inc-header"))
+      org-static-blog-page-preamble (f-read (ns/blog-dir "inc-preamble"))
+      org-static-blog-page-header (f-read (ns/blog-dir "inc-postamble"))))
+
+  (advice-add #'org-static-blog-publish :before #'ns/blog-before-hook)
+  (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook)
+  )
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for

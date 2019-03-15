@@ -1,11 +1,5 @@
 (use-package pcre2el)
 
-(defun get-string-from-file (filePath)
-  "Return filePath's file content."
-  (with-temp-buffer
-    (insert-file-contents filePath)
-    (buffer-string)))
-
 (defun s-clean (s)
   "remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
@@ -93,11 +87,11 @@ buffer is not visiting a file."
         (s-chomp (s-chop-prefix "(defconfig " (car item))))
       (s-match-strings-all
         "^(defconfig [^ \(\)]+"
-        (get-string-from-file (~ ".emacs.d/lisp/forest.el"))))))
+        (f-read (~ ".emacs.d/lisp/forest.el"))))))
 
 (defun ns/check-for-orphans()
   "Check to see if any defconfigs are missing from init."
-  (let ((initfile (get-string-from-file (~ ".emacs.d/init.el"))))
+  (let ((initfile (f-read (~ ".emacs.d/init.el"))))
     (mapcar
       (lambda(conf)
         (when (not (s-contains? conf initfile))
