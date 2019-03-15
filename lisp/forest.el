@@ -784,9 +784,9 @@
 
   (defun ns/blog-before-hook ()
     (setq
-      org-static-blog-page-header (f-read (ns/blog-dir "inc-header"))
-      org-static-blog-page-preamble (f-read (ns/blog-dir "inc-preamble"))
-      org-static-blog-page-header (f-read (ns/blog-dir "inc-postamble"))))
+      org-static-blog-page-header (f-read (ns/blog-dir "inc/header"))
+      org-static-blog-page-preamble (f-read (ns/blog-dir "inc/preamble"))
+      org-static-blog-page-header (f-read (ns/blog-dir "inc/postamble"))))
 
   (advice-add #'org-static-blog-publish :before #'ns/blog-before-hook)
   (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook)
