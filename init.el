@@ -113,11 +113,7 @@
   communication
 
   irc 
-  ;; slack 
-  ;; twitter 
   email
-  reddit 
-  stackexchange 
   elfeed
   )
 

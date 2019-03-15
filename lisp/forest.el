@@ -461,66 +461,6 @@
 (defconfig terraform
   (use-package terraform-mode))
 
-(defconfig slack
-  (ns/guard ns/enable-home-p)
-  (use-package slack
-    :commands (slack-start)
-    :init
-    (setq slack-buffer-emojify t)
-    (setq slack-prefer-current-team t)
-
-    :config
-    (when ns/enable-windows-p
-      ;; https://github.com/yuya373/emacs-slack/issues/161
-      (setq request-backend 'url-retrieve)
-      (setq slack-request-timeout 50)
-      )
-
-    (slack-register-team
-      :name (pass "slackteam")
-      :default t
-      :client-id (pass "slackid")
-      :client-secret (pass "slack")
-      :token (pass "slacktoken")
-      :subscribed-channels '(general random)
-      :full-and-display-names t
-      )
-    )
-
-  (ns/bind-leader-mode
-    'slack-info
-    "u" 'slack-room-update-messages)
-
-  (ns/bind-leader-mode
-    'slack
-    "c" 'slack-buffer-kill
-    "ra" 'slack-message-add-reaction
-    "rr" 'slack-message-remove-reaction
-    "rs" 'slack-message-show-reaction-users
-    "pl" 'slack-room-pins-list
-    "pa" 'slack-message-pins-add
-    "pr" 'slack-message-pins-remove
-    "mm" 'slack-message-write-another-buffer
-    "me" 'slack-message-edit
-    "md" 'slack-message-delete
-    "u" 'slack-room-update-messages
-    "2" 'slack-message-embed-mention
-    "3" 'slack-message-embed-channel
-    "\C-n" 'slack-buffer-goto-next-message
-    "\C-e" 'slack-buffer-goto-prev-message
-    )
-
-
-  (ns/bind-leader-mode
-    'slack-edit-message
-    "k" 'slack-message-cancel-edit
-    "s" 'slack-message-send-from-buffer
-    "2" 'slack-message-embed-mention
-    "3" 'slack-message-embed-channel
-    )
-
-  (ns/bind "as" 'slack-start))
-
 (defconfig email
   (ns/guard ns/enable-home-p)
   ;; TODO
@@ -594,25 +534,26 @@
     (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
 (defconfig lsp
+  ;; todo: review the javascript stuff in here, salvage any
   (use-package lsp-ui)
-  (use-package lsp-javascript-flow)
-  (use-package lsp-javascript-typescript)
+  ;; (use-package lsp-javascript-flow)
+  ;; (use-package lsp-javascript-typescript)
 
   (use-package cquery)
 
+  ;; (defun my-company-transformer (candidates)
+  ;;   (let ((completion-ignore-case t))
+  ;;     (all-completions (company-grab-symbol) candidates)))
 
-  (defun my-company-transformer (candidates)
-    (let ((completion-ignore-case t))
-      (all-completions (company-grab-symbol) candidates)))
+  ;; (defun my-js-hook nil
+  ;;   (make-local-variable 'company-transformers)
+  ;;   (push 'my-company-transformer company-transformers))
 
-  (defun my-js-hook nil
-    (make-local-variable 'company-transformers)
-    (push 'my-company-transformer company-transformers))
+  ;; (add-hook 'web-mode-hook 'my-js-hook)
+  ;; ;; (add-hook 'web-mode-hook #'lsp-javascript-typescript-enable)
 
-  (add-hook 'web-mode-hook 'my-js-hook)
-  (add-hook 'web-mode-hook #'lsp-javascript-typescript-enable)
-
-  (remove-hook 'web-mode-hook #'lsp-javascript-flow-enable))
+  ;; (remove-hook 'web-mode-hook #'lsp-javascript-flow-enable))
+  )
 
 (defconfig search-engines
   (use-package engine-mode
@@ -745,37 +686,6 @@
     ;; todo - could then get feeds out of this file
     ))
 
-(defconfig stackexchange
-  (ns/guard ns/enable-home-p)
-  (use-package sx
-    :config
-    (ns/bind "as" 'sx-tab-all-questions)
-    ))
-
-(defconfig reddit
-  (ns/guard ns/enable-home-p)
-  ;; todo: this needs some rice love
-  ;; text wrapping comments don't align
-  ;; could use some better keybinds, UX
-  (use-package md4rd
-    :config
-    (ns/bind "ar" 'md4rd)
-    (setq md4rd-subs-active
-      '(unixporn emacs))
-
-    (general-nmap md4rd-mode-map
-      "q" 'ns/kill-current-buffer
-      "o" 'md4rd-open
-      "r" 'md4rd-reply
-      "t" 'md4rd-widget-toggle-line
-      ;; "<tab>" 'md4rd-widget-toggle-line
-      )
-
-    (add-hook 'md4rd-mode-hook 'ns/md4rd)
-    (defun ns/md4rd ()
-      ;; (setq wrap-prefix "         ")
-      )))
-
 (defconfig powershell
   (ns/guard ns/enable-windows-p)
   (use-package powershell))
@@ -895,7 +805,6 @@
 (defconfig shell         (load "~/.emacs.d/lisp/trees/shell.el"))
 (defconfig spaceline     (load "~/.emacs.d/lisp/trees/spaceline.el"))
 (defconfig staging       (load "~/.emacs.d/lisp/trees/staging.el"))
-(defconfig twitter       (load "~/.emacs.d/lisp/trees/twitter.el"))
 (defconfig util          (load "~/.emacs.d/lisp/trees/util.el"))
 (defconfig-base style    (interactive) (load "~/.emacs.d/lisp/trees/style.el"))
 
