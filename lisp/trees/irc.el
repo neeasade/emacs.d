@@ -90,6 +90,7 @@
           "%s has joined an lunar amish colony."
           "%s never existed at all."
           "%s's mom showed up to take them home."
+          "%s's power went out."
           "%s is blasting off AGAINNnnnn...."
           "%s left to catch the dogecoin dip."
           "%s gave all their money to their brother day trader."

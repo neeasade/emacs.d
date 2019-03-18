@@ -128,7 +128,7 @@
 ;; for externals to call into
 (defun ns/org-get-active()
   (if (not (bound-and-true-p ns/org-active-story))
-    (progn
+    (save-excursion
       (ns/org-goto-active)
       (ns/org-set-active))
     ns/org-active-story

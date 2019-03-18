@@ -246,8 +246,7 @@ buffer is not visiting a file."
       (if notmodes
         (when (not (-contains-p notmodes major-mode))
           (eval `(setq-local ,symbol ,value)))
-        (eval `(setq-local ,symbol ,value))
-        )))
+        (eval `(setq-local ,symbol ,value)))))
 
   (eval `(setq-default ,symbol ,value)))
 

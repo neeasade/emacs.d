@@ -783,14 +783,16 @@
     (f-copy (ns/blog-dir "site/archive.html") (ns/blog-dir "site/index.html")))
 
   (defun ns/blog-before-hook ()
-    (setq
-      org-static-blog-page-header (f-read (ns/blog-dir "inc/header"))
+    ;; pages can get edits in place
+    (dolist (page (mapcar 'org-static-blog-matching-publish-filename (org-static-blog-get-draft-filenames)))
+      (f-delete page))
+
+    (setq org-static-blog-page-header (f-read (ns/blog-dir "inc/header"))
       org-static-blog-page-preamble (f-read (ns/blog-dir "inc/preamble"))
-      org-static-blog-page-header (f-read (ns/blog-dir "inc/postamble"))))
+      org-static-blog-page-postamble (f-read (ns/blog-dir "inc/postamble"))))
 
   (advice-add #'org-static-blog-publish :before #'ns/blog-before-hook)
-  (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook)
-  )
+  (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
