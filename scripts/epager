@@ -1,5 +1,4 @@
 #!/bin/sh
-
 target="$(mktemp)"
 
 (
@@ -8,6 +7,12 @@ target="$(mktemp)"
     done <&0
 ) > "$target"
 
-mode="${1:-text-mode}"
-elisp "(ns/find-or-open \"${target}\") (${mode}) (Man-cleanup-manpage)"
+# arbitrary
+if [ $(wc -l < "$target") -lt 25 ]; then
+    cat "$target"
+else
+    mode="${1:-text-mode}"
+    elisp "(ns/find-or-open \"${target}\") (${mode})"
+fi
+
 rm "$target"
