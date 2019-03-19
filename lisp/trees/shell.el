@@ -3,7 +3,7 @@
 (when ns/enable-linux-p
   (setq explicit-shell-file-name (getenv "SHELL")))
 
-(when (and ns/enable-windows-p (not ns/enable-docker-p))
+(when ns/enable-windows-p
   (setenv "PATH"
     (format "%s;%s"
       (~ "scoop/apps/git-with-openssh/current/usr/bin/")
@@ -63,15 +63,20 @@
   (mapc 'makepop (number-sequence 1 9))
 
   ;; treat 9 special, meant to be a long running buffer
-  (ns/bind "'" (fn! (shell-pop
-                      (if (string= (buffer-name (current-buffer)) "*shell-9*")
-                        shell-pop-last-shell-buffer-index nil))))
+  (ns/bind "'" (fn!
+                 (shell-pop
+                   (if (string= (buffer-name (current-buffer)) "*shell-9*")
+                     shell-pop-last-shell-buffer-index nil))))
 
   ;; todo: if a shell-pop-1-8 is open, close it before doing this (not just the active window)
   (ns/bind "\"" (fn!
                   (if (string= (buffer-name (current-buffer)) "*shell-9*")
                     (evil-window-delete)
-                    (shell-pop-9)
+                    (progn
+                      (shell-pop
+                        (if (string= (buffer-name (current-buffer)) "*shell-9*")
+                          shell-pop-last-shell-buffer-index nil))
+                      (shell-pop-9))
                     )))
 
   ;; cf https://github.com/kyagi/shell-pop-el/issues/51

@@ -124,38 +124,29 @@
       idle-change-delay 1
       global-modes '(not circe-channel-mode circe-query-mode)
       )
-
-    ;; (flycheck) disable jshint since we prefer eslint checking
-    (setq-default
-      flycheck-disabled-checkers
-      (append flycheck-disabled-checkers
-        '(javascript-jshint)))
-
-    ;; use eslint with web-mode for jsx files
-    (flycheck-add-mode 'javascript-eslint 'web-mode)
     )
 
-  ;; (ns/bind
-  ;;   "e" '(:ignore t :which-key "Errors")
-  ;;   "en" 'flycheck-next-error
-  ;;   "ep" 'flycheck-previous-error
-  ;;   )
+  ;; disable jshint since we prefer eslint checking
+  (setq-default
+    flycheck-disabled-checkers
+    (append flycheck-disabled-checkers
+      '(javascript-jshint)))
+
+  ;; use eslint with web-mode for jsx files
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
 
   (general-nmap
     "]e" 'flycheck-next-error
     "[e" 'flycheck-previous-error
     )
 
-  (use-package flycheck-pos-tip
-    :config
-    (eval-after-load 'flycheck
-      '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))))
+  (use-package flycheck-pos-tip)
+  (eval-after-load 'flycheck '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages)))
 
 (defconfig treemacs
   (use-package treemacs)
   (use-package treemacs-evil)
-  (use-package treemacs-projectile)
-  )
+  (use-package treemacs-projectile))
 
 (defconfig company
 
@@ -534,25 +525,9 @@
     (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
 (defconfig lsp
-  ;; todo: review the javascript stuff in here, salvage any
-  (use-package lsp-ui)
-  ;; (use-package lsp-javascript-flow)
-  ;; (use-package lsp-javascript-typescript)
+  ;; want to use eglot + flycheck, hrm
 
-  (use-package cquery)
-
-  ;; (defun my-company-transformer (candidates)
-  ;;   (let ((completion-ignore-case t))
-  ;;     (all-completions (company-grab-symbol) candidates)))
-
-  ;; (defun my-js-hook nil
-  ;;   (make-local-variable 'company-transformers)
-  ;;   (push 'my-company-transformer company-transformers))
-
-  ;; (add-hook 'web-mode-hook 'my-js-hook)
-  ;; ;; (add-hook 'web-mode-hook #'lsp-javascript-typescript-enable)
-
-  ;; (remove-hook 'web-mode-hook #'lsp-javascript-flow-enable))
+  ;; (use-package cquery)
   )
 
 (defconfig search-engines

@@ -1,13 +1,15 @@
 ;; elisp enhancers
-(use-package fn) ;function
-(use-package s) ;string
-(use-package f) ;file
-(use-package ht) ;hash table
+(use-package fn)   ;function
+(use-package s)    ;string
+(use-package f)    ;file
+(use-package ht)   ;hash table
+(use-package dash) ;lists
 
 ;; other
 (use-package hydra)
 (use-package general)
 (use-package request)
+(use-package shut-up)
 (require 'seq)
 (require 'cl-macs)
 
