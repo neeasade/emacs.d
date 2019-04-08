@@ -39,7 +39,8 @@
 ;; handle 2 padding approaches
 ;; use internal border on frames, or fake it with fringe mode and a header line on each buffer
 (let ((st-padding-p (s-equals-p (get-resource "Emacs.padding_source") "st"))
-       (st-padding (string-to-number (get-resource "st.borderpx"))))
+       ;; if we are home, use 0 padding so that xpad can get everything.
+       (st-padding (if ns/enable-home-p 0 (string-to-number (get-resource "st.borderpx")))))
 
   (ns/setq-local-all 'header-line-format
     (if st-padding-p nil " "))
