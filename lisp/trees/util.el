@@ -103,15 +103,13 @@ buffer is not visiting a file."
     :action
     (lambda (option)
       (interactive)
-      ;; arst
       (if (f-exists-p (concat "~/.emacs.d/lisp/trees/" option ".el"))
         (ns/find-or-open (concat "~/.emacs.d/lisp/trees/" option ".el"))
         (progn
           (ns/find-or-open (~ ".emacs.d/lisp/forest.el"))
           (goto-char (point-min))
-          (re-search-forward (concat "defconfig " option))))
-      (ns/focus-line)
-      )))
+          (re-search-forward (concat "defconfig " option "\n"))))
+      (ns/focus-line))))
 
 (defcommand toggle-bloat()
   "toggle bloat in the current buffer"

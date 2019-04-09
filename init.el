@@ -88,6 +88,7 @@
 
 (ns/compose
   development
+  c
 
   autohotkey
   clojure
