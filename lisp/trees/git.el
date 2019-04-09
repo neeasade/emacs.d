@@ -96,13 +96,34 @@
       (magit-insert-staged-changes)))
   (defun magit-staging ()
     (interactive)
-    (magit-mode-setup #'magit-staging-mode))
-  )
+    (magit-mode-setup #'magit-staging-mode)))
+
+;; cf https://github.com/alphapapa/unpackaged.el#improved-magit-status-command
+;;;###autoload
+(defun unpackaged/magit-status ()
+  "Open a `magit-status' buffer and close the other window so only Magit is visible.
+If a file was visited in the buffer that was active when this
+command was called, go to its unstaged changes section."
+  (interactive)
+  (let* ((buffer-file-path (when buffer-file-name
+                             (file-relative-name buffer-file-name
+                               (locate-dominating-file buffer-file-name ".git"))))
+          (section-ident `((file . ,buffer-file-path) (unstaged) (status))))
+    (magit-status)
+    (delete-other-windows)
+    (when buffer-file-path
+      (goto-char (point-min))
+      (cl-loop until (when (equal section-ident (magit-section-ident (magit-current-section)))
+                       (magit-section-show (magit-current-section))
+                       (recenter)
+                       t)
+        do (condition-case nil
+             (magit-section-forward)
+             (error (cl-return (magit-status-goto-initial-section-1))))))))
 
 (defcommand git-status()
-  (if ns/enable-windows-p (magit-staging) (magit-status))
-  (if (> (frame-pixel-width) (frame-pixel-height))
-    (delete-other-windows)))
+  (if ns/enable-windows-p (magit-staging)
+    (unpackaged/magit-status)))
 
 ;; todo: tryout this package
 (use-package vdiff

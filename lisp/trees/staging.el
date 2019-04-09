@@ -161,3 +161,27 @@ Everything past that can be tailored to your liking.
 
 (add-hook 'shell-mode-hook 'ns/shell-track)
 
+
+(defvar ns/gothic-table
+  (let ((str (make-string 127 0)))
+    (dotimes (i 127)
+      (aset str i i))
+    (dotimes (i 26)
+      (aset str (+ i ?A) (+ i ?𝔄))
+      (aset str (+ i ?a) (+ i ?𝔞)))
+    str))
+
+(defvar ns/widechar-table
+  (let ((str (make-string 127 0)))
+    (dotimes (i 127)
+      (aset str i i))
+    (dotimes (i 26)
+      (aset str (+ i ?A) (+ i ?Ａ))
+      (aset str (+ i ?a) (+ i ?ａ)))
+    str))
+
+(defun ns/text-to-gothic (beg end) (interactive "r")
+  (translate-region beg end ns/gothic-table))
+
+(defun ns/text-to-widechar (beg end) (interactive "r")
+  (translate-region beg end ns/gothic-table))
