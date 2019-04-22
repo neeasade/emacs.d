@@ -109,9 +109,8 @@ buffer is not visiting a file."
         (progn
           (ns/find-or-open (~ ".emacs.d/lisp/forest.el"))
           (goto-char (point-min))
-          (re-search-forward (concat "defconfig " option))))
-      (ns/focus-line)
-      )))
+          (re-search-forward (concat "defconfig " option "\n"))))
+      (ns/focus-line))))
 
 (defcommand toggle-bloat()
   "toggle bloat in the current buffer"
@@ -222,6 +221,20 @@ buffer is not visiting a file."
     (fn (-contains-p modes (buffer-local-value 'major-mode <>)))
     (buffer-list)))
 
+(defun ns/insert-history ()
+  (interactive)
+  (let
+    ((shell-name
+       (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
+       ))
+    (ivy-read "config: "
+      (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))
+      :action
+      (lambda (option)
+        (interactive)
+        (goto-char (point-max))
+        (insert option)))))
+
 (ns/bind
   ;; reconsider these, moved from w -> q for query
   "qf" 'ns/what-face
@@ -230,7 +243,7 @@ buffer is not visiting a file."
   "qq" 'ns/look-at-last-message
 
   ;; this should maybe be more generic ie mx history when not in shell
-  "qh" 'counsel-shell-history
+  "qh" 'ns/insert-history
 
   "fE" 'sudo-edit
   "nc" 'ns/jump-config
