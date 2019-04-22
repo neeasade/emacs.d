@@ -113,6 +113,7 @@
   "wo" 'other-frame
 
   "a" '(:ignore t :which-key "Applications")
+  "q" '(:ignore t :which-key "Query")
 
   "b" '(:ignore t :which-key "Buffers")
   "bd" 'ns/kill-current-buffer
