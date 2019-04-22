@@ -88,6 +88,7 @@
 
 (ns/compose
   development
+  c
 
   autohotkey
   clojure
@@ -126,9 +127,8 @@
   (ns/style)
   (eval (cons 'progn ns/firstrun-action))
   (mapc 'find-file (seq-take recentf-list 5))
-  (let ((extend-file (~ "extend.el")))
-    (when (file-exists-p extend-file)
-      (eval-and-compile (load extend-file)))))
+  (when (f-exists-p (~ "extend.el"))
+    (eval-and-compile (load (~ "extend.el")))))
 
 (provide 'init)
 ;;; init.el ends here

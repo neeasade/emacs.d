@@ -598,7 +598,7 @@
   (ns/bind "tf" 'writeroom-mode)
 
   (use-package mw-thesaurus)
-  (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
+  ;; (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
   )
 
 ;; use shell frames as terminals.
