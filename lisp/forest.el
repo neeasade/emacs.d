@@ -438,8 +438,7 @@
       "n" '(:ignore t :which-key "Jump")
       "ng" 'smart-jump-go
       "nb" 'smart-jump-back
-      ;; todo: find an rg alternative? why does it have to be ag?
-      "nr" 'smart-jump-find-references-with-ag
+      ;; todo: bind "nr" to references in different modes
       )
 
     (advice-add #'smart-jump-go :after #'ns/focus-line)))
@@ -672,14 +671,12 @@
   (use-package irony)
   (use-package flycheck-irony)
 
-  ;; jump to it
   (defcommand recompile ()
     (let ((compilation-directory (projectile-project-root)))
       (ns/shell-exec-dontcare
         (format "cd '%s' && make clean" compilation-directory))
       (recompile)))
-
-  (ns/bind "jk" 'ns/recompile))
+  )
 
 (defconfig lua
   (use-package lua-mode)
@@ -712,8 +709,7 @@
     (ns/bind "ss" 'deadgrep)
     (setq deadgrep-max-line-length 180)
     (general-nmap deadgrep-mode-map
-      "RET" 'deadgrep-visit-result-other-window)
-    ))
+      "RET" 'deadgrep-visit-result-other-window)))
 
 (defconfig guix
   (ns/guard ns/enable-home-p)

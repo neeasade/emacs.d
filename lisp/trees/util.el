@@ -103,7 +103,6 @@ buffer is not visiting a file."
     :action
     (lambda (option)
       (interactive)
-      ;; arst
       (if (f-exists-p (concat "~/.emacs.d/lisp/trees/" option ".el"))
         (ns/find-or-open (concat "~/.emacs.d/lisp/trees/" option ".el"))
         (progn
