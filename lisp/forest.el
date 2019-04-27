@@ -776,30 +776,38 @@
   (defun slime-eval-last-sexp-overlay ()
     "Wrapper for `eval-last-sexp' that overlays results."
     (interactive)
-    ;; #\\Newline
     (eros--eval-overlay
       (let ((result (s-trim (slime-eval `(swank:pprint-eval ,(slime-last-expression))))))
-        ;; cf http://www.lispworks.com/documentation/HyperSpec/Body/02_dh.htm
-        (if (s-starts-with-p "#\\" result) result
-          (if (s-starts-with-p "#" result)
-            ;; eg #p"arst" => "#p arst"
+        (cond
+          ;; number or string, eval it
+          ((-contains-p '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?\")
+             (string-to-char (substring result 0 1)))
+            (eval (car (read-from-string result))))
+
+          ;; eg #\\Newline
+          ((s-starts-with-p "#\\" result) result)
+
+          ;; cf http://www.lispworks.com/documentation/HyperSpec/Body/02_dh.htm
+          ;; eg #p"arst" => "#p arst"
+          ((s-starts-with-p "#" result)
             (format "%s %s"
               (substring result 0 2)
-              (substring result 3 (- (length result) 1)))
-            (if (s-ends-with-p "\nNIL" result)
-              result
-              (if (or
-                    ;; surrounded with ()
-                    (and (s-starts-with-p "(" result)
-                      (s-ends-with-p ")" result))
+              (substring result 3 (- (length result) 1))))
 
-                    ;; is not a number or string
-                    (not (-contains-p '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?\")
-                           (string-to-char (substring result 0 1)))))
+          ;; maybe remove NIL from the end
+          ((s-ends-with-p "\nNIL" result) result)
 
-                (eval (car (read-from-string (format "(quote %s)" result))))
-                (eval (car (read-from-string result)))
-                )))))
+          ;; list
+          ((and (s-starts-with-p "(" result)
+             (s-ends-with-p ")" result))
+            (eval (car (read-from-string (format "(quote %s)" result)))))
+
+          ;; spaces, give up
+          ((s-contains-p " " result) result)
+
+          ;; symbol
+          (t (eval (car (read-from-string (format "(quote %s)" result)))))
+          ))
       (point)))
 
   (ns/install-dashdoc "Common Lisp" 'lisp-mode-hook)
