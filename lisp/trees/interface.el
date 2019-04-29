@@ -9,6 +9,10 @@
     count-format "%d/%d "
     )
 
+  (general-define-key
+    :keymaps 'ivy-minibuffer-map
+    (kbd "<C-return>") 'ivy-immediate-done)
+
   ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
   (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
 

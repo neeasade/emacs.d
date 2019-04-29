@@ -2,9 +2,14 @@
 
 (use-package circe)
 
-(setq ns/irc-nick "neeasade")
+(setq
+  ns/irc-nick "neeasade"
+  circe-default-nick ns/irc-nick
+  circe-default-user ns/irc-nick
+  circe-default-realname ns/irc-nick)
+
 (setq ns/circe-highlights
-  `(,ns/irc-nick "bspwm"))
+  `(,ns/irc-nick "bspwm" "emacs"))
 
 (setq-ns lui
   logging-directory (~ ".irc")
@@ -475,6 +480,7 @@
 (ns/circe-bind "<down>"    'lui-next-input)
 (ns/circe-bind (kbd "C-e") 'lui-previous-input)
 (ns/circe-bind (kbd "C-n") 'lui-next-input)
+(ns/circe-bind [(shift return)] (fn! (insert "\n")))
 
 (defun circe-command-NP (&optional _)
   (interactive "sAction: ")

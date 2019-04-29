@@ -774,14 +774,12 @@
   ;; depends on eros package
   ;; I really like eval overlays.
   (defun slime-eval-last-sexp-overlay ()
-    "Wrapper for `eval-last-sexp' that overlays results."
     (interactive)
     (eros--eval-overlay
       (let ((result (s-trim (slime-eval `(swank:pprint-eval ,(slime-last-expression))))))
         (cond
           ;; number or string, eval it
-          ((-contains-p '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?\")
-             (string-to-char (substring result 0 1)))
+          ((string-match-p "^[[:digit:]\"]" result)
             (eval (car (read-from-string result))))
 
           ;; eg #\\Newline

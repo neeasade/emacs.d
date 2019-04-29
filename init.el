@@ -89,6 +89,7 @@
 (ns/compose
   development
   c
+  common-lisp
 
   autohotkey
   clojure
