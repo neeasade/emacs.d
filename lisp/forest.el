@@ -597,7 +597,7 @@
   (ns/bind "tf" 'writeroom-mode)
 
   (use-package mw-thesaurus)
-  (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
+  ;; (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
   )
 
 ;; use shell frames as terminals.
@@ -770,6 +770,63 @@
 
   (advice-add #'org-static-blog-publish :before #'ns/blog-before-hook)
   (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook))
+
+
+(defconfig common-lisp
+  (use-package slime)
+  (setq inferior-lisp-program (which "sbcl"))
+  (setq slime-contribs '(slime-fancy))
+
+  ;; depends on eros package
+  ;; I really like eval overlays.
+  (defun slime-eval-last-sexp-overlay ()
+    (interactive)
+    (eros--eval-overlay
+      (let ((result (s-trim (slime-eval `(swank:pprint-eval ,(slime-last-expression))))))
+        (cond
+          ;; number or string, eval it
+          ((string-match-p "^[[:digit:]\"]" result)
+            (eval (car (read-from-string result))))
+
+          ;; eg #\\Newline
+          ((s-starts-with-p "#\\" result) result)
+
+          ;; cf http://www.lispworks.com/documentation/HyperSpec/Body/02_dh.htm
+          ;; eg #p"arst" => "#p arst"
+          ((s-starts-with-p "#" result)
+            (format "%s %s"
+              (substring result 0 2)
+              (substring result 3 (- (length result) 1))))
+
+          ;; maybe remove NIL from the end
+          ((s-ends-with-p "\nNIL" result) result)
+
+          ;; list
+          ((and (s-starts-with-p "(" result)
+             (s-ends-with-p ")" result))
+            (eval (car (read-from-string (format "(quote %s)" result)))))
+
+          ;; spaces, give up
+          ((s-contains-p " " result) result)
+
+          ;; symbol
+          (t (eval (car (read-from-string (format "(quote %s)" result)))))
+          ))
+      (point)))
+
+  (ns/install-dashdoc "Common Lisp" 'lisp-mode-hook)
+
+  (defun ns/smart-slime-eval ()
+    (interactive)
+    (if (use-region-p)
+      (slime-eval-region (region-beginning) (region-end))
+      (if (s-blank-p (s-trim (thing-at-point 'line)))
+        (slime-eval-last-sexp-overlay)
+        (save-excursion (end-of-defun) (slime-eval-last-sexp-overlay)))))
+
+  ;; common-lisp-mode -> lisp-mode
+  (ns/bind-mode 'lisp "e" 'ns/smart-slime-eval)
+  )
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for

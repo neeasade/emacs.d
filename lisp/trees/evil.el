@@ -160,15 +160,13 @@
   (when (ns/should-skip (buffer-name))
     (let ((temp (window-next-buffers)))
       (next-buffer)
-      (set-window-next-buffers nil temp)
-      )))
+      (set-window-next-buffers nil temp))))
 
 (defcommand maybe-prev ()
   (when (ns/should-skip (buffer-name))
     (let ((temp (window-prev-buffers)))
       (previous-buffer)
-      (set-window-prev-buffers nil temp)
-      )))
+      (set-window-prev-buffers nil temp))))
 
 (advice-add #'next-buffer :after #'ns/maybe-next)
 (advice-add #'previous-buffer :after #'ns/maybe-prev)

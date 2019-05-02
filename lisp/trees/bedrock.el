@@ -59,6 +59,7 @@
            (eval value))))
      (seq-partition ',lst 2)))
 
+;; todo: make this smart about tramp?
 (defun ~ (path)
   (concat
     (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
