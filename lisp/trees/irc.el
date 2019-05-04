@@ -19,8 +19,16 @@
   fill-type nil
   )
 
+(defun ns/circe-count-nicks ()
+  (when (-contains-p '(circe-query-mode circe-channel-mode) major-mode)
+    (length (circe-channel-nicks))))
+
+(defun ns/circe-count-nicks-message ()
+  (interactive)
+  (message (format "there are %d people here." (ns/circe-count-nicks))))
+
 (setq-ns circe
-  reduce-lurker-spam nil ;; hide part, join, quit
+  ;; reduce-lurker-spam nil ;; hide part, join, quit
   default-quit-message ""
   default-part-message ""
   network-options
@@ -64,9 +72,7 @@
     (propertize
       (s-pad-left 8 " "
         (concat
-          (s-left
-            (if (> (length left) 8) 7 8)
-            left)
+          (s-left (if (> (length left) 8) 7 8) left)
           (when (> (length left) 8) "…")))
       'face
       (if left-face left-face 'circe-originator-face))
@@ -75,33 +81,30 @@
 
 (defun ns/part-message (nick)
   "Generate a random part message for NICK."
-  (let
-    ((options
-       '(
-          "%s has left the party."
-          "%s fell off a cliff."
-          "%s drank too much and passed out."
-          "%s fell into the lava."
-          "rocx kidnapped %s!"
-          "%s was taken by thanos."
-          "%s went down a youtube hole."
-          "%s ate too much shrimp."
-          "%s left and joined a circus."
-          "%s got stuck in tvtropes again."
-          "%s got spooped."
-          "%s has been eaten by their cat."
-          "%s was MURDERED by ben shapiro!"
-          "%s has rage quit."
-          "%s has joined an lunar amish colony."
-          "%s never existed at all."
-          "%s's mom showed up to take them home."
-          "%s's power went out."
-          "%s is blasting off AGAINNnnnn...."
-          "%s left to catch the dogecoin dip."
-          "%s gave all their money to their brother day trader."
-          )))
-    (format
-      (nth (random (- (length options) 1)) options)
+  (let ((options
+          '(
+             "%s has left the party."
+             "%s fell off a cliff."
+             "%s drank too much and passed out."
+             "%s fell into the lava."
+             "%s was taken by thanos."
+             "%s went down a youtube hole."
+             "%s ate too much shrimp."
+             "%s left and joined a circus."
+             "%s got stuck in tvtropes again."
+             "%s got spooped."
+             "%s has been eaten by their cat."
+             "%s was MURDERED by ben shapiro!"
+             "%s has rage quit."
+             "%s has joined an lunar amish colony."
+             "%s never existed at all."
+             "%s's mom showed up to take them home."
+             "%s's power went out."
+             "%s is blasting off AGAINNnnnn...."
+             "%s left to catch the dogecoin dip."
+             "%s gave all their money to their brother day trader."
+             )))
+    (format (nth (random (- (length options) 1)) options)
       nick)))
 
 (defun ns/join-message (nick)
@@ -120,24 +123,18 @@
           "%s just slid into the server."
           "A %s has spawned in the server."
           "Big %s showed up!"
-          ;; "Where’s %s? In the server!"
           "%s hopped into the server. Kangaroo!!"
           "%s just showed up. Hold my beer."
           "Challenger approaching - %s has appeared!"
           "It's a bird! It's a plane! Nevermind, it's just %s."
           "It's %s! Praise the sun!"
-          ;; "Never gonna give %s up. Never gonna let [!!{username}!!](usernameOnClick) down."
           "Ha! %s has joined! You activated my trap card!"
           "Hey! Listen! %s has joined!"
-          ;; "We've been expecting you %s"
-          ;; "It's dangerous to go alone, take %s!"
           "%s has joined the server! It's super effective!"
           "Cheers, love! %s is here!"
           "%s is here, as the prophecy foretold."
           "%s has arrived. Party's over."
           "Ready player %s"
-          ;; todo dynamic this?
-          ;; "%s is here to kick butt and chew bubblegum. And %s is all out of gum."
           "Hello. Is it %s you're looking for?"
           "%s has joined. Stay a while and listen!"
           "Roses are red, violets are blue, %s joined this server with you"
@@ -149,26 +146,24 @@
       nick)))
 
 (defun ns/circe-clear-reason (reason nick)
-  "Clear out default REASONs."
-  (if
-    (or
-      (string= "" reason)
-      (string= "Quit: leaving" reason)
-      (string= "Quit: Excess flood" reason)
-      (string= "[No reason given]" reason)
-      (string= "Remote host closed the connection" reason)
-      (string= "Quit: My MacBook has gone to sleep. ZZZzzz…" reason)
-      (string= "Quit: Leaving" reason)
-      (string= "Quit: Coyote finally caught me" reason)
-      (string= (format "Quit: %s" nick) reason)
-      (s-contains? "Read error:" reason)
-      (s-contains? "Ping timeout" reason)
-      (s-contains? "Quit: WeeChat" reason)
-      (s-contains? "Quit: ERC" reason)
-      ;; assume adverts for clients
-      (s-contains? "http" reason)
-      )
-    nil reason))
+  "Clear out default REASONs for NICK leaving."
+  (if (or
+        (string= "" reason)
+        (string= "Quit: leaving" reason)
+        (string= "Quit: Excess flood" reason)
+        (string= "[No reason given]" reason)
+        (string= "Remote host closed the connection" reason)
+        (string= "Quit: My MacBook has gone to sleep. ZZZzzz…" reason)
+        (string= "Quit: Leaving" reason)
+        (string= "Quit: Coyote finally caught me" reason)
+        (string= (format "Quit: %s" nick) reason)
+        (s-contains? "Read error:" reason)
+        (s-contains? "Ping timeout" reason)
+        (s-contains? "Quit: WeeChat" reason)
+        (s-contains? "Quit: ERC" reason)
+        ;; assume adverts for clients
+        (s-contains? "http" reason)
+        ) nil reason))
 
 (defun ns/circe-handle-say (nick body)
   "update state for say, return nick, highmon"
@@ -188,14 +183,14 @@
                  "linkreader"
                  ) nick)
           (s-ends-with-p "bot" nick))
+
     ;; peek at last message hese
     (when (or
             (s-contains-p "http" circe-last-message)
             (-contains-p (string-to-list ",.!~[") (string-to-char circe-last-message))
             (s-starts-with-p "s/" circe-last-message)
             )
-      (setq nick circe-last-nick)
-      ))
+      (setq nick circe-last-nick)))
 
   ;; don't double print nicks
   (if (string= nick circe-last-nick)
@@ -262,7 +257,9 @@
           (topic-ago (plist-get args :topic-ago))
           )
 
-    (when (or (eq type 'say) (eq type 'self-say)) (setq nick (ns/circe-handle-say nick body)))
+    (when (or (eq type 'say) (eq type 'self-say))
+      (setq nick (ns/circe-handle-say nick body)))
+
     (when reason
       (setq reason (ns/circe-clear-reason reason nick))
       (setq reason
@@ -339,22 +336,22 @@
 ;; (defun ns/circe-map (type) (fn (ns/circe-format-all type <rest>)))
 ;; (ns/circe-map 'notice)
 
-;; todo: this is way broke
+
 (setq-ns circe-format
-  notice              (lambda (&rest rest) (ns/circe-format-all 'notice      rest))
-  action              (lambda (&rest  rest) (ns/circe-format-all 'action      rest))
-  server-message      (lambda (&rest  rest) (ns/circe-format-all 'notice      rest))
-  self-action         (lambda (&rest  rest) (ns/circe-format-all 'action      rest))
-  say                 (lambda (&rest  rest) (ns/circe-format-all 'say         rest))
-  self-say            (lambda (&rest  rest) (ns/circe-format-all 'self-say    rest))
-  server-nick-change  (lambda (&rest  rest) (ns/circe-format-all 'nick-change rest))
-  server-join         (lambda (&rest  rest) (ns/circe-format-all 'join        rest))
-  server-part         (lambda (&rest  rest) (ns/circe-format-all 'part        rest))
-  server-quit         (lambda (&rest  rest) (ns/circe-format-all 'quit        rest))
-  server-topic        (lambda (&rest  rest) (ns/circe-format-all 'topic       rest))
-  server-quit-channel (lambda (&rest  rest) (ns/circe-format-all 'quit        rest))
-  server-mode-change  (lambda (&rest  rest) (ns/circe-format-all 'mode-change rest))
-  server-topic-time (lambda (&rest  rest) (ns/circe-format-all 'topic-time    rest))
+  notice              (fn (&rest rest) (ns/circe-format-all 'notice      rest))
+  action              (fn (&rest rest) (ns/circe-format-all 'action     rest))
+  server-message      (fn (&rest rest) (ns/circe-format-all 'notice     rest))
+  self-action         (fn (&rest rest) (ns/circe-format-all 'action     rest))
+  say                 (fn (&rest rest) (ns/circe-format-all 'say        rest))
+  self-say            (fn (&rest rest) (ns/circe-format-all 'self-say   rest))
+  server-nick-change  (fn (&rest rest) (ns/circe-format-all 'nick-change rest))
+  server-join         (fn (&rest rest) (ns/circe-format-all 'join       rest))
+  server-part         (fn (&rest rest) (ns/circe-format-all 'part       rest))
+  server-quit         (fn (&rest rest) (ns/circe-format-all 'quit       rest))
+  server-topic        (fn (&rest rest) (ns/circe-format-all 'topic      rest))
+  server-quit-channel (fn (&rest rest) (ns/circe-format-all 'quit       rest))
+  server-mode-change  (fn (&rest rest) (ns/circe-format-all 'mode-change rest))
+  server-topic-time (fn (&rest rest) (ns/circe-format-all 'topic-time   rest))
   )
 
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
@@ -467,7 +464,11 @@
 
     ;; apply the hook to everyone to update body font
     (dolist (b (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))
-      (with-current-buffer b (ns/set-buffer-face-variable)))))
+      (with-current-buffer b
+        (ns/set-buffer-face-variable)
+        ;; turn off quits and joins in high member count channels
+        (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 50))
+        ))))
 
 (defmacro ns/circe-bind (&rest binds)
   "Bind BINDS in normal/insert mode, in both channel and query buffers."
@@ -492,6 +493,44 @@
   "nI" (fn! (counsel-switch-to-buffer-or-window "*circe-highlight*"))
   ;; ehhh
   ;; "nr" 'ns/goto-last-highlight
+  )
+
+(defun ns/last-face (point-current face-search)
+  "Find the end of text last containing the face face-search"
+  (let* ((point-change (- (previous-single-property-change point-current 'face) 1))
+          (face-at-point (get-char-property point-change 'face))
+          ;; 'face can return a list of faces, or just a single face
+          (faces-at-point (if (listp face-at-point) face-at-point (list face-at-point))))
+    (if (< point-change 0)
+      nil
+      (if (-contains-p faces-at-point face-search)
+        point-change
+        (ns/last-face point-change face-search)))))
+
+(defun ns/get-last-nick (&optional point)
+  "Get the nick of whoever talked at point"
+  (interactive)
+  (save-excursion
+    (let ((next (ns/last-face (or point (point)) 'circe-originator-face)))
+      (goto-char next)
+      (if (s-blank-p (thing-at-point 'symbol))
+        (ns/get-last-nick next)
+        (thing-at-point 'symbol)
+        ))))
+
+(defun ns/circe-quote ()
+  "quote whoever spoke at point"
+  (interactive)
+  (let* ((quote-start (ns/last-face (point) 'circe-originator-face))
+          (quote-end (point-at-eol))
+          (quote-text (buffer-substring-no-properties quote-start quote-end))
+          (sayer (ns/get-last-nick)))
+    (goto-char (point-max))
+    (insert (propertize (format "> %s: %s" sayer (s-trim quote-text)) 'read-only nil))))
+
+(ns/bind-mode 'circe-channel
+  "qc" 'ns/circe-count-nicks-message
+  "nq" 'ns/circe-quote
   )
 
 ;; if this ever changes we're gonna break everything woo
