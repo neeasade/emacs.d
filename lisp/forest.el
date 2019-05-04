@@ -669,13 +669,19 @@
 
   ;; note: depends on clang and cmake
   (use-package irony)
+  ;; fyi:
+  ;; (irony-install-server)
+
   (use-package flycheck-irony)
+  (eval-after-load 'flycheck
+    '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
   (defcommand recompile ()
     (let ((compilation-directory (projectile-project-root)))
       (ns/shell-exec-dontcare
         (format "cd '%s' && make clean" compilation-directory))
       (recompile)))
+
   )
 
 (defconfig lua
