@@ -65,8 +65,7 @@
               (when (and (symbolp car-x) (symbol-value car-x))
                 x)))
           minor-mode-alist))))
-  (ns/look-at-last-message)
-  )
+  (ns/look-at-last-message))
 
 (defun sudo-edit (&optional arg)
   "Edit currently visited file as root.
@@ -222,17 +221,20 @@ buffer is not visiting a file."
 
 (defun ns/insert-history ()
   (interactive)
-  (let
-    ((shell-name
-       (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
-       ))
+  (let ((shell-name
+          (if (eq major-mode 'shell-mode)
+            (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
+            "zsh")))
+
     (ivy-read "config: "
-      (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))
-      :action
-      (lambda (option)
-        (interactive)
-        (goto-char (point-max))
-        (insert option)))))
+      (mapcar
+        (fn ;; shared history format: ': 1556747685:0;cmd'
+          (if (s-starts-with-p ":" <>)
+            (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
+            <>))
+
+        (s-split "\n" (f-read (~ (format ".%s_history" shell-name)))))
+      :action (fn (goto-char (point-max)) (insert <>)))))
 
 (ns/bind
   ;; reconsider these, moved from w -> q for query
