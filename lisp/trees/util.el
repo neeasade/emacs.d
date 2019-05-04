@@ -226,14 +226,14 @@ buffer is not visiting a file."
             (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
             "zsh")))
 
-    (ivy-read "config: "
+    (ivy-read "history: "
       (mapcar
         (fn ;; shared history format: ': 1556747685:0;cmd'
           (if (s-starts-with-p ":" <>)
             (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
             <>))
-
         (s-split "\n" (f-read (~ (format ".%s_history" shell-name)))))
+
       :action (fn (goto-char (point-max)) (insert <>)))))
 
 (ns/bind
