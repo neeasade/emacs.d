@@ -338,20 +338,20 @@
 
 
 (setq-ns circe-format
-  notice              (fn (&rest rest) (ns/circe-format-all 'notice      rest))
-  action              (fn (&rest rest) (ns/circe-format-all 'action     rest))
-  server-message      (fn (&rest rest) (ns/circe-format-all 'notice     rest))
-  self-action         (fn (&rest rest) (ns/circe-format-all 'action     rest))
-  say                 (fn (&rest rest) (ns/circe-format-all 'say        rest))
-  self-say            (fn (&rest rest) (ns/circe-format-all 'self-say   rest))
-  server-nick-change  (fn (&rest rest) (ns/circe-format-all 'nick-change rest))
-  server-join         (fn (&rest rest) (ns/circe-format-all 'join       rest))
-  server-part         (fn (&rest rest) (ns/circe-format-all 'part       rest))
-  server-quit         (fn (&rest rest) (ns/circe-format-all 'quit       rest))
-  server-topic        (fn (&rest rest) (ns/circe-format-all 'topic      rest))
-  server-quit-channel (fn (&rest rest) (ns/circe-format-all 'quit       rest))
-  server-mode-change  (fn (&rest rest) (ns/circe-format-all 'mode-change rest))
-  server-topic-time (fn (&rest rest) (ns/circe-format-all 'topic-time   rest))
+  notice              (fn  (ns/circe-format-all 'notice      <rest>))
+  action              (fn  (ns/circe-format-all 'action     <rest>))
+  server-message      (fn  (ns/circe-format-all 'notice     <rest>))
+  self-action         (fn  (ns/circe-format-all 'action     <rest>))
+  say                 (fn  (ns/circe-format-all 'say        <rest>))
+  self-say            (fn  (ns/circe-format-all 'self-say   <rest>))
+  server-nick-change  (fn  (ns/circe-format-all 'nick-change <rest>))
+  server-join         (fn  (ns/circe-format-all 'join       <rest>))
+  server-part         (fn  (ns/circe-format-all 'part       <rest>))
+  server-quit         (fn  (ns/circe-format-all 'quit       <rest>))
+  server-topic        (fn  (ns/circe-format-all 'topic      <rest>))
+  server-quit-channel (fn  (ns/circe-format-all 'quit       <rest>))
+  server-mode-change  (fn  (ns/circe-format-all 'mode-change <rest>))
+  server-topic-time (fn  (ns/circe-format-all 'topic-time   <rest>))
   )
 
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
@@ -467,7 +467,7 @@
       (with-current-buffer b
         (ns/set-buffer-face-variable)
         ;; turn off quits and joins in high member count channels
-        (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 50))
+        (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100))
         ))))
 
 (defmacro ns/circe-bind (&rest binds)
