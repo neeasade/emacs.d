@@ -521,10 +521,18 @@
 (defun ns/circe-quote ()
   "quote whoever spoke at point"
   (interactive)
-  (let* ((quote-start (ns/last-face (point) 'circe-originator-face))
+
+  (let* ((quote-start (+ 1 (ns/last-face (point) 'circe-originator-face)))
           (quote-end (point-at-eol))
           (quote-text (buffer-substring-no-properties quote-start quote-end))
-          (sayer (ns/get-last-nick)))
+          (sayer-display (ns/get-last-nick))
+          (sayer
+            (if (s-ends-with-p "…" sayer-display)
+              (first
+                (-filter
+                  (fn (s-starts-with-p (substring sayer-display 0 7) <>))
+                  (circe-channel-nicks)))
+              sayer-display)))
     (goto-char (point-max))
     (insert (propertize (format "> %s: %s" sayer (s-trim quote-text)) 'read-only nil))))
 
