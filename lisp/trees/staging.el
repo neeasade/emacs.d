@@ -184,4 +184,4 @@ Everything past that can be tailored to your liking.
   (translate-region beg end ns/gothic-table))
 
 (defun ns/text-to-widechar (beg end) (interactive "r")
-  (translate-region beg end ns/gothic-table))
+  (translate-region beg end ns/widechar-table))
