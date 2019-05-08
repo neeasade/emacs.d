@@ -600,40 +600,6 @@
   ;; (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
   )
 
-;; use shell frames as terminals.
-(defconfig terminal
-  (defcommand stage-terminal ()
-    (let ((default-directory (~ "")))
-      (shell "*spawn-shell-staged*")
-      (ns/toggle-modeline)
-      (delete-window)))
-
-  (ns/stage-terminal)
-
-  (defcommand spawn-terminal ()
-    (select-frame (make-frame))
-    (ns/pickup-shell))
-
-  (defcommand pickup-shell ()
-    (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
-    (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
-    (delete-other-windows)
-
-    (when (string= (get-resource "Emacs.padding_source") "st")
-      (set-window-fringes nil 0 0))
-
-    (ns/stage-terminal))
-
-  (defcommand kill-spawned-shell (frame)
-    (let ((windows (window-list frame)))
-      (when (eq 1 (length windows))
-        (let ((buffer (window-buffer (car windows))))
-          (when (s-match "\*spawn-shell.*" (buffer-name buffer))
-            (kill-buffer buffer))))))
-
-  (ns/bind "at" 'ns/spawn-terminal)
-  (add-hook 'delete-frame-hook 'ns/kill-spawned-shell))
-
 (defconfig elfeed
   (ns/guard ns/enable-home-p)
   (ns/guard nil)

@@ -21,20 +21,8 @@
 (ns/inmap 'comint-mode-map (kbd "C-e") 'comint-previous-input)
 (ns/inmap 'comint-mode-map (kbd "C-n") 'comint-next-input)
 
-(use-package shx
-  :config
-  (shx-global-mode 1)
-  ;; todo: find a way to alias things
-  ;; ie clear --> :clear, term, exit
-  (defun shx-cmd-term (placeholder)
-    (interactive)
-    (let ((term (if ns/enable-windows-p "cmd" (getenv "TERMINAL")))
-           ;; (default-directory (~ ""))
-           )
-      (shell-command (format "nohup %s &" term) nil nil))))
 
-;; todo: see if there is a smarter version of this
-(add-hook 'shell-mode-hook 'shell-dirtrack-mode)
+(use-package shx :config (shx-global-mode 1))
 
 (use-package shell-pop
   :config
@@ -81,15 +69,99 @@
 
   ;; cf https://github.com/kyagi/shell-pop-el/issues/51
   (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
-  (defcommand shell-pop-ranger-dir ()
+
+  ;; spawn shell in current ranger dir
+  (defcommand shell-spawn-ranger-dir ()
     (let ((ranger-dir (expand-file-name default-directory)))
       (ns/pickup-shell)
       (shell-pop--cd-to-cwd-shell ranger-dir))
-    ;; note: keep this outsite of let to close properly
+    ;; note: keep this outside of let to close properly
     (ranger-kill-buffers-without-window))
 
-  (define-key ranger-mode-map (kbd "s") 'ns/shell-pop-ranger-dir))
+  (define-key ranger-mode-map (kbd "s") 'ns/shell-spawn-ranger-dir))
+
+(defcommand windowshot ()
+  "get a string that is the currently displayed text in emacs window"
+  (with-current-buffer (window-buffer)
+    (let ((result (s-clean (buffer-substring (window-start) (window-end)))))
+      (if (eq major-mode 'shell-mode)
+        (substring result 0 (- (length result) (length "shellshot") 1))
+        result))))
+
+(defun shell-sync-dir-with-prompt (string)
+  "A preoutput filter function (see `comint-preoutput-filter-functions')
+which sets the shell buffer's path to the path embedded in a prompt string.
+This is a more reliable way of keeping the shell buffer's path in sync
+with the shell, without trying to pattern match against all
+potential directory-changing commands, ala `shell-dirtrack-mode'.
+
+In order to work, your shell must be configured to embed its current
+working directory into the prompt.  Here is an example .zshrc
+snippet which turns this behavior on when running as an inferior Emacs shell:
+
+  if [ $EMACS ]; then
+     prompt='|Pr0mPT|%~|[%n@%m]%~%# '
+  fi
+
+The part that Emacs cares about is the '|Pr0mPT|%~|'
+Everything past that can be tailored to your liking.
+"
+  (if (string-match "|Pr0mPT|\\([^|]*\\)|" string)
+    (let ((cwd (match-string 1 string)))
+      (setq default-directory
+        (if (string-equal "/" (substring cwd -1))
+          cwd
+          (setq cwd (concat cwd "/"))))
+      (replace-match "" t t string 0))
+    string))
+
+(defun ns/shell-track ()
+  (shell-dirtrack-mode nil)
+  (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t))
+(add-hook 'shell-mode-hook 'ns/shell-track)
+
+(defcommand stage-terminal ()
+  (let ((default-directory (~ "")))
+    (shell "*spawn-shell-staged*")
+    (ns/toggle-modeline)
+    (delete-window)))
+
+(ns/stage-terminal)
+
+(defcommand spawn-terminal ()
+  (select-frame (make-frame))
+  (ns/pickup-shell))
+
+(defcommand pickup-shell ()
+  (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
+  (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
+  (delete-other-windows)
+
+  (when (string= (get-resource "Emacs.padding_source") "st")
+    (set-window-fringes nil 0 0))
+
+  (ns/stage-terminal))
+
+(defcommand kill-spawned-shell (frame)
+  (let ((windows (window-list frame)))
+    (when (eq 1 (length windows))
+      (let ((buffer (window-buffer (car windows))))
+        (when (s-match "\*spawn-shell.*" (buffer-name buffer))
+          (kill-buffer buffer))))))
+
+(add-hook 'delete-frame-hook 'ns/kill-spawned-shell)
+
+(ns/bind "at" 'ns/spawn-terminal)
 
 ;; fix for term, ansi term
 ;; https://github.com/hlissner/emacs-doom-themes/issues/54
-(setq ansi-term-color-vector [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white])
+(setq ansi-term-color-vector
+  [term
+    term-color-black
+    term-color-red
+    term-color-green
+    term-color-yellow
+    term-color-blue
+    term-color-magenta
+    term-color-cyan
+    term-color-white])
