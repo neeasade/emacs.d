@@ -67,6 +67,8 @@
           minor-mode-alist))))
   (ns/look-at-last-message))
 
+;; todo: this smart over tramp
+;; https://www.emacswiki.org/emacs/TrampMode#toc20
 (defun sudo-edit (&optional arg)
   "Edit currently visited file as root.
 

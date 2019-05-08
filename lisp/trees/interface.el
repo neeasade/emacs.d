@@ -95,8 +95,10 @@
   (delete-other-windows)
   (evil-window-vsplit))
 
+
 (ns/bind
-  "/"   'counsel-rg
+  "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
+
   "TAB" '(switch-to-other-buffer :which-key "prev buffer")
   "SPC" 'counsel-M-x
 
