@@ -88,6 +88,7 @@
         (substring result 0 (- (length result) (length "shellshot") 1))
         result))))
 
+
 (defun shell-sync-dir-with-prompt (string)
   "A preoutput filter function (see `comint-preoutput-filter-functions')
 which sets the shell buffer's path to the path embedded in a prompt string.
@@ -112,8 +113,27 @@ Everything past that can be tailored to your liking.
         (if (string-equal "/" (substring cwd -1))
           cwd
           (setq cwd (concat cwd "/"))))
+
+      ;; accumulate directories
+      (when (not (boundp cd-dirs))
+        (setq cd-dirs (list)))
+
+      (setq cd-dirs (cons default-directory cd-dirs))
+
       (replace-match "" t t string 0))
     string))
+
+(defcommand cd-dir-history ()
+  (ivy-read "dir: "
+    (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) cd-dirs))
+    :action
+    ;; todo: make sanity check cd is clear
+    ;; maybe clear prompt if so
+    (fn (goto-char (point-max))
+      (insert (concat "cd \"" <> "\""))
+      (comint-send-input))))
+
+(ns/bind-mode 'shell "nd" #'ns/cd-dir-history)
 
 (defun ns/shell-track ()
   (shell-dirtrack-mode nil)
