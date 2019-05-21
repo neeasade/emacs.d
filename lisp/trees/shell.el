@@ -115,7 +115,7 @@ Everything past that can be tailored to your liking.
           (setq cwd (concat cwd "/"))))
 
       ;; accumulate directories
-      (when (not (boundp cd-dirs))
+      (when (not (boundp 'cd-dirs))
         (setq cd-dirs (list)))
 
       (setq cd-dirs (cons default-directory cd-dirs))
