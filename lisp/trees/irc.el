@@ -199,19 +199,36 @@
 
   (setq-local circe-last-message body)
 
+  ;; todo: move highlight into it's own thing
+
   ;; highlight buffer
   (when (not (get-buffer "*circe-highlight*"))
     (generate-new-buffer "*circe-highlight*")
     (with-current-buffer "*circe-highlight*" (circe-highlight-mode)))
 
-  (when (-any-p (fn (s-contains-p <> body)) ns/circe-highlights)
-    (let ((channel (buffer-name))
+  (when (-first (fn (s-contains-p <> body t)) ns/circe-highlights)
+    (let ((match (downcase (-first (fn (s-contains-p <> body t)) ns/circe-highlights)))
+           (channel (buffer-name))
            (poster circe-last-nick))
-      (with-current-buffer "*circe-highlight*"
-        (save-restriction
-          (widen)
-          (goto-char (point-min))
-          (insert (format "%s:%s:%s\n" channel poster body))))))
+
+      (when
+        (not (and ;; emacs is mentioned alot in #emacs.
+               (string= "emacs" match)
+               (string= "#emacs" channel)))
+        (with-current-buffer "*circe-highlight*"
+          ;; I could not get the (alert :persistent t keyword to work)
+          (let ((alert-fade-time 0))
+            (alert
+              (concat "<" poster "> " body)
+              ;; body
+              :severity 'normal
+              :title channel
+              ))
+
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            (insert (format "%s:%s:%s\n" channel poster body)))))))
 
   nick
   )
