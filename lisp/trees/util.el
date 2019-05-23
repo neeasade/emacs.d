@@ -273,3 +273,10 @@ buffer is not visiting a file."
           (funcall action frame)
           (redraw-frame frame))
     (frame-list)))
+
+(defun ns/kill-buffers-no-file ()
+  "Kill buffers pointing to a file when that file doesn't exist"
+  (mapcar 'kill-buffer
+    (-filter (fn (let ((file (buffer-file-name <>)))
+                   (if file (not (f-exists-p file)) nil)))
+      (buffer-list))))
