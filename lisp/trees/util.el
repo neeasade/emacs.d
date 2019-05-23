@@ -143,8 +143,8 @@ buffer is not visiting a file."
 
 (use-package simpleclip)
 
-(defcommand buffercurl ()
-  "curl buffer from url grabbed from clipboard"
+(defcommand paste-from-clipboard-url ()
+  "GET the clipboard contents into current point"
 
   (request
     (simpleclip-get-contents)

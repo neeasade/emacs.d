@@ -673,6 +673,14 @@
     (not (string= lang "dot")))  ; don't ask for dot
 
   (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+
+  (defun ns/refresh-images-org ()
+    (interactive)
+    (org-toggle-inline-images)
+    (org-toggle-inline-images))
+
+  ;; todo: CcCc is pretty generic, ideally we only do this after eval'ing a dot source block.
+  (advice-add #'org-ctrl-c-ctrl-c :after #'ns/refresh-images-org)
   )
 
 (defconfig deadgrep
