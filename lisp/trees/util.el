@@ -1,7 +1,7 @@
 (use-package pcre2el)
 
 (defun s-clean (s)
-  "remove text properies from S."
+  "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
 
 (defun ns/get-current-line ()
@@ -247,6 +247,7 @@ buffer is not visiting a file."
 
   ;; this should maybe be more generic ie mx history when not in shell
   "qh" 'ns/insert-history
+  "qH" 'counsel-shell-history
 
   "fE" 'sudo-edit
   "nc" 'ns/jump-config
@@ -276,6 +277,7 @@ buffer is not visiting a file."
 
 (defun ns/kill-buffers-no-file ()
   "Kill buffers pointing to a file when that file doesn't exist"
+  (interactive)
   (mapcar 'kill-buffer
     (-filter (fn (let ((file (buffer-file-name <>)))
                    (if file (not (f-exists-p file)) nil)))

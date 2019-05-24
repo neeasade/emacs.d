@@ -125,13 +125,17 @@ Everything past that can be tailored to your liking.
 
 (defcommand cd-dir-history ()
   (ivy-read "dir: "
+    ;; todo: this should filter to the current tramp, rather than remove them all
+    ;; could then change ivy prompt show host
     (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) cd-dirs))
+
     :action
     ;; todo: make sanity check cd is clear
     ;; maybe clear prompt if so
     (fn (goto-char (point-max))
       (insert (concat "cd \"" <> "\""))
-      (comint-send-input))))
+      (comint-send-input)
+      )))
 
 (ns/bind-mode 'shell "nd" #'ns/cd-dir-history)
 
