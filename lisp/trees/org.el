@@ -10,6 +10,7 @@
      org-gnus
      org-info
      org-mhe
+     org-mks
      ))
 
 (use-package org

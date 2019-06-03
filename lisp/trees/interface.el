@@ -23,7 +23,10 @@
   (ivy-mode 1)
 
   (use-package prescient :config (prescient-persist-mode))
-  (use-package ivy-prescient :config (ivy-prescient-mode))
+  (use-package ivy-prescient :config
+    (ivy-prescient-mode)
+    (prescient-persist-mode))
+
   (use-package company-prescient :config (company-prescient-mode))
   )
 

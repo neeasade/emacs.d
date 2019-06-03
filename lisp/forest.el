@@ -261,9 +261,7 @@
   (if (executable-find "joker")
     (use-package flycheck-joker
       :config (require 'flycheck-joker))
-    ;; todo: consider auto-getting this
     (message "init: if you want clojure flycheck support, install joker"))
-
   )
 
 (defconfig nix
@@ -290,8 +288,7 @@
 
     ;; sync with mpd db, connect
     (emms-cache-set-from-mpd-all)
-    (emms-player-mpd-connect)
-    )
+    (emms-player-mpd-connect))
 
   (ns/bind "am" 'emms-start))
 
@@ -305,11 +302,9 @@
               (s-split "\n"
                 (shell-command-to-string
                   counsel-git-cmd
-                  ) t)
-              ))
+                  ) t)))
 
-      (mapcar (fn (concat default-directory <>)) project-files-relative))
-    )
+      (mapcar (fn (concat default-directory <>)) project-files-relative)))
 
   (defun ns/current-project-files()
     ;; current project here is just the one associated with the current buffer
@@ -326,17 +321,15 @@
           ))))
 
   (defcommand jump-file ()
-    (let* (
-            (open-buffers
-              ;; remove nils
-              (-remove (lambda(file) (not file))
-                (mapcar 'buffer-file-name (buffer-list))))
+    (let* ((open-buffers
+             ;; remove nils
+             (-remove (lambda(file) (not file))
+               (mapcar 'buffer-file-name (buffer-list))))
 
             (project-files
               (ns/current-project-files)
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files))
-              )
-            )
+              ))
 
       (ivy-read "file: " (append recentf-list project-files open-buffers)
         :action #'find-file)))
@@ -579,7 +572,7 @@
       "te" 'emojify-mode)))
 
 (defconfig writing
-  (ns/guard ns/enable-home-p)
+  ;; (ns/guard ns/enable-home-p)
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
 
@@ -616,8 +609,7 @@
     ;; Entries older than 2 weeks are marked as read
     (add-hook 'elfeed-new-entry-hook
       (elfeed-make-tagger :before "2 weeks ago"
-        :remove 'unread))
-    )
+        :remove 'unread)))
 
   (use-package elfeed-goodies
     :config (elfeed-goodies/setup))
@@ -673,6 +665,14 @@
     (not (string= lang "dot")))  ; don't ask for dot
 
   (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+
+  (defun ns/refresh-images-org ()
+    (interactive)
+    (org-toggle-inline-images)
+    (org-toggle-inline-images))
+
+  ;; todo: CcCc is pretty generic, ideally we only do this after eval'ing a dot source block.
+  (advice-add #'org-ctrl-c-ctrl-c :after #'ns/refresh-images-org)
   )
 
 (defconfig deadgrep
