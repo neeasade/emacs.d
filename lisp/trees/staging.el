@@ -128,23 +128,28 @@ Version 2018-02-21"
       (color-name-to-rgb end)
       steps)))
 
-(defvar ns/gothic-table
-  (let ((str (make-string 127 0)))
-    (dotimes (i 127)
-      (aset str i i))
-    (dotimes (i 26)
-      (aset str (+ i ?A) (+ i ?𝔄))
-      (aset str (+ i ?a) (+ i ?𝔞)))
-    str))
 
-(defvar ns/widechar-table
-  (let ((str (make-string 127 0)))
-    (dotimes (i 127)
-      (aset str i i))
-    (dotimes (i 26)
-      (aset str (+ i ?A) (+ i ?Ａ))
-      (aset str (+ i ?a) (+ i ?ａ)))
-    str))
+(defmacro ns/make-char-table (name upper lower)
+  "Make a char table for a certain kind of character"
+  `(defvar ,name
+     (let ((str (make-string 127 0)))
+       (dotimes (i 127)
+         (aset str i i))
+       (dotimes (i 26)
+         (aset str (+ i ?A) (+ i ,upper))
+         (aset str (+ i ?a) (+ i ,lower)))
+       str)))
+
+(ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
+(ns/make-char-table ns/widechar-table ?Ａ ?ａ)
+(ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
+(ns/make-char-table ns/cursive-table ?𝓐 ?𝓪)
+
+(defun ns/text-to-cursive (beg end) (interactive "r")
+  (translate-region beg end ns/cursive-table))
+
+(defun ns/text-to-monospace (beg end) (interactive "r")
+  (translate-region beg end ns/monospace-table))
 
 (defun ns/text-to-gothic (beg end) (interactive "r")
   (translate-region beg end ns/gothic-table))
