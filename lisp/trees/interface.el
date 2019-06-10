@@ -28,7 +28,8 @@
     (prescient-persist-mode))
 
   (use-package company-prescient :config (company-prescient-mode))
-  )
+
+  (prescient-persist-mode))
 
 ;; counsel
 (use-package counsel

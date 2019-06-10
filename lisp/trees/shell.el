@@ -154,7 +154,7 @@ Everything past that can be tailored to your liking.
 
 (defcommand spawn-terminal ()
   (select-frame (make-frame))
-  (ns/pickup-shell))
+  (ns/pickup-shell) t)
 
 (defcommand pickup-shell ()
   (switch-to-buffer (get-buffer "*spawn-shell-staged*"))

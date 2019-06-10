@@ -9,10 +9,11 @@
   circe-default-realname ns/irc-nick)
 
 (setq ns/circe-highlights
-  `(,ns/irc-nick "bspwm" "emacs"))
+  `(,ns/irc-nick "neesade" "neese"
+     "bspwm" "emacs"))
 
 (setq-ns lui
-  logging-directory (~ ".irc")
+  logging-directory (~ ".ircnew")
   time-stamp-position 'right-margin
   time-stamp-format "%H:%M"
   ;; fluid width windows
@@ -179,6 +180,7 @@
   (when (or (-contains-p
               '(
                  "cappuccino"
+                 "EGGServ"
                  "EggServ"
                  "linkreader"
                  ) nick)
@@ -212,9 +214,15 @@
            (poster circe-last-nick))
 
       (when
-        (not (and ;; emacs is mentioned alot in #emacs.
-               (string= "emacs" match)
-               (string= "#emacs" channel)))
+        (and
+          (not (string= channel (if (boundp 'circe-chat-target) "")))
+
+          ;; don't self highlight!
+          (not (string= circe-last-nick "me"))
+          ;; emacs is mentioned alot in #emacs.
+          (not (and (string= "emacs" match) (string= "#emacs" channel)))
+          )
+
         (with-current-buffer "*circe-highlight*"
           ;; I could not get the (alert :persistent t keyword to work)
           (let ((alert-fade-time 0))
@@ -274,8 +282,13 @@
           (topic-ago (plist-get args :topic-ago))
           )
 
-    (when (or (eq type 'say) (eq type 'self-say))
-      (setq nick (ns/circe-handle-say nick body)))
+    (when (not (-contains-p '(join part quit) type))
+      (setq nick (ns/circe-handle-say
+                   (or nick "")
+                   (or body "")
+                   )))
+
+    ;; (setq nick (ns/circe-handle-say (or nick "") (or body "")))
 
     (when reason
       (setq reason (ns/circe-clear-reason reason nick))
@@ -355,6 +368,9 @@
 
 
 (setq-ns circe-format
+  server-lurker-activity (fn (ns/circe-format-all 'say <rest>))
+  server-rejoin       (fn (ns/circe-format-all 'join <rest>))
+
   notice              (fn  (ns/circe-format-all 'notice      <rest>))
   action              (fn  (ns/circe-format-all 'action     <rest>))
   server-message      (fn  (ns/circe-format-all 'notice     <rest>))
