@@ -51,16 +51,19 @@ Version 2017-03-12"
 
 (defcommand follow()
   (when
-    ;; first try to open with org handling (includes urls)
-    (eq 'fail (condition-case nil (org-open-at-point) (error 'fail)))
+    (not (shut-up (smart-jump-go)))
 
-    ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
-    (if (f-exists-p (nth 0 (s-split ":" (ffap-string-at-point))))
-      (org-open-link-from-string
-        (format "file:%s" (s-replace ":" "::" (ffap-string-at-point))))
+    (when
+      ;; first try to open with org handling (includes urls)
+      (eq 'fail (condition-case nil (org-open-at-point) (error 'fail)))
 
-      ;; if that failed, fallback to smart jump
-      (smart-jump-go))))
+      ;; this fails when org is out of sync it's just that org is borked on this machine somehow
+      ;; cf https://emacs.stackexchange.com/questions/29471/error-message-symbols-function-definition-is-void-org-link-types-when-i-open
+
+      ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
+      (when (f-exists-p (nth 0 (s-split ":" (ffap-string-at-point))))
+        (org-open-link-from-string
+          (format "file:%s" (s-replace ":" "::" (ffap-string-at-point))))))))
 
 (ns/bind "nn" 'ns/follow)
 
@@ -69,7 +72,6 @@ Version 2017-03-12"
     (color-gradient (color-name-to-rgb start)
       (color-name-to-rgb end)
       steps)))
-
 
 (defmacro ns/make-char-table (name upper lower)
   "Make a char table for a certain kind of character"
