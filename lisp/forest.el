@@ -103,13 +103,7 @@
           (eros-eval-defun nil))))
 
     (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
-
-    (ns/bind-leader-mode
-      'emacs-lisp
-      "er" 'eval-region
-      "ei" 'eros-eval-last-sexp
-      "ee" 'eros-eval-defun
-      )))
+    ))
 
 (defconfig flycheck
   (use-package flycheck
@@ -182,7 +176,7 @@
   (defmacro ns/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
     `(when (bound-and-true-p ns/enable-dashdocs-p)
-       (when (not (helm-dash-docset-installed-p ,docset))
+       (when (not (dash-docs-docset-installed-p ,docset))
          (message (format "Installing %s docset..." ,docset))
          (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))
        (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
@@ -234,6 +228,8 @@
 (defconfig clojure
   (use-package clojure-mode)
   (use-package cider)
+  (setq cider-eval-result-duration 20)
+
   (ns/install-dashdoc "Clojure" 'clojure-mode-hook)
 
   ;; TODO: learn lispyville
@@ -296,7 +292,7 @@
   (use-package projectile)
 
   ;; still assuming git command, maybe lean on projectile for file listing
-  (defun get-project-files (project-root)
+  (defun ns/get-project-files (project-root)
     (let* ((default-directory (expand-file-name project-root))
             (project-files-relative
               (s-split "\n"
@@ -306,16 +302,9 @@
 
       (mapcar (fn (concat default-directory <>)) project-files-relative)))
 
-  (defun ns/current-project-files()
-    ;; current project here is just the one associated with the current buffer
-    (let ((project-root (condition-case nil (projectile-project-root) (error nil))))
-      (if project-root
-        (get-project-files project-root)
-        '())))
-
-  (defun ns/all-project-files(open-buffers)
+  (defun ns/all-project-files (open-buffers)
     (-flatten
-      (mapcar 'get-project-files
+      (mapcar 'ns/get-project-files
         (-remove (lambda(file) (not file))
           (mapcar 'projectile-root-bottom-up open-buffers)
           ))))
@@ -323,15 +312,21 @@
   (defcommand jump-file ()
     (let* ((open-buffers
              ;; remove nils
-             (-remove (lambda(file) (not file))
+             (-remove (lambda (file) (not file))
                (mapcar 'buffer-file-name (buffer-list))))
 
             (project-files
-              (ns/current-project-files)
+              ;; (ns/current-project-files)
+              (let ((current-file-name (buffer-file-name (current-buffer))))
+                (if current-file-name
+                  (ns/all-project-files (list current-file-name)) '()))
+
+              ;; (ns/get-project-files (current-file))
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files))
               ))
 
-      (ivy-read "file: " (append recentf-list project-files open-buffers)
+      (ivy-read "file: "
+        (append recentf-list project-files open-buffers)
         :action #'find-file)))
 
   (ns/bind "ne" 'ns/jump-file ))
@@ -706,29 +701,31 @@
   (ns/guard (f-exists-p (ns/blog-dir "")))
 
   (setq-ns org-static-blog
-    publish-url "https://notes.neeasade.net"
+    publish-url "https://notes.neeasade.net/"
     publish-title "Notes"
     publish-directory (ns/blog-dir "site/")
     posts-directory (ns/blog-dir "posts/")
     ;; abuse drafts to make static pages (drafts are not listed on the index screen)
     drafts-directory (ns/blog-dir "pages/")
-    enable-tags nil)
+    enable-tags t)
 
   (defun ns/org-blog-clean-all ()
     (mapc (fn (f-delete <>))
       (f-entries org-static-blog-publish-directory
         (fn (and (s-ends-with-p ".html" <>)
               (not (s-equals-p "archive.html" <>)))))))
-  ;; (ns/org-blog-clean-all)
+
+  (ns/org-blog-clean-all)
 
   (defun ns/blog-after-hook ()
-    (f-delete (ns/blog-dir "site/index.html") t)
+    (f-delete (ns/blog-dir "site/index.html"))
     (f-copy (ns/blog-dir "site/archive.html") (ns/blog-dir "site/index.html")))
 
   (defun ns/blog-before-hook ()
     ;; pages can get edits in place
     (dolist (page (mapcar 'org-static-blog-matching-publish-filename (org-static-blog-get-draft-filenames)))
-      (f-delete page))
+      (when (f-exists-p page)
+        (f-delete page)))
 
     (setq org-static-blog-page-header (f-read (ns/blog-dir "inc/header"))
       org-static-blog-page-preamble (f-read (ns/blog-dir "inc/preamble"))
@@ -743,8 +740,6 @@
   (setq inferior-lisp-program (which "sbcl"))
   (setq slime-contribs '(slime-fancy))
 
-  ;; depends on eros package
-  ;; I really like eval overlays.
   (defun slime-eval-last-sexp-overlay ()
     (interactive)
     (destructuring-bind (output value)
@@ -764,7 +759,24 @@
         (save-excursion (end-of-defun) (slime-eval-last-sexp-overlay)))))
 
   ;; common-lisp-mode -> lisp-mode
-  (ns/bind-mode 'lisp "e" 'ns/smart-slime-eval)
+  (ns/bind-mode 'lisp "e" 'ns/smart-slime-eval))
+
+(defconfig alda
+  (use-package alda-mode)
+
+  (defun ns/smart-alda-eval ()
+    (interactive)
+    (if (use-region-p)
+      (alda-play-region (region-beginning) (region-end))
+      (progn
+        ;; why does this not restore the mark..
+        (alda-play-block)
+        (evil-force-normal-state)
+        )))
+
+
+  (ns/bind-mode 'alda "e" 'ns/smart-alda-eval)
+
   )
 
 ;; big bois
