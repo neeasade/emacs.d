@@ -20,18 +20,7 @@
 ;; (@ 'message ,@'("asdf"))
 (defmacro @ (&rest input) (eval (eval `(backquote (list ,@input)))))
 
-(defmacro ->> (&rest body)
-  (let ((result (pop body)))
-    (dolist (form body result)
-      (setq result (append form (list result))))))
-
-(defmacro -> (&rest body)
-  (let ((result (pop body)))
-    (dolist (form body result)
-      (setq result (append (list (car form) result)
-                     (cdr form))))))
-
-(defmacro ns/shell-exec(command)
+(defmacro ns/shell-exec (command)
   "trim the newline from shell exec"
   `(replace-regexp-in-string "\n$" ""
      (shell-command-to-string ,command)))
