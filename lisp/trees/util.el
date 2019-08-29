@@ -189,7 +189,7 @@ buffer is not visiting a file."
                    parts-in))
           (family (first parts))
           (size (string-to-number (second parts))))
-    ;; height is in 1/10th of pt
+    ;; height is 10x pt
     `(:family ,family :height ,(* 10 size))))
 
 (defun ns/set-faces-variable (faces)
@@ -236,10 +236,15 @@ buffer is not visiting a file."
             <>))
         (s-split "\n" (f-read (~ (format ".%s_history" shell-name)))))
 
-      :action (fn (goto-char (point-max)) (insert <>)))))
+
+      :action (fn
+                (when (eq major-mode 'shell-mode)
+                  (goto-char (point-max)))
+
+                (insert <>)
+                ))))
 
 (ns/bind
-  ;; reconsider these, moved from w -> q for query
   "qf" 'ns/what-face
   "qm" 'ns/what-major-mode
   "qi" 'ns/what-minor-modes

@@ -98,8 +98,7 @@
 (setq recentf-max-saved-items 300)
 
 (defun ns/save-files()
-  (let ((inhibit-message t))
-    (recentf-save-list)))
+  (shut-up (recentf-save-list)))
 
 (ns/add-firstrun-action '(run-at-time nil (* 5 60) 'ns/save-files))
 

@@ -17,8 +17,10 @@
     (fn (when (find-font (font-spec :name <>))
           (ns/update-xrdb-font <>)))
     '("Dejavu Sans Mono-14"
+       "DejaVu Sans Mono-14"
        "Lucida Console-14"
        "Go Mono-14"))
+
   (mapc
     (fn (when (find-font (font-spec :name <>))
           (ns/update-xrdb-font <> t)))

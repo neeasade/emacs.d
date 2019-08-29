@@ -4,6 +4,7 @@
 (use-package f)    ;file
 (use-package ht)   ;hash table
 (use-package dash) ;lists
+(use-package a)    ;assoc lists
 
 ;; other
 (use-package hydra)
@@ -147,3 +148,13 @@
 (defun ns/inmap (keymap key func)
   (general-imap :keymaps keymap key func)
   (general-nmap :keymaps keymap key func))
+
+(defun ns/save-file (filename data)
+  (with-temp-file filename
+    (prin1 data (current-buffer))))
+
+(defun ns/eval-file (filename)
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (cl-assert (eq (point) (point-min)))
+    (read (current-buffer))))
