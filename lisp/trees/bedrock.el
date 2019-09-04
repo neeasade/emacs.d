@@ -33,12 +33,6 @@
       (kill-buffer junk-buffer)
       )))
 
-(defun mapcar* (f &rest xs)
-  "MAPCAR for multiple sequences F XS."
-  (if (not (memq nil xs))
-    (cons (apply f (mapcar 'car xs))
-      (apply 'mapcar* f (mapcar 'cdr xs)))))
-
 ;; setq namespace
 (defmacro setq-ns (namespace &rest lst)
   (let ((namespace (prin1-to-string namespace)))

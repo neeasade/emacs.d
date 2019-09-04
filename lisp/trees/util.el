@@ -83,12 +83,14 @@ buffer is not visiting a file."
 
 (defun ns/get-functions()
   (cons "style"
-    (mapcar*
-      (lambda(item)
+    (mapcar
+      (lambda (item)
         (s-chomp (s-chop-prefix "(defconfig " (car item))))
       (s-match-strings-all
         "^(defconfig [^ \(\)]+"
         (f-read (~ ".emacs.d/lisp/forest.el"))))))
+
+(ns/get-functions)
 
 (defun ns/check-for-orphans()
   "Check to see if any defconfigs are missing from init."
