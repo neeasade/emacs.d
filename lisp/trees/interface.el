@@ -1,6 +1,8 @@
-;; todo: into occur/search buffer solution for better finding when don't know what we're looking for
+(global-set-key (kbd "C-e") 'previous-line)
+
 (use-package ivy
   :config
+
   (setq-ns ivy
     re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
                          (t . ivy--regex-fuzzy))
@@ -13,7 +15,6 @@
     :keymaps 'ivy-minibuffer-map
     (kbd "<C-return>") 'ivy-immediate-done)
 
-  ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
   (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
 
   (defun dynamic-ivy-height()

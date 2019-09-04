@@ -126,15 +126,17 @@ buffer is not visiting a file."
       (font-lock-mode 0)
       (git-gutter-mode 0))))
 
-(defun ns/toggle-bloat-global(toggle)
-  "toggle global bloat - must be called on it's own"
+(defun ns/toggle-bloat-global (toggle)
+  "toggle global bloat"
   (if toggle
     (progn
       (global-company-mode)
       (global-flycheck-mode)
       (global-font-lock-mode)
-      (when (not ns/enable-windows-p)
+      (when (and ns/enable-git-p
+              (not ns/enable-windows-p))
         (global-git-gutter-mode t)))
+
     (progn
       (global-company-mode -1)
       (global-flycheck-mode -1)

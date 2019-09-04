@@ -49,6 +49,7 @@
 ;; persistent session:
 ;; note: (desktop-clear) to clean/kill everything.
 (make-directory (~ ".emacs.desktop") t)
+
 (setq-ns desktop
   restore-eager 0
   auto-save-timeout 30

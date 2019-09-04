@@ -3,6 +3,8 @@
 ;; https://github.com/waymondo/apropospriate-theme
 ;;(use-package ujelly-theme)
 
+(use-package apropospriate-theme)
+
 (defun ns/update-xrdb-font (font &optional variable)
   (let ((key (if variable "st.font_variable" "st.font")))
     (setq ns/xrdb-fallback-values
@@ -32,8 +34,19 @@
 (let ((theme (intern (get-resource "Emacs.theme"))))
   (when (boundp 'ns/loaded-theme)
     (disable-theme ns/loaded-theme))
+
   (load-theme theme t)
-  (setq ns/loaded-theme theme))
+  (setq ns/loaded-theme theme)
+
+  (when (equal theme 'apropospriate-light)
+    ;; (setq apropospriate-mode-line-height nil)
+    (setq
+      evil-normal-state-cursor '("#8B94C6" box)
+      evil-insert-state-cursor '("#8B94C6" bar)
+      evil-visual-state-cursor '("#BDC6F8" box))
+    )
+
+  )
 
 (set-face-attribute 'fringe nil :background nil)
 (set-face-background 'font-lock-comment-face nil)

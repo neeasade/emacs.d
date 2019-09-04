@@ -1,3 +1,4 @@
+
 (use-package magit
   :config
   (setq-ns magit
@@ -13,8 +14,8 @@
       ;; diff perf
       diff-highlight-indentation nil
       diff-highlight-trailing nil
-      diff-paint-whitespace nil
       diff-highlight-hunk-body nil
+      diff-paint-whitespace nil
       diff-refine-hunk nil
       refresh-status-buffer nil
       )
@@ -25,31 +26,26 @@
     ))
 
 ;; todo: revisit this when you have internet, also test on windows
-(ns/use-package magit-todos "alphapapa/magit-todos"
-  :config
-  (setq magit-todos-nice ns/enable-linux-p)
-  (evil-define-key nil magit-todos-section-map "j" nil)
-  (evil-define-key nil magit-todos-section-map "e" nil)
-  (magit-todos-mode))
+(when (not ns/enable-windows-p)
+  (ns/use-package magit-todos "alphapapa/magit-todos"
+    :config
+    (setq magit-todos-nice ns/enable-linux-p)
+    (evil-define-key nil magit-todos-section-map "j" nil)
+    (evil-define-key nil magit-todos-section-map "e" nil)
+    (magit-todos-mode)))
 
 (use-package magit-svn :config
   (add-hook 'magit-mode-hook 'magit-svn-mode))
 
-;; todo: does this actually give us anything?
-(use-package evil-magit
-  :config
-  (general-nmap magit-mode-map "n" 'evil-next-line)
-  (general-nmap magit-mode-map "e" 'evil-previous-line)
-  (general-vmap magit-mode-map "n" 'evil-next-line)
-  (general-vmap magit-mode-map "e" 'evil-previous-line)
-  (general-nmap magit-mode-map "k" 'evil-search-next)
-  (general-nmap magit-mode-map "K" 'evil-search-previous)
-  (general-nmap magit-mode-map "?" 'evil-search-backward)
-
-  (general-nmap magit-status-mode-map "e" 'evil-previous-line)
-  (general-nmap magit-status-mode-map "n" 'evil-next-line)
-
-  )
+(general-nmap magit-mode-map "n" 'evil-next-line)
+(general-nmap magit-mode-map "e" 'evil-previous-line)
+(general-vmap magit-mode-map "n" 'evil-next-line)
+(general-vmap magit-mode-map "e" 'evil-previous-line)
+(general-nmap magit-mode-map "k" 'evil-search-next)
+(general-nmap magit-mode-map "K" 'evil-search-previous)
+(general-nmap magit-mode-map "?" 'evil-search-backward)
+(general-nmap magit-status-mode-map "e" 'evil-previous-line)
+(general-nmap magit-status-mode-map "n" 'evil-next-line)
 
 (use-package git-gutter-fringe
   :config
@@ -152,6 +148,7 @@ command was called, go to its unstaged changes section."
   "g" '(:ignore t :which-key "git")
   "gb" 'magit-blame-addition
   "gl" 'magit-log-buffer-file
+  "gL" 'magit-log
   "gm" 'git-smerge-menu/body
   "gd" 'vdiff-mode ; ,h for a hydra!
   "gs" 'ns/git-status
