@@ -40,9 +40,9 @@
       (-partition 2 lst)
       (mapcar (fn (list
                     (intern (format "%s-%s" namespace (car <>)))
-                    (eval (cadr <>)))))
+                    (cadr <>))))
       (cons 'setq)
-      -flatten
+      (-flatten-n 1)
       )))
 
 ;; todo: make this smart about tramp?
@@ -113,7 +113,7 @@
                    "")))
     (if (string= result "") default result)))
 
-(defun reload-init()
+(defun reload-init ()
   "Reload init.el with straight.el."
   (interactive)
   (straight-transaction

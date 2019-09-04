@@ -90,8 +90,6 @@ buffer is not visiting a file."
         "^(defconfig [^ \(\)]+"
         (f-read (~ ".emacs.d/lisp/forest.el"))))))
 
-(ns/get-functions)
-
 (defun ns/check-for-orphans()
   "Check to see if any defconfigs are missing from init."
   (let ((initfile (f-read (~ ".emacs.d/init.el"))))

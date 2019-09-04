@@ -37,15 +37,17 @@
 (use-package magit-svn :config
   (add-hook 'magit-mode-hook 'magit-svn-mode))
 
-(general-nmap magit-mode-map "n" 'evil-next-line)
-(general-nmap magit-mode-map "e" 'evil-previous-line)
-(general-vmap magit-mode-map "n" 'evil-next-line)
-(general-vmap magit-mode-map "e" 'evil-previous-line)
-(general-nmap magit-mode-map "k" 'evil-search-next)
-(general-nmap magit-mode-map "K" 'evil-search-previous)
-(general-nmap magit-mode-map "?" 'evil-search-backward)
-(general-nmap magit-status-mode-map "e" 'evil-previous-line)
-(general-nmap magit-status-mode-map "n" 'evil-next-line)
+(use-package evil-magit
+  :config
+  (general-nmap magit-mode-map "n" 'evil-next-line)
+  (general-nmap magit-mode-map "e" 'evil-previous-line)
+  (general-vmap magit-mode-map "n" 'evil-next-line)
+  (general-vmap magit-mode-map "e" 'evil-previous-line)
+  (general-nmap magit-mode-map "k" 'evil-search-next)
+  (general-nmap magit-mode-map "K" 'evil-search-previous)
+  (general-nmap magit-mode-map "?" 'evil-search-backward)
+  (general-nmap magit-status-mode-map "e" 'evil-previous-line)
+  (general-nmap magit-status-mode-map "n" 'evil-next-line))
 
 (use-package git-gutter-fringe
   :config
