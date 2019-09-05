@@ -143,3 +143,15 @@
     (insert-file-contents filename)
     (cl-assert (eq (point) (point-min)))
     (read (current-buffer))))
+
+
+;; this is overridden with eros eval later on
+(defun ns/smart-elisp-eval ()
+  (interactive)
+  (if (use-region-p)
+    (eval-region (region-beginning) (region-end))
+    (if (s-blank-p (s-trim (thing-at-point 'line)))
+      (eval-last-sexp nil)
+      (eval-defun nil))))
+
+(ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)

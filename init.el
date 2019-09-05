@@ -52,9 +52,9 @@
   interface
   editing
   shell
+  org
   git
   util
-  org
   server
   )
 

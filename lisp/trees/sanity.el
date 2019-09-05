@@ -74,7 +74,6 @@
   (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
 
 (fset 'yes-or-no-p 'y-or-n-p)
-
 (fset 'which 'executable-find)
 
 (defcommand toggle-modeline ()

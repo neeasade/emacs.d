@@ -1,17 +1,5 @@
 ;; initially loaded org modules
 ;; cf https://github.com/emacsmirror/org/tree/master/lisp
-(setq org-modules
-  '(
-     org-bibtex
-     org-clock
-     org-capture
-     org-agenda
-     org-src
-     org-gnus
-     org-info
-     org-mhe
-     org-mks
-     ))
 
 (use-package org
   :straight (:host github
@@ -285,7 +273,7 @@
 ;; (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
 ;;   :config
 ;;   (setq-ns org-wild-notifier
-;;     alert-time 7
+;;     alert-time 7 ;; min
 ;;     notification-title "Reminder"
 ;;     keyword-whitelist nil
 ;;     keyword-blacklist nil

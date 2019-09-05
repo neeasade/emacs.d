@@ -88,7 +88,6 @@
           )))
 
     (ns/bind "nd" 'ns/helpful-or-dash-doc)
-
     )
 
   (use-package eros
@@ -104,8 +103,7 @@
           (eros-eval-last-sexp nil)
           (eros-eval-defun nil))))
 
-    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
-    ))
+    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)))
 
 (defconfig flycheck
   (use-package flycheck

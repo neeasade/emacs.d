@@ -25,7 +25,6 @@
     (remove-hook 'server-switch-hook 'magit-commit-diff)
     ))
 
-;; todo: revisit this when you have internet, also test on windows
 (when (not ns/enable-windows-p)
   (ns/use-package magit-todos "alphapapa/magit-todos"
     :config
