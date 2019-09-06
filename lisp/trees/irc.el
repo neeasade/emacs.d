@@ -8,9 +8,7 @@
   circe-default-user ns/irc-nick
   circe-default-realname ns/irc-nick)
 
-(setq ns/circe-highlights
-  `(,ns/irc-nick "neesade" "neese"
-     "bspwm" "emacs"))
+(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs"))
 
 (setq-ns lui
   logging-directory (~ ".ircnew")

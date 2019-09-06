@@ -234,7 +234,7 @@ buffer is not visiting a file."
           (if (s-starts-with-p ":" <>)
             (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
             <>))
-        (s-split "\n" (f-read (~ (format ".%s_history" shell-name)))))
+        (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))
 
       :action (fn (goto-char (point-max)) (insert <>)))))
 

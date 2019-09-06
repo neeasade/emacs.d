@@ -9,4 +9,5 @@ else
     rg --files "$@" > "$file"
 fi
 
+export elisp_timeout=10
 elisp -r '(ivy-read "" (s-split "\n" (f-read "'"$file"'")) :action (lambda(option) option))'
