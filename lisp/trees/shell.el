@@ -41,14 +41,14 @@
                         (old-shell-buffer shell-pop-last-shell-buffer-name))
                    (shell-pop ,index)
 
-                   (when (= ,index 9)
-                     (setq
-                       shell-pop-last-shell-buffer-index old-shell-index
-                       shell-pop-last-shell-buffer-buffer old-shell-buffer))))
+                   ,(when (= index 9)
+                      '(setq
+                         shell-pop-last-shell-buffer-index old-shell-index
+                         shell-pop-last-shell-buffer-buffer old-shell-buffer))))
                (ns/bind ,(concat "t" (number-to-string index)) ',funcname)))))
 
   ;; give us 1-9
-  (mapc 'makepop (number-sequence 1 9))
+  (mapcar 'makepop (number-sequence 1 9))
 
   ;; treat 9 special, meant to be a long running buffer
   (ns/bind "'" (fn!
@@ -64,21 +64,21 @@
                       (shell-pop
                         (if (string= (buffer-name (current-buffer)) "*shell-9*")
                           shell-pop-last-shell-buffer-index nil))
-                      (shell-pop-9))
-                    )))
+                      (shell-pop-9)))))
 
   ;; cf https://github.com/kyagi/shell-pop-el/issues/51
   (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
-  ;; spawn shell in current ranger dir
-  (defcommand shell-spawn-ranger-dir ()
-    (let ((ranger-dir (expand-file-name default-directory)))
-      (ns/pickup-shell)
-      (shell-pop--cd-to-cwd-shell ranger-dir))
-    ;; note: keep this outside of let to close properly
-    (ranger-kill-buffers-without-window))
+  ;; ;; spawn shell in current ranger dir
+  ;; (defcommand shell-spawn-ranger-dir ()
+  ;;   (let ((ranger-dir (expand-file-name default-directory)))
+  ;;     (ns/pickup-shell)
+  ;;     (shell-pop--cd-to-cwd-shell ranger-dir))
+  ;;   ;; note: keep this outside of let to close properly
+  ;;   (ranger-kill-buffers-without-window))
 
-  (define-key ranger-mode-map (kbd "s") 'ns/shell-spawn-ranger-dir))
+  ;; (define-key ranger-mode-map (kbd "s") 'ns/shell-spawn-ranger-dir)
+  )
 
 (defcommand windowshot ()
   "get a string that is the currently displayed text in emacs window"

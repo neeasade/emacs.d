@@ -73,10 +73,11 @@
 (use-package evil-anzu :config (setq anzu-cons-mode-line-p nil)) ;; displays current match and total matches.
 (use-package evil-matchit :config (global-evil-matchit-mode 1))
 
-(use-package evil-numbers
+(ns/use-package evil-numbers "janpath/evil-numbers"
   :config
-  (general-nmap (kbd "C-c +") 'evil-numbers/inc-at-pt)
-  (general-nmap (kbd "C-c -") 'evil-numbers/dec-at-pt))
+  (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
+  (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt)
+  )
 
 ;; this is nice, but I don't use marks often.
 ;; (use-package evil-fringe-mark

@@ -83,8 +83,8 @@ buffer is not visiting a file."
 
 (defun ns/get-functions()
   (cons "style"
-    (mapcar*
-      (lambda(item)
+    (mapcar
+      (lambda (item)
         (s-chomp (s-chop-prefix "(defconfig " (car item))))
       (s-match-strings-all
         "^(defconfig [^ \(\)]+"
@@ -126,15 +126,17 @@ buffer is not visiting a file."
       (font-lock-mode 0)
       (git-gutter-mode 0))))
 
-(defun ns/toggle-bloat-global(toggle)
-  "toggle global bloat - must be called on it's own"
+(defun ns/toggle-bloat-global (toggle)
+  "toggle global bloat"
   (if toggle
     (progn
       (global-company-mode)
       (global-flycheck-mode)
       (global-font-lock-mode)
-      (when (not ns/enable-windows-p)
+      (when (and ns/enable-git-p
+              (not ns/enable-windows-p))
         (global-git-gutter-mode t)))
+
     (progn
       (global-company-mode -1)
       (global-flycheck-mode -1)
@@ -189,7 +191,7 @@ buffer is not visiting a file."
                    parts-in))
           (family (first parts))
           (size (string-to-number (second parts))))
-    ;; height is in 1/10th of pt
+    ;; height is 10x pt
     `(:family ,family :height ,(* 10 size))))
 
 (defun ns/set-faces-variable (faces)
@@ -236,10 +238,15 @@ buffer is not visiting a file."
             <>))
         (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))
 
-      :action (fn (goto-char (point-max)) (insert <>)))))
+
+      :action (fn
+                (when (eq major-mode 'shell-mode)
+                  (goto-char (point-max)))
+
+                (insert <>)
+                ))))
 
 (ns/bind
-  ;; reconsider these, moved from w -> q for query
   "qf" 'ns/what-face
   "qm" 'ns/what-major-mode
   "qi" 'ns/what-minor-modes

@@ -4,6 +4,7 @@
 (use-package f)    ;file
 (use-package ht)   ;hash table
 (use-package dash) ;lists
+(use-package a)    ;assoc lists
 
 ;; other
 (use-package hydra)
@@ -15,8 +16,7 @@
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 
-;; apply, but with quotes
-;; example:
+;; call a func, but with backtick quoting
 ;; (@ 'message ,@'("asdf"))
 (defmacro @ (&rest input) (eval (eval `(backquote (list ,@input)))))
 
@@ -28,25 +28,22 @@
 (defun ns/shell-exec-dontcare (command)
   (let* ((bufname (concat "*killme-shell" (number-to-string (random)) "*"))
           (junk-buffer (get-buffer-create bufname)))
-    (shell-command command junk-buffer)
-    (kill-buffer junk-buffer)))
-
-(defun mapcar* (f &rest xs)
-  "MAPCAR for multiple sequences F XS."
-  (if (not (memq nil xs))
-    (cons (apply f (mapcar 'car xs))
-      (apply 'mapcar* f (mapcar 'cdr xs)))))
+    (shut-up
+      (shell-command command junk-buffer)
+      (kill-buffer junk-buffer)
+      )))
 
 ;; setq namespace
 (defmacro setq-ns (namespace &rest lst)
-  `(mapcar*
-     (lambda (pair)
-       (let ((key (car pair))
-              (value (car (cdr pair))))
-         (set
-           (intern (concat (prin1-to-string ',namespace) "-" (prin1-to-string key)))
-           (eval value))))
-     (seq-partition ',lst 2)))
+  (let ((namespace (prin1-to-string namespace)))
+    (->>
+      (-partition 2 lst)
+      (mapcar (fn (list
+                    (intern (format "%s-%s" namespace (car <>)))
+                    (cadr <>))))
+      (cons 'setq)
+      (-flatten-n 1)
+      )))
 
 ;; todo: make this smart about tramp?
 (defun ~ (path)
@@ -116,7 +113,7 @@
                    "")))
     (if (string= result "") default result)))
 
-(defun reload-init()
+(defun reload-init ()
   "Reload init.el with straight.el."
   (interactive)
   (straight-transaction
@@ -136,3 +133,25 @@
 (defun ns/inmap (keymap key func)
   (general-imap :keymaps keymap key func)
   (general-nmap :keymaps keymap key func))
+
+(defun ns/save-file (filename data)
+  (with-temp-file filename
+    (prin1 data (current-buffer))))
+
+(defun ns/eval-file (filename)
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (cl-assert (eq (point) (point-min)))
+    (read (current-buffer))))
+
+
+;; this is overridden with eros eval later on
+(defun ns/smart-elisp-eval ()
+  (interactive)
+  (if (use-region-p)
+    (eval-region (region-beginning) (region-end))
+    (if (s-blank-p (s-trim (thing-at-point 'line)))
+      (eval-last-sexp nil)
+      (eval-defun nil))))
+
+(ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
