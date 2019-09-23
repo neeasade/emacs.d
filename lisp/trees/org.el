@@ -207,7 +207,7 @@
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
-(add-hook 'org-mode-hook 'org-indent-mode)
+;; (add-hook 'org-mode-hook 'org-indent-mode)
 
 (advice-add #'ns/style :after #'ns/style-org)
 (defun ns/style-org ()

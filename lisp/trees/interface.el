@@ -36,9 +36,11 @@
 (use-package counsel
   :config
   (use-package rg)
-  (setq-ns counsel
-    grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
-    rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s ."))
+
+  (when (executable-find "rg")
+    (setq-ns counsel
+      grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
+      rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
 
 (use-package ranger
   :init (setq ranger-override-dired t)

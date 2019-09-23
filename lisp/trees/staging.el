@@ -110,3 +110,57 @@ Version 2017-03-12"
 ;;       ((eq major-mode 'java-mode)
 ;;         (string-inflection-java-style-cycle))
 ;;       (t (string-inflection-ruby-style-cycle)))))
+
+(defun ns/get-url-note (url)
+  ;; returns the char of the entry if it exists
+  (defun ns/find-url-heading (path)
+    (catch 'error
+      (condition-case msg
+        (org-find-olp `(,(concat org-directory "/projects/url.org")
+                         "URL notes"
+                         ,@path))
+        (error
+          ;; (nth 1 msg)
+          nil
+          ))))
+
+  ;; note: only handles one level currently
+  (defun ns/add-url-heading (path)
+    (let ((parent (-remove-last (fn t) path))
+           (child (-last (fn t) path)))
+      ;; todo: this with a full file path
+      (with-current-buffer "url.org"
+        (when
+          (and (not (ns/find-url-heading path))
+            (ns/find-url-heading parent))
+          (progn
+            (goto-char (ns/find-url-heading parent))
+            (org-insert-heading-after-current)
+            (insert child)
+            (org-do-demote))))))
+
+  (let ((parent
+          (->> url
+            url-generic-parse-url
+            url-host))
+         (child url))
+
+    (when (not (ns/find-url-heading (list parent)))
+      (ns/add-url-heading (list parent)))
+
+    (when (not (ns/find-url-heading (list parent child)))
+      (ns/add-url-heading (list parent child)))
+
+    (ns/find-url-heading (list parent child))))
+
+(defun ns/goto-url-note (&optional url)
+  (interactive)
+  (let ((target (or url
+                  (->> (simpleclip-get-contents) s-trim s-clean))))
+    (when (ffap-url-p target)
+
+      (ns/find-or-open (concat org-directory "/projects/url.org"))
+      (goto-char (ns/get-url-note target))
+
+      (org-show-context)
+      (org-show-subtree))))
