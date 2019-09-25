@@ -172,6 +172,12 @@
     (delq (current-buffer)
       (remove-if-not 'buffer-file-name (buffer-list)))))
 
+(use-package avy :config
+  (setq-ns avy
+    all-windows 'all-frames
+    timeout-seconds 0.2
+    keys (string-to-list "arstgkneio")))
+
 (ns/bind
   "bb" 'counsel-ibuffer
   "bK" 'ns/kill-other-buffers

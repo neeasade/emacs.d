@@ -219,11 +219,13 @@
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
-(add-hook 'org-mode-hook 'org-indent-mode)
 
 (advice-add #'ns/style :after #'ns/style-org)
 (defun ns/style-org ()
-  (ns/set-faces-monospace '(org-block org-code org-table company-tooltip company-tooltip-common company-tooltip-selection))
+  (ns/set-faces-monospace '(org-block org-code org-table company-tooltip company-tooltip-common company-tooltip-selection
+                             org-block-begin-line
+                             org-block-end-line
+                             ))
 
   (set-face-attribute 'org-block-begin-line nil :height 65)
   (set-face-attribute 'org-block-end-line nil :height 65)

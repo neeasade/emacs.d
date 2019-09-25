@@ -178,14 +178,7 @@
   "]b" 'evil-next-buffer
   )
 
-(use-package avy
-  :config
+(general-nmap "s" 'avy-goto-char-timer)
 
-  (setq avy-all-windows 'all-frames)
-  (setq avy-timeout-seconds 0.2)
-  (setq avy-keys (string-to-list "arstgkneio"))
-
-  (general-nmap "s" 'avy-goto-char-timer))
-
-;; break a bad habit by noping :b
+;; break a bad habit by nop'ing :b
 ;; (evil-ex-define-cmd "b" nil)

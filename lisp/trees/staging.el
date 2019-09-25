@@ -49,21 +49,22 @@ Version 2017-03-12"
 
 (ns/bind "tc" 'ns/toggle-colors)
 
+;; file:/home/nathan/.vimrc
+;; /home/nathan/.vimrc
 (defcommand follow()
-  (when
-    (not (shut-up (smart-jump-go)))
+  (or
+    ;; first try to open with org handling (includes urls)
+    (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
 
-    (when
-      ;; first try to open with org handling (includes urls)
-      (eq 'fail (condition-case nil (org-open-at-point) (error 'fail)))
+    ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
+    (when (f-exists-p (nth 0 (s-split ":" (ffap-string-at-point))))
+      (org-open-link-from-string
+        (format "file:%s" (s-replace ":" "::" (ffap-string-at-point))))
+      t)
 
-      ;; this fails when org is out of sync it's just that org is borked on this machine somehow
-      ;; cf https://emacs.stackexchange.com/questions/29471/error-message-symbols-function-definition-is-void-org-link-types-when-i-open
-
-      ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
-      (when (f-exists-p (nth 0 (s-split ":" (ffap-string-at-point))))
-        (org-open-link-from-string
-          (format "file:%s" (s-replace ":" "::" (ffap-string-at-point))))))))
+    ;; fall back to definitions with smart jump
+    (shut-up (smart-jump-go))
+    ))
 
 (ns/bind "nn" 'ns/follow)
 
