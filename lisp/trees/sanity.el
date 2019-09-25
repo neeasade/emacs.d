@@ -48,6 +48,7 @@
 ;; persistent session:
 ;; note: (desktop-clear) to clean/kill everything.
 (make-directory (~ ".emacs.desktop") t)
+
 (setq-ns desktop
   restore-eager 0
   auto-save-timeout 30
@@ -72,7 +73,6 @@
   (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
 
 (fset 'yes-or-no-p 'y-or-n-p)
-
 (fset 'which 'executable-find)
 
 (defcommand toggle-modeline ()

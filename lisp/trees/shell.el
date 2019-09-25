@@ -69,15 +69,16 @@
   ;; cf https://github.com/kyagi/shell-pop-el/issues/51
   (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
-  ;; spawn shell in current ranger dir
-  (defcommand shell-spawn-ranger-dir ()
-    (let ((ranger-dir (expand-file-name default-directory)))
-      (ns/pickup-shell)
-      (shell-pop--cd-to-cwd-shell ranger-dir))
-    ;; note: keep this outside of let to close properly
-    (ranger-kill-buffers-without-window))
+  ;; ;; spawn shell in current ranger dir
+  ;; (defcommand shell-spawn-ranger-dir ()
+  ;;   (let ((ranger-dir (expand-file-name default-directory)))
+  ;;     (ns/pickup-shell)
+  ;;     (shell-pop--cd-to-cwd-shell ranger-dir))
+  ;;   ;; note: keep this outside of let to close properly
+  ;;   (ranger-kill-buffers-without-window))
 
-  (define-key ranger-mode-map (kbd "s") 'ns/shell-spawn-ranger-dir))
+  ;; (define-key ranger-mode-map (kbd "s") 'ns/shell-spawn-ranger-dir)
+  )
 
 (defcommand windowshot ()
   "get a string that is the currently displayed text in emacs window"

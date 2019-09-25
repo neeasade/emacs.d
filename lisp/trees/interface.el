@@ -1,6 +1,8 @@
-;; todo: into occur/search buffer solution for better finding when don't know what we're looking for
+(global-set-key (kbd "C-e") 'previous-line)
+
 (use-package ivy
   :config
+
   (setq-ns ivy
     re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
                          (t . ivy--regex-fuzzy))
@@ -13,7 +15,6 @@
     :keymaps 'ivy-minibuffer-map
     (kbd "<C-return>") 'ivy-immediate-done)
 
-  ;; todo: this will also need a hook on frame focus now -- for when using emacs as term
   (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
 
   (defun dynamic-ivy-height()
@@ -35,9 +36,11 @@
 (use-package counsel
   :config
   (use-package rg)
-  (setq-ns counsel
-    grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
-    rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s ."))
+
+  (when (executable-find "rg")
+    (setq-ns counsel
+      grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
+      rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
 
 (use-package ranger
   :init (setq ranger-override-dired t)
@@ -62,15 +65,16 @@
 
   (advice-add #'ranger-close :after #'ns/kill-ranger-buffers)
 
-  (defcommand deer-with-last-shell ()
-    (let ((current-buffer (buffer-name (current-buffer))))
-      (if (or (s-match "\*spawn-shell.*" current-buffer)
-            (s-match "\*shell-[1-9]\*" current-buffer))
-        (setq ns/last-shell current-buffer)
-        (setq ns/last-shell shell-pop-last-shell-buffer-name)))
-    (deer))
+  ;; (defcommand deer-with-last-shell ()
+  ;;   (let ((current-buffer (buffer-name (current-buffer))))
+  ;;     (if (or (s-match "\*spawn-shell.*" current-buffer)
+  ;;           (s-match "\*shell-[1-9]\*" current-buffer))
+  ;;       (setq ns/last-shell current-buffer)
+  ;;       (setq ns/last-shell shell-pop-last-shell-buffer-name)))
+  ;;   (deer))
 
-  (ns/bind "d" 'ns/deer-with-last-shell)
+  ;; (ns/bind "d" 'ns/deer-with-last-shell)
+  (ns/bind "d" 'deer)
 
   (defcommand open () (ns/shell-exec-dontcare (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
   (define-key ranger-normal-mode-map (kbd "RET") 'ns/open)
@@ -99,6 +103,27 @@
   (delete-other-windows)
   (evil-window-vsplit))
 
+(use-package alert
+  :config (setq alert-default-style
+            (if ns/enable-windows-p
+              'toaster
+              'libnotify
+              )))
+
+(use-package which-key
+  :config
+  (setq-ns which-key
+    idle-delay 1.5
+    side-window-max-width 0.33
+    sort-order 'which-key-key-order-alpha)
+  (which-key-setup-side-window-right-bottom)
+  (which-key-mode))
+
+(defcommand kill-other-buffers ()
+  "Kill all other buffers."
+  (mapc 'kill-buffer
+    (delq (current-buffer)
+      (remove-if-not 'buffer-file-name (buffer-list)))))
 
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
@@ -126,60 +151,11 @@
   "q" '(:ignore t :which-key "Query")
 
   "b" '(:ignore t :which-key "Buffers")
+  "bb" 'counsel-ibuffer
   "bd" 'ns/kill-current-buffer
+  "bK" 'ns/kill-other-buffers
+  "bk" 'kill-matching-buffers
 
   "n" '(:ignore t :which-key "Jump")
   "nd" 'counsel-imenu
-  )
-
-(use-package alert
-  :config (setq alert-default-style
-            (if ns/enable-windows-p
-              'toaster
-              'libnotify
-              )))
-
-(use-package which-key
-  :config
-  (setq-ns which-key
-    idle-delay 1.5
-    side-window-max-width 0.33
-    sort-order 'which-key-key-order-alpha
-    )
-  (which-key-setup-side-window-right-bottom)
-  (which-key-mode)
-  )
-
-
-
-(use-package ace-jump-buffer
-  :config
-  (setq ajb-sort-function 'bs--sort-by-recentf)
-
-  (add-hook 'window-configuration-change-hook 'dynamic-ajb-height)
-  (defun dynamic-ajb-height()
-    (setq ajb-max-window-height (/ (frame-total-lines) 2)))
-
-  (dynamic-ajb-height)
-
-  (ns/bind
-    "bs" 'ace-jump-buffer
-    "bm" 'ace-jump-same-mode-buffers))
-
-(defcommand kill-other-buffers ()
-  "Kill all other buffers."
-  (mapc 'kill-buffer
-    (delq (current-buffer)
-      (remove-if-not 'buffer-file-name (buffer-list)))))
-
-(use-package avy :config
-  (setq-ns avy
-    all-windows 'all-frames
-    timeout-seconds 0.2
-    keys (string-to-list "arstgkneio")))
-
-(ns/bind
-  "bb" 'counsel-ibuffer
-  "bK" 'ns/kill-other-buffers
-  "bk" 'kill-matching-buffers
   )

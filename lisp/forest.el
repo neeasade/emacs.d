@@ -13,13 +13,14 @@
      nil ,@body))
 
 (defmacro defconfig (label &rest body)
-  `(defconfig-base ,label
-     (let ((config-name ,(prin1-to-string label)))
-       (message (concat "loading " config-name "..."))
-       (catch 'config-catch
-         (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
-         ,@body
-         (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t)))))
+  `(progn
+     (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
+     (defconfig-base ,label
+       (let ((config-name ,(prin1-to-string label)))
+         (message (concat "loading " config-name "..."))
+         (catch 'config-catch
+           ,@body
+           (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t))))))
 
 (defmacro ns/guard (&rest conditions)
   (if (not (eval (cons 'and conditions)))
@@ -86,7 +87,7 @@
           (message "dash docs not enabled!")
           )))
 
-    ;; (ns/bind "nd" 'ns/helpful-or-dash-doc)
+    (ns/bind "nd" 'ns/helpful-or-dash-doc)
     )
 
   (use-package eros
@@ -102,8 +103,7 @@
           (eros-eval-last-sexp nil)
           (eros-eval-defun nil))))
 
-    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
-    ))
+    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)))
 
 (defconfig flycheck
   (use-package flycheck
@@ -176,14 +176,16 @@
   (defmacro ns/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
     `(when (bound-and-true-p ns/enable-dashdocs-p)
-       (when (not (dash-docs-docset-installed-p ,docset))
+       (when nil
          (message (format "Installing %s docset..." ,docset))
          (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))
        (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
 
+
   ;; (ns/guard ns/enable-home-p)
 
   (use-package dash)
+
   (use-package counsel-dash)
 
   (setq-ns counsel-dash
@@ -198,7 +200,9 @@
       (counsel-dash (buffer-substring (region-beginning) (region-end)))
       (counsel-dash "")))
 
-  (ns/bind "nd" 'ns/counsel-dash-word))
+  (ns/bind "nd" 'ns/counsel-dash-word)
+
+  )
 
 (defconfig zoom
   (use-package zoom
@@ -426,7 +430,7 @@
       "n" '(:ignore t :which-key "Jump")
       "ng" 'smart-jump-go
       "nb" 'smart-jump-back
-      ;; todo: bind "nr" to references in different modes
+      "nr" 'smart-jump-references
       )
 
     (advice-add #'smart-jump-go :after #'ns/focus-line)))
@@ -441,7 +445,46 @@
 
 (defconfig email
   (ns/guard ns/enable-home-p)
-  ;; TODO
+
+  ;; (use-package wanderlust :init (autoload 'wl "wl" "Wanderlust" t))
+
+  ;; IMAP
+  (setq elmo-imap4-default-server "imap.gmail.com")
+  (setq elmo-imap4-default-user (pass "gmail/user"))
+  (setq elmo-imap4-default-authenticate-type 'clear)
+  (setq elmo-imap4-default-port '993)
+  (setq elmo-imap4-default-stream-type 'ssl)
+
+  (setq elmo-imap4-use-modified-utf7 t)
+
+  ;; SMTP
+  (setq wl-smtp-connection-type 'starttls)
+  (setq wl-smtp-posting-port 587)
+  (setq wl-smtp-authenticate-type "plain")
+  (setq wl-smtp-posting-user (pass "gmail/user"))
+  (setq wl-smtp-posting-server "smtp.gmail.com")
+  (setq wl-local-domain "gmail.com")
+
+  (setq wl-default-folder "%inbox")
+  (setq wl-default-spec "%")
+  (setq wl-draft-folder "%[Gmail]/Drafts") ; Gmail IMAP
+  (setq wl-trash-folder "%[Gmail]/Trash")
+
+  (setq wl-folder-check-async t)
+
+  ;; ???
+  (setq elmo-imap4-use-modified-utf7 t)
+
+  (autoload 'wl-user-agent-compose "wl-draft" nil t)
+  (setq mail-user-agent 'wl-user-agent)
+
+  (define-mail-user-agent
+    'wl-user-agent
+    'wl-user-agent-compose
+    'wl-draft-send
+    'wl-draft-kill
+    'mail-send-hook)
+
   )
 
 (defconfig jekyll
@@ -538,20 +581,21 @@
 (defconfig filehooks
   (ns/guard ns/enable-home-p)
 
-  (defvar *afilename-cmd*
-    `((,(~ ".Xresources") . "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst")
-       (,(~ ".Xmodmap") . "xmodmap ~/.Xmodmap"))
-    "File association list with their respective command.")
+  (setq ns/filename-cmd
+    (list
+      (~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
+      (~ ".Xmodmap") "xmodmap ~/.Xmodmap"
+      ))
 
   (defun my/cmd-after-saved-file ()
     "Execute a command after saved a specific file."
-    (setq filenames (mapcar 'car *afilename-cmd*))
-    (dolist (file filenames)
-      (let ((cmd (cdr (assoc file *afilename-cmd*))))
-        (if (file-exists-p file)
-          (when (equal (buffer-file-name) file)
-            (shell-command cmd))
-          (error "No such file %s" file)))))
+    (dolist (pair (-partition 2 ns/filename-cmd))
+      (let ((file (car pair))
+             (cmd (cadr pair)))
+        (when (and (equal (buffer-file-name) file)
+                (f-exists-p file))
+          (ns/shell-exec-dontcare cmd))
+        )))
 
   (add-hook 'after-save-hook 'my/cmd-after-saved-file)
   )
@@ -645,9 +689,9 @@
 (defconfig graphiz
   (use-package graphviz-dot-mode
     :config
-    ;; (ns/bind)
-    ;; todo: should we have a shorter automatic eval default binding?
-    (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview))
+    (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)
+    (ns/bind-mode 'graphviz-dot "e" 'graphviz-dot-preview)
+    )
 
   ;; use dot in org mode
   (org-babel-do-load-languages
