@@ -422,15 +422,23 @@
   (ns/style-circe))
 
 ;; channel name in prompt
-(add-hook 'circe-chat-mode-hook
-  (fn (lui-set-prompt (ns/make-message (buffer-name) ""))))
+
+(defun ns/set-circe-prompt ()
+  (lui-set-prompt (ns/make-message (buffer-name) "")))
+
+(add-hook 'circe-chat-mode-hook 'ns/set-circe-prompt)
+
+;; (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
+;; (add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
 
 ;; prevent too long pastes/prompt on it:
 (require 'lui-autopaste)
 (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
+(add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
 
-(load "lui-logging" nil t)
-(enable-lui-logging-globally)
+;; trying out our own logging.
+;; (load "lui-logging" nil t)
+;; (enable-lui-logging-globally)
 
 (add-hook 'lui-mode-hook 'my-lui-setup)
 (defun my-lui-setup ()
@@ -447,15 +455,21 @@
     (mapcar 'buffer-name (ns/buffers-by-mode 'circe-query-mode))))
 
 (defcommand jump-irc ()
-  (let ((irc-channels
-          (mapcar 'buffer-name
-            (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))))
+  (let* ((irc-channels
+           (mapcar 'buffer-name
+             (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)))
+          (irc-nicks
+            (if (-contains-p irc-channels (buffer-name))
+              (circe-channel-nicks) '()))
+          )
     (if (eq (length irc-channels) 0)
       (message "connect to irc first!")
-      (ivy-read "channel: " irc-channels
+      (ivy-read "channel: " (append irc-channels irc-nicks)
         :action (lambda (option)
                   (interactive)
-                  (counsel-switch-to-buffer-or-window option)
+                  (if (-contains-p irc-nicks option)
+                    (circe-command-QUERY option)
+                    (counsel-switch-to-buffer-or-window option))
                   (evil-goto-line)
                   (evil-scroll-line-to-bottom nil) ; nil -> the current line
                   ;; this still needed?
@@ -488,8 +502,7 @@
 
     (defface circe-originator-fade-face
       `((t :foreground ,fade-fg))
-      "circe actions and self-say characters"
-      )
+      "circe actions and self-say characters")
 
     ;; urls
     (set-face-attribute 'lui-button-face nil :foreground highlight-fg)
@@ -505,7 +518,9 @@
         (ns/set-buffer-face-variable)
         ;; turn off quits and joins in high member count channels
         (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100))
-        ))))
+        (setq mode-line-format nil)
+        )))
+  )
 
 (defmacro ns/circe-bind (&rest binds)
   "Bind BINDS in normal/insert mode, in both channel and query buffers."
@@ -523,6 +538,9 @@
 (defun circe-command-NP (&optional _)
   (interactive "sAction: ")
   (circe-command-ME (concat "is now playing " (ns/shell-exec "music infoname"))))
+
+(defun circe-command-CS (content)
+  (circe-command-MSG "chanserv" content))
 
 (ns/bind
   "ai" 'connect-all-irc
