@@ -44,8 +44,14 @@
        :host "irc.unix.chat"
        :port (6667 . 6697)
        :tls t
-       :channels ("#unix")
-       )
+       :channels ("#unix"))
+
+     ("OFTC"
+       :nick ,ns/irc-nick
+       :host "irc.oftc.net"
+       :port (6667 . 6697)
+       :tls t
+       :channels ("#bitlbee"))
 
      ("Bitlbee"
        :nick ,ns/irc-nick
@@ -57,7 +63,7 @@
        :host "irc.rizon.net"
        :port (6667 . 6697)
        :tls t
-       :channels (:after-auth "#rice" "#code" "#leliana")
+       :channels (:after-auth "#rice" "#code" "#leliana" "#etc")
        :nickserv-password ,(pass "rizon/pass")
        :nickserv-mask ,(rx bol "NickServ!service@rizon.net" eol)
        :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")

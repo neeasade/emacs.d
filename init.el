@@ -23,7 +23,7 @@
      ;; ("Emacs.theme"          . "base16-grayscale-light")
      ("Emacs.theme"          . "apropospriate-light")
      ("Emacs.powerline"      . "bar")
-     ("Emacs.padding_source" . "font") ;; font or st
+     ("Emacs.padding_source" . "st") ;; font or st
      ("st.borderpx"          . "30")
      ;; default to whatever loads
      ("st.font"              . ,(font-get (face-attribute 'default :font) :name))

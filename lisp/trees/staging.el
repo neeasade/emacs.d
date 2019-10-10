@@ -165,3 +165,18 @@ Version 2017-03-12"
 
       (org-show-context)
       (org-show-subtree))))
+
+(use-package eval-in-repl
+  :config
+  (require 'eval-in-repl)
+  (require 'eval-in-repl-python)
+
+  (setq eir-jump-after-eval nil)
+  (setq eir-always-split-script-window nil)
+  (setq eir-delete-other-windows nil)
+  (setq eir-repl-placement 'left)
+
+  ;; run this first to start the repl
+  ;; (eir-run-python)
+  (ns/bind-mode 'python "e" 'eir-eval-in-python)
+  )

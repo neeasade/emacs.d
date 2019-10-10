@@ -213,21 +213,7 @@
 
 (defconfig python
   (ns/install-dashdoc "Python 2" 'python-mode-hook)
-
-  ;; todo: mode eval-in-repl to it's own thing, probably
-  (use-package eval-in-repl)
-  (require 'eval-in-repl)
-  (require 'eval-in-repl-python)
-
-  (setq eir-jump-after-eval nil)
-  (setq eir-always-split-script-window nil)
-  (setq eir-delete-other-windows nil)
-  (setq eir-repl-placement 'left)
-
-  ;; run this first to start the repl
-  ;; (eir-run-python)
-  (ns/bind-mode 'python "e" 'eir-eval-in-python)
-  )
+  (use-package elpy))
 
 (defconfig clojure
   (use-package clojure-mode)
