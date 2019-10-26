@@ -4,21 +4,14 @@
   "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
 
-(defun ns/get-current-line ()
-  (save-excursion
-    (goto-char (point-at-bol))
-    (let ((b (point))
-           (e (progn (end-of-line) (point))))
-      (buffer-substring-no-properties b e))))
-
 (defcommand what-line ()
-  "Print the current line number (in the buffer) of point."
   (save-restriction
     (widen)
     (save-excursion
       (beginning-of-line)
       (1+ (count-lines 1 (point))))))
 
+;; todo: this does not work with anchors?
 (defun ns/eww-browse-existing-or-new (url)
   "If eww is displayed, use that for URL, else open here."
   (if (get-buffer-window "*eww*" 'visible)
@@ -99,7 +92,7 @@ buffer is not visiting a file."
           (message (concat "orphaned function! " conf))))
       (ns/get-functions))))
 
-(defcommand jump-config()
+(defcommand jump-config ()
   (ivy-read "config: " (ns/get-functions)
     :action
     (lambda (option)
@@ -210,13 +203,12 @@ buffer is not visiting a file."
   (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
   (buffer-face-mode t))
 
-(defun ns/make-lines(list)
-  (s-join "\n"
-    (mapcar
-      (lambda (item)
-        (if (stringp item) item
-          (prin1-to-string item)))
-      list)))
+(defun ns/make-lines (list)
+  (->> list
+    (mapcar (fn
+              (if (stringp <>) <>
+                (prin1-to-string <>))))
+    (s-join "\n")))
 
 (defun ns/buffers-by-mode (&rest modes)
   (remove-if-not
@@ -231,25 +223,24 @@ buffer is not visiting a file."
             "bash")))
 
     (ivy-read "history: "
-      (-uniq
-        (append
-          ;; current history across all open shells:
-          (-flatten
-            (mapcar
-              (fn (with-current-buffer <>
-                    (when (boundp 'comint-input-ring)
-                      (when (> (ring-size comint-input-ring) 0)
-                        (mapc 's-clean (ring-elements comint-input-ring)
-                          )))))
-              (ns/buffers-by-mode 'shell-mode)))
-
-          ;; shell history from file:
+      (append
+        ;; current history across all open shells:
+        (-flatten
           (mapcar
-            (fn ;; shared history format: ': 1556747685:0;cmd'
-              (if (s-starts-with-p ":" <>)
-                (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                <>))
-            (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))))
+            (fn (with-current-buffer <>
+                  (when (boundp 'comint-input-ring)
+                    (when (> (ring-size comint-input-ring) 0)
+                      (mapc 's-clean (ring-elements comint-input-ring)
+                        )))))
+            (ns/buffers-by-mode 'shell-mode)))
+
+        ;; shell history from file:
+        (mapcar
+          (fn ;; shared history format: ': 1556747685:0;cmd'
+            (if (s-starts-with-p ":" <>)
+              (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
+              <>))
+          (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name)))))))
 
       :action (fn (when (eq major-mode 'shell-mode)
                     (goto-char (point-max)))

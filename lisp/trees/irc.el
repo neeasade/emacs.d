@@ -360,16 +360,16 @@
   )
 
 (general-nmap :keymaps 'circe-highlight-mode-map
-  "RET" (fn! (ns/goto-highlight (ns/get-current-line))))
-
-(general-nmap :keymaps 'circe-highlight-mode-map
   :prefix "SPC"
-  "nn" (fn! (ns/goto-highlight (ns/get-current-line))))
+  "nn" (fn!
+         (->>
+           (thing-at-point 'line)
+           s-clean
+           ns/goto-highlight)))
 
 ;; mabye
 ;; (defun ns/circe-map (type) (fn (ns/circe-format-all type <rest>)))
 ;; (ns/circe-map 'notice)
-
 
 (setq-ns circe-format
   server-lurker-activity (fn (ns/circe-format-all 'say <rest>))

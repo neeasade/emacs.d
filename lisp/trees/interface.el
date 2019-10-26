@@ -59,14 +59,8 @@
                          (format "xdg-open \"%s\"")
                          (ns/shell-exec-dontcare)))
 
-  "s" (fn!
-        (let ((dired-dir (expand-file-name default-directory)))
-          (ns/pickup-shell)
-          (shell-pop--cd-to-cwd-shell dired-dir)))
-
-  "q" (fn! (mapcar 'kill-buffer
-             (ns/buffers-by-mode
-               'dired-mode))))
+  "s" (fn! (ns/pickup-shell (expand-file-name default-directory)))
+  "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))))
 
 (defun my-resize-margins ()
   (let ((margin-size (if ns/center (/ (- (frame-width) 120) 2) 0)))

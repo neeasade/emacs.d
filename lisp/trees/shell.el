@@ -144,9 +144,10 @@ Everything past that can be tailored to your liking.
 
 (defcommand spawn-terminal ()
   (select-frame (make-frame))
+  ;; return t so that elisp ns/spawn-terminal call is true
   (ns/pickup-shell) t)
 
-(defcommand pickup-shell ()
+(defcommand pickup-shell (&optional cwd)
   (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
   (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
   (delete-other-windows)
@@ -154,7 +155,10 @@ Everything past that can be tailored to your liking.
   (when (string= (get-resource "Emacs.padding_source") "st")
     (set-window-fringes nil 0 0))
 
-  (ns/stage-terminal))
+  (when cwd (shell-pop--cd-to-cwd-shell cwd))
+
+  (ns/stage-terminal)
+  )
 
 (defcommand kill-spawned-shell (frame)
   (let ((windows (window-list frame)))
