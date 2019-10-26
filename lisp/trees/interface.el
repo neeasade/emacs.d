@@ -16,14 +16,13 @@
     (kbd "<C-return>") 'ivy-immediate-done)
 
   (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
-
   (defun dynamic-ivy-height()
     (setq ivy-height (/ (frame-total-lines) 2)))
-
   (dynamic-ivy-height)
+
   (ivy-mode 1)
 
-  (use-package prescient :config (prescient-persist-mode))
+  (use-package prescient)
   (use-package ivy-prescient :config
     (ivy-prescient-mode)
     (prescient-persist-mode))
@@ -42,43 +41,32 @@
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
       rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
 
-(use-package ranger
-  :init (setq ranger-override-dired t)
-  :config
-  (setq-ns ranger
-    show-literal nil
-    show-hidden t
-    cleanup-eagerly t)
+(defun ns/dired-init ()
+  (set-face-attribute 'hl-line nil :background
+    (ns/color-tone (first evil-visual-state-cursor) -7 -7))
+  (hl-line-mode))
 
-  (define-key ranger-mode-map (kbd "n") 'ranger-next-file)
-  (define-key ranger-mode-map (kbd "e") 'ranger-prev-file)
+(add-hook 'dired-after-readin-hook 'ns/dired-init)
 
-  ;; call with eg 'dired-mode
-  (defcommand kill-buffers-by-mode (mode)
-    (mapc (lambda (buffer)
-            (when (eq mode (buffer-local-value 'major-mode buffer))
-              (kill-buffer buffer)))
-      (buffer-list)))
+(general-define-key
+  :states '(normal)
+  :keymaps 'dired-mode-map
+  "h" 'dired-up-directory
+  "l" 'dired-find-file
+  (kbd "<C-return>") (fn!
+                       (->>
+                         (dired-get-file-for-visit)
+                         (format "xdg-open \"%s\"")
+                         (ns/shell-exec-dontcare)))
 
-  (defcommand kill-ranger-buffers ()
-    (ns/kill-buffers-by-mode 'ranger-mode))
+  "s" (fn!
+        (let ((dired-dir (expand-file-name default-directory)))
+          (ns/pickup-shell)
+          (shell-pop--cd-to-cwd-shell dired-dir)))
 
-  (advice-add #'ranger-close :after #'ns/kill-ranger-buffers)
-
-  ;; (defcommand deer-with-last-shell ()
-  ;;   (let ((current-buffer (buffer-name (current-buffer))))
-  ;;     (if (or (s-match "\*spawn-shell.*" current-buffer)
-  ;;           (s-match "\*shell-[1-9]\*" current-buffer))
-  ;;       (setq ns/last-shell current-buffer)
-  ;;       (setq ns/last-shell shell-pop-last-shell-buffer-name)))
-  ;;   (deer))
-
-  ;; (ns/bind "d" 'ns/deer-with-last-shell)
-  (ns/bind "d" 'deer)
-
-  (defcommand open () (ns/shell-exec-dontcare (format "xdg-open \"%s\"" (dired-get-file-for-visit))))
-  (define-key ranger-normal-mode-map (kbd "RET") 'ns/open)
-  )
+  "q" (fn! (mapcar 'kill-buffer
+             (ns/buffers-by-mode
+               'dired-mode))))
 
 (defun my-resize-margins ()
   (let ((margin-size (if ns/center (/ (- (frame-width) 120) 2) 0)))
@@ -146,6 +134,7 @@
 
   "wm" 'delete-other-windows ;; window-max
   "wo" 'other-frame
+  "d" (fn! (dired "."))
 
   "a" '(:ignore t :which-key "Applications")
   "q" '(:ignore t :which-key "Query")

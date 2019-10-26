@@ -436,10 +436,6 @@
 (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
 (add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
 
-;; trying out our own logging.
-;; (load "lui-logging" nil t)
-;; (enable-lui-logging-globally)
-
 (add-hook 'lui-mode-hook 'my-lui-setup)
 (defun my-lui-setup ()
   (setq fringes-outside-margins t

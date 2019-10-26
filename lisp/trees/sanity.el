@@ -93,8 +93,8 @@
 
 ;; save recent files
 (recentf-mode 1)
-(setq recentf-max-menu-items 300)
-(setq recentf-max-saved-items 300)
+(setq recentf-max-menu-items 1000)
+(setq recentf-max-saved-items 1000)
 
 (defun ns/save-files()
   (shut-up (recentf-save-list)))
