@@ -223,24 +223,24 @@ buffer is not visiting a file."
             "bash")))
 
     (ivy-read "history: "
-      (append
-        ;; current history across all open shells:
-        (-flatten
-          (mapcar
-            (fn (with-current-buffer <>
-                  (when (boundp 'comint-input-ring)
-                    (when (> (ring-size comint-input-ring) 0)
-                      (mapc 's-clean (ring-elements comint-input-ring)
-                        )))))
-            (ns/buffers-by-mode 'shell-mode)))
+      (-uniq
+        (append
+          ;; current history across all open shells:
+          (-flatten
+            (mapcar
+              (fn (with-current-buffer <>
+                    (when (boundp 'comint-input-ring)
+                      (when (> (ring-size comint-input-ring) 0)
+                        (mapc 's-clean (ring-elements comint-input-ring)
+                          )))))
+              (ns/buffers-by-mode 'shell-mode)))
 
-        ;; shell history from file:
-        (mapcar
-          (fn ;; shared history format: ': 1556747685:0;cmd'
-            (if (s-starts-with-p ":" <>)
-              (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-              <>))
-          (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name)))))))
+          (mapcar
+            (fn ;; shared history format: ': 1556747685:0;cmd'
+              (if (s-starts-with-p ":" <>)
+                (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
+                <>))
+            (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))))
 
       :action (fn (when (eq major-mode 'shell-mode)
                     (goto-char (point-max)))

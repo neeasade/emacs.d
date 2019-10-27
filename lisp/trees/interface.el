@@ -128,6 +128,9 @@
 
   "wm" 'delete-other-windows ;; window-max
   "wo" 'other-frame
+
+  ;; todo idea here: check if we are in a shell, if so, make that the staged shell (or 'dired' shell)
+  ;; so we can have fluid state across dired transitions "s" <--> "SPC d"
   "d" (fn! (dired "."))
 
   "a" '(:ignore t :which-key "Applications")
