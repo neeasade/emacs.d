@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-# todo: make this an actual temp file-- this was the fastest cross platform way to keep cleanup
-file="$(elisp -r '(~ "fzftemp")')"
+if [ -d /dev/shm/ ]; then
+    file=/dev/shm/fzftemp
+else
+    file=$(elisp -r '(~ "fzftemp")')
+fi
 
 if [ -p /dev/stdin ]; then
     cat - > "$file"

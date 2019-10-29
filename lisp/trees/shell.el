@@ -129,10 +129,15 @@ Everything past that can be tailored to your liking.
 
 (ns/bind-mode 'shell "nd" #'ns/cd-dir-history)
 
-(defun ns/shell-track ()
+(defun ns/shell-mode-init ()
   (shell-dirtrack-mode nil)
-  (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t))
-(add-hook 'shell-mode-hook 'ns/shell-track)
+  (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t)
+  (setq-local shell-font-lock-keywords
+    (-remove
+      (fn (s-ends-with-p "]+:.*" (first <>)))
+      shell-font-lock-keywords)))
+
+(add-hook 'shell-mode-hook 'ns/shell-mode-init)
 
 (defcommand stage-terminal ()
   (let ((default-directory (~ "")))
