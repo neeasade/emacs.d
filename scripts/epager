@@ -1,5 +1,6 @@
 #!/bin/sh
-target="$(mktemp)"
+
+target=$(mktemp)
 
 (
     while IFS= read -r line; do
@@ -8,7 +9,7 @@ target="$(mktemp)"
 ) > "$target"
 
 
-window_height="$(elisp '(- (window-total-height) 2)')"
+window_height=$(elisp '(- (window-total-height) 2)')
 if [ $? -ne 0 ]; then
     # we can't reach emacs, use cat.
     cat "$target"
@@ -16,7 +17,7 @@ else
     if [ $(wc -l < "$target") -lt "$window_height" ]; then
 	cat "$target"
     else
-	mode="${1:-text-mode}"
+	mode=${1:-text-mode}
 	elisp "(ns/find-or-open \"${target}\") (${mode})"
     fi
 fi

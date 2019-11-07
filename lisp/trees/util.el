@@ -70,7 +70,8 @@ buffer is not visiting a file."
                  (ido-read-file-name "Find file(as root): ")))
     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-(defun ns/get-functions()
+(defun ns/get-functions ()
+  "Get all the defconfig entries in the forest."
   (cons "style"
     (mapcar
       (lambda (item)
@@ -79,7 +80,8 @@ buffer is not visiting a file."
         "^(defconfig [^ \(\)]+"
         (f-read (~ ".emacs.d/lisp/forest.el"))))))
 
-(defun ns/check-for-orphans()
+(defun ns/check-for-orphans ()
+  (interactive)
   "Check to see if any defconfigs are missing from init."
   (let ((initfile (f-read (~ ".emacs.d/init.el"))))
     (mapcar
@@ -147,11 +149,6 @@ buffer is not visiting a file."
         (interactive)
         (insert data)))))
 
-(defun current-line-empty-p ()
-  (save-excursion
-    (beginning-of-line)
-    (looking-at "[[:space:]]*$")))
-
 (defcommand focus-line (&rest ignore)
   (evil-scroll-line-to-center (ns/what-line)))
 
@@ -169,8 +166,7 @@ buffer is not visiting a file."
   (goto-char (point-max))
   (insert "\n")
   (insert (ns/get-last-message))
-  (previous-line 1)
-  )
+  (previous-line 1))
 
 (defun ns/parse-font (font)
   (let* ((parts-in (s-split "-" font))
@@ -243,20 +239,6 @@ buffer is not visiting a file."
                 (insert <>)
                 ))))
 
-(ns/bind
-  "qf" 'ns/what-face
-  "qm" 'ns/what-major-mode
-  "qi" 'ns/what-minor-modes
-  "qq" 'ns/look-at-last-message
-
-  "qh" 'ns/insert-history
-
-  "fE" 'sudo-edit
-  "nc" 'ns/jump-config
-  "tb" 'ns/toggle-bloat
-  "iu" 'ns/buffercurl
-  )
-
 ;; update buffer local variables across all open buffers
 ;; notmodes are modes to ignore
 (defun ns/setq-local-all (symbol value &optional notmodes)
@@ -284,3 +266,19 @@ buffer is not visiting a file."
     (-filter (fn (let ((file (buffer-file-name <>)))
                    (if file (not (f-exists-p file)) nil)))
       (buffer-list))))
+
+(ns/bind
+  "qf" 'ns/what-face
+  "qm" 'ns/what-major-mode
+  "qi" 'ns/what-minor-modes
+  "qq" 'ns/look-at-last-message
+
+  ;; "qh" 'ns/insert-history
+
+  "fE" 'sudo-edit
+  "nc" 'ns/jump-config
+  "tb" 'ns/toggle-bloat
+
+  "iu" 'ns/buffercurl
+  "ih" 'ns/insert-history
+  )
