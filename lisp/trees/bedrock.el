@@ -5,6 +5,7 @@
 (use-package ht)   ;hash table
 (use-package dash) ;lists
 (use-package a)    ;assoc lists
+(use-package ts)    ;timestamps
 
 ;; other
 (use-package hydra)
