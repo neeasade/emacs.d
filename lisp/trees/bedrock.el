@@ -20,18 +20,9 @@
 ;; (@ 'message ,@'("asdf"))
 (defmacro @ (&rest input) (eval (eval `(backquote (list ,@input)))))
 
-(defmacro ns/shell-exec (command)
-  "trim the newline from shell exec"
-  `(replace-regexp-in-string "\n$" ""
-     (shell-command-to-string ,command)))
-
-(defun ns/shell-exec-dontcare (command)
-  (let* ((bufname (concat "*killme-shell" (number-to-string (random)) "*"))
-          (junk-buffer (get-buffer-create bufname)))
-    (shut-up
-      (shell-command command junk-buffer)
-      (kill-buffer junk-buffer)
-      )))
+(defun s-clean (s)
+  "Remove text properies from S."
+  (set-text-properties 0 (length s) nil s) s)
 
 ;; setq namespace
 (defmacro setq-ns (namespace &rest lst)
@@ -99,6 +90,19 @@
     (if (get-buffer filename)
       (counsel-switch-to-buffer-or-window filename)
       (find-file filepath))))
+
+(defmacro ns/shell-exec (command)
+  "trim the newline from shell exec"
+  `(replace-regexp-in-string "\n$" ""
+     (shell-command-to-string ,command)))
+
+(defun ns/shell-exec-dontcare (command)
+  (let* ((bufname (concat "*killme-shell" (number-to-string (random)) "*"))
+          (junk-buffer (get-buffer-create bufname)))
+    (shut-up
+      (shell-command command junk-buffer)
+      (kill-buffer junk-buffer)
+      )))
 
 ;; wrap passwordstore
 (defun pass (key)

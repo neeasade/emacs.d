@@ -1,9 +1,5 @@
 (use-package pcre2el)
 
-(defun s-clean (s)
-  "Remove text properies from S."
-  (set-text-properties 0 (length s) nil s) s)
-
 (defcommand what-line ()
   (save-restriction
     (widen)
