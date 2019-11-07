@@ -22,7 +22,14 @@
 (ns/inmap 'comint-mode-map (kbd "C-n") 'comint-next-input)
 
 
-(use-package shx :config (shx-global-mode 1))
+(use-package shx
+  :config
+  (shx-global-mode 1)
+  (defun shx-send-input-or-open-thing ()
+    "Open thing at point, or send input if no identifiable thing."
+    (interactive)
+    (when (shx-point-on-input-p)
+      (shx-send-input))))
 
 (use-package shell-pop
   :config
@@ -132,6 +139,7 @@ Everything past that can be tailored to your liking.
 (defun ns/shell-mode-init ()
   (shell-dirtrack-mode nil)
   (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t)
+  (setq-local inhibit-field-text-motion t)
   (setq-local shell-font-lock-keywords
     (-remove
       (fn (s-ends-with-p "]+:.*" (first <>)))
