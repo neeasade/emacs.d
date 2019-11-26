@@ -145,8 +145,14 @@
 (use-package el-patch)
 (defmacro ns/use-package (name repo &rest config)
   `(progn
-     (use-package ,name :straight (el-patch :type git :host github :repo ,repo))
-     ,@(cdr config)))
+     (straight-register-package
+       '(,name :type git :host github
+	      :repo ,repo
+	      :depth full))
+
+     (straight-use-package ',name)
+     ,@(cdr config)
+     ))
 
 ;; imap + nmap
 (defun ns/inmap (keymap key func)

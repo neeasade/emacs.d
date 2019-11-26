@@ -51,7 +51,7 @@
 (set-face-background 'font-lock-comment-face nil)
 
 (set-face-attribute 'comint-highlight-prompt nil
-  :foreground (first evil-normal-state-cursor))
+  :foreground (car evil-normal-state-cursor))
 
 ;; handle 2 padding approaches
 ;; use internal border on frames, or fake it with fringe mode and a header line on each buffer
