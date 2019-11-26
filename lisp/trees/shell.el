@@ -72,9 +72,6 @@
                         (if (string= (buffer-name (current-buffer)) "*shell-9*")
                           shell-pop-last-shell-buffer-index nil))
                       (shell-pop-9)))))
-
-  ;; cf https://github.com/kyagi/shell-pop-el/issues/51
-  (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
   )
 
 (defcommand windowshot ()
@@ -139,38 +136,47 @@ Everything past that can be tailored to your liking.
 (defun ns/shell-mode-init ()
   (shell-dirtrack-mode nil)
   (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t)
-  (setq-local inhibit-field-text-motion t)
+  (setq-local inhibit-field-text-motion nil)
+  ;; weird colon highlighting thing
   (setq-local shell-font-lock-keywords
     (-remove
-      (fn (s-ends-with-p "]+:.*" (first <>)))
+      (fn (s-ends-with-p "]+:.*" (car <>)))
       shell-font-lock-keywords)))
 
 (add-hook 'shell-mode-hook 'ns/shell-mode-init)
 
+(add-to-list 'display-buffer-alist
+  (cons (regexp-quote "*spawn-shell-staged*")
+    (cons #'display-buffer-no-window nil)))
+
 (defcommand stage-terminal ()
   (let ((default-directory (~ "")))
     (shell "*spawn-shell-staged*")
-    (ns/toggle-modeline)
-    (delete-window)))
+    ))
 
 (ns/stage-terminal)
 
 (defcommand spawn-terminal ()
   (select-frame (make-frame))
   ;; return t so that elisp ns/spawn-terminal call is true
-  (ns/pickup-shell) t)
+  (ns/pickup-shell nil t)
+  ;; (delete-other-windows)
+  (delete-window)
+  t)
 
-(defcommand pickup-shell (&optional cwd)
+(defcommand pickup-shell (&optional cwd terminal)
   (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
   (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
-  (delete-other-windows)
 
-  (when (string= (get-resource "Emacs.padding_source") "st")
-    (set-window-fringes nil 0 0))
+  (when terminal
+    (when (string= (get-resource "Emacs.padding_source") "st")
+      (set-window-fringes nil 0 0)))
 
   (when cwd (shell-pop--cd-to-cwd-shell cwd))
 
   (ns/stage-terminal)
+
+  t
   )
 
 (defcommand kill-spawned-shell (frame)

@@ -88,8 +88,10 @@
 ;; don't ask to kill running processes when killing a buffer.
 (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
-;; don't popup buffers with output when launching things
-(add-to-list 'display-buffer-alist (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil)))
+;; don't popup buffers with output when launching things (ns/shell-exec-dontcare)
+(add-to-list 'display-buffer-alist
+  (cons "\\*Async Shell Command\\*.*"
+    (cons #'display-buffer-no-window nil)))
 
 ;; save recent files
 (recentf-mode 1)

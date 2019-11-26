@@ -165,6 +165,7 @@
         (s-contains? "Read error:" reason)
         (s-contains? "Ping timeout" reason)
         (s-contains? "Quit: WeeChat" reason)
+        (s-contains? "left: WeeChat" reason)
         (s-contains? "Quit: ERC" reason)
         ;; assume adverts for clients
         (s-contains? "http" reason)

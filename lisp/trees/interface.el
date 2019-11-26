@@ -57,9 +57,12 @@
                        (->>
                          (dired-get-file-for-visit)
                          (format "xdg-open \"%s\"")
-                         (ns/shell-exec-dontcare)))
+                         (ns/shell-exec-dontcare))
+                       (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
 
-  "s" (fn! (ns/pickup-shell (expand-file-name default-directory)))
+  "s" (fn!
+        (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
+        (ns/pickup-shell (expand-file-name default-directory)))
   "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))))
 
 (defun my-resize-margins ()

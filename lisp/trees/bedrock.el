@@ -38,10 +38,10 @@
       )))
 
 ;; todo: make this smart about tramp?
-(defun ~ (path)
+(defun ~ (&optional path)
   (concat
     (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
-    (if ns/enable-windows-p "\\" "/") path))
+    (if ns/enable-windows-p "\\" "/") (or path "")))
 
 ;; todo: take a look at general-describe-keybindings later
 ;; binding wrappers
