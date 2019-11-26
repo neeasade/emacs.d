@@ -8,6 +8,7 @@
 ;;; buffer local vars     | ns/enable-asdf
 ;;; code:
 
+;; todo: maybe move these to dirt
 (defmacro defconfig-base (label &rest body)
   `(defun ,(intern (concat "ns/" (prin1-to-string label)))
      nil ,@body))
@@ -30,40 +31,13 @@
   `(defun ,(intern (concat "ns/" (prin1-to-string label))) ,args
      (interactive) ,@body))
 
-(defconfig use-package
-  (require 'package)
-  (setq package-enable-at-startup nil)
-  (add-to-list 'package-archives
-    '("melpa" . "https://melpa.org/packages/"))
-
-  (package-initialize)
-
-  ;; Bootstrap `use-package'
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
-
-  (eval-when-compile
-    (require 'use-package))
-
-  (setq use-package-always-ensure t))
-
-(defconfig straight
-  (let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
-         (bootstrap-version 2))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-        (url-retrieve-synchronously
-          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-          'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-
-  (straight-use-package 'use-package)
-  (setq straight-use-package-by-default t)
-  (setq straight-cache-autoloads t)
-  )
+;; todo: better place for this
+(defcommand find-or-open (filepath)
+  "Find or open FILEPATH."
+  (let ((filename (file-name-nondirectory filepath)))
+    (if (get-buffer filename)
+      (counsel-switch-to-buffer-or-window filename)
+      (find-file filepath))))
 
 (defconfig elisp
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
@@ -811,7 +785,6 @@
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-(defconfig bedrock       (load "~/.emacs.d/lisp/trees/bedrock.el"))
 (defconfig editing       (load "~/.emacs.d/lisp/trees/editing.el"))
 (defconfig evil          (load "~/.emacs.d/lisp/trees/evil.el"))
 (defconfig git           (load "~/.emacs.d/lisp/trees/git.el"))

@@ -31,7 +31,8 @@
      ))
 
 (setq load-prefer-newer t)
-(eval-and-compile (load "~/.emacs.d/lisp/forest.el"))
+(load "~/.emacs.d/lisp/dirt.el")
+(load "~/.emacs.d/lisp/forest.el")
 
 (defmacro ns/load (&rest targets)
   `(mapc (lambda(target)
@@ -45,8 +46,7 @@
   core
 
   ;; use-package
-  straight
-  bedrock
+  ;;straight
   sanity
   evil
   interface

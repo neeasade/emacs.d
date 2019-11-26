@@ -76,8 +76,9 @@
 (ns/use-package evil-numbers "janpath/evil-numbers"
   :config
   (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt)
-  )
+  (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
+
+(setq debug-on-error t)
 
 ;; this is nice, but I don't use marks often.
 ;; (use-package evil-fringe-mark

@@ -1,11 +1,32 @@
+;; get straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+       (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+      (url-retrieve-synchronously
+        "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+        'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+(setq straight-cache-autoloads t)
+
+;; do the rest
+
 ;; elisp enhancers
 (use-package fn)   ;function
 (use-package s)    ;string
 (use-package f)    ;file
 (use-package ht)   ;hash table
-(use-package dash) ;lists
+(use-package dash) ;list
 (use-package a)    ;assoc lists
-(use-package ts)    ;timestamps
+;; todo: use from github? -- nah just need to update your reference
+;;(use-package ts)    ;timestamps
 
 ;; other
 (use-package hydra)
@@ -38,10 +59,10 @@
       )))
 
 ;; todo: make this smart about tramp?
-(defun ~ (&optional path)
+(defun ~ (path)
   (concat
     (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
-    (if ns/enable-windows-p "\\" "/") (or path "")))
+    (if ns/enable-windows-p "\\" "/") path))
 
 ;; todo: take a look at general-describe-keybindings later
 ;; binding wrappers
@@ -85,13 +106,6 @@
           (select-window window-of-buffer-visible)
           (switch-to-buffer buffer))))))
 
-(defcommand find-or-open (filepath)
-  "Find or open FILEPATH."
-  (let ((filename (file-name-nondirectory filepath)))
-    (if (get-buffer filename)
-      (counsel-switch-to-buffer-or-window filename)
-      (find-file filepath))))
-
 (defmacro ns/shell-exec (command)
   "trim the newline from shell exec"
   `(replace-regexp-in-string "\n$" ""
@@ -128,10 +142,10 @@
     (message "Reloading init.el... done.")))
 
 ;; a macro for when something is not on melpa yet (assumes github)
+(use-package el-patch)
 (defmacro ns/use-package (name repo &rest config)
   `(progn
-     (straight-use-package '(,(make-symbol (symbol-name name)) :host github :repo ,repo))
-     ;; assume first arg is :config
+     (use-package ,name :straight (el-patch :type git :host github :repo ,repo))
      ,@(cdr config)))
 
 ;; imap + nmap
