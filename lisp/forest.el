@@ -700,43 +700,38 @@
 
 (defconfig blog
   (use-package htmlize)
-  (use-package org-static-blog)
-  (defun ns/blog-dir (dir) (concat "~/git/notes.neeasade.net/" dir))
-  (ns/guard (f-exists-p (ns/blog-dir "")))
 
-  (setq-ns org-static-blog
-    publish-url "https://notes.neeasade.net/"
-    publish-title "Notes"
-    publish-directory (ns/blog-dir "site/")
-    posts-directory (ns/blog-dir "posts/")
-    ;; abuse drafts to make static pages (drafts are not listed on the index screen)
-    drafts-directory (ns/blog-dir "pages/")
-    enable-tags t)
+  (defun ns/org-to-html (source dest)
+    (with-temp-buffer
+      (mapc (fn (insert "\n")
+              (insert <>))
+        (list
+          "#+HTML_HEAD: <link href=\"assets/css/marx.css\" rel=stylesheet>"
+          "#+HTML_HEAD: <link href=\"assets/css/notes.css\" rel=stylesheet>"
+          (org-file-contents source)
+          "[[file:./index.html][Index]]"
+          ))
+      (org-export-to-file 'html dest)))
 
-  (defun ns/org-blog-clean-all ()
-    (mapc (fn (f-delete <>))
-      (f-entries org-static-blog-publish-directory
-        (fn (and (s-ends-with-p ".html" <>)
-              (not (s-equals-p "archive.html" <>)))))))
+  (defun ns/blog-generate ()
+    (let ((ns/blog-posts-dir (~ "git/neeasade.github.io/posts"))
+           (ns/blog-pages-dir (~ "git/neeasade.github.io/pages"))
+           (ns/blog-site-dir (~ "git/neeasade.github.io/site")))
 
-  (ns/org-blog-clean-all)
+      (mapcar 'f-delete
+        (f-entries ns/blog-site-dir
+          (fn (s-ends-with-p ".html" <>))))
 
-  (defun ns/blog-after-hook ()
-    (f-delete (ns/blog-dir "site/index.html"))
-    (f-copy (ns/blog-dir "site/archive.html") (ns/blog-dir "site/index.html")))
+      (defun ns/blog-process-dir (dirname)
+        (mapcar (fn (ns/org-to-html <>
+                      (format "%s/%s.html" ns/blog-site-dir (f-base <>))))
+          (f-entries dirname (fn (s-ends-with-p ".org" <>)))))
 
-  (defun ns/blog-before-hook ()
-    ;; pages can get edits in place
-    (dolist (page (mapcar 'org-static-blog-matching-publish-filename (org-static-blog-get-draft-filenames)))
-      (when (f-exists-p page)
-        (f-delete page)))
-
-    (setq org-static-blog-page-header (f-read (ns/blog-dir "inc/header"))
-      org-static-blog-page-preamble (f-read (ns/blog-dir "inc/preamble"))
-      org-static-blog-page-postamble (f-read (ns/blog-dir "inc/postamble"))))
-
-  (advice-add #'org-static-blog-publish :before #'ns/blog-before-hook)
-  (advice-add #'org-static-blog-publish :after #'ns/blog-after-hook))
+      (ns/blog-process-dir ns/blog-pages-dir)
+      (ns/blog-process-dir ns/blog-posts-dir))
+    t ;; for calling from elisp script
+    )
+  )
 
 
 (defconfig common-lisp
