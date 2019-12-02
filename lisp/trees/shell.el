@@ -166,7 +166,15 @@ Everything past that can be tailored to your liking.
 
 (defcommand pickup-shell (&optional cwd terminal)
   (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
-  (rename-buffer (concat "*spawn-shell-" (number-to-string (random)) "*"))
+  (rename-buffer
+    (format "*spawn-shell-%s*"
+      ;; get the pid of the running bash process
+      (car (mapcar 'process-id
+             (-filter
+               (fn (eq (process-buffer <>)
+                     (current-buffer)))
+               (process-list))))
+      ))
 
   (when terminal
     (when (string= (get-resource "Emacs.padding_source") "st")
