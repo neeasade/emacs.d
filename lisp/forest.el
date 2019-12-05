@@ -706,17 +706,21 @@
       (mapc (fn (insert "\n")
               (insert <>))
         (list
-          "#+HTML_HEAD: <link href=\"assets/css/marx.css\" rel=stylesheet>"
-          "#+HTML_HEAD: <link href=\"assets/css/notes.css\" rel=stylesheet>"
+          "#+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup"
+          ;; "#+HTML_HEAD: <link href=\"assets/css/marx.css\" rel=stylesheet>"
+          ;; "#+HTML_HEAD: <link href=\"assets/css/notes.css\" rel=stylesheet>"
           (org-file-contents source)
           "[[file:./index.html][Index]]"
           ))
       (org-export-to-file 'html dest)))
 
   (defun ns/blog-generate ()
+    (interactive)
     (let ((ns/blog-posts-dir (~ "git/neeasade.github.io/posts"))
            (ns/blog-pages-dir (~ "git/neeasade.github.io/pages"))
-           (ns/blog-site-dir (~ "git/neeasade.github.io/site")))
+           (ns/blog-site-dir (~ "git/neeasade.github.io/site"))
+           (default-directory (~ "git/neeasade.github.io/site"))
+           )
 
       (mapcar 'f-delete
         (f-entries ns/blog-site-dir
