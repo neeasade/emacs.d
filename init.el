@@ -75,7 +75,8 @@
   search-engines
 
   blog
-  music
+  scripting
+  ;; music
   pdf
   ledger
   emoji

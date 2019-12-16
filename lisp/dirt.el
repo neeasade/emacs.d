@@ -169,7 +169,6 @@
     (cl-assert (eq (point) (point-min)))
     (read (current-buffer))))
 
-
 ;; this is overridden with eros eval later on
 (defun ns/smart-elisp-eval ()
   (interactive)
