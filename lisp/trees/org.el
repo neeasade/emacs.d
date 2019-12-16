@@ -120,7 +120,7 @@
     (save-excursion
       (ns/org-goto-active)
       (ns/org-set-active))
-    ns/org-active-story
+    (s-clean ns/org-active-story)
     ))
 
 (defcommand org-goto-active()
@@ -211,7 +211,13 @@
 
 (advice-add #'ns/style :after #'ns/style-org)
 (defun ns/style-org ()
-  (ns/set-faces-monospace '(org-block org-code org-table company-tooltip company-tooltip-common company-tooltip-selection
+  (ns/set-faces-monospace '(org-block
+                             org-code
+                             org-table
+                             org-verbatim
+                             company-tooltip
+                             company-tooltip-common
+                             company-tooltip-selection
                              org-block-begin-line
                              org-block-end-line
                              ))

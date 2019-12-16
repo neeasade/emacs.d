@@ -196,10 +196,10 @@ buffer is not visiting a file."
   (buffer-face-mode t))
 
 (defun ns/make-lines (list)
+  "Transform a LIST of things into something that can be newline iterated by a shell script."
   (->> list
-    (mapcar (fn
-              (if (stringp <>) <>
-                (prin1-to-string <>))))
+    (mapcar (fn (if (stringp <>) <>
+                  (prin1-to-string <>))))
     (s-join "\n")))
 
 (defun ns/buffers-by-mode (&rest modes)
