@@ -180,3 +180,43 @@ Version 2017-03-12"
   ;; (eir-run-python)
   (ns/bind-mode 'python "e" 'eir-eval-in-python)
   )
+
+;; ideas:
+;; - move color towards bg/fg/<n color>
+;; - make color a minimum distance from a set color
+;; - make percent functions a global intensity setting
+;; - a better visual method than xah's inline face bg
+(defcommand transform-color-at-point (action)
+  (when (looking-at (pcre-to-elisp "#[a-zA-Z0-9]{6}"))
+    (save-excursion
+      (let ((current-color (match-string 0)))
+        (delete-char 7)
+        (insert (funcall action current-color))))))
+
+(defcommand color-saturate-at-point ()
+  (ns/transform-color-at-point
+    (fn (-as-> <> C
+          (color-saturate-name C 1)
+          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
+          (eval C)))))
+
+(defcommand color-desaturate-at-point ()
+  (ns/transform-color-at-point
+    (fn (-as-> <> C
+          (color-desaturate-name C 1)
+          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
+          (eval C)))))
+
+(defcommand color-lighten-at-point ()
+  (ns/transform-color-at-point
+    (fn (-as-> <> C
+          (color-lighten-name C 1)
+          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
+          (eval C)))))
+
+(defcommand color-darken-at-point ()
+  (ns/transform-color-at-point
+    (fn (-as-> <> C
+          (color-darken-name C 1)
+          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
+          (eval C)))))
