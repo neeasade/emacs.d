@@ -64,10 +64,6 @@
       (setq result (funcall op result 1)))
     result))
 
-(color-cie-de2000
-  (apply 'color-srgb-to-lab (color-name-to-rgb "#111111111111" ))
-  (apply 'color-srgb-to-lab (color-name-to-rgb "#cccccccccccc" )))
-
 (defun ns/fade-min-contrast (name percent contrast)
   (ns/contrast-color (ns/fade-color name percent) contrast 'ns/bolden-color))
 

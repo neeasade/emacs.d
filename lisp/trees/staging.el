@@ -66,12 +66,6 @@ Version 2017-03-12"
 
 (ns/bind "nn" 'ns/follow)
 
-(defun ns/gradient (start end steps)
-  (mapcar (lambda (c) (eval `(color-rgb-to-hex ,@c 2)))
-    (color-gradient (color-name-to-rgb start)
-      (color-name-to-rgb end)
-      steps)))
-
 (defmacro ns/make-char-table (name upper lower)
   "Make a char table for a certain kind of character"
   `(defvar ,name
@@ -112,6 +106,8 @@ Version 2017-03-12"
 ;;         (string-inflection-java-style-cycle))
 ;;       (t (string-inflection-ruby-style-cycle)))))
 
+
+;; todo: integrate this with qutebrowser keybind/plugin
 (defun ns/get-url-note (url)
   ;; returns the char of the entry if it exists
   (defun ns/find-url-heading (path)
@@ -200,6 +196,9 @@ Version 2017-03-12"
           `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
           (eval C)))))
 
+;; todo: make these all plain functions so they can just take colors
+;; make transform-color-at-point take the arg action
+
 (defcommand color-desaturate-at-point ()
   (ns/transform-color-at-point
     (fn (-as-> <> C
@@ -220,3 +219,32 @@ Version 2017-03-12"
           (color-darken-name C 1)
           `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
           (eval C)))))
+
+(ns/bind
+  "cl" 'color-lighten-at-point
+  "cd" 'color-darken-at-point
+  ;; "cs" 'color-darken-at-point
+  ;; "cd" 'color-darken-at-point
+  )
+
+;; optionally transform #<12> to #<6>
+(defun ns/shorten-color (color)
+  (if (= (length color) 7)
+    color
+    (-as-> color C
+      (color-name-to-rgb C)
+      `(color-rgb-to-hex ,@C 2)
+      (eval C))))
+
+(ns/shorten-color "#cccccc")
+
+(ns/bind
+  "nt" (fn! (find-file (~ ".wm_theme")))
+  "id" (fn! (insert (current-time-string)))
+  )
+
+;; https://github.com/szermatt/emacs-bash-completion
+;; comprehensive bash completion in emacs
+;; testing out [Fri Dec 20 15:13:58 2019]
+(use-package bash-completion)
+(bash-completion-setup)

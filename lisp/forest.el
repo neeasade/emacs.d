@@ -218,10 +218,7 @@
     "ee" 'cider-eval-defun-at-point
     )
 
-  (if (executable-find "joker")
-    (use-package flycheck-joker
-      :config (require 'flycheck-joker))
-    (message "init: if you want clojure flycheck support, install joker"))
+  ;; (use-package flycheck-joker :config (require 'flycheck-joker))
   )
 
 (defconfig nix
@@ -273,7 +270,9 @@
           (mapcar 'projectile-root-bottom-up open-buffers)
           ))))
 
-  (defcommand jump-file ()
+  ;; putting this in a function so it can be used
+  ;; by dmenu_switcher
+  (defun ns/jump-file-candidates ()
     (let* ((open-buffers
              ;; remove nils
              (-remove (lambda (file) (not file))
@@ -289,9 +288,42 @@
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files))
               ))
 
-      (ivy-read "file: "
-        (append recentf-list project-files open-buffers)
-        :action #'find-file)))
+      (append recentf-list project-files open-buffers)))
+
+  ;; todo: piper emacs from emacsconf 2019 would be a nice thing to have here
+
+  ;; maybe consider also a jump-qutebrowser-history-candidates -- something like urls from the past month? idk
+  (defun ns/jump-qutebrowser-candidates ()
+    ;; this should just be called periodically, say when qb is not focused
+    ;; (ns/shell-exec "qb_command ':session-save'")
+
+    (s-split "\n"
+      (ns/shell-exec (format "grep -A 6 '    \\- active: true' %s | grep title | sed 's/.*title: //'"
+                       (~ ".local/share/qutebrowser/sessions/default.yml")))))
+
+  (defcommand jump-file ()
+    (ivy-read "file: "
+      (append
+        (->> (ns/jump-file-candidates)
+          (mapcar (fn (format "f: %s" <>))))
+        (->> (ns/jump-qutebrowser-candidates)
+          (mapcar (fn (format "t: %s" <>))))
+        )
+      ;; :action #'find-file
+      :action
+      (fn
+        (when (s-starts-with-p "f: " <>) ; file
+          (find-file (substring-no-properties <> 3)))
+        (when (s-starts-with-p "t: " <>) ; qutebrowser tab
+          ;; todo: focus qute window
+          (ns/shell-exec
+            ;; qb_command ':buffer $(echo "$url" | sed "s/'//g;s/\"// ")'
+            (format "qb_command ':buffer %s'" (s-replace "'" "" (substring-no-properties <> 3))))
+          )
+        (when (s-starts-with-p "w: " <>) ; window
+          (find-file (substring-no-properties <> 3)))
+        )
+      ))
 
   (ns/bind "ne" 'ns/jump-file ))
 
@@ -707,19 +739,24 @@
               (insert <>))
         (list
           "#+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup"
-          ;; "#+HTML_HEAD: <link href=\"assets/css/marx.css\" rel=stylesheet>"
-          ;; "#+HTML_HEAD: <link href=\"assets/css/notes.css\" rel=stylesheet>"
           (org-file-contents source)
           "[[file:./index.html][Index]]"
           ))
       (org-export-to-file 'html dest)))
+
+
+  ;; (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 
   (defun ns/blog-generate ()
     (interactive)
     (let ((ns/blog-posts-dir (~ "git/neeasade.github.io/posts"))
            (ns/blog-pages-dir (~ "git/neeasade.github.io/pages"))
            (ns/blog-site-dir (~ "git/neeasade.github.io/site"))
-           (default-directory (~ "git/neeasade.github.io/site")))
+           (default-directory (~ "git/neeasade.github.io/site"))
+           (org-export-with-toc t)
+           (org-export-with-timestamps nil)
+           ;; don't ask about generation when exporting
+           (org-confirm-babel-evaluate (fn nil)))
 
       (mapcar 'f-delete
         (f-entries ns/blog-site-dir
@@ -734,8 +771,8 @@
       (ns/blog-process-dir ns/blog-posts-dir))
     t ;; for calling from elisp script
     )
-  )
 
+  )
 
 (defconfig common-lisp
   (use-package slime)
@@ -804,7 +841,6 @@
                (number-sequence 0 (- (length ns-args) 1))))
        ,@content
        ))
-
   )
 
 ;; big bois
