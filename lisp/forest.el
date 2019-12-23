@@ -8,37 +8,6 @@
 ;;; buffer local vars     | ns/enable-asdf
 ;;; code:
 
-;; todo: maybe move these to dirt
-(defmacro defconfig-base (label &rest body)
-  `(defun ,(intern (concat "ns/" (prin1-to-string label)))
-     nil ,@body))
-
-(defmacro defconfig (label &rest body)
-  `(progn
-     (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
-     (defconfig-base ,label
-       (let ((config-name ,(prin1-to-string label)))
-         (message (concat "loading " config-name "..."))
-         (catch 'config-catch
-           ,@body
-           (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t))))))
-
-(defmacro ns/guard (&rest conditions)
-  (if (not (eval (cons 'and conditions)))
-    '(when t (throw 'config-catch (concat "config guard " config-name)))))
-
-(defmacro defcommand (label args &rest body)
-  `(defun ,(intern (concat "ns/" (prin1-to-string label))) ,args
-     (interactive) ,@body))
-
-;; todo: better place for this
-(defcommand find-or-open (filepath)
-  "Find or open FILEPATH."
-  (let ((filename (file-name-nondirectory filepath)))
-    (if (get-buffer filename)
-      (counsel-switch-to-buffer-or-window filename)
-      (find-file filepath))))
-
 (defconfig elisp
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
 
@@ -61,8 +30,7 @@
           (message "dash docs not enabled!")
           )))
 
-    (ns/bind "nd" 'ns/helpful-or-dash-doc)
-    )
+    (ns/bind "nd" 'ns/helpful-or-dash-doc))
 
   (use-package eros
     :config

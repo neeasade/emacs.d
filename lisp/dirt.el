@@ -16,8 +16,6 @@
 (setq straight-use-package-by-default t)
 (setq straight-cache-autoloads t)
 
-;; do the rest
-
 ;; elisp enhancers
 (use-package fn)   ;function
 (use-package s)    ;string
@@ -163,12 +161,6 @@
   (with-temp-file filename
     (prin1 data (current-buffer))))
 
-(defun ns/eval-file (filename)
-  (with-temp-buffer
-    (insert-file-contents filename)
-    (cl-assert (eq (point) (point-min)))
-    (read (current-buffer))))
-
 ;; this is overridden with eros eval later on
 (defun ns/smart-elisp-eval ()
   (interactive)
@@ -179,3 +171,33 @@
       (eval-defun nil))))
 
 (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
+
+
+(defmacro defconfig-base (label &rest body)
+  `(defun ,(intern (concat "ns/" (prin1-to-string label)))
+     nil ,@body))
+
+(defmacro defconfig (label &rest body)
+  `(progn
+     (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
+     (defconfig-base ,label
+       (let ((config-name ,(prin1-to-string label)))
+         (message (concat "loading " config-name "..."))
+         (catch 'config-catch
+           ,@body
+           (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t))))))
+
+(defmacro ns/guard (&rest conditions)
+  (if (not (eval (cons 'and conditions)))
+    '(when t (throw 'config-catch (concat "config guard " config-name)))))
+
+(defmacro defcommand (label args &rest body)
+  `(defun ,(intern (concat "ns/" (prin1-to-string label))) ,args
+     (interactive) ,@body))
+
+(defcommand find-or-open (filepath)
+  "Find or open FILEPATH."
+  (let ((filename (file-name-nondirectory filepath)))
+    (if (get-buffer filename)
+      (counsel-switch-to-buffer-or-window filename)
+      (find-file filepath))))

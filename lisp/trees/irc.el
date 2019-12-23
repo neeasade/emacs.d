@@ -26,50 +26,51 @@
   (interactive)
   (message (format "there are %d people here." (ns/circe-count-nicks))))
 
-(setq-ns circe
-  ;; reduce-lurker-spam nil ;; hide part, join, quit
-  default-quit-message ""
-  default-part-message ""
-  network-options
-  `(("Freenode"
-      :nick ,ns/irc-nick
-      :host "irc.freenode.net"
-      :tls t
-      :nickserv-password ,(pass "freenode")
-      :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic")
-      )
+(defun ns/init-circe ()
+  (setq-ns circe
+    ;; reduce-lurker-spam nil ;; hide part, join, quit
+    default-quit-message ""
+    default-part-message ""
+    network-options
+    `(("Freenode"
+        :nick ,ns/irc-nick
+        :host "irc.freenode.net"
+        :tls t
+        :nickserv-password ,(pass "freenode")
+        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic")
+        )
 
-     ("Nixers"
-       :nick ,ns/irc-nick
-       :host "irc.unix.chat"
-       :port (6667 . 6697)
-       :tls t
-       :channels ("#unix"))
+       ("Nixers"
+         :nick ,ns/irc-nick
+         :host "irc.unix.chat"
+         :port (6667 . 6697)
+         :tls t
+         :channels ("#unix"))
 
-     ("OFTC"
-       :nick ,ns/irc-nick
-       :host "irc.oftc.net"
-       :port (6667 . 6697)
-       :tls t
-       :channels ("#bitlbee"))
+       ("OFTC"
+         :nick ,ns/irc-nick
+         :host "irc.oftc.net"
+         :port (6667 . 6697)
+         :tls t
+         :channels ("#bitlbee"))
 
-     ("Bitlbee"
-       :nick ,ns/irc-nick
-       :host "localhost"
-       )
+       ("Bitlbee"
+         :nick ,ns/irc-nick
+         :host "localhost"
+         )
 
-     ("Rizon"
-       :nick ,ns/irc-nick
-       :host "irc.rizon.net"
-       :port (6667 . 6697)
-       :tls t
-       :channels (:after-auth "#rice" "#code" "#leliana" "#etc")
-       :nickserv-password ,(pass "rizon/pass")
-       :nickserv-mask ,(rx bol "NickServ!service@rizon.net" eol)
-       :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
-       :nickserv-identify-command "PRIVMSG NickServ :IDENTIFY {password}"
-       :nickserv-identify-confirmation ,(rx bol "Password accepted - you are now recognized." eol)
-       )))
+       ("Rizon"
+         :nick ,ns/irc-nick
+         :host "irc.rizon.net"
+         :port (6667 . 6697)
+         :tls t
+         :channels (:after-auth "#rice" "#code" "#leliana" "#etc")
+         :nickserv-password ,(pass "rizon/pass")
+         :nickserv-mask ,(rx bol "NickServ!service@rizon.net" eol)
+         :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
+         :nickserv-identify-command "PRIVMSG NickServ :IDENTIFY {password}"
+         :nickserv-identify-confirmation ,(rx bol "Password accepted - you are now recognized." eol)
+         ))))
 
 ;; auto fill/trim left to 8 columns
 (defun ns/make-message (left body &optional left-face message-face)
@@ -464,6 +465,7 @@
       (ivy-read "channel: " (append irc-channels irc-nicks)
         :action (lambda (option)
                   (interactive)
+                  ;; todo here: only continue if the buffer exists
                   (if (-contains-p irc-nicks option)
                     (circe-command-QUERY option)
                     (counsel-switch-to-buffer-or-window option))
@@ -540,7 +542,9 @@
   (circe-command-MSG "chanserv" content))
 
 (ns/bind
-  "ai" 'connect-all-irc
+  "ai" (fn!
+         (ns/init-circe)
+         (connect-all-irc))
   "ni" 'ns/jump-irc
   "nI" (fn! (counsel-switch-to-buffer-or-window "*circe-highlight*"))
   ;; ehhh
