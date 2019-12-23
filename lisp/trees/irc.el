@@ -188,6 +188,7 @@
                  "cappuccino"
                  "EGGServ"
                  "EggServ"
+                 "CuteServ"
                  "linkreader"
                  ) nick)
           (s-ends-with-p "bot" nick))
