@@ -60,7 +60,7 @@
 
 ;; set the modeline for all existing buffers
 ;; todo: make this unset modeline on not matching spawn
-(defcommand refresh-all-modeline (toggle)
+(defun! ns/refresh-all-modeline (toggle)
   (when toggle (ns/set-spaceline))
 
   (ns/setq-local-all

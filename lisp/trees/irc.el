@@ -22,8 +22,7 @@
   (when (-contains-p '(circe-query-mode circe-channel-mode) major-mode)
     (length (circe-channel-nicks))))
 
-(defun ns/circe-count-nicks-message ()
-  (interactive)
+(defun! ns/circe-count-nicks-message ()
   (message (format "there are %d people here." (ns/circe-count-nicks))))
 
 (defun ns/init-circe ()
@@ -328,8 +327,7 @@
                       'circe-originator-fade-face 'circe-server-face))
       )))
 
-(defun ns/goto-highlight (input)
-  (interactive)
+(defun! ns/goto-highlight (input)
   (let (
          (buf (nth 0 (s-split ":" input)))
          (op (nth 1 (s-split ":" input)))
@@ -340,8 +338,7 @@
     (search-backward message)
     ))
 
-(defun ns/goto-last-highlight ()
-  (interactive)
+(defun! ns/goto-last-highlight ()
   (if (get-buffer "*circe-highlight*")
     (let ((last-highlight
             (with-current-buffer "*circe-highlight*"
@@ -418,8 +415,7 @@
 ;; options: nil, post-command, post-output, t (both)
 (setq lui-scroll-behavior t)
 
-(defun connect-all-irc()
-  (interactive)
+(defun! connect-all-irc()
   (mapcar #'(lambda (network) (circe-maybe-connect (car network)))
     circe-network-options)
   (ns/style-circe))
@@ -453,7 +449,7 @@
     tracking-buffers
     (mapcar 'buffer-name (ns/buffers-by-mode 'circe-query-mode))))
 
-(defcommand jump-irc ()
+(defun! ns/jump-irc ()
   (let* ((irc-channels
            (mapcar 'buffer-name
              (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)))
@@ -564,9 +560,8 @@
         point-change
         (ns/last-face point-change face-search)))))
 
-(defun ns/get-last-nick (&optional point)
+(defun! ns/get-last-nick (&optional point)
   "Get the nick of whoever talked at point"
-  (interactive)
   (save-excursion
     (let ((next (ns/last-face (or point (point)) 'circe-originator-face)))
       (goto-char next)
@@ -575,9 +570,8 @@
         (thing-at-point 'symbol)
         ))))
 
-(defun ns/circe-quote ()
+(defun! ns/circe-quote ()
   "quote whoever spoke at point"
-  (interactive)
 
   (let* ((quote-start (+ 1 (ns/last-face (point) 'circe-originator-face)))
           (quote-end (point-at-eol))

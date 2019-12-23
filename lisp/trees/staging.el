@@ -38,7 +38,7 @@ Version 2017-03-12"
     (font-lock-flush))
   )
 
-(defcommand toggle-colors ()
+(defun! ns/toggle-colors ()
   (if (not (boundp 'ns/show-colors))
     (setq-local ns/show-colors nil))
 
@@ -47,18 +47,43 @@ Version 2017-03-12"
 
 (ns/bind "tc" 'ns/toggle-colors)
 
+(use-package link-hint)
+
+;; stealing from clojure -- prn alias to just 'get thing to string'
+
 ;; file:/home/nathan/.vimrc
 ;; /home/nathan/.vimrc
-(defcommand follow()
+;; todo: use noctuid's link package here to take advantage of different kinds of links.
+(defun! ns/follow()
   (or
     ;; first try to open with org handling (includes urls)
     (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
 
     ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
-    (when (f-exists-p (nth 0 (s-split ":" (ffap-string-at-point))))
-      (org-open-link-from-string
-        (format "file:%s" (s-replace ":" "::" (ffap-string-at-point))))
-      t)
+    (let
+      ((file-name (nth 0 (s-split ":" (ffap-string-at-point))))
+        (file-line (nth 1 (s-split ":" (ffap-string-at-point))))
+        (file-char (nth 2 (s-split ":" (ffap-string-at-point)))))
+      (when (f-exists-p file-name)
+        (org-open-link-from-string
+          (format "file:%s%s" file-name
+            (when file-line
+              ;; this is done to coerce non-numbers (EG grep results with file name appended) to 0
+              (format "::%s" (string-to-number file-line)))))
+
+        (when file-char
+          (move-beginning-of-line nil)
+          (move-to-column file-char))))
+
+    ;; (when
+    ;;   (f-exists-p )
+    ;;   (org-open-link-from-string
+    ;;     (format "file:%s" (s-replace ":" "::" (ffap-string-at-point))))
+    ;;   ;; here; fwd march
+    ;;   ()
+    ;;   t)
+
+    ;; try noctuid's "all in one" link handling
 
     ;; fall back to definitions with smart jump
     (shut-up (smart-jump-go))
@@ -95,7 +120,7 @@ Version 2017-03-12"
   (translate-region beg end ns/widechar-table))
 
 ;; (use-package string-inflection
-;;   (defcommand string-inflection-auto
+;;   (defun! ns/string-inflection-auto
 ;;     "switching by major-mode"
 ;;     (cond
 ;;       ((eq major-mode 'emacs-lisp-mode)
@@ -182,14 +207,14 @@ Version 2017-03-12"
 ;; - make color a minimum distance from a set color
 ;; - make percent functions a global intensity setting
 ;; - a better visual method than xah's inline face bg
-(defcommand transform-color-at-point (action)
+(defun! ns/transform-color-at-point (action)
   (when (looking-at (pcre-to-elisp "#[a-zA-Z0-9]{6}"))
     (save-excursion
       (let ((current-color (match-string 0)))
         (delete-char 7)
         (insert (funcall action current-color))))))
 
-(defcommand color-saturate-at-point ()
+(defun! ns/color-saturate-at-point ()
   (ns/transform-color-at-point
     (fn (-as-> <> C
           (color-saturate-name C 1)
@@ -199,21 +224,21 @@ Version 2017-03-12"
 ;; todo: make these all plain functions so they can just take colors
 ;; make transform-color-at-point take the arg action
 
-(defcommand color-desaturate-at-point ()
+(defun! ns/color-desaturate-at-point ()
   (ns/transform-color-at-point
     (fn (-as-> <> C
           (color-desaturate-name C 1)
           `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
           (eval C)))))
 
-(defcommand color-lighten-at-point ()
+(defun! ns/color-lighten-at-point ()
   (ns/transform-color-at-point
     (fn (-as-> <> C
           (color-lighten-name C 1)
           `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
           (eval C)))))
 
-(defcommand color-darken-at-point ()
+(defun! ns/color-darken-at-point ()
   (ns/transform-color-at-point
     (fn (-as-> <> C
           (color-darken-name C 1)

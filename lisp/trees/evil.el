@@ -149,20 +149,20 @@
   "H" 'previous-buffer
   "L" 'next-buffer)
 
-(defcommand should-skip (buffername)
+(defun! ns/should-skip (buffername)
   (or
     ;; (member buffername '("scratch.el"))
     (s-starts-with? "*" buffername)
     (s-starts-with? "magit" buffername))
   )
 
-(defcommand maybe-next ()
+(defun! ns/maybe-next ()
   (when (ns/should-skip (buffer-name))
     (let ((temp (window-next-buffers)))
       (next-buffer)
       (set-window-next-buffers nil temp))))
 
-(defcommand maybe-prev ()
+(defun! ns/maybe-prev ()
   (when (ns/should-skip (buffer-name))
     (let ((temp (window-prev-buffers)))
       (previous-buffer)

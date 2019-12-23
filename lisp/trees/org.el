@@ -105,9 +105,9 @@
 ;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
 (require 'org-tempo)
 
-(defcommand org-open-url() (browse-url (org-entry-get nil "url")))
+(defun! ns/org-open-url() (browse-url (org-entry-get nil "url")))
 
-(defcommand org-set-active()
+(defun! ns/org-set-active()
   (org-delete-property-globally "focus")
   (org-set-property "focus" "t")
 
@@ -123,7 +123,7 @@
     (s-clean ns/org-active-story)
     ))
 
-(defcommand org-goto-active()
+(defun! ns/org-goto-active()
   (ns/find-or-open org-default-notes-file)
   (goto-char (org-find-property "focus"))
   (org-show-context)
@@ -145,7 +145,7 @@
     (apply-partially #'ns/toggle-music "pause")))
 
 ;; insert an org link to the current location on the focused heading in notes.org
-(defcommand make-org-link-to-here ()
+(defun! ns/make-org-link-to-here ()
   (let* ((line (number-to-string (line-number-at-pos)))
           (link (format "file:%s::%s" (buffer-file-name) line))
           ;; (label (format "%s:%s" (buffer-name) line))
@@ -164,10 +164,10 @@
 
         (insert org-link)))))
 
-(defcommand evil-delete-marks ()
+(defun! ns/evil-delete-marks ()
   (evil-delete-marks "ABCDEFGHIJKLMNOPQRSTUPWXYZ"))
 
-(defcommand insert-mark-org-links ()
+(defun! ns/insert-mark-org-links ()
   (setq ns/markers
     (append (cl-remove-if (lambda (m)
                             (or (evil-global-marker-p (car m))

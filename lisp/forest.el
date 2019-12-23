@@ -21,8 +21,7 @@
     (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol)
 
     ;; todo: make this work, figure out what goes to helpful-callable in interactive arg
-    (defun ns/helpful-or-dashdoc ()
-      (interactive)
+    (defun! ns/helpful-or-dashdoc ()
       (if (eq 'emacs-lisp-mode major-mode)
         (helpful-callable)
         (if ns/enable-dashdocs-p
@@ -37,8 +36,7 @@
     (setq eros-eval-result-duration 20)
     (eros-mode 1)
 
-    (defun ns/smart-elisp-eval ()
-      (interactive)
+    (defun! ns/smart-elisp-eval ()
       (if (use-region-p)
         (eval-region (region-beginning) (region-end))
         (if (s-blank-p (s-trim (thing-at-point 'line)))
@@ -85,7 +83,6 @@
   (use-package treemacs-projectile))
 
 (defconfig company
-
   (use-package company
     :config
     (setq-ns company
@@ -137,7 +134,7 @@
 
   (make-directory counsel-dash-docsets-path t)
 
-  (defcommand counsel-dash-word ()
+  (defun! ns/counsel-dash-word ()
     (if (region-active-p)
       (counsel-dash (buffer-substring (region-beginning) (region-end)))
       (counsel-dash "")))
@@ -167,8 +164,7 @@
   ;; TODO: learn lispyville
   ;; (use-package lispy)
 
-  (defun ns/smart-cider-eval ()
-    (interactive)
+  (defun! ns/smart-cider-eval ()
     (if (use-region-p)
       (cider-eval-region (region-beginning) (region-end))
       (if (s-blank-p (s-trim (thing-at-point 'line)))
@@ -269,7 +265,7 @@
       (ns/shell-exec (format "grep -A 6 '    \\- active: true' %s | grep title | sed 's/.*title: //'"
                        (~ ".local/share/qutebrowser/sessions/default.yml")))))
 
-  (defcommand jump-file ()
+  (defun! ns/jump-file ()
     (ivy-read "file: "
       (append
         (->> (ns/jump-file-candidates)
@@ -353,8 +349,7 @@
   (ns/install-dashdoc "TypeScript" 'typescript-mode-hook)
   (use-package tide
     :config
-    (defun setup-tide-mode ()
-      (interactive)
+    (defun! setup-tide-mode ()
       (tide-setup)
       (eldoc-mode +1)
       (tide-hl-identifier-mode +1))
@@ -405,6 +400,7 @@
 
 (defconfig email
   (ns/guard ns/enable-home-p)
+  (ns/guard nil)
 
   ;; (use-package wanderlust :init (autoload 'wl "wl" "Wanderlust" t))
 
@@ -633,7 +629,7 @@
   (eval-after-load 'flycheck
     '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
-  (defcommand recompile ()
+  (defun! ns/recompile ()
     (let ((compilation-directory (projectile-project-root)))
       (ns/shell-exec-dontcare
         (format "cd '%s' && make clean" compilation-directory))
@@ -665,8 +661,7 @@
 
   (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 
-  (defun ns/refresh-images-org ()
-    (interactive)
+  (defun! ns/refresh-images-org ()
     (org-toggle-inline-images)
     (org-toggle-inline-images))
 
@@ -715,8 +710,7 @@
 
   ;; (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 
-  (defun ns/blog-generate ()
-    (interactive)
+  (defun! ns/blog-generate ()
     (let ((ns/blog-posts-dir (~ "git/neeasade.github.io/posts"))
            (ns/blog-pages-dir (~ "git/neeasade.github.io/pages"))
            (ns/blog-site-dir (~ "git/neeasade.github.io/site"))
@@ -747,8 +741,7 @@
   (setq inferior-lisp-program (which "sbcl"))
   (setq slime-contribs '(slime-fancy))
 
-  (defun slime-eval-last-sexp-overlay ()
-    (interactive)
+  (defun! slime-eval-last-sexp-overlay ()
     (destructuring-bind (output value)
       (slime-eval `(swank:eval-and-grab-output ,(slime-last-expression)))
       (eros--make-result-overlay (concat output value)
@@ -757,8 +750,7 @@
 
   (ns/install-dashdoc "Common Lisp" 'lisp-mode-hook)
 
-  (defun ns/smart-slime-eval ()
-    (interactive)
+  (defun! ns/smart-slime-eval ()
     (if (use-region-p)
       (slime-eval-region (region-beginning) (region-end))
       (if (s-blank-p (s-trim (thing-at-point 'line)))
@@ -771,8 +763,7 @@
 (defconfig alda
   (use-package alda-mode)
 
-  (defun ns/smart-alda-eval ()
-    (interactive)
+  (defun! ns/smart-alda-eval ()
     (if (use-region-p)
       (alda-play-region (region-beginning) (region-end))
       (progn

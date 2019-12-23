@@ -41,12 +41,48 @@
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
       rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
 
-(defun ns/dired-init ()
-  (set-face-attribute 'hl-line nil :background
-    (ns/color-tone (first evil-visual-state-cursor) -7 -7))
-  (hl-line-mode))
+;; todo: consider dired hide details mode
+;; (defun ns/dired-init-test ()
+;;   ;; (set-face-attribute 'hl-line nil :background
+;;   ;;   ;; todo: make lessen script a defun and use here
+;;   ;;   (ns/color-tone (first evil-visual-state-cursor) -7 -7)
+;;   ;;   )
+;;   ;; (hl-line-mode)
+;;   )
 
-(add-hook 'dired-after-readin-hook 'ns/dired-init)
+;; (defun ns/dired-init()
+;;   (set-face-attribute 'hl-line nil :background
+;;     ;; todo: make lessen script a defun and use here
+;;     (ns/color-tone (first evil-visual-state-cursor) -7 -7))
+;;   (hl-line-mode)
+
+;;   (when (bound-and-true-p ns/dired-last-file)
+;;     (when (f-exists-p ns/dired-last-file)
+;;       (alert (format "doing the thing %s" (f-base ns/dired-last-file)))
+;;       (alert (buffer-name))
+;;       ;; (alert (ns/windowshot))
+;;       (search-forward (f-base ns/dired-last-file))
+;;       )
+;;     (setq ns/dired-last-file nil))
+
+;;   )
+
+;; Dired listing switches
+;;  -a : Do not ignore entries starting with .
+;;  -l : Use long listing format.
+;;  -G : Do not print group names like 'users'
+;;  -h : Human-readable sizes like 1K, 234M, ..
+;;  -v : Do natural sort .. so the file names starting with . will show up first.
+;;  -F : Classify filenames by appending '*' to executables,
+;;       '/' to directories, etc.
+(setq dired-listing-switches "-alGhvF --group-directories-first") ; default: "-al"
+
+;; (setq dired-hide-details-mode t)
+
+;; interface
+;; (add-hook 'dired- 'ns/dired-init)
+;; (add-hook 'dired-mode-hook 'ns/dired-init-test)
+;; (add-hook 'dired-after-readin-hook 'ns/dired-init)
 
 (general-define-key
   :states '(normal)
@@ -69,7 +105,7 @@
   (let ((margin-size (if ns/center (/ (- (frame-width) 120) 2) 0)))
     (set-window-margins nil margin-size margin-size)))
 
-(defcommand toggle-margin ()
+(defun! ns/toggle-margin ()
   (if (not (bound-and-true-p ns/center))
     (setq ns/center nil))
 
@@ -80,20 +116,17 @@
   (setq ns/center (not ns/center))
   (my-resize-margins))
 
-(defcommand kill-current-buffer()
+(defun! ns/kill-current-buffer()
   (kill-buffer nil))
 
-(defcommand follow-mode ()
+(defun! ns/follow-mode ()
   (follow-mode)
   (delete-other-windows)
   (evil-window-vsplit))
 
 (use-package alert
   :config (setq alert-default-style
-            (if ns/enable-windows-p
-              'toaster
-              'libnotify
-              )))
+            (if ns/enable-windows-p 'toaster 'libnotify)))
 
 (use-package which-key
   :config
@@ -104,7 +137,7 @@
   (which-key-setup-side-window-right-bottom)
   (which-key-mode))
 
-(defcommand kill-other-buffers ()
+(defun! ns/kill-other-buffers ()
   "Kill all other buffers."
   (mapc 'kill-buffer
     (delq (current-buffer)
@@ -134,7 +167,8 @@
 
   ;; todo idea here: check if we are in a shell, if so, make that the staged shell (or 'dired' shell)
   ;; so we can have fluid state across dired transitions "s" <--> "SPC d"
-  "d" (fn! (dired "."))
+  "d" (fn! (setq ns/dired-last-file (buffer-file-name))
+        (dired "."))
 
   "a" '(:ignore t :which-key "Applications")
   "q" '(:ignore t :which-key "Query")

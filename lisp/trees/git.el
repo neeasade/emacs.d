@@ -118,7 +118,7 @@ command was called, go to its unstaged changes section."
              (magit-section-forward)
              (error (cl-return (magit-status-goto-initial-section-1))))))))
 
-(defcommand git-status()
+(defun! ns/git-status()
   (if ns/enable-windows-p (magit-staging)
     (unpackaged/magit-status)))
 

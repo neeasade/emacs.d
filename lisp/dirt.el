@@ -1,3 +1,5 @@
+;; lay the plot
+
 ;; get straight.el
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -36,9 +38,9 @@
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 
-;; call a func, but with backtick quoting
-;; (@ 'message ,@'("asdf"))
-(defmacro @ (&rest input) (eval (eval `(backquote (list ,@input)))))
+(defmacro defun! (label args &rest body)
+  `(defun ,label ,args
+     (interactive) ,@body))
 
 (defun s-clean (s)
   "Remove text properies from S."
@@ -63,6 +65,7 @@
     (if ns/enable-windows-p "\\" "/") path))
 
 ;; todo: take a look at general-describe-keybindings later
+;; todo: make a general minor mode with a keymap and update ns/bind functions to be that
 ;; binding wrappers
 (defmacro ns/bind (&rest binds)
   `(general-define-key
@@ -110,7 +113,7 @@
      (shell-command-to-string ,command)))
 
 (defun ns/shell-exec-dontcare (command)
-  (let* ((bufname (concat "*killme-shell" (number-to-string (random)) "*"))
+  (let* ((bufname (concat "*killme-shell-" (number-to-string (random)) "*"))
           (junk-buffer (get-buffer-create bufname)))
     (shut-up
       (shell-command command junk-buffer)
@@ -130,9 +133,8 @@
                    "")))
     (if (string= result "") default result)))
 
-(defun reload-init ()
+(defun! reload-init ()
   "Reload init.el with straight.el."
-  (interactive)
   (straight-transaction
     (straight-mark-transaction-as-init)
     (message "Reloading init.el...")
@@ -172,7 +174,6 @@
 
 (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
 
-
 (defmacro defconfig-base (label &rest body)
   `(defun ,(intern (concat "ns/" (prin1-to-string label)))
      nil ,@body))
@@ -191,11 +192,7 @@
   (if (not (eval (cons 'and conditions)))
     '(when t (throw 'config-catch (concat "config guard " config-name)))))
 
-(defmacro defcommand (label args &rest body)
-  `(defun ,(intern (concat "ns/" (prin1-to-string label))) ,args
-     (interactive) ,@body))
-
-(defcommand find-or-open (filepath)
+(defun! ns/find-or-open (filepath)
   "Find or open FILEPATH."
   (let ((filename (file-name-nondirectory filepath)))
     (if (get-buffer filename)

@@ -126,7 +126,6 @@
   (setq ns/firstrun nil)
   ;; Emacs is terribly slow on windows
   (ns/toggle-bloat-global ns/enable-linux-p)
-  (ns/style)
   (eval (cons 'progn ns/firstrun-action))
 
   (->> (seq-take recentf-list 6)
@@ -135,7 +134,10 @@
                 (find-file <>)))))
 
   (when (f-exists-p (~ "extend.el"))
-    (load (~ "extend.el"))))
+    (load (~ "extend.el")))
+
+  (ns/style)
+  )
 
 (provide 'init)
 ;;; init.el ends here

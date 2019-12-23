@@ -1,6 +1,6 @@
 (use-package pcre2el)
 
-(defcommand what-line ()
+(defun! ns/what-line ()
   (save-restriction
     (widen)
     (save-excursion
@@ -40,11 +40,11 @@
                 (get-char-property (point) 'face))))
     (if face (message "Face: %s" face) (message "No face at %d" pos))))
 
-(defcommand what-major-mode ()
+(defun! ns/what-major-mode ()
   "Reveal current major mode."
   (message "%s" major-mode))
 
-(defcommand what-minor-modes ()
+(defun! ns/what-minor-modes ()
   (message
     (format "%s"
       (delq nil
@@ -80,8 +80,7 @@ buffer is not visiting a file."
         "^(defconfig [^ \(\)]+"
         (f-read (~ ".emacs.d/lisp/forest.el"))))))
 
-(defun ns/check-for-orphans ()
-  (interactive)
+(defun! ns/check-for-orphans ()
   "Check to see if any defconfigs are missing from init."
   (let ((initfile (f-read (~ ".emacs.d/init.el"))))
     (mapcar
@@ -90,7 +89,7 @@ buffer is not visiting a file."
           (message (concat "orphaned function! " conf))))
       (ns/get-functions))))
 
-(defcommand jump-config ()
+(defun! ns/jump-config ()
   (ivy-read "config: " (ns/get-functions)
     :action
     (lambda (option)
@@ -103,7 +102,7 @@ buffer is not visiting a file."
           (re-search-forward (concat "defconfig " option "\n"))))
       (ns/focus-line))))
 
-(defcommand toggle-bloat()
+(defun! ns/toggle-bloat()
   "toggle bloat in the current buffer"
   (if (not (bound-and-true-p company-mode))
     (progn
@@ -136,7 +135,7 @@ buffer is not visiting a file."
 
 (use-package simpleclip)
 
-(defcommand paste-from-clipboard-url ()
+(defun! ns/paste-from-clipboard-url ()
   "GET the clipboard contents into current point"
 
   (request
@@ -149,7 +148,7 @@ buffer is not visiting a file."
         (interactive)
         (insert data)))))
 
-(defcommand focus-line (&rest ignore)
+(defun! ns/focus-line (&rest ignore)
   (evil-scroll-line-to-center (ns/what-line)))
 
 (defun ns/get-last-message()
@@ -160,8 +159,7 @@ buffer is not visiting a file."
            (end (line-beginning-position 2)))
       (buffer-substring beg end))))
 
-(defun ns/look-at-last-message()
-  (interactive)
+(defun! ns/look-at-last-message()
   (ns/find-or-open (~ ".emacs.d/lisp/scratch.el"))
   (goto-char (point-max))
   (insert "\n")
@@ -187,11 +185,11 @@ buffer is not visiting a file."
   (dolist (face faces)
     (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
 
-(defcommand set-buffer-face-variable ()
+(defun! ns/set-buffer-face-variable ()
   (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
   (buffer-face-mode t))
 
-(defcommand set-buffer-face-monospace ()
+(defun! ns/set-buffer-face-monospace ()
   (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
   (buffer-face-mode t))
 
@@ -207,8 +205,7 @@ buffer is not visiting a file."
     (fn (-contains-p modes (buffer-local-value 'major-mode <>)))
     (buffer-list)))
 
-(defun ns/insert-history ()
-  (interactive)
+(defun! ns/insert-history ()
   (let ((shell-name
           (if (eq major-mode 'shell-mode)
             (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
@@ -252,16 +249,14 @@ buffer is not visiting a file."
   (eval `(setq-default ,symbol ,value)))
 
 ;; callback on all open frames
-(defun ns/apply-frames (action)
+(defun! ns/apply-frames (action)
   (mapc (lambda(frame)
-          (interactive)
           (funcall action frame)
           (redraw-frame frame))
     (frame-list)))
 
-(defun ns/kill-buffers-no-file ()
+(defun! ns/kill-buffers-no-file ()
   "Kill buffers pointing to a file when that file doesn't exist"
-  (interactive)
   (mapcar 'kill-buffer
     (-filter (fn (let ((file (buffer-file-name <>)))
                    (if file (not (f-exists-p file)) nil)))

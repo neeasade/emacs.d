@@ -75,7 +75,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 (fset 'which 'executable-find)
 
-(defcommand toggle-modeline ()
+(defun! ns/toggle-modeline ()
   (make-local-variable 'ns/modeline)
 
   (if mode-line-format
@@ -105,20 +105,30 @@
 
 (setq whitespace-line-column 120)
 
-(defcommand insert-filename ()
+(defun! ns/insert-filename ()
   (insert (f-filename (buffer-file-name))))
 
-(defcommand insert-filepath ()
+(defun! ns/insert-filepath ()
   (insert (buffer-file-name)))
 
 ;; a report toggle command for debugging on keybind
 (require 'profiler)
-(defcommand toggle-report ()
+(defun! ns/toggle-report ()
   (if (profiler-running-p)
     (progn
       (profiler-report)
       (profiler-stop))
     (profiler-cpu-start profiler-sampling-interval)))
+
+;; (defun ns/proced-init ()
+;;   (interactive)
+;;   ;; note: default update rate is 5 seconds
+;;   (proced-toggle-auto-update)
+;;   (delete-other-windows)
+;;   )
+
+;; (advice-remove 'proced-mode #'ns/proced-init)
+;; (remove-hook 'proced-mode-hook 'ns/proced-init)
 
 (ns/bind
   "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))

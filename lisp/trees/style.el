@@ -40,7 +40,8 @@
   (setq ns/loaded-theme theme)
 
   (when (or (equal theme 'apropospriate-light)
-          (equal theme 'base16-grayscale-light))
+          (equal theme 'base16-grayscale-light)
+          )
     ;; (setq apropospriate-mode-line-height nil)
     (setq
       evil-normal-state-cursor '("#8B94C6" box)
@@ -118,7 +119,7 @@
     :foreground (face-attribute 'whitespace-space :foreground))
   (setq ns/colored-whitespace? t))
 
-(advice-add 'whitespace-mode :after #'color-whitespace-mode )
+(advice-add 'whitespace-mode :after #'color-whitespace-mode)
 
 (use-package hl-todo
   :config

@@ -74,7 +74,7 @@
                       (shell-pop-9)))))
   )
 
-(defcommand windowshot ()
+(defun! ns/windowshot ()
   "get a string that is the currently displayed text in emacs window"
   (with-current-buffer (window-buffer)
     (let ((result (s-clean (buffer-substring (window-start) (window-end)))))
@@ -117,7 +117,7 @@ Everything past that can be tailored to your liking.
       (replace-match "" t t string 0))
     string))
 
-(defcommand cd-dir-history ()
+(defun! ns/cd-dir-history ()
   (ivy-read "dir: "
     ;; todo: this should filter to the current tramp, rather than remove them all
     ;; could then change ivy prompt show host
@@ -149,14 +149,14 @@ Everything past that can be tailored to your liking.
   (cons (regexp-quote "*spawn-shell-staged*")
     (cons #'display-buffer-no-window nil)))
 
-(defcommand stage-terminal ()
+(defun! ns/stage-terminal ()
   (let ((default-directory (~ "")))
     (shell "*spawn-shell-staged*")
     ))
 
 (ns/stage-terminal)
 
-(defcommand spawn-terminal ()
+(defun! ns/spawn-terminal ()
   (select-frame (make-frame))
   ;; return t so that elisp ns/spawn-terminal call is true
   (ns/pickup-shell nil t)
@@ -164,7 +164,7 @@ Everything past that can be tailored to your liking.
   (delete-window)
   t)
 
-(defcommand pickup-shell (&optional cwd terminal)
+(defun! ns/pickup-shell (&optional cwd terminal)
   (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
   (rename-buffer
     (format "*spawn-shell-%s*"
@@ -187,7 +187,7 @@ Everything past that can be tailored to your liking.
   t
   )
 
-(defcommand kill-spawned-shell (frame)
+(defun! ns/kill-spawned-shell (frame)
   (let ((windows (window-list frame)))
     (when (eq 1 (length windows))
       (let ((buffer (window-buffer (car windows))))
