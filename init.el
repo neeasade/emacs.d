@@ -20,8 +20,8 @@
      ;; ("*.background"         . ,(face-attribute 'default :background))
      ("*.background"         . nil)
      ("Emacs.powerlinescale" . "1.1")
-     ;; ("Emacs.theme"          . "base16-grayscale-light")
-     ("Emacs.theme"          . "apropospriate-light")
+     ("Emacs.theme"          . "base16-grayscale-light")
+     ;; ("Emacs.theme"          . "apropospriate-light")
      ("Emacs.powerline"      . "bar")
      ("Emacs.padding_source" . "st") ;; font or st
      ("st.borderpx"          . "30")
@@ -128,9 +128,11 @@
   (ns/toggle-bloat-global ns/enable-linux-p)
   (ns/style)
   (eval (cons 'progn ns/firstrun-action))
-  (mapc (fn
-          (when (f-exists-p <>) (find-file <>)))
-    (seq-take recentf-list 5))
+
+  (->> (seq-take recentf-list 6)
+    (-filter (fn (not (s-ends-with-p "recentf" <>))))
+    (mapc (fn (when (f-exists-p <>)
+                (find-file <>)))))
 
   (when (f-exists-p (~ "extend.el"))
     (load (~ "extend.el"))))

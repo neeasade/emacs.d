@@ -39,7 +39,8 @@
   (load-theme theme t)
   (setq ns/loaded-theme theme)
 
-  (when (equal theme 'apropospriate-light)
+  (when (or (equal theme 'apropospriate-light)
+          (equal theme 'base16-grayscale-light))
     ;; (setq apropospriate-mode-line-height nil)
     (setq
       evil-normal-state-cursor '("#8B94C6" box)
