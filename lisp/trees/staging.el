@@ -67,23 +67,15 @@ Version 2017-03-12"
       (when (f-exists-p file-name)
         (org-open-link-from-string
           (format "file:%s%s" file-name
-            (when file-line
+            (if file-line
               ;; this is done to coerce non-numbers (EG grep results with file name appended) to 0
-              (format "::%s" (string-to-number file-line)))))
+              (format "::%s" (string-to-number file-line))
+              ""
+              )))
 
         (when file-char
           (move-beginning-of-line nil)
           (move-to-column file-char))))
-
-    ;; (when
-    ;;   (f-exists-p )
-    ;;   (org-open-link-from-string
-    ;;     (format "file:%s" (s-replace ":" "::" (ffap-string-at-point))))
-    ;;   ;; here; fwd march
-    ;;   ()
-    ;;   t)
-
-    ;; try noctuid's "all in one" link handling
 
     ;; fall back to definitions with smart jump
     (shut-up (smart-jump-go))

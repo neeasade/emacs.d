@@ -67,6 +67,10 @@
 ;; todo: take a look at general-describe-keybindings later
 ;; todo: make a general minor mode with a keymap and update ns/bind functions to be that
 ;; binding wrappers
+
+;; todo: peek at the bind values
+;; if it's not a lambda, make sure it's a commandp else messagen
+;; check for ns/ prefix on commands that are bound but not found
 (defmacro ns/bind (&rest binds)
   `(general-define-key
      :states '(normal visual)

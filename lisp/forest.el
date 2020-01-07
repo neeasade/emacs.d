@@ -23,13 +23,16 @@
     ;; todo: make this work, figure out what goes to helpful-callable in interactive arg
     (defun! ns/helpful-or-dashdoc ()
       (if (eq 'emacs-lisp-mode major-mode)
-        (helpful-callable)
+        ;; todo: this
+        (helpful-callable "")
         (if ns/enable-dashdocs-p
           (ns/counsel-dash-word)
           (message "dash docs not enabled!")
           )))
 
-    (ns/bind "nd" 'ns/helpful-or-dash-doc))
+    (ns/bind "nd" 'ns/helpful-or-dashdoc)
+
+    )
 
   (use-package eros
     :config
@@ -159,6 +162,10 @@
   (use-package cider)
   (setq cider-eval-result-duration 20)
 
+  (ns/inmap 'cider-repl-mode-map (kbd "C-e") 'cider-repl-previous-input)
+  (ns/inmap 'cider-repl-mode-map (kbd "C-n") 'cider-repl-next-input)
+
+
   (ns/install-dashdoc "Clojure" 'clojure-mode-hook)
 
   ;; TODO: learn lispyville
@@ -282,6 +289,7 @@
           ;; todo: focus qute window
           (ns/shell-exec
             ;; qb_command ':buffer $(echo "$url" | sed "s/'//g;s/\"// ")'
+            ;; todo here: focus qutebrowser before we switch the tab
             (format "qb_command ':buffer %s'" (s-replace "'" "" (substring-no-properties <> 3))))
           )
         (when (s-starts-with-p "w: " <>) ; window
