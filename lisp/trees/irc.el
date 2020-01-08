@@ -30,6 +30,7 @@
     ;; reduce-lurker-spam nil ;; hide part, join, quit
     default-quit-message ""
     default-part-message ""
+    ;; todo: consider tracking channels somewhere else
     network-options
     `(("Freenode"
         :nick ,ns/irc-nick
@@ -46,12 +47,19 @@
          :tls t
          :channels ("#unix"))
 
-       ("OFTC"
+       ;; ("OFTC"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "irc.oftc.net"
+       ;;   :port (6667 . 6697)
+       ;;   :tls t
+       ;;   :channels ("#bitlbee"))
+
+       ("eigenstate"
          :nick ,ns/irc-nick
-         :host "irc.oftc.net"
+         :host "irc.eigenstate.org"
          :port (6667 . 6697)
          :tls t
-         :channels ("#bitlbee"))
+         :channels ("#myrddin"))
 
        ("Bitlbee"
          :nick ,ns/irc-nick
@@ -570,6 +578,12 @@
         (thing-at-point 'symbol)
         ))))
 
+(defun! ns/kill-all-irc ()
+  (mapcar 'kill-buffer
+    (ns/buffers-by-mode 'circe-server-mode 'circe-query-mode
+      'circe-channel-mode
+      )))
+
 (defun! ns/circe-quote ()
   "quote whoever spoke at point"
 
@@ -585,7 +599,9 @@
                   (circe-channel-nicks)))
               sayer-display)))
     (goto-char (point-max))
-    (insert (propertize (format "> %s: %s" sayer (s-trim quote-text)) 'read-only nil))))
+    (if sayer
+      (insert (propertize (format "> %s: %s" sayer (s-trim quote-text)) 'read-only nil))
+      (insert (propertize (format "> %s" sayer (s-trim quote-text)) 'read-only nil)))))
 
 (ns/bind-mode 'circe-channel
   "qc" 'ns/circe-count-nicks-message
