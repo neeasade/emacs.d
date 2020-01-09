@@ -78,9 +78,11 @@
            (buffer-name (current-buffer)))
       (string= (system-name) "bridge"))
 
-    (ns/shell-exec
+    (ns/shell-exec-dontcare
       (format "popup_window.sh %s"
         (frame-parameter nil 'outer-window-id)))
+
+    (evil-insert 0)
     )
   t
   )
