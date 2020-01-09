@@ -82,8 +82,8 @@
       (format "popup_window.sh %s"
         (frame-parameter nil 'outer-window-id)))
 
-    (evil-insert 0)
-    )
+    (ns/set-buffer-face-variable)
+    (evil-insert 0))
   t
   )
 
