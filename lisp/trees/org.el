@@ -11,10 +11,12 @@
 
 (setq-ns org
   directory (~ "notes")
-  agenda-files (list org-directory)
   default-notes-file  (concat org-directory "/notes.org")
   default-diary-file  (concat org-directory "/journal.org")
   default-habits-file  (concat org-directory "/habits.org")
+  agenda-files
+  ;; all the files in our org directory
+  (f-entries org-directory (fn (s-ends-with-p ".org" <>))  t)
 
   ellipsis "_"
   startup-indented nil

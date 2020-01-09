@@ -69,8 +69,23 @@
   (setq browse-url-generic-program (getenv "BROWSER")))
 
 ;; Removes *scratch* from buffer after the mode has been set.
-(add-hook 'after-change-major-mode-hook
-  (fn (if (get-buffer "*scratch*") (kill-buffer "*scratch*"))))
+(defun ns/after-change-major-mode-hook ()
+  (when (get-buffer "*scratch*")
+    (kill-buffer "*scratch*"))
+
+  (when
+    (and (s-starts-with-p "qutebrowser-editor-"
+           (buffer-name (current-buffer)))
+      (string= (system-name) "bridge"))
+
+    (ns/shell-exec
+      (format "popup_window.sh %s"
+        (frame-parameter nil 'outer-window-id)))
+    )
+  t
+  )
+
+(add-hook 'after-change-major-mode-hook 'ns/after-change-major-mode-hook)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 (fset 'which 'executable-find)
