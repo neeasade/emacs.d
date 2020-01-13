@@ -1,5 +1,7 @@
 (ns/guard ns/enable-home-p)
 
+;; todo: alerts on DMs as well as channel highlights
+
 (use-package circe)
 
 (setq
@@ -487,6 +489,7 @@
 ;; (enable-circe-display-images)
 
 (add-hook 'circe-channel-mode-hook 'ns/set-buffer-face-variable)
+(add-hook 'circe-query-mode-hook 'ns/set-buffer-face-variable)
 (advice-add #'ns/style :after #'ns/style-circe)
 (defun ns/style-circe ()
   "Make chat pretty."

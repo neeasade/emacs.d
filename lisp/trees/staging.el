@@ -111,6 +111,10 @@ Version 2017-03-12"
 (defun ns/text-to-widechar (beg end) (interactive "r")
   (translate-region beg end ns/widechar-table))
 
+;; todo: idea: turn all the above into circe commands
+;; or matrix.el commands
+;; also: add a clap👏text function (lol)
+
 ;; (use-package string-inflection
 ;;   (defun! ns/string-inflection-auto
 ;;     "switching by major-mode"
@@ -123,10 +127,15 @@ Version 2017-03-12"
 ;;         (string-inflection-java-style-cycle))
 ;;       (t (string-inflection-ruby-style-cycle)))))
 
+;; hack: todo: not create an entry on getting content
 
-;; todo: integrate this with qutebrowser keybind/plugin
-(defun ns/get-url-note (url)
-  ;; returns the char of the entry if it exists
+(defun ns/urlnote-get-content (&optional url)
+  (save-window-excursion
+    (ns/urlnote-jump url)
+    (s-clean (org-get-entry))))
+
+(defun ns/urlnote-get-or-add (url)
+  "return a marker on the note entry"
   (defun ns/find-url-heading (path)
     (catch 'error
       (condition-case msg
@@ -153,10 +162,7 @@ Version 2017-03-12"
             (insert child)
             (org-do-demote))))))
 
-  (let ((parent
-          (->> url
-            url-generic-parse-url
-            url-host))
+  (let ((parent (-> url url-generic-parse-url url-host))
          (child url))
 
     (when (not (ns/find-url-heading (list parent)))
@@ -167,17 +173,18 @@ Version 2017-03-12"
 
     (ns/find-url-heading (list parent child))))
 
-(defun ns/goto-url-note (&optional url)
-  (interactive)
+(defun! ns/urlnote-jump (&optional url)
   (let ((target (or url
                   (->> (simpleclip-get-contents) s-trim s-clean))))
     (when (ffap-url-p target)
 
-      (ns/find-or-open (concat org-directory "/projects/url.org"))
-      (goto-char (ns/get-url-note target))
+      (let ((marker (ns/urlnote-get-or-add target)))
+        (switch-to-buffer (marker-buffer marker))
+        (goto-char (marker-position marker)))
 
       (org-show-context)
-      (org-show-subtree))))
+      (org-show-subtree)
+      (ns/focus-line))))
 
 (use-package eval-in-repl
   :config
@@ -238,8 +245,8 @@ Version 2017-03-12"
           (eval C)))))
 
 (ns/bind
-  "cl" 'color-lighten-at-point
-  "cd" 'color-darken-at-point
+  "cl" 'ns/color-lighten-at-point
+  "cd" 'ns/color-darken-at-point
   ;; "cs" 'color-darken-at-point
   ;; "cd" 'color-darken-at-point
   )
