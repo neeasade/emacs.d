@@ -47,6 +47,7 @@
     (ns/color-tone (first evil-visual-state-cursor) -7 -7))
   (hl-line-mode))
 
+;; cf. https://endlessparentheses.com/auto-focus-a-relevant-file-in-dired-buffers.html
 (defun ns/dired-maybe-goto-file ()
   "focus the current file in dired when it exists"
   (when (and (bound-and-true-p ns/dired-last-file)

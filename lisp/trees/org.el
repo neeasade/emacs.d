@@ -280,13 +280,70 @@
     :keymaps 'org-mode-map
     (kbd "E") 'org-toggle-heading))
 
-;; notify on timestamps
-;; (ns/use-package org-wild-notifier  "akhramov/org-wild-notifier.el"
-;;   :config
-;;   (setq-ns org-wild-notifier
-;;     alert-time 7 ;; min
-;;     notification-title "Reminder"
-;;     keyword-whitelist nil
-;;     keyword-blacklist nil
-;;     alert-times-property "alert_times")
-;;   (org-wild-notifier-mode))
+;; notify on timestamps (this is broken)
+(ns/use-package org-wild-notifier "akhramov/org-wild-notifier.el"
+  :config
+  ;; org-wild-notifier-en
+  (setq-ns org-wild-notifier
+    alert-time 1 ;; min
+    notification-title "Reminder"
+    keyword-whitelist '()
+    keyword-blacklist '()
+    tags-whitelist '("testerino")
+    tags-blacklist nil
+    alert-times-property "alert_times")
+
+  (org-wild-notifier-mode))
+
+(use-package org-present
+  :config
+  (defun ns/org-present-init ()
+    (org-display-inline-images)
+    (org-present-hide-cursor)
+    (org-present-read-only)
+
+    ;; remove the height tweaking we do in (ns/org) so that scaling works right
+    (dolist (face '(org-level-1
+                     org-level-2
+                     org-level-3
+                     org-level-4
+                     org-block
+                     org-code
+                     org-table
+                     org-verbatim
+                     company-tooltip
+                     company-tooltip-common
+                     company-tooltip-selection
+                     org-block-begin-line
+                     org-block-end-line
+                     ))
+      (set-face-attribute face nil :height 1.0))
+
+    (set-face-attribute 'org-block nil :height 0.7)
+    (org-present-big))
+
+  (setq org-present-text-scale 5)
+
+  (ns/inmap 'org-present-mode-keymap
+    "q" 'org-present-quit
+    ">" 'org-present-next
+    "<" 'org-present-prev
+    "n" 'org-present-next
+    "e" 'org-present-prev
+    )
+
+  (general-imap :keymaps 'org-present-mode-keymap
+    "q" 'org-present-quit)
+
+  (ns/bind "op" 'org-present)
+
+  (defun ns/org-present-quit ()
+    (org-present-small)
+    (org-remove-inline-images)
+    (org-present-show-cursor)
+    (org-present-read-write)
+    ;; restore our org mode font tweaks
+    (ns/style-org))
+
+  (add-hook 'org-present-mode-hook 'ns/org-present-init)
+  (add-hook 'org-present-mode-quit-hook 'ns/org-present-quit))
