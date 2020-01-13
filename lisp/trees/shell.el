@@ -150,18 +150,17 @@ Everything past that can be tailored to your liking.
     (cons #'display-buffer-no-window nil)))
 
 (defun! ns/stage-terminal ()
-  (let ((default-directory (~ "")))
-    (shell "*spawn-shell-staged*")
-    ))
+  (save-window-excursion
+    (let ((default-directory (~ "")))
+      (shell "*spawn-shell-staged*")
+      )))
 
 (ns/stage-terminal)
 
 (defun! ns/spawn-terminal ()
   (select-frame (make-frame))
-  ;; return t so that elisp ns/spawn-terminal call is true
   (ns/pickup-shell nil t)
-  ;; (delete-other-windows)
-  (delete-window)
+  ;; return t so that elisp ns/spawn-terminal call is true
   t)
 
 (defun! ns/pickup-shell (&optional cwd terminal)

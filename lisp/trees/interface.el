@@ -41,31 +41,21 @@
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
       rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
 
-;; todo: consider dired hide details mode
-;; (defun ns/dired-init-test ()
-;;   ;; (set-face-attribute 'hl-line nil :background
-;;   ;;   ;; todo: make lessen script a defun and use here
-;;   ;;   (ns/color-tone (first evil-visual-state-cursor) -7 -7)
-;;   ;;   )
-;;   ;; (hl-line-mode)
-;;   )
+(defun ns/dired-init()
+  (set-face-attribute 'hl-line nil :background
+    ;; todo: make lessen script a defun and use here
+    (ns/color-tone (first evil-visual-state-cursor) -7 -7))
+  (hl-line-mode))
 
-;; (defun ns/dired-init()
-;;   (set-face-attribute 'hl-line nil :background
-;;     ;; todo: make lessen script a defun and use here
-;;     (ns/color-tone (first evil-visual-state-cursor) -7 -7))
-;;   (hl-line-mode)
+(defun ns/dired-maybe-goto-file ()
+  "focus the current file in dired when it exists"
+  (when (and (bound-and-true-p ns/dired-last-file)
+          (f-exists-p ns/dired-last-file))
+    (dired-goto-file ns/dired-last-file)
+    (setq ns/dired-last-file nil)))
 
-;;   (when (bound-and-true-p ns/dired-last-file)
-;;     (when (f-exists-p ns/dired-last-file)
-;;       (alert (format "doing the thing %s" (f-base ns/dired-last-file)))
-;;       (alert (buffer-name))
-;;       ;; (alert (ns/windowshot))
-;;       (search-forward (f-base ns/dired-last-file))
-;;       )
-;;     (setq ns/dired-last-file nil))
-
-;;   )
+(add-hook 'dired-initial-position-hook 'ns/dired-maybe-goto-file 'append)
+(add-hook 'dired-mode-hook 'ns/dired-init)
 
 ;; Dired listing switches
 ;;  -a : Do not ignore entries starting with .
@@ -76,13 +66,6 @@
 ;;  -F : Classify filenames by appending '*' to executables,
 ;;       '/' to directories, etc.
 (setq dired-listing-switches "-alGhvF --group-directories-first") ; default: "-al"
-
-;; (setq dired-hide-details-mode t)
-
-;; interface
-;; (add-hook 'dired- 'ns/dired-init)
-;; (add-hook 'dired-mode-hook 'ns/dired-init-test)
-;; (add-hook 'dired-after-readin-hook 'ns/dired-init)
 
 (general-define-key
   :states '(normal)
@@ -97,8 +80,8 @@
                        (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
 
   "s" (fn!
-        (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
-        (ns/pickup-shell (expand-file-name default-directory)))
+        (ns/pickup-shell (expand-file-name default-directory))
+        (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
   "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))))
 
 (defun my-resize-margins ()

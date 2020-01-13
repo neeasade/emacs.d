@@ -19,18 +19,19 @@
 (setq straight-cache-autoloads t)
 
 ;; elisp enhancers
-(use-package fn)   ;function
-(use-package s)    ;string
-(use-package f)    ;file
-(use-package ht)   ;hash table
-(use-package dash) ;list
-(use-package a)    ;assoc lists
+(use-package fn)    ;function
+(use-package s)     ;string
+(use-package f)     ;file
+(use-package ht)    ;hash table
+(use-package dash)  ;list
+(use-package a)     ;assoc lists
+(use-package async) ;async
 ;; todo: use from github? -- nah just need to update your reference
 ;;(use-package ts)    ;timestamps
 
 ;; other
 (use-package hydra)
-(use-package general)
+(use-package general :config (general-override-mode t)) ; enable the override keymap
 (use-package request)
 (use-package shut-up)
 (require 'seq)
@@ -74,6 +75,8 @@
 (defmacro ns/bind (&rest binds)
   `(general-define-key
      :states '(normal visual)
+     ;; note: 'override means we squash anyone with overlapping keybinds
+     :keymaps 'override
      :prefix "SPC"
      ,@binds))
 
@@ -159,9 +162,12 @@
      ))
 
 ;; imap + nmap
-(defun ns/inmap (keymap key func)
-  (general-imap :keymaps keymap key func)
-  (general-nmap :keymaps keymap key func))
+(defun ns/inmap (keymap &rest key-func-pairs)
+  (dolist (pair (-partition 2 key-func-pairs))
+    (let ((key (car pair))
+           (func (cadr pair)))
+      (general-imap :keymaps keymap key func)
+      (general-nmap :keymaps keymap key func))))
 
 (defun ns/save-file (filename data)
   (with-temp-file filename
