@@ -36,6 +36,7 @@
 (use-package shut-up)
 (require 'seq)
 (require 'cl-macs)
+(require 'man)
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 

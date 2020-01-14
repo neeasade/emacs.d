@@ -330,6 +330,8 @@
     "<" 'org-present-prev
     "n" 'org-present-next
     "e" 'org-present-prev
+    "l" 'org-present-next
+    "h" 'org-present-prev
     )
 
   (general-imap :keymaps 'org-present-mode-keymap

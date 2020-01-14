@@ -1,5 +1,5 @@
 ;;; forest.el --- forest.el
-;;; commentary:
+;;; Commentary:
 ;;; functions             | ns/asdf
 ;;; pred functions        | ns/asdf-p
 ;;; interactive functions | ns/asdf
@@ -228,9 +228,10 @@
     (let* ((default-directory (expand-file-name project-root))
             (project-files-relative
               (s-split "\n"
-                (shell-command-to-string
-                  counsel-git-cmd
-                  ) t)))
+                (s-replace (char-to-string ?\0) "\n"
+                  (shell-command-to-string
+                    counsel-git-cmd
+                    )) t)))
 
       (mapcar (fn (concat default-directory <>)) project-files-relative)))
 
@@ -265,37 +266,14 @@
 
   ;; maybe consider also a jump-qutebrowser-history-candidates -- something like urls from the past month? idk
   (defun ns/jump-qutebrowser-candidates ()
-    ;; this should just be called periodically, say when qb is not focused
-    ;; (ns/shell-exec "qb_command ':session-save'")
-
     (s-split "\n"
       (ns/shell-exec (format "grep -A 6 '    \\- active: true' %s | grep title | sed 's/.*title: //'"
                        (~ ".local/share/qutebrowser/sessions/default.yml")))))
 
   (defun! ns/jump-file ()
     (ivy-read "file: "
-      (append
-        (->> (ns/jump-file-candidates)
-          (mapcar (fn (format "f: %s" <>))))
-        (->> (ns/jump-qutebrowser-candidates)
-          (mapcar (fn (format "t: %s" <>))))
-        )
-      ;; :action #'find-file
-      :action
-      (fn
-        (when (s-starts-with-p "f: " <>) ; file
-          (find-file (substring-no-properties <> 3)))
-        (when (s-starts-with-p "t: " <>) ; qutebrowser tab
-          ;; todo: focus qute window
-          (ns/shell-exec
-            ;; qb_command ':buffer $(echo "$url" | sed "s/'//g;s/\"// ")'
-            ;; todo here: focus qutebrowser before we switch the tab
-            (format "qb_command ':buffer %s'" (s-replace "'" "" (substring-no-properties <> 3))))
-          )
-        (when (s-starts-with-p "w: " <>) ; window
-          (find-file (substring-no-properties <> 3)))
-        )
-      ))
+      (ns/jump-file-candidates)
+      :action #'find-file))
 
   (ns/bind "ne" 'ns/jump-file ))
 
