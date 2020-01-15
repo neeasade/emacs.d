@@ -212,3 +212,12 @@ Everything past that can be tailored to your liking.
     term-color-magenta
     term-color-cyan
     term-color-white])
+
+;; completions when editing shell scripts:
+(use-package company-shell
+  :config
+  (setq company-shell-clean-manpage t)
+  (add-to-list 'company-backends 'company-shell)
+  ;; possible a weird one to add
+  (add-to-list 'company-backends 'company-shell-env))
+
