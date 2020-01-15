@@ -10,46 +10,7 @@
   (indent-guide-global-mode 0)
   )
 
-(defun xah-syntax-color-hex (toggle)
-  "Syntax color text of the form 「#ff1100」 and 「#abc」 in current buffer.
-URL `http://ergoemacs.org/emacs/emacs_CSS_colors.html'
-Version 2017-03-12"
-  (interactive)
-  (eval
-    (cons
-      (if toggle 'font-lock-add-keywords 'font-lock-remove-keywords)
-      '(nil
-         '(("#[[:xdigit:]]\\{3\\}"
-             (0 (put-text-property
-                  (match-beginning 0)
-                  (match-end 0)
-                  'face (list :background
-                          (let* (
-                                  (ms (match-string-no-properties 0))
-                                  (r (substring ms 1 2))
-                                  (g (substring ms 2 3))
-                                  (b (substring ms 3 4)))
-                            (concat "#" r r g g b b))))))
-            ("#[[:xdigit:]]\\{6\\}"
-              (0 (put-text-property
-                   (match-beginning 0)
-                   (match-end 0)
-                   'face (list :background (match-string-no-properties 0))))))))
-    (font-lock-flush))
-  )
-
-(defun! ns/toggle-colors ()
-  (if (not (boundp 'ns/show-colors))
-    (setq-local ns/show-colors nil))
-
-  (setq-local ns/show-colors (not ns/show-colors))
-  (xah-syntax-color-hex ns/show-colors))
-
-(ns/bind "tc" 'ns/toggle-colors)
-
 (use-package link-hint)
-
-;; stealing from clojure -- prn alias to just 'get thing to string'
 
 ;; file:/home/nathan/.vimrc
 ;; /home/nathan/.vimrc
@@ -99,6 +60,8 @@ Version 2017-03-12"
 (ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
 (ns/make-char-table ns/cursive-table ?𝓐 ?𝓪)
 
+
+;; todo: make all these circe functions
 (defun ns/text-to-cursive (beg end) (interactive "r")
   (translate-region beg end ns/cursive-table))
 
@@ -201,56 +164,6 @@ Version 2017-03-12"
   (ns/bind-mode 'python "e" 'eir-eval-in-python)
   )
 
-;; ideas:
-;; - move color towards bg/fg/<n color>
-;; - make color a minimum distance from a set color
-;; - make percent functions a global intensity setting
-;; - a better visual method than xah's inline face bg
-(defun! ns/transform-color-at-point (action)
-  (when (looking-at (pcre-to-elisp "#[a-zA-Z0-9]{6}"))
-    (save-excursion
-      (let ((current-color (match-string 0)))
-        (delete-char 7)
-        (insert (funcall action current-color))))))
-
-(defun! ns/color-saturate-at-point ()
-  (ns/transform-color-at-point
-    (fn (-as-> <> C
-          (color-saturate-name C 1)
-          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
-          (eval C)))))
-
-;; todo: make these all plain functions so they can just take colors
-;; make transform-color-at-point take the arg action
-
-(defun! ns/color-desaturate-at-point ()
-  (ns/transform-color-at-point
-    (fn (-as-> <> C
-          (color-desaturate-name C 1)
-          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
-          (eval C)))))
-
-(defun! ns/color-lighten-at-point ()
-  (ns/transform-color-at-point
-    (fn (-as-> <> C
-          (color-lighten-name C 1)
-          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
-          (eval C)))))
-
-(defun! ns/color-darken-at-point ()
-  (ns/transform-color-at-point
-    (fn (-as-> <> C
-          (color-darken-name C 1)
-          `(color-rgb-to-hex ,@(color-name-to-rgb C) 2)
-          (eval C)))))
-
-(ns/bind
-  "cl" 'ns/color-lighten-at-point
-  "cd" 'ns/color-darken-at-point
-  ;; "cs" 'color-darken-at-point
-  ;; "cd" 'color-darken-at-point
-  )
-
 ;; optionally transform #<12> to #<6>
 (defun ns/shorten-color (color)
   (if (= (length color) 7)
@@ -272,3 +185,32 @@ Version 2017-03-12"
 ;; testing out [Fri Dec 20 15:13:58 2019]
 (use-package bash-completion)
 (bash-completion-setup)
+
+;; colors!
+;; ideas:
+;; - move color towards bg/fg/<n color>
+;; - make color a minimum distance from a set color
+;; - make percent functions a global intensity setting
+;; - a better visual method than xah's inline face bg
+
+(use-package rainbow-mode
+  :config
+  (ns/bind "tc" 'rainbow-mode))
+
+(use-package kurecolor
+  :config
+  (setq-ns kurecolor-color-adjust
+    ;; these are in percent
+    brightness-step 2
+    saturation-step 2
+    hue-step 2)
+
+  ;; maybe these should be on the rainbow mode map
+  (ns/bind
+    "cl" 'kurecolor-increase-brightness-by-step
+    "cL" 'kurecolor-decrease-brightness-by-step
+    "ch" 'kurecolor-increase-hue-by-step
+    "cH" 'kurecolor-decrease-hue-by-step
+    "cs" 'kurecolor-increase-saturation-by-step
+    "cS" 'kurecolor-decrease-saturation-by-step
+    ))
