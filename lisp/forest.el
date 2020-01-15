@@ -680,14 +680,13 @@
     (server-start)))
 
 (defconfig blog
-  (use-package htmlize)
+  ;; (use-package htmlize)
 
   (defun ns/org-to-html (source dest)
     (with-temp-buffer
-      (mapc (fn (insert "\n")
-              (insert <>))
+      (mapc (fn (insert "\n") (insert <>))
         (list
-          "#+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup"
+          (format "#+SETUPFILE: %s" (~ "git/neeasade.github.io/site/assets/org/setup.org"))
           (org-file-contents source)
           "[[file:./index.html][Index]]"
           ))
@@ -701,8 +700,9 @@
            (ns/blog-pages-dir (~ "git/neeasade.github.io/pages"))
            (ns/blog-site-dir (~ "git/neeasade.github.io/site"))
            (default-directory (~ "git/neeasade.github.io/site"))
-           (org-export-with-toc t)
+           (org-export-with-toc nil)
            (org-export-with-timestamps nil)
+           (org-html-html5-fancy t)
            ;; don't ask about generation when exporting
            (org-confirm-babel-evaluate (fn nil)))
 
