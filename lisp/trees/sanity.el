@@ -1,3 +1,14 @@
+
+(use-package no-littering
+  :config
+  (require 'no-littering)
+  (require 'recentf)
+  ;; note: defaults are:
+  ;; ~/.emacs.d/var/
+  ;; ~/.emacs.d/etc/
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory))
+
 (setq
   ;; todo: relook at this setting
   auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))

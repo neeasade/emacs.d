@@ -45,7 +45,12 @@
   (set-face-attribute 'hl-line nil :background
     ;; todo: make lessen script a defun and use here
     (ns/color-tone (first evil-visual-state-cursor) -7 -7))
-  (hl-line-mode))
+  (hl-line-mode)
+
+  ;; accumulate directories
+  (when (not (boundp 'ns/cd-dirs))
+    (setq ns/cd-dirs (list)))
+  (add-to-list 'ns/cd-dirs default-directory))
 
 ;; cf. https://endlessparentheses.com/auto-focus-a-relevant-file-in-dired-buffers.html
 (defun ns/dired-maybe-goto-file ()

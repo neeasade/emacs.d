@@ -109,10 +109,9 @@ Everything past that can be tailored to your liking.
           (setq cwd (concat cwd "/"))))
 
       ;; accumulate directories
-      (when (not (boundp 'cd-dirs))
-        (setq cd-dirs (list)))
-
-      (setq cd-dirs (cons default-directory cd-dirs))
+      (when (not (boundp 'ns/cd-dirs))
+        (setq ns/cd-dirs (list)))
+      (add-to-list 'ns/cd-dirs default-directory)
 
       (replace-match "" t t string 0))
     string))
@@ -121,7 +120,7 @@ Everything past that can be tailored to your liking.
   (ivy-read "dir: "
     ;; todo: this should filter to the current tramp, rather than remove them all
     ;; could then change ivy prompt show host
-    (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) cd-dirs))
+    (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) ns/cd-dirs))
 
     :action
     ;; todo: make sanity check cd is clear
