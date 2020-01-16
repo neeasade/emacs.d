@@ -56,20 +56,6 @@
           minor-mode-alist))))
   (ns/look-at-last-message))
 
-;; todo: this smart over tramp
-;; https://www.emacswiki.org/emacs/TrampMode#toc20
-(defun sudo-edit (&optional arg)
-  "Edit currently visited file as root.
-
-With a prefix ARG prompt for a file to visit.
-Will also prompt for a file to visit if current
-buffer is not visiting a file."
-  (interactive "P")
-  (if (or arg (not buffer-file-name))
-    (find-file (concat "/sudo:root@localhost:"
-                 (ido-read-file-name "Find file(as root): ")))
-    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
-
 (defun ns/get-functions ()
   "Get all the defconfig entries in the forest."
   (cons "style"
@@ -262,6 +248,10 @@ buffer is not visiting a file."
                    (if file (not (f-exists-p file)) nil)))
       (buffer-list))))
 
+;; using this package only for a tramp aware 'open file as root' function
+;; initially went to steal but turned out to be many functions to steal
+(use-package crux)
+
 (ns/bind
   "qf" 'ns/what-face
   "qm" 'ns/what-major-mode
@@ -270,7 +260,7 @@ buffer is not visiting a file."
 
   ;; "qh" 'ns/insert-history
 
-  "fE" 'sudo-edit
+  "fE" 'crux-sudo-edit
   "nc" 'ns/jump-config
   "tb" 'ns/toggle-bloat
 
