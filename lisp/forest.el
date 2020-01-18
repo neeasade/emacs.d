@@ -181,15 +181,8 @@
   (ns/bind-mode 'clojure
     "e" 'ns/smart-cider-eval)
 
-  (ns/bind-leader-mode
-    'clojure
-    "er" 'cider-eval-region
-    "ei" 'cider-eval-last-sexp
-    "eb" 'cider-eval-file
-    "ee" 'cider-eval-defun-at-point
-    )
-
-  ;; (use-package flycheck-joker :config (require 'flycheck-joker))
+  (when (executable-find "joker")
+    (use-package flycheck-joker :config (require 'flycheck-joker)))
   )
 
 (defconfig nix
@@ -771,11 +764,15 @@
   (defun ns/eval-file (file &rest ns-args)
     "Execute FILE and return the result of the last expression."
     (eval
-      (ignore-errors
-        (read-from-whole-string
+      ;; (ignore-errors
+      (read-from-whole-string
+        (concat "(progn "
           (with-temp-buffer
             (insert-file-contents file)
-            (buffer-string))))))
+            (buffer-string)
+            )
+          ")")
+        )))
 
   ;; helper for unpacking args provided by eval-file
   ;; (ns/let-script-args (named named2) body)

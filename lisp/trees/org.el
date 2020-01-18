@@ -169,6 +169,7 @@
 (defun! ns/evil-delete-marks ()
   (evil-delete-marks "ABCDEFGHIJKLMNOPQRSTUPWXYZ"))
 
+;; neat idea, but I never use this
 (defun! ns/insert-mark-org-links ()
   (setq ns/markers
     (append (cl-remove-if (lambda (m)

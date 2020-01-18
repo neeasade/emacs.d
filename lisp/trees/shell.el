@@ -161,6 +161,7 @@ Everything past that can be tailored to your liking.
   ;; return t so that elisp ns/spawn-terminal call is true
   t)
 
+;; todo: if cwd is a tramp dir do ssh to it first
 (defun! ns/pickup-shell (&optional cwd terminal)
   (if (get-buffer "*spawn-shell-staged*")
     (progn

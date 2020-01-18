@@ -177,7 +177,7 @@
 
 (ns/bind
   "nt" (fn! (find-file (~ ".wm_theme")))
-  "id" (fn! (insert (current-time-string)))
+  "id" (fn! (org-time-stamp nil))
   )
 
 ;; https://github.com/szermatt/emacs-bash-completion

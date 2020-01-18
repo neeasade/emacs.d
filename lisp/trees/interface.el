@@ -15,10 +15,7 @@
     :keymaps 'ivy-minibuffer-map
     (kbd "<C-return>") 'ivy-immediate-done)
 
-  (add-hook 'window-configuration-change-hook 'dynamic-ivy-height)
-  (defun dynamic-ivy-height()
-    (setq ivy-height (/ (frame-total-lines) 2)))
-  (dynamic-ivy-height)
+  (setq ivy-height-alist '((t lambda (_caller) (/ (frame-height) 2))))
 
   (ivy-mode 1)
 
@@ -50,7 +47,7 @@
   ;; accumulate directories
   (when (not (boundp 'ns/cd-dirs))
     (setq ns/cd-dirs (list)))
-  (add-to-list 'ns/cd-dirs default-directory))
+  (add-to-list 'ns/cd-dirs (expand-file-name default-directory)))
 
 ;; cf. https://endlessparentheses.com/auto-focus-a-relevant-file-in-dired-buffers.html
 (defun ns/dired-maybe-goto-file ()
