@@ -12,4 +12,4 @@ else
     rg --files "$@" > "$file"
 fi
 
-elisp_timeout=10 elisp -r '(ivy-read "" (s-split "\n" (f-read "'"$file"'")) :action (lambda(option) option))'
+elisp_timeout=10 elisp -r '(condition-case () (ivy-read "" (s-split "\n" (f-read "'"$file"'")) :action (lambda(option) option)) (quit nil))'
