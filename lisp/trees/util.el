@@ -186,6 +186,7 @@
                   (prin1-to-string <>))))
     (s-join "\n")))
 
+;; todo: maybe ensure a same order here - buffer-list order can vary
 (defun ns/buffers-by-mode (&rest modes)
   (remove-if-not
     (fn (-contains-p modes (buffer-local-value 'major-mode <>)))
@@ -195,7 +196,10 @@
   (let ((shell-name
           (if (eq major-mode 'shell-mode)
             (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
-            "bash")))
+            "bash"))
+
+         (ivy-prescient-enable-sorting nil)
+         )
 
     (ivy-read "history: "
       (-uniq
@@ -247,6 +251,12 @@
     (-filter (fn (let ((file (buffer-file-name <>)))
                    (if file (not (f-exists-p file)) nil)))
       (buffer-list))))
+
+(defmacro measure-time (&rest body)
+  "Measure the time it takes to evaluate BODY."
+  `(let ((time (current-time)))
+     ,@body
+     (message "%.06f" (float-time (time-since time)))))
 
 ;; using this package only for a tramp aware 'open file as root' function
 ;; initially went to steal but turned out to be many functions to steal

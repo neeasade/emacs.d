@@ -428,6 +428,7 @@
 (defun! connect-all-irc()
   (mapcar #'(lambda (network) (circe-maybe-connect (car network)))
     circe-network-options)
+  ;; todo: this doesn't style because connecting takes some time -- need a way to wait for servers up/chans joined
   (ns/style-circe))
 
 ;; channel name in prompt

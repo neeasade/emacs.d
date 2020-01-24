@@ -214,3 +214,5 @@
     "cs" 'kurecolor-increase-saturation-by-step
     "cS" 'kurecolor-decrease-saturation-by-step
     ))
+
+(use-package direnv)

@@ -210,10 +210,9 @@
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
-;; (add-hook 'org-mode-hook 'org-indent-mode)
 
 (advice-add #'ns/style :after #'ns/style-org)
-(defun ns/style-org ()
+(defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block
                              org-code
                              org-table

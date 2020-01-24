@@ -84,17 +84,6 @@
   (when (get-buffer "*scratch*")
     (kill-buffer "*scratch*"))
 
-  (when
-    (and (s-starts-with-p "qutebrowser-editor-"
-           (buffer-name (current-buffer)))
-      (string= (system-name) "bridge"))
-
-    (ns/shell-exec-dontcare
-      (format "popup_window.sh %s"
-        (frame-parameter nil 'outer-window-id)))
-
-    (ns/set-buffer-face-variable)
-    (evil-insert 0))
   t
   )
 

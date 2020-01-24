@@ -181,3 +181,26 @@
 
 ;; break a bad habit by nop'ing :b
 ;; (evil-ex-define-cmd "b" nil)
+
+(use-package better-jumper
+  :config
+  ;; (with-eval-after-load 'evil-maps
+  ;;   (define-key evil-motion-state-map (kbd "C-o") 'evil-jump-backward)
+  ;;   (define-key evil-motion-state-map (kbd "<C-i>") 'evil-jump-forward))
+
+  (with-eval-after-load 'evil-maps
+    (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
+    (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))
+
+  (setq-ns better-jumper
+    context 'buffer ;; buffer or window
+    new-window-behavior 'copy ;; copy or empty - new window context
+    use-evil-jump-advice t ;; any evil jumps from elsewhere will be synced
+    use-savehist nil ;; save when using 'buffer context
+    )
+
+  (better-jumper-mode +1)
+
+  ;; todo: consider using this:
+  ;; (add-hook 'better-jumper-post-jump-hook 'ns/focus-line)
+  )

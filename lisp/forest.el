@@ -46,7 +46,28 @@
           (eros-eval-last-sexp nil)
           (eros-eval-defun nil))))
 
-    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)))
+    (defun! ns/eval-and-replace ()
+      "Replace the preceding sexp with its value."
+      (backward-kill-sexp)
+      (condition-case nil
+        (prin1 (eval (read (current-kill 0)))
+          (current-buffer))
+        (error (message "Invalid expression")
+          (insert (current-kill 0)))))
+
+    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval))
+
+  ;; for when you don't know what you want (hard part will be remembering to use this)
+  (use-package suggest)
+
+  (use-package elsa
+    :config
+    (use-package flycheck-elsa)
+    (add-hook 'emacs-lisp-mode-hook #'flycheck-elsa-setup)
+
+    ;; note: elsa needs cask:
+    ;; (executable-find "cask")
+    ))
 
 (defconfig flycheck
   (use-package flycheck
@@ -155,7 +176,10 @@
 
 (defconfig python
   (ns/install-dashdoc "Python 2" 'python-mode-hook)
-  (use-package elpy))
+  (use-package elpy)
+  ;; maybe only when pyflake is installed
+  ;; (use-package flycheck-pyflakes)
+  )
 
 (defconfig clojure
   (use-package clojure-mode)
@@ -232,8 +256,7 @@
     (-flatten
       (mapcar 'ns/get-project-files
         (-remove (lambda(file) (not file))
-          (mapcar 'projectile-root-bottom-up open-buffers)
-          ))))
+          (mapcar 'projectile-root-bottom-up open-buffers)))))
 
   ;; putting this in a function so it can be used
   ;; by dmenu_switcher
@@ -302,8 +325,7 @@
 
   (use-package web-mode
     :config
-    (add-hook 'web-mode-hook
-      'ns/webhook))
+    (add-hook 'web-mode-hook 'ns/webhook))
 
   (use-package prettier-js
     :config

@@ -40,6 +40,9 @@
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 
+;; alias/clojure
+(defalias 'prn 'prin1-to-string)
+
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
      (interactive) ,@body))
