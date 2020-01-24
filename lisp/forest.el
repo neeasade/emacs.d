@@ -672,90 +672,7 @@
         name "emacs-server-file"))
     (server-start)))
 
-(defconfig blog
-  ;; (use-package htmlize)
 
-  (defun ns/blog-file-to-meta (path is-post)
-    (let* ((last-edited
-             (let ((git-query-result
-                     (ns/shell-exec (format "cd %s; git log -1 --format=%%cI %s" (f-dirname path) path))))
-               (if (s-blank-p git-query-result)
-                 nil (substring git-query-result 0 10))))
-            (published-date (when is-post (substring (f-base path) 0 10)))
-
-            (history-link
-              (format "https://github.com/neeasade/neeasade.github.io/commits/source/posts/%s"
-                (f-filename path)))
-
-            (post-org-content-lines
-              (-non-nil
-                `(,(format "#+SETUPFILE: %s" (~ "git/neeasade.github.io/site/assets/org/setup.org"))
-                   ,@(when is-post
-                       (list
-                         "#+BEGIN_CENTER"
-                         (format "published <%s>" published-date)
-                         (format "¦ [[%s][edited %s]]" history-link last-edited)
-                         "#+END_CENTER"
-                         ))
-                   ,@(s-split "\n" (org-file-contents path))
-                   ;; footer
-                   "#+BEGIN_CENTER"
-                   ">>> [[file:./index.html][Index]] <<<"
-                   "#+END_CENTER"
-                   )))
-            (post-title
-              (->> post-org-content-lines
-                (-filter (fn (s-starts-with-p "#+title:" <>)))
-                car (s-replace "#+title: " "")))
-            (post-is-draft
-              (car (-filter (fn (s-contains-p "#+draft: t" <>)) post-org-content-lines)))
-            )
-      (a-list
-        :path path
-        :org-content (s-join "\n" post-org-content-lines)
-        :is-draft post-is-draft
-        :title post-title
-        :publish-date published-date
-        :html-dest (format "%s/%s.html" ns/blog-site-dir (f-base path))
-        :edited-date last-edited
-        :history-link history-link)))
-
-  (defun! ns/blog-generate ()
-    (let ((ns/blog-posts-dir (~ "git/neeasade.github.io/posts"))
-           (ns/blog-pages-dir (~ "git/neeasade.github.io/pages"))
-           (ns/blog-site-dir (~ "git/neeasade.github.io/site"))
-           (default-directory (~ "git/neeasade.github.io/site"))
-           (org-export-with-toc nil)
-           (org-export-with-timestamps nil)
-           (org-export-with-date nil)
-           (org-html-html5-fancy t)
-
-           (org-time-stamp-custom-formats '("%Y-%m-%d"))
-
-           (org-display-custom-times t)
-
-           ;; don't ask about generation when exporting
-           (org-confirm-babel-evaluate (fn nil)))
-
-      ;; cleanup
-      (mapcar 'f-delete
-        (f-entries ns/blog-site-dir
-          (fn (s-ends-with-p ".html" <>))))
-
-      (defun ns/blog-publish-file (org-file-meta)
-        (with-temp-buffer
-          (insert (a-get org-file-meta :org-content))
-          (org-export-to-file 'html (a-get org-file-meta :html-dest))))
-
-      (let ((org-post-metas (mapcar (fn (ns/blog-file-to-meta <> t)) (f-entries ns/blog-posts-dir (fn (s-ends-with-p ".org" <>)))))
-             (org-page-metas (mapcar (fn (ns/blog-file-to-meta <> nil)) (f-entries ns/blog-pages-dir (fn (s-ends-with-p ".org" <>))))))
-        (mapcar 'ns/blog-publish-file org-page-metas)
-        (mapcar 'ns/blog-publish-file org-post-metas))
-      )
-    t ;; for calling from elisp script
-    )
-
-  )
 
 (defconfig common-lisp
   (use-package slime)
@@ -838,6 +755,7 @@
 (defconfig spaceline     (load "~/.emacs.d/lisp/trees/spaceline.el"))
 (defconfig staging       (load "~/.emacs.d/lisp/trees/staging.el"))
 (defconfig util          (load "~/.emacs.d/lisp/trees/util.el"))
+(defconfig blog          (load "~/.emacs.d/lisp/trees/blog.el"))
 (defconfig-base style    (interactive) (load "~/.emacs.d/lisp/trees/style.el"))
 
 (provide 'forest)
