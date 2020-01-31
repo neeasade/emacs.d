@@ -163,31 +163,33 @@ Everything past that can be tailored to your liking.
 
 ;; todo: if cwd is a tramp dir do ssh to it first
 (defun! ns/pickup-shell (&optional cwd terminal)
-  (if (get-buffer "*spawn-shell-staged*")
-    (progn
-      (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
+  (when (not (get-buffer "*spawn-shell-staged*"))
+    (ns/stage-terminal))
 
-      (rename-buffer
-        (format "*spawn-shell-%s*"
-          ;; get the pid of the running bash process
-          (car (mapcar 'process-id
-                 (-filter
-                   (fn (eq (process-buffer <>)
-                         (current-buffer)))
-                   (process-list))))))
+  (progn
+    (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
 
-      (when terminal
-        (when (string= (get-resource "Emacs.padding_source") "st")
-          (set-window-fringes nil 0 0)))
+    (rename-buffer
+      (format "*spawn-shell-%s*"
+        ;; get the pid of the running bash process
+        (car (mapcar 'process-id
+               (-filter
+                 (fn (eq (process-buffer <>)
+                       (current-buffer)))
+                 (process-list))))))
 
-      (when cwd (shell-pop--cd-to-cwd-shell cwd))
+    (when terminal
+      (when (string= (get-resource "Emacs.padding_source") "st")
+        (set-window-fringes nil 0 0)))
 
-      ;; we don't care about how long it takes to stage the terminal
-      (make-thread (fn (ns/stage-terminal)))
-      t
-      )
-    nil
-    ))
+    (when cwd (shell-pop--cd-to-cwd-shell cwd))
+
+    ;; we don't care about how long it takes to stage the terminal
+    (make-thread (fn (ns/stage-terminal)))
+    t
+    )
+  nil
+  )
 
 (defun! ns/kill-spawned-shell (frame)
   (let ((windows (window-list frame)))

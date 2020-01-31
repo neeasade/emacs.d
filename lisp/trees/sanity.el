@@ -92,15 +92,6 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 (fset 'which 'executable-find)
 
-(defun! ns/toggle-modeline ()
-  (make-local-variable 'ns/modeline)
-
-  (if mode-line-format
-    (progn
-      (setq ns/modeline mode-line-format)
-      (setq mode-line-format nil))
-    (setq mode-line-format '("%e" (:eval (spaceline-ml-main)))))
-  (redraw-frame))
 
 ;; don't ask to kill running processes when killing a buffer.
 (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
@@ -159,7 +150,6 @@
   "tl" 'toggle-truncate-lines
   "ts" 'ns/style
   "ti" 'reload-init
-  "tm" 'ns/toggle-modeline
   "m" 'ns/toggle-modeline
   "tp" 'ns/toggle-report
 

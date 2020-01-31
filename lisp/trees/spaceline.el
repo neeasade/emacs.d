@@ -94,3 +94,16 @@
              (if (stringp mode-line-format)
                mode-line-format
                "not blank"))))))
+
+
+(defun! ns/toggle-modeline ()
+  (make-local-variable 'ns/modeline)
+
+  (if mode-line-format
+    (progn
+      (setq ns/modeline mode-line-format)
+      (setq mode-line-format nil))
+    (setq mode-line-format '("%e" (:eval (spaceline-ml-main)))))
+  (redraw-frame))
+
+(ns/bind "tm" 'ns/toggle-modeline)

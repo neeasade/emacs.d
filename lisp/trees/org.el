@@ -22,6 +22,7 @@
   startup-indented nil
   startup-folded t
   src-fontify-natively t
+  src-tag-acts-natively t
   startup-align-all-tables t
 
   ;; export options
@@ -119,7 +120,7 @@
 ;; for externals to call into
 (defun ns/org-get-active()
   (if (not (bound-and-true-p ns/org-active-story))
-    (save-excursion
+    (save-window-excursion
       (ns/org-goto-active)
       (ns/org-set-active))
     (s-clean ns/org-active-story)

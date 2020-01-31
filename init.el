@@ -20,6 +20,7 @@
      ;; ("*.background"         . ,(face-attribute 'default :background))
      ("*.background"         . nil)
      ("Emacs.powerlinescale" . "1.1")
+     ("Emacs.doomlineheight" . "1")
      ("Emacs.theme"          . "base16-grayscale-light")
      ;; ("Emacs.theme"          . "apropospriate-light")
      ("Emacs.powerline"      . "bar")

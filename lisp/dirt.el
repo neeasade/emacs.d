@@ -40,8 +40,11 @@
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 
+(defmacro ns/comment (&rest body) nil)
+
 ;; alias/clojure
 (defalias 'prn 'prin1-to-string)
+(defalias '-join '-interpose)
 
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
@@ -70,12 +73,9 @@
     (if ns/enable-windows-p "\\" "/") path))
 
 ;; todo: take a look at general-describe-keybindings later
-;; todo: make a general minor mode with a keymap and update ns/bind functions to be that
-;; binding wrappers
+;; todo: consider conflict management/at the time of binding yell about the takeover
 
-;; todo: peek at the bind values
-;; if it's not a lambda, make sure it's a commandp else messagen
-;; check for ns/ prefix on commands that are bound but not found
+;; binding wrappers
 (defmacro ns/bind (&rest binds)
   `(general-define-key
      :states '(normal visual)
@@ -84,12 +84,47 @@
      :prefix "SPC"
      ,@binds))
 
-(defmacro ns/bind-mode (mode &rest binds)
+(defmacro ns/bind-soft (&rest binds)
+  "a version of ns/bind that will not be present via an override mode"
   `(general-define-key
+     :states '(normal visual)
      :prefix "SPC"
-     :states '(visual normal)
-     :keymaps (intern (concat (symbol-name ,mode) "-mode-map"))
      ,@binds))
+
+(defun ns/bind-mode (mode &rest binds)
+
+  ;; unbind anything that might be bound in ~mode~ already
+  ;; todo: this better later
+
+  ;; (that is, allow local bindings to override global ones)
+  (ns/comment
+    (apply 'general-unbind
+      `(
+         '(normal visual)
+         :with 'ignore
+         ,(intern (format "%s-mode-map" (symbol-name mode)))
+         ,(keys (->> binds
+                  (-partition 2)
+                  (-map 'car)
+                  (-flatten))))
+      ))
+
+  (ns/comment
+    (general-unbind '(normal visual)
+      circe-channel-mode-map
+      :prefix "SPC"
+      :with 'ignore
+      "nq"
+      )
+    )
+
+  (apply 'general-define-key
+    `(:prefix "SPC"
+       :states '(visual normal)
+       ;; note: this depends on modes playing nice wrt conventions
+       :keymaps ,(intern (format "%s-mode-map" (symbol-name mode)))
+       ,@binds)
+    ))
 
 (defmacro ns/bind-leader-mode (mode &rest binds)
   `(general-define-key

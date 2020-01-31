@@ -3,6 +3,9 @@
 
 ;; todo:
 ;; - elisp publish function?
+
+;; - jump to most recently edited file (atime should be fine)
+
 ;; - sitemap? of the pages that aren't posts
 ;; - rss feed
 ;; - it's really slow right now (4s? we also have 0 caching so consider that)
@@ -17,8 +20,7 @@
     (f-entries (ns/blog-path "posts") (fn (s-ends-with-p ".org" <>)))
     :action 'find-file))
 
-;; ehhhh
-(ns/bind "nq" 'ns/jump-to-blog-post)
+(ns/bind-soft "nq" 'ns/jump-to-blog-post)
 
 (defun ns/blog-file-to-meta (path)
   (defun ns/blog-make-nav-strip (&rest items)
@@ -46,14 +48,16 @@
 
                  ,(when is-post
                     (ns/blog-make-nav-strip
-                      (format "published <%s>" published-date)
-                      (format "[[%s][edited %s]]" history-link last-edited)
-                      ;; "[[file:./index.html][Index]]"
+                      published-date
+                      (format "[[%s][%s]]" history-link last-edited)
                       ))
 
                  ,@(s-split "\n" (org-file-contents path))
 
-                 ,(ns/blog-make-nav-strip "[[file:./index.html][Index]]" "[[https://neeasade.net][Root]]")
+                 ,(ns/blog-make-nav-strip
+                    "[[file:./index.html][Index]]"
+                    "[[https://neeasade.net][Root]]"
+                    )
                  )))
 
           (post-title
@@ -63,24 +67,27 @@
           (post-is-draft
             (-first (fn (s-contains-p "#+draft: t" <>)) post-org-content-lines))
           )
-    (a-list
-      :path path
-      :org-content (s-join "\n" post-org-content-lines)
-      :is-draft post-is-draft
-      :title post-title
-      :publish-date published-date
-      :html-dest (format "%s/%s.html" (ns/blog-path "site") (f-base path))
-      :edited-date last-edited
-      :history-link history-link)))
+
+    ;; idea: make this one big nested hash table instead of many little ones
+    (ht
+      (:path path)
+      (:org-content (s-join "\n" post-org-content-lines))
+      (:is-draft post-is-draft)
+      (:title post-title)
+      (:publish-date published-date)
+      (:html-dest (format "%s/%s.html" (ns/blog-path "site") (f-base path)))
+      (:edited-date last-edited)
+      (:history-link history-link)
+      )))
 
 (defun ns/blog-publish-file (org-file-meta)
   (with-temp-buffer
-    (insert (a-get org-file-meta :org-content))
-    (org-export-to-file 'html (a-get org-file-meta :html-dest))))
+    (insert (ht-get org-file-meta :org-content))
+    (org-export-to-file 'html (ht-get org-file-meta :html-dest))))
 
 (defun! ns/blog-generate-and-open-current-file ()
   (let* ((post-meta (ns/blog-file-to-meta (buffer-file-name (current-buffer))))
-          (post-html-file (a-get post-meta :html-dest)))
+          (post-html-file (ht-get post-meta :html-dest)))
     (ns/blog-publish-file post-meta)
     (message post-html-file)
     (if (string= (concat "file://" post-html-file) (ns/shell-exec "qb_active_url"))

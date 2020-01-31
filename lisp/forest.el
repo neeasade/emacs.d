@@ -55,7 +55,10 @@
         (error (message "Invalid expression")
           (insert (current-kill 0)))))
 
-    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval))
+    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
+    (ns/bind-mode 'emacs-lisp "E" 'eval-print-last-sexp)
+
+    )
 
   ;; for when you don't know what you want (hard part will be remembering to use this)
   (use-package suggest)
@@ -559,7 +562,10 @@
 
 (defconfig emoji
   (use-package emojify
-    :init (setq emojify-emoji-styles '(unicode github))
+    :init
+    ;; the reason for both is so bridges to like slack show up right
+    ;; (setq emojify-emoji-styles '(unicode github))
+    (setq emojify-emoji-styles '(unicode)) ; only real emoji here thanks
     :config
     ;; emojify-mode seems to mess with input, causing a character to
     ;; occasionally skip, so disabling (global-emojify-mode)

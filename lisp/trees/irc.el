@@ -1,6 +1,8 @@
 (ns/guard ns/enable-home-p)
 
-;; todo: alerts on DMs as well as channel highlights
+;; todo:
+;; alerts on DMs as well as channel highlights
+;; don't alert on highlights if the window is focused and we are not idle
 
 (use-package circe)
 
@@ -10,7 +12,7 @@
   circe-default-user ns/irc-nick
   circe-default-realname ns/irc-nick)
 
-(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs"))
+(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs" "lorri"))
 
 (setq-ns lui
   logging-directory (~ ".ircnew")
@@ -39,8 +41,16 @@
         :host "irc.freenode.net"
         :tls t
         :nickserv-password ,(pass "freenode")
-        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic")
+        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic" "##9fans")
         )
+
+       ("Cyberia"
+         :nick ,ns/irc-nick
+         :host "irc.cyberia.is"
+         :port 6697
+         :tls t
+         :channels ("#cyberia")
+         )
 
        ("Nixers"
          :nick ,ns/irc-nick
@@ -492,7 +502,7 @@
 (add-hook 'circe-channel-mode-hook 'ns/set-buffer-face-variable)
 (add-hook 'circe-query-mode-hook 'ns/set-buffer-face-variable)
 (advice-add #'ns/style :after #'ns/style-circe)
-(defun ns/style-circe ()
+(defun! ns/style-circe ()
   "Make chat pretty."
   (let*
     ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
@@ -549,6 +559,10 @@
 
 (defun circe-command-CS (content)
   (circe-command-MSG "chanserv" content))
+
+(defun circe-command-LIST (_)
+  (irc-send-command (circe-server-process) "LIST"))
+
 
 (ns/bind
   "ai" (fn!

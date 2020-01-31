@@ -215,4 +215,7 @@
     "cS" 'kurecolor-decrease-saturation-by-step
     ))
 
+;; M-x direnv-update-environment
+;; sync from the pov of the current file
 (use-package direnv)
+
