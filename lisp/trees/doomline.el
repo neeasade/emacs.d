@@ -4,15 +4,7 @@
 (defface ns/mode-line-middle nil "middle mode line" :group 'doom-modeline-faces)
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  ;; (ns/color-greaten 20 (face-attribute 'mode-line :background))
-  ;; (ns/color-greaten 20 (face-attribute 'default :background)
-
-  (face-attribute 'default :background)
-  )
-
-(doom-modeline-def-modeline 'main
-  '(bar workspace-name window-number modals matches buffer-info remote-host buffer-position word-count parrot selection-info)
-  '(objed-state misc-info persp-name battery grip irc mu4e gnus github debug lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs checker))
+  (face-attribute 'default :background))
 
 ;; overridding because upstream is really spacey
 (doom-modeline-def-segment buffer-position
@@ -36,24 +28,8 @@
       (doom-modeline-spc)
       )))
 
-(letf (((symbol-function 'set-window-buffer-start-and-point)
-         (fn nil))
-        ((symbol-function 'set-window-prev-buffers)
-          (fn nil)))
-  (switch-to-prev-buffer))
-
-(letf (((symbol-function 'set-window-buffer-start-and-point)
-         (fn nil))
-        ((symbol-function 'set-window-next-buffers)
-          (fn nil))
-        ((symbol-function 'set-window-prev-buffers)
-          (fn nil))
-        )
-  (switch-to-next-buffer))
-
-
 (defsubst doom-modeline-spc ()
-  "Text style with whitespace."
+  "Text style with whitespace (thin)."
   (propertize " " 'face (if (doom-modeline--active)
                           'mode-line
                           'mode-line-inactive)))
@@ -67,7 +43,6 @@
     (doom-modeline--buffer-state-icon)
     ))
 
-;; note to self: abandon this, look at switch-to-next, prev-buffer source, grab that and replace return
 (defun ns/next-buffer-name ()
   (->> (window-next-buffers)
     ;; (-map 'first)
@@ -76,9 +51,7 @@
     (-filter (fn (not (string= (buffer-name (current-buffer)) <>))))
     (-first (fn (not (ns/should-skip <>))))
     ;; (current-buffer)
-    )
-
-  )
+    ))
 
 (defun ns/prev-buffer-name ()
   (->>
@@ -91,34 +64,25 @@
     (-filter (fn (not (string= (ns/next-buffer-name) <>))))
     (-first (fn (not (ns/should-skip <>))))
     ;; (current-buffer)
-    )
-
-  )
+    ))
 
 (doom-modeline-def-segment next-buffers
   (when (doom-modeline--active)
     (propertize
       (concat
-        ;; todo: mabye [ <buf:-> ¦ <buf:-> ]
         (doom-modeline-spc)
-        "["
-        (or (s-left 8 (ns/prev-buffer-name)) "<None>")
-        "|"
-        (or (s-left 8 (ns/next-buffer-name)) "<None>")
-        "]"
-        (doom-modeline-spc)
-        ;; (doom-modeline-spc)
-        )
+        (format "[%s|%s]"
+          (or (s-left 8 (ns/prev-buffer-name)) "<None>")
+          (or (s-left 8 (ns/next-buffer-name)) "<None>"))
+        (doom-modeline-spc))
       'face 'mode-line
       )))
 
-;; using our own separators
 (defface ns/mode-line-sep nil "sep" :group 'doom-modeline-faces)
 (set-face-attribute 'ns/mode-line-sep nil :background
   ;; (ns/color-greaten 10 (face-attribute 'mode-line :background))
   ;; "#8888cc"
   (face-attribute 'default :background)
-  ;; (face-attribute 'default)
   )
 
 (set-face-attribute 'mode-line nil :background
@@ -128,36 +92,20 @@
 
 (doom-modeline-def-segment sep
   "Text style with whitespace."
+  (propertize " " 'face (if (doom-modeline--active)
+                          'ns/mode-line-sep
+                          'mode-line-inactive)))
 
-  (concat
-    ;; (doom-modeline-spc)
-    (propertize " " 'face (if (doom-modeline--active)
-                            'ns/mode-line-sep
-                            'mode-line-inactive))
-    ;; (doom-modeline-spc)
-    ))
-
-  (defface ns/mode-line-sep-edge nil "sep-edge" :group 'doom-modeline-faces)
-
+(defface ns/mode-line-sep-edge nil "sep-edge" :group 'doom-modeline-faces)
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
-
   (face-attribute 'default :background)
   ;; "#000000"
   )
 
-;; we want to be darker on the edges
-;; ref: thin space: ''
-;; ref: thin space: ' '
 (doom-modeline-def-segment sep-edge
-  "Text style with whitespace."
-
-  (concat
-    ;; (doom-modeline-spc)
-    (propertize " " 'face (if (doom-modeline--active)
-                            'ns/mode-line-sep-edge
-                            'mode-line-inactive))
-    ;; (doom-modeline-spc)
-    ))
+  (propertize " " 'face (if (doom-modeline--active)
+                          'ns/mode-line-sep-edge
+                          'mode-line-inactive)))
 
 (setq-ns doom-modeline
   height (string-to-number (get-resource "Emacs.doomlineheight"))
@@ -182,6 +130,48 @@
 (set-face-attribute 'mode-line-inactive nil :height 100)
 
 (column-number-mode) ; give us column info in the modeline
+
+(defun ns/custom-def-modeline (orig-fun &rest name lhs rhs)
+  (let ((sym (intern (format "doom-modeline-format--%s" name)))
+         (lhs-forms (doom-modeline--prepare-segments lhs))
+         (rhs-forms (doom-modeline--prepare-segments rhs)))
+    (defalias sym
+      (lambda ()
+        (list lhs-forms
+          (propertize
+            " "
+            'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
+            'display `((space :align-to (- (+ right right-fringe right-margin)
+                                          ,(* (if (number-or-marker-p (face-attribute 'mode-line :height))
+                                                (/ (doom-modeline--window-font-width)
+                                                  (frame-char-width) 1.0)
+                                                1)
+                                             (-
+                                               (string-width
+                                                 (format-mode-line
+                                                   (cons "" rhs-forms)))
+                                               ;; for each 3 thin spaces, subtract a space
+                                               ;; measured on my own
+                                               ;; to be aggressive, go for 2
+                                               (round
+                                                 (/
+                                                   (seq-count
+                                                     (lambda (c) (= c ? )); XXX there is a thin space here (literal charater ?).
+                                                     (format-mode-line
+                                                       (cons "" rhs-forms))
+                                                     )
+                                                   1.8
+                                                   )))
+                                             )))))
+          rhs-forms))
+      (concat "Modeline:\n"
+        (format "  %s\n  %s"
+          (prin1-to-string lhs)
+          (prin1-to-string rhs)))))
+  )
+
+;; (advice-add 'doom-modeline-def-modeline :around #'ns/custom-def-modeline)
+;; (advice-remove 'doom-modeline-def-modeline #'ns/custom-def-modeline)
 
 (doom-modeline-def-modeline 'neeasade-doomline
   ;; (ns/meta-doom-modeline-def-modeline 'neeasade-doomline
@@ -226,8 +216,7 @@
 (defun! ns/refresh-all-modeline (toggle)
   (ns/setq-local-all
     'mode-line-format
-    (doom-modeline-format--neeasade-doomline)
-
+    ;; (doom-modeline-format--neeasade-doomline)
     (if toggle
       ''("%e" (:eval (doom-modeline-format--neeasade-doomline)))
       ;; if we don't want modeline, we still might want
