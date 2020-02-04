@@ -165,4 +165,8 @@
 
 (set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
 
-(ns/spaceline)
+(when (fboundp 'ns/style-circe) (ns/style-circe))
+(when (fboundp 'ns/style-org) (ns/style-org))
+
+;; (ns/spaceline)
+(ns/doomline)

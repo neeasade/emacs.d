@@ -1,12 +1,11 @@
+;;; -*- lexical-binding: t; -*-
+;; lexical needed for our def-modeline override
 (use-package doom-modeline)
 
-;; override this to make the middle line have a different face (non 'mode-line)
-(defface ns/mode-line-middle nil "middle mode line" :group 'doom-modeline-faces)
-
-(set-face-attribute 'ns/mode-line-middle nil :background
-  (face-attribute 'default :background))
-
-;; overridding because upstream is really spacey
+(defface ns/mode-line-middle nil "middle mode line color" :group 'doom-modeline-faces)
+(defface ns/mode-line-sep nil "sep" :group 'doom-modeline-faces)
+(defface ns/mode-line-sep-edge nil "sep-edge" :group 'doom-modeline-faces)
+;; upstream is really spacey
 (doom-modeline-def-segment buffer-position
   "The buffer position information."
   (let* ((active (doom-modeline--active))
@@ -78,7 +77,86 @@
       'face 'mode-line
       )))
 
-(defface ns/mode-line-sep nil "sep" :group 'doom-modeline-faces)
+
+
+
+
+(doom-modeline-def-segment sep
+  "Text style with whitespace."
+  (propertize " " 'face (if (doom-modeline--active)
+                          'ns/mode-line-sep
+                          'mode-line-inactive)))
+
+(doom-modeline-def-segment sep-edge
+  (propertize " " 'face (if (doom-modeline--active)
+                          'ns/mode-line-sep-edge
+                          'mode-line-inactive)))
+
+
+
+(column-number-mode) ; give us column info in the modeline
+
+(doom-modeline--prepare-segments
+  '(
+     ;; sep
+     remote-host
+     buffer-info-neeasade
+     sep
+     checker
+
+     sep-edge
+     ;; bar
+     selection-info
+     ;; matches
+     )
+  )
+
+(defun ns/doom-modeline-def-modeline (name lhs rhs)
+  (let ((sym (intern (format "doom-modeline-format--%s" name)))
+         (lhs-forms (doom-modeline--prepare-segments lhs))
+         (rhs-forms (doom-modeline--prepare-segments rhs)))
+    (defalias sym
+      (lambda ()
+        (list lhs-forms
+          (propertize
+            " "
+            'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
+            'display `((space :align-to (- (+ right right-fringe right-margin)
+                                          ,(* (if (number-or-marker-p (face-attribute 'mode-line :height))
+                                                (/ (doom-modeline--window-font-width)
+                                                  (frame-char-width) 1.0)
+                                                1)
+                                             (-
+                                               (string-width
+                                                 (format-mode-line
+                                                   (cons "" rhs-forms)))
+                                               (round
+                                                 (/
+                                                   (seq-count
+                                                     (lambda (c) (= c ? )); XXX there is a thin space here (literal charater ?).
+                                                     (format-mode-line
+                                                       (cons "" rhs-forms))
+                                                     )
+                                                   ;; the magic number
+                                                   1.5
+                                                   )))
+                                             )))))
+          rhs-forms))
+      (concat "Modeline:\n"
+        (format "  %s\n  %s"
+          (prin1-to-string lhs)
+          (prin1-to-string rhs)))))
+  )
+
+
+(set-face-attribute 'ns/mode-line-middle nil :background
+  (face-attribute 'default :background))
+
+(set-face-attribute 'ns/mode-line-sep-edge nil :background
+  (face-attribute 'default :background)
+  ;; "#000000"
+  )
+
 (set-face-attribute 'ns/mode-line-sep nil :background
   ;; (ns/color-greaten 10 (face-attribute 'mode-line :background))
   ;; "#8888cc"
@@ -90,22 +168,8 @@
   ;; (face-attribute 'default :background)
   )
 
-(doom-modeline-def-segment sep
-  "Text style with whitespace."
-  (propertize " " 'face (if (doom-modeline--active)
-                          'ns/mode-line-sep
-                          'mode-line-inactive)))
-
-(defface ns/mode-line-sep-edge nil "sep-edge" :group 'doom-modeline-faces)
-(set-face-attribute 'ns/mode-line-sep-edge nil :background
-  (face-attribute 'default :background)
-  ;; "#000000"
-  )
-
-(doom-modeline-def-segment sep-edge
-  (propertize " " 'face (if (doom-modeline--active)
-                          'ns/mode-line-sep-edge
-                          'mode-line-inactive)))
+(set-face-attribute 'mode-line nil :height 100)
+(set-face-attribute 'mode-line-inactive nil :height 100)
 
 (setq-ns doom-modeline
   height (string-to-number (get-resource "Emacs.doomlineheight"))
@@ -126,63 +190,13 @@
   after-update-env-hook nil
   )
 
-(set-face-attribute 'mode-line nil :height 100)
-(set-face-attribute 'mode-line-inactive nil :height 100)
-
-(column-number-mode) ; give us column info in the modeline
-
-(defun ns/custom-def-modeline (orig-fun &rest name lhs rhs)
-  (let ((sym (intern (format "doom-modeline-format--%s" name)))
-         (lhs-forms (doom-modeline--prepare-segments lhs))
-         (rhs-forms (doom-modeline--prepare-segments rhs)))
-    (defalias sym
-      (lambda ()
-        (list lhs-forms
-          (propertize
-            " "
-            'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
-            'display `((space :align-to (- (+ right right-fringe right-margin)
-                                          ,(* (if (number-or-marker-p (face-attribute 'mode-line :height))
-                                                (/ (doom-modeline--window-font-width)
-                                                  (frame-char-width) 1.0)
-                                                1)
-                                             (-
-                                               (string-width
-                                                 (format-mode-line
-                                                   (cons "" rhs-forms)))
-                                               ;; for each 3 thin spaces, subtract a space
-                                               ;; measured on my own
-                                               ;; to be aggressive, go for 2
-                                               (round
-                                                 (/
-                                                   (seq-count
-                                                     (lambda (c) (= c ? )); XXX there is a thin space here (literal charater ?).
-                                                     (format-mode-line
-                                                       (cons "" rhs-forms))
-                                                     )
-                                                   1.8
-                                                   )))
-                                             )))))
-          rhs-forms))
-      (concat "Modeline:\n"
-        (format "  %s\n  %s"
-          (prin1-to-string lhs)
-          (prin1-to-string rhs)))))
-  )
-
-;; (advice-add 'doom-modeline-def-modeline :around #'ns/custom-def-modeline)
-;; (advice-remove 'doom-modeline-def-modeline #'ns/custom-def-modeline)
-
-(doom-modeline-def-modeline 'neeasade-doomline
-  ;; (ns/meta-doom-modeline-def-modeline 'neeasade-doomline
+(ns/doom-modeline-def-modeline 'neeasade-doomline
   '(
      ;; sep
      remote-host
      buffer-info-neeasade
      sep
-
      checker
-
      sep-edge
      ;; bar
      selection-info
@@ -209,7 +223,6 @@
 
 (defun setup-custom-doom-modeline ()
   (doom-modeline-set-modeline 'neeasade-doomline 'default))
-
 (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
 
 ;; todo: maybe filter out shell-mode and circe buffers here
@@ -221,8 +234,7 @@
       ''("%e" (:eval (doom-modeline-format--neeasade-doomline)))
       ;; if we don't want modeline, we still might want
       ;; padding on the bottom if we aren't using frame padding
-      (if (s-equals-p (get-resource "Emacs.padding_source") "st") nil " " )
-      ))
+      (if (s-equals-p (get-resource "Emacs.padding_source") "st") nil " " )))
 
   (when (and (not (s-equals-p (get-resource "Emacs.padding_source") "st"))
           (not toggle))
