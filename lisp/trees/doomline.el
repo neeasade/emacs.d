@@ -2,9 +2,18 @@
 ;; lexical needed for our def-modeline override
 (use-package doom-modeline)
 
-(defface ns/mode-line-middle nil "middle mode line color" :group 'doom-modeline-faces)
-(defface ns/mode-line-sep nil "sep" :group 'doom-modeline-faces)
-(defface ns/mode-line-sep-edge nil "sep-edge" :group 'doom-modeline-faces)
+(defface ns/mode-line-middle
+  '((t (:inherit (font-lock-keyword-face bold))))
+  "middle mode line color" :group 'doom-modeline-faces)
+
+(defface ns/mode-line-sep
+  '((t (:inherit (font-lock-keyword-face bold))))
+  "sep" :group 'doom-modeline-faces)
+
+(defface ns/mode-line-sep-edge
+  '((t (:inherit (font-lock-keyword-face bold))))
+  "sep-edge" :group 'doom-modeline-faces)
+
 ;; upstream is really spacey
 (doom-modeline-def-segment buffer-position
   "The buffer position information."
@@ -70,16 +79,15 @@
     (propertize
       (concat
         (doom-modeline-spc)
-        (format "[%s|%s]"
+
+        (format "[%s:%s]"
           (or (s-left 8 (ns/prev-buffer-name)) "<None>")
           (or (s-left 8 (ns/next-buffer-name)) "<None>"))
-        (doom-modeline-spc))
+
+        (doom-modeline-spc)
+        )
       'face 'mode-line
       )))
-
-
-
-
 
 (doom-modeline-def-segment sep
   "Text style with whitespace."
@@ -87,29 +95,7 @@
                           'ns/mode-line-sep
                           'mode-line-inactive)))
 
-(doom-modeline-def-segment sep-edge
-  (propertize " " 'face (if (doom-modeline--active)
-                          'ns/mode-line-sep-edge
-                          'mode-line-inactive)))
-
-
-
 (column-number-mode) ; give us column info in the modeline
-
-(doom-modeline--prepare-segments
-  '(
-     ;; sep
-     remote-host
-     buffer-info-neeasade
-     sep
-     checker
-
-     sep-edge
-     ;; bar
-     selection-info
-     ;; matches
-     )
-  )
 
 (defun ns/doom-modeline-def-modeline (name lhs rhs)
   (let ((sym (intern (format "doom-modeline-format--%s" name)))
@@ -117,7 +103,11 @@
          (rhs-forms (doom-modeline--prepare-segments rhs)))
     (defalias sym
       (lambda ()
+
         (list lhs-forms
+          (propertize " " 'face (if (doom-modeline--active)
+                                  'ns/mode-line-sep-edge
+                                  'mode-line-inactive))
           (propertize
             " "
             'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
@@ -141,6 +131,9 @@
                                                    1.5
                                                    )))
                                              )))))
+          (propertize " " 'face (if (doom-modeline--active)
+                                  'ns/mode-line-sep-edge
+                                  'mode-line-inactive))
           rhs-forms))
       (concat "Modeline:\n"
         (format "  %s\n  %s"
@@ -150,26 +143,38 @@
 
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (face-attribute 'default :background))
-
-(set-face-attribute 'ns/mode-line-sep-edge nil :background
-  (face-attribute 'default :background)
-  ;; "#000000"
+  ;; (face-attribute 'default :background)
+  (ns/color-greaten 20 (face-attribute 'font-lock-comment-face :foreground))
   )
 
+(set-face-attribute 'ns/mode-line-sep-edge nil :background
+  ;; (face-attribute 'default :background)
+  (ns/color-lessen 10 (face-attribute 'mode-line :background))
+
+  ;; "#000000"
+  ;; "#dfdfdf"
+  )
+
+;; todo: these face tweaks should really depend on the theme that's loaded maybe
 (set-face-attribute 'ns/mode-line-sep nil :background
   ;; (ns/color-greaten 10 (face-attribute 'mode-line :background))
-  ;; "#8888cc"
-  (face-attribute 'default :background)
+  (ns/color-lessen 6 (face-attribute 'mode-line :background))
+
+  ;; "#000000"
+  ;; (face-attribute 'default :background)
   )
 
 (set-face-attribute 'mode-line nil :background
-  (ns/color-lessen 20 (face-attribute 'default :background))
+  (ns/color-lessen 3 (face-attribute 'default :background))
   ;; (face-attribute 'default :background)
   )
 
 (set-face-attribute 'mode-line nil :height 100)
 (set-face-attribute 'mode-line-inactive nil :height 100)
+
+;; some themes like to tweak the box
+(set-face-attribute 'mode-line nil :box nil)
+(set-face-attribute 'mode-line-inactive nil :box nil)
 
 (setq-ns doom-modeline
   height (string-to-number (get-resource "Emacs.doomlineheight"))
@@ -197,14 +202,12 @@
      buffer-info-neeasade
      sep
      checker
-     sep-edge
      ;; bar
      selection-info
      matches
      )
   '(
      ;; bar
-     sep-edge
      next-buffers
      ;; vcs ;; somehow this one makes the spacing off
      misc-info
