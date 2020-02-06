@@ -87,3 +87,34 @@
 
 (add-hook 'sh-mode-hook
   (lambda () (sh-electric-here-document-mode -1)))
+
+;; lisp stuff
+(use-package lispy)
+(use-package lispyville)
+
+(lispyville-set-key-theme
+  '(operators
+     c-w
+     commentary
+     ;; to try later: text-objects: https://github.com/noctuid/lispyville#text-objects-key-theme
+     ;; arrows
+     atom-motions ;; hmm -- remember to cw instead of cW
+
+     ;; todo: these look cool -- remember, motions not movement
+     ;; EG d]
+     ;; additional-motions
+
+     ;; review me https://github.com/noctuid/lispyville#slurpbarf-key-themes
+     slurp/barf-cp
+     ;; slurp/barf-lispy
+     ))
+
+(use-package aggressive-indent)
+
+(defun ns/lisp-editing-init ()
+  (aggressive-indent-mode)
+  (lispy-mode)
+  (lispyville-mode))
+
+(add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
+(add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)

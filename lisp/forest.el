@@ -195,9 +195,6 @@
 
   (ns/install-dashdoc "Clojure" 'clojure-mode-hook)
 
-  ;; TODO: learn lispyville
-  ;; (use-package lispy)
-
   (defun! ns/smart-cider-eval ()
     (if (use-region-p)
       (cider-eval-region (region-beginning) (region-end))
@@ -206,7 +203,9 @@
         (cider-eval-defun-at-point nil))))
 
   (ns/bind-mode 'clojure
-    "e" 'ns/smart-cider-eval)
+    "e" 'ns/smart-cider-eval
+    "E" 'cider-eval-print-last-sexp
+    )
 
   (when (executable-find "joker")
     (use-package flycheck-joker :config (require 'flycheck-joker)))
@@ -781,6 +780,7 @@
 (defconfig sanity        (load "~/.emacs.d/lisp/trees/sanity.el"))
 (defconfig shell         (load "~/.emacs.d/lisp/trees/shell.el"))
 (defconfig spaceline     (load "~/.emacs.d/lisp/trees/spaceline.el"))
+(defconfig doomline     (load "~/.emacs.d/lisp/trees/doomline.el"))
 (defconfig staging       (load "~/.emacs.d/lisp/trees/staging.el"))
 (defconfig util          (load "~/.emacs.d/lisp/trees/util.el"))
 (defconfig blog          (load "~/.emacs.d/lisp/trees/blog.el"))

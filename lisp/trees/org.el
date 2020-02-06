@@ -212,7 +212,6 @@
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
 
-(advice-add #'ns/style :after #'ns/style-org)
 (defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block
                              org-code

@@ -1,5 +1,4 @@
 ;; todo: an xresources theme that doesn't suck/covers extensions that base16 covers
-
 (use-package base16-theme)
 ;;(use-package ujelly-theme)
 
@@ -116,8 +115,7 @@
   (set-face-attribute 'whitespace-space nil :background nil)
   (set-face-attribute 'whitespace-tab nil :background nil)
   (set-face-attribute 'whitespace-newline nil
-    :foreground (face-attribute 'whitespace-space :foreground))
-  (setq ns/colored-whitespace? t))
+    :foreground (face-attribute 'whitespace-space :foreground)))
 
 (advice-add 'whitespace-mode :after #'color-whitespace-mode)
 

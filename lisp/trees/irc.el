@@ -12,7 +12,7 @@
   circe-default-user ns/irc-nick
   circe-default-realname ns/irc-nick)
 
-(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs" "lorri"))
+(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs" "lorri" "clojure" " nix "))
 
 (setq-ns lui
   logging-directory (~ ".ircnew")
@@ -41,7 +41,7 @@
         :host "irc.freenode.net"
         :tls t
         :nickserv-password ,(pass "freenode")
-        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic" "##9fans")
+        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic" "##9fans" "#clojure")
         )
 
        ("Cyberia"
@@ -245,8 +245,11 @@
 
           ;; don't self highlight!
           (not (string= circe-last-nick "me"))
-          ;; emacs is mentioned alot in #emacs.
+
+          ;; don't care if some things are mentioned in their primary channel
           (not (and (string= "emacs" match) (string= "#emacs" channel)))
+          (not (and (string= "clojure" match) (string= "#clojure" channel)))
+          (not (and (string= " nix " match) (string= "#nixos" channel)))
           )
 
         (with-current-buffer "*circe-highlight*"
@@ -476,22 +479,19 @@
              (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)))
           (irc-nicks
             (if (-contains-p irc-channels (buffer-name))
-              (circe-channel-nicks) '()))
-          )
+              (circe-channel-nicks) '())))
     (if (eq (length irc-channels) 0)
       (message "connect to irc first!")
       (ivy-read "channel: " (append irc-channels irc-nicks)
         :action (lambda (option)
                   (interactive)
-                  ;; todo here: only continue if the buffer exists
                   (if (-contains-p irc-nicks option)
                     (circe-command-QUERY option)
-                    (counsel-switch-to-buffer-or-window option))
-                  (evil-goto-line)
-                  (evil-scroll-line-to-bottom nil) ; nil -> the current line
-                  ;; this still needed?
-                  ;; (ns/style-circe)
-                  )))))
+                    (when (get-buffer option)
+                      (counsel-switch-to-buffer-or-window option)
+                      (evil-goto-line)
+                      (evil-scroll-line-to-bottom nil) ; nil -> the current line
+                      )))))))
 
 ;; emacs freezes completely while pulling in the image fuckkkk
 ;; (require 'circe-display-images)
@@ -501,7 +501,7 @@
 
 (add-hook 'circe-channel-mode-hook 'ns/set-buffer-face-variable)
 (add-hook 'circe-query-mode-hook 'ns/set-buffer-face-variable)
-(advice-add #'ns/style :after #'ns/style-circe)
+
 (defun! ns/style-circe ()
   "Make chat pretty."
   (let*

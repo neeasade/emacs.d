@@ -240,7 +240,7 @@
 
 ;; callback on all open frames
 (defun! ns/apply-frames (action)
-  (mapc (lambda(frame)
+  (mapc (lambda (frame)
           (funcall action frame)
           (redraw-frame frame))
     (frame-list)))
