@@ -58,13 +58,13 @@
 
 (defun ns/get-functions ()
   "Get all the defconfig entries in the forest."
-  (cons "style"
-    (mapcar
-      (lambda (item)
-        (s-chomp (s-chop-prefix "(defconfig " (car item))))
-      (s-match-strings-all
-        "^(defconfig [^ \(\)]+"
-        (f-read (~ ".emacs.d/lisp/forest.el"))))))
+  (->> (~ ".emacs.d/lisp/forest.el")
+    f-read
+    (s-match-strings-all  "^(defconfig [^ \(\)]+")
+    (mapcar (fn (->> (car <>) (s-chop-prefix "(defconfig ") (s-chomp))))
+    (cons "style")
+    (cons "dirt")
+    ))
 
 (defun! ns/check-for-orphans ()
   "Check to see if any defconfigs are missing from init."
@@ -78,14 +78,16 @@
 (defun! ns/jump-config ()
   (ivy-read "config: " (ns/get-functions)
     :action
-    (lambda (option)
-      (interactive)
-      (if (f-exists-p (concat "~/.emacs.d/lisp/trees/" option ".el"))
-        (ns/find-or-open (concat "~/.emacs.d/lisp/trees/" option ".el"))
-        (progn
+    (fn (interactive)
+      (cond
+        ((string= "dirt" <>)
+          (ns/find-or-open (~ ".emacs.d/lisp/dirt.el")))
+        ((f-exists-p (format (~ ".emacs.d/lisp/trees/%s.el") <>))
+          (ns/find-or-open (format (~ ".emacs.d/lisp/trees/%s.el") <>)))
+        (t
           (ns/find-or-open (~ ".emacs.d/lisp/forest.el"))
           (goto-char (point-min))
-          (re-search-forward (concat "defconfig " option "\n"))))
+          (re-search-forward (format "defconfig %s\n" <>))))
       (ns/focus-line))))
 
 (defun! ns/toggle-bloat()

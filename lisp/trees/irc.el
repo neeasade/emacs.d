@@ -41,7 +41,7 @@
         :host "irc.freenode.net"
         :tls t
         :nickserv-password ,(pass "freenode")
-        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic" "##9fans" "#clojure")
+        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic" "##9fans" "#clojure" "#kisslinux" "#distrotube")
         )
 
        ("Cyberia"
@@ -459,6 +459,11 @@
 (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
 (add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
 
+;; paying this small cost a bunch of times means we don't have to
+;; remember to call ns/style-circe later
+(add-hook 'circe-channel-mode-hook 'ns/style-circe)
+(add-hook 'circe-query-mode-hook 'ns/style-circe)
+
 (add-hook 'lui-mode-hook 'my-lui-setup)
 (defun my-lui-setup ()
   (setq fringes-outside-margins t
@@ -603,7 +608,7 @@
       )))
 
 (defun! ns/circe-quote ()
-  "quote whoever spoke at point"
+  "quote whoever spoke at point -- conflict potential in the first 7 chars of a nick"
 
   (let* ((quote-start (+ 1 (ns/last-face (point) 'circe-originator-face)))
           (quote-end (point-at-eol))
