@@ -1,18 +1,11 @@
 (use-package editorconfig :config (editorconfig-mode 1))
 (setq tab-width 4)
 
-(use-package aggressive-indent
-  :config
-  (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
-  (add-hook 'clojure-mode-hook #'aggressive-indent-mode)
-  )
-
 (use-package smartparens
   :init
   :config
   (add-to-list 'sp-ignore-modes-list 'circe-channel-mode)
-  (smartparens-global-mode)
-  )
+  (smartparens-global-mode))
 
 ;; from https://github.com/syl20bnr/spacemacs/blob/bd7ef98e4c35fd87538dd2a81356cc83f5fd02f3/layers/%2Bdistributions/spacemacs-bootstrap/config.el
 ;; GPLv3
@@ -98,7 +91,11 @@
      commentary
      ;; to try later: text-objects: https://github.com/noctuid/lispyville#text-objects-key-theme
      ;; arrows
-     atom-motions ;; hmm -- remember to cw instead of cW
+
+     ;; atom motions are cool but annoying - see https://github.com/noctuid/lispyville/issues/61
+
+     ;; atom-motions ;; hmm -- remember to cw instead of cW
+     (atom-motions t)
 
      ;; todo: these look cool -- remember, motions not movement
      ;; EG d]
@@ -111,10 +108,14 @@
 
 (use-package aggressive-indent)
 
-(defun ns/lisp-editing-init ()
+(defun! ns/lisp-editing-init ()
   (aggressive-indent-mode)
-  (lispy-mode)
-  (lispyville-mode))
+  ;; these modes break surround text motion
+  ;; (lispy-mode)
+  ;; (lispy-set-key-theme '(lispy c-digits))
+  ;; (lispyville-mode)
+  )
 
-(add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
-(add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)
+;; (add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
+;; (add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)
+;; (add-hook 'fennel-mode #'ns/lisp-editing-init)
