@@ -3,7 +3,6 @@
 
 ;; todo:
 ;; - elisp publish function?
-
 ;; - jump to most recently edited file (atime should be fine)
 
 ;; - sitemap? of the pages that aren't posts
@@ -32,8 +31,7 @@
   (let* ((is-post
            (-contains-p (f-entries (ns/blog-path "posts") (fn (s-ends-with-p ".org" <>))) path))
           (last-edited
-            (let ((git-query-result
-                    (ns/shell-exec (format "cd %s; git log -1 --format=%%cI %s" (f-dirname path) path))))
+            (let ((git-query-result (ns/shell-exec (format "cd %s; git log -1 --format=%%cI %s" (f-dirname path) path))))
               (if (s-blank-p git-query-result)
                 nil (substring git-query-result 0 10))))
           (published-date (when is-post (substring (f-base path) 0 10)))

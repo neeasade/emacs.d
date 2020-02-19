@@ -74,6 +74,9 @@
     ;; (current-buffer)
     ))
 
+(doom-modeline-def-segment lispy-indicator
+  (if (lispyville--lispy-keybindings-active-p) "LISPY" ""))
+
 (doom-modeline-def-segment next-buffers
   (when (doom-modeline--active)
     (propertize
@@ -151,23 +154,20 @@
   ;; (face-attribute 'default :background)
   (ns/color-lessen 10 (face-attribute 'mode-line :background))
 
-  ;; "#000000"
-  ;; "#dfdfdf"
   )
 
 ;; todo: these face tweaks should really depend on the theme that's loaded maybe
 (set-face-attribute 'ns/mode-line-sep nil :background
-  ;; (ns/color-greaten 10 (face-attribute 'mode-line :background))
-  (ns/color-lessen 6 (face-attribute 'mode-line :background))
-
-  ;; "#000000"
-  ;; (face-attribute 'default :background)
-  )
+  (ns/color-lessen 6 (face-attribute 'mode-line :background)))
 
 (set-face-attribute 'mode-line nil :background
   (ns/color-lessen 3 (face-attribute 'default :background))
   ;; (face-attribute 'default :background)
   )
+
+;; darken it up a little maybe
+;; (set-face-attribute 'mode-line-inactive nil :background (ns/color-lessen 5 (face-attribute 'default :background)))
+
 
 (set-face-attribute 'mode-line nil :height 100)
 (set-face-attribute 'mode-line-inactive nil :height 100)
@@ -205,6 +205,7 @@
      ;; bar
      selection-info
      matches
+     lispy-indicator
      )
   '(
      ;; bar
