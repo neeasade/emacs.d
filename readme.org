@@ -1,5 +1,5 @@
 * neeasade's emacs configuration
 
-Screenshot: https://0x0.st/s5sR.png
+Screenshot: https://0x0.st/iipa.png
 
 Highlights: I use straight.el, my own sections akin to spacemacs layers, I'm a colemak-dh user, bigger package configs get their own files.
