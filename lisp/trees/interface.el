@@ -86,6 +86,16 @@
         (ns/pickup-shell (expand-file-name default-directory))
         (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
   "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))))
+;; todo: this won't bind? invalid prefix key? whaaaaat
+;; (ns/bind-mode 'dired
+;;   "nd" (fn!
+;;          (ivy-read "dir: "
+;;            ;; todo: this should filter to the current tramp, rather than remove them all
+;;            ;; could then change ivy prompt show host
+;;            (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) ns/cd-dirs))
+
+;;            :action (fn! (dired <>))))
+;;   )
 
 (defun my-resize-margins ()
   (let ((margin-size (if ns/center (/ (- (frame-width) 120) 2) 0)))
@@ -132,6 +142,11 @@
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 
+  ;; from the current dir down
+  "?" (if (executable-find "rg")
+        (fn! (counsel-rg nil default-directory))
+        (fn! (counsel-git-grep nil default-directory)))
+
   "TAB" '(switch-to-other-buffer :which-key "prev buffer")
   "SPC" 'counsel-M-x
 
@@ -166,5 +181,5 @@
   "bk" 'kill-matching-buffers
 
   "n" '(:ignore t :which-key "Jump")
-  "nd" 'counsel-imenu
+  "nh" 'counsel-imenu
   )

@@ -220,8 +220,8 @@
             (fn ;; shared history format: ': 1556747685:0;cmd'
               (if (s-starts-with-p ":" <>)
                 (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                <>))
-            (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))))
+                                                      <>))
+                                   (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))))
 
       :action (fn (when (eq major-mode 'shell-mode)
                     (goto-char (point-max)))

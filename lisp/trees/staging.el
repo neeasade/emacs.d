@@ -244,5 +244,17 @@
 
 ;; M-x direnv-update-environment
 ;; sync from the pov of the current file
+;; using in combination with lorri
 (use-package direnv)
 
+(defun ns/color-greaten (percent color)
+  (ns/shorten-color
+    (if (ns/color-is-light-p color)
+      (color-lighten-name color percent)
+      (color-darken-name color percent))))
+
+(defun ns/color-lessen (percent color)
+  (ns/shorten-color
+    (if (ns/color-is-light-p color)
+      (color-darken-name color percent)
+      (color-lighten-name color percent))))

@@ -302,7 +302,7 @@
     (org-present-hide-cursor)
     (org-present-read-only)
 
-    ;; remove the height tweaking we do in (ns/org) so that scaling works right
+    ;; remove the height tweaking we do in (ns/style) so that scaling works right
     (dolist (face '(org-level-1
                      org-level-2
                      org-level-3
@@ -324,6 +324,9 @@
 
   (setq org-present-text-scale 5)
 
+  ;; todo: maybe here presentation mode -- gg for start, G for end
+  ;; a 'temp cursor' mode? to click links on slides and stuff
+  ;; line wrap should be on/and indent
   (ns/inmap 'org-present-mode-keymap
     "q" 'org-present-quit
     ">" 'org-present-next
