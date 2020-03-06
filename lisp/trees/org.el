@@ -1,5 +1,3 @@
-;; initially loaded org modules
-;; cf https://github.com/emacsmirror/org/tree/master/lisp
 
 (use-package org
   :straight (:host github
@@ -14,20 +12,24 @@
   default-notes-file  (concat org-directory "/notes.org")
   default-diary-file  (concat org-directory "/journal.org")
   default-habits-file  (concat org-directory "/habits.org")
+
   agenda-files
   ;; all the files in our org directory
   (f-entries org-directory (fn (s-ends-with-p ".org" <>))  t)
 
   ellipsis "_"
+
   startup-indented nil
   startup-folded t
+  startup-align-all-tables t
+
   src-fontify-natively t
   src-tag-acts-natively t
-  startup-align-all-tables t
 
   ;; export options
   html-checkbox-type 'html
   html-postamble nil
+
   export-with-section-numbers nil
   export-with-toc nil
 

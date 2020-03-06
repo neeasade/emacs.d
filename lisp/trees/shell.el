@@ -1,3 +1,4 @@
+;; this mostly covers my usage of emacs shell-mode as my interactive shell
 (require 'comint)
 
 (when ns/enable-linux-p
@@ -16,10 +17,12 @@
 (setq comint-buffer-maximum-size 2000)
 (setq comint-prompt-read-only t)
 
-(ns/inmap 'comint-mode-map "<up>"      'comint-previous-input)
-(ns/inmap 'comint-mode-map "<down>"    'comint-next-input)
-(ns/inmap 'comint-mode-map (kbd "C-e") 'comint-previous-input)
-(ns/inmap 'comint-mode-map (kbd "C-n") 'comint-next-input)
+(ns/inmap
+  'comint-mode-map
+  "<up>"      'comint-previous-input
+  "<down>"    'comint-next-input
+  (kbd "C-e") 'comint-previous-input
+  (kbd "C-n") 'comint-next-input)
 
 
 (use-package shx

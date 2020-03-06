@@ -205,6 +205,16 @@
   (dolist (pair (-partition 2 key-func-pairs))
     (let ((key (car pair))
            (func (cadr pair)))
+
+      ;; (message
+      ;;   (format
+      ;;     "setting values: %s %s"
+
+      ;;     (prin1-to-string key)
+      ;;     (prin1-to-string func)
+      ;;     ))
+
+
       (general-imap :keymaps keymap key func)
       (general-nmap :keymaps keymap key func))))
 

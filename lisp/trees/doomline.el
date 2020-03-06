@@ -238,7 +238,9 @@
       ''("%e" (:eval (doom-modeline-format--neeasade-doomline)))
       ;; if we don't want modeline, we still might want
       ;; padding on the bottom if we aren't using frame padding
-      (if (s-equals-p (get-resource "Emacs.padding_source") "st") nil " " )))
+      (if (s-equals-p (get-resource "Emacs.padding_source") "st") nil " " ))
+    '(shell-mode)
+    )
 
   (when (and (not (s-equals-p (get-resource "Emacs.padding_source") "st"))
           (not toggle))
