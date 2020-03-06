@@ -17,53 +17,51 @@
 ;; todo: use noctuid's link package here to take advantage of different kinds of links.
 ;; todo: if it's a dir and we are in shell-mode, cd to the dir instead in the current shell
 (defun! ns/follow()
+  ;; (message "ns/follow call")
   (or
     ;; first try to open with org handling (includes urls)
     (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
 
     ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
-    (let ((file-name (nth 0 (s-split ":" (ffap-string-at-point))))
+    (let ((file-name (nth 0 (s-split ":" (f-full (ffap-string-at-point)))))
            (file-line (nth 1 (s-split ":" (ffap-string-at-point))))
            (file-char (nth 2 (s-split ":" (ffap-string-at-point)))))
-      (when (f-exists-p file-name)
-        (org-open-link-from-string
-          (format "file:%s%s" file-name
-            (if file-line
-              ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
-              (format "::%s" (string-to-number file-line))
-              ""
-              )))
 
-        (when file-char
-          (move-beginning-of-line nil)
-          (move-to-column file-char))
-
-        t
-        )
-
-      ;; fallback to an rg search for filename
-      (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
-              (rg-result
-                (if (s-contains-p "\n" rg-initial-result)
-                  (ivy-read "pickem: " (s-split "\n" rg-initial-result))
-                  rg-initial-result
-                  )))
-        (message (format "looking at %s" rg-result))
-        (when (and (not (s-blank-p rg-result))
-                (f-exists-p (or rg-result "nil doesn't exist don't  use me")))
+      (if (f-exists-p file-name)
+        (progn
           (org-open-link-from-string
-            (format "file:%s%s" rg-result
+            (format "file:%s%s" file-name
               (if file-line
                 ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
-                (format "::%s" (string-to-number file-line))
-                ""
-                )))
+                (format "::%s" (string-to-number file-line)) "")))
 
-          t
-          ))
+          (when file-char
+            (move-beginning-of-line nil)
+            (move-to-column file-char))
+
+          ;; (message "ns/follow: resolved with org link")
+          t)
+
+        (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
+                (rg-result (if (s-contains-p "\n" rg-initial-result)
+                             (ivy-read "pickem: " (s-split "\n" rg-initial-result))
+                             rg-initial-result)))
+          (when (and (not (s-blank-p rg-result))
+                  (f-exists-p (or rg-result "nil doesn't exist don't  use me")))
+            (org-open-link-from-string
+              (format "file:%s%s" rg-result
+                (if file-line
+                  ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
+                  (format "::%s" (string-to-number file-line)) "")))
+
+            ;; (message "ns/follow: resolved with ripgrep")
+            t
+            ))
+        )
       )
 
     ;; fall back to definitions with smart jump
+    ;; (message "ns/follow: resolving with smart-jump-go")
     (shut-up (smart-jump-go))
     ))
 
