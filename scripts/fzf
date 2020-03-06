@@ -1,15 +1,19 @@
 #!/bin/sh
 
-if [ -d /dev/shm/ ]; then
-    file=/dev/shm/fzftemp
-else
-    file=$(elisp -r '(~ "fzftemp")')
-fi
-
 if [ -p /dev/stdin ]; then
-    cat - > "$file"
+    file="${HOME}/fzftemp"
+    if [ -d /dev/shm/ ]; then
+	file=/dev/shm/fzftemp
+    fi
+
+    command="cat -" > "$file"
 else
-    rg --files "$@" > "$file"
+    command="rg --files $@"
 fi
 
-elisp_timeout=10 elisp -r '(condition-case () (ivy-read "" (s-split "\n" (f-read "'"$file"'")) :action (lambda(option) option)) (quit nil))'
+export FORCE_STDIN=t
+export elisp_timeout=10
+
+# the axis of eval
+eval "$command" | \
+    elisp -r '(condition-case () (ivy-read "" (s-split "\n" (f-read *stdin-file*)) :action (lambda(option) option)) (quit nil))'
