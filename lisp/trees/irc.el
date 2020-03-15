@@ -682,3 +682,110 @@
           :command event
           :target name
           :indexed-args args)))))
+
+(ns/comment
+  ;; trying out treemacs idea -- want buflist but for circe buffers
+  (use-package treemacs)
+
+  ;; treemacs-define-* stuff isn't included ootb with the above?
+  (require 'treemacs)
+
+  (defun showcase--get-buffer-groups ()
+    "Get the list of buffers, grouped by their major mode."
+    (->>
+
+      ;; what you really want is like
+      ;; get the circe-server-mode buffers
+      ;; and then get the query and channel modes that belong to that buffer
+      (ns/buffers-by-mode
+        'circe-server-mode
+        ;; 'circe-query-mode
+        ;; 'circe-channel-mode
+        )
+
+      (map
+        (fn
+          ;; group by all
+          )
+        )
+
+      ;; (buffer-list)
+      ;; (--reject (eq ?\ (aref (buffer-name it) 0)))
+      (--group-by (buffer-local-value 'major-mode it)))
+    )
+
+  (first (showcase--get-buffer-groups))
+
+  (defun showcase-visit-buffer (&rest _)
+    "Switch to the buffer saved in node at point."
+    (let* ((node (treemacs-current-button))
+            (buffer (treemacs-button-get node :buffer)))
+      (when (buffer-live-p buffer)
+        (select-window (next-window))
+        (switch-to-buffer buffer))))
+
+  ;; todo: different buffer types -- activity, highlights, no activity
+  (treemacs-define-leaf-node buffer-leaf
+    (treemacs-as-icon "X " 'face 'font-lock-builtin-face)
+    :ret-action #'showcase-visit-buffer
+    :tab-action #'showcase-visit-buffer
+    :mouse1-action
+    (lambda (&rest args) (interactive) (showcase-visit-buffer args))
+    )
+
+  (treemacs-define-expandable-node buffer-group
+    :icon-open (treemacs-as-icon "- " 'face 'font-lock-string-face)
+    :icon-closed (treemacs-as-icon "+ " 'face 'font-lock-string-face)
+    :query-function (treemacs-button-get (treemacs-current-button) :buffers)
+    ;; (treemacs-current-button)
+    :render-action
+    (treemacs-render-node
+      :icon treemacs-buffer-leaf-icon
+      :label-form (buffer-name item)
+      :state treemacs-buffer-leaf-state
+      :face 'font-lock-string-face
+      :key-form item
+      :more-properties (:buffer item)))
+
+  (treemacs-define-expandable-node buffers-root
+    :icon-open (treemacs-as-icon "- " 'face 'font-lock-string-face)
+    :icon-closed (treemacs-as-icon "+ " 'face 'font-lock-string-face)
+    :query-function (showcase--get-buffer-groups)
+    :render-action
+    (treemacs-render-node
+      :icon treemacs-icon-buffer-group-closed
+      :label-form (symbol-name (car item))
+      :state treemacs-buffer-group-closed-state
+      :face 'font-lock-keyword-face
+      :key-form (car item)
+      :more-properties (:buffers (cdr item)))
+    :root-marker t
+    :root-label "Buffers"
+    :root-face 'font-lock-type-face
+    :root-key-form 'Buffers)
+
+  (defun showcase-extension-predicate (project)
+    t
+    ;; (eq project
+    ;;   (-> (treemacs-current-workspace)
+    ;;     (treemacs-workspace->projects)
+    ;;     (car)))
+    )
+
+  ;; testing with this
+  (treemacs-define-project-extension
+    :extension #'treemacs-BUFFERS-ROOT-extension
+    :predicate #'showcase-extension-predicate
+    :position 'top)
+
+  ;; can't get this to work atm
+  (treemacs-define-top-level-extension
+    :extension #'treemacs-BUFFERS-ROOT-extension
+    :position 'top
+    )
+
+  (treemacs-scope-storage)
+
+  )
+
+;; (showcase--get-buffer-groups)
