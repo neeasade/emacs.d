@@ -36,13 +36,30 @@
     default-part-message ""
     ;; todo: consider tracking channels somewhere else
     network-options
-    `(("Freenode"
-        :nick ,ns/irc-nick
-        :host "irc.freenode.net"
-        :tls t
-        :nickserv-password ,(pass "freenode")
-        :channels (:after-auth "#github" "#bspwm" "#qutebrowser" "#emacs" "#k-slug" "#qutebrowser-offtopic" "##9fans" "#clojure" "#kisslinux" "#distrotube")
-        )
+    `(
+       ("Freenode"
+         :nick ,ns/irc-nick
+         :host "irc.freenode.net"
+         :tls t
+         :nickserv-password ,(pass "freenode")
+         :channels (:after-auth
+                     "#bspwm"
+                     "#qutebrowser"
+                     "#emacs"
+                     "#sway-devel"
+                     "#k-slug"
+                     "#qutebrowser-offtopic"
+                     "##9fans"
+                     "#clojure"
+                     "#kisslinux"
+                     "#distrotube"
+                     "#clojure"
+                     "#fennel"
+                     ;; "#nixos"
+                     "#nixos-chat"
+                     "#nixos-emacs"
+                     )
+         )
 
        ("Cyberia"
          :nick ,ns/irc-nick
@@ -59,12 +76,12 @@
          :tls t
          :channels ("#unix"))
 
-       ;; ("OFTC"
-       ;;   :nick ,ns/irc-nick
-       ;;   :host "irc.oftc.net"
-       ;;   :port (6667 . 6697)
-       ;;   :tls t
-       ;;   :channels ("#bitlbee"))
+       ("OFTC"
+         :nick ,ns/irc-nick
+         :host "irc.oftc.net"
+         :port (6667 . 6697)
+         :tls t
+         :channels ("#bitlbee"))
 
        ("eigenstate"
          :nick ,ns/irc-nick
@@ -89,7 +106,9 @@
          :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
          :nickserv-identify-command "PRIVMSG NickServ :IDENTIFY {password}"
          :nickserv-identify-confirmation ,(rx bol "Password accepted - you are now recognized." eol)
-         ))))
+         )
+
+       )))
 
 ;; auto fill/trim left to 8 columns
 (defun ns/make-message (left body &optional left-face message-face)
@@ -484,7 +503,8 @@
              (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)))
           (irc-nicks
             (if (-contains-p irc-channels (buffer-name))
-              (circe-channel-nicks) '())))
+              ;; (circe-channel-nicks)
+              '())))
     (if (eq (length irc-channels) 0)
       (message "connect to irc first!")
       (ivy-read "channel: " (append irc-channels irc-nicks)
