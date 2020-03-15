@@ -604,12 +604,18 @@
   (let* ((point-change (- (previous-single-property-change point-current 'face) 1))
           (face-at-point (get-char-property point-change 'face))
           ;; 'face can return a list of faces, or just a single face
-          (faces-at-point (if (listp face-at-point) face-at-point (list face-at-point))))
-    (if (< point-change 0)
-      nil
+          (faces-at-point
+            (if (eq nil face-at-point)
+              (list nil)
+              (if (listp face-at-point) face-at-point (list face-at-point)))))
+    (if (< point-change 2)
+      1
+      ;; nil
+      ;; (message (format "%s" face-search))
       (if (-contains-p faces-at-point face-search)
         point-change
-        (ns/last-face point-change face-search)))))
+        (ns/last-face point-change face-search))
+      )))
 
 (defun! ns/get-last-nick (&optional point)
   "Get the nick of whoever talked at point"
