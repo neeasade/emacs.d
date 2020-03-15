@@ -94,7 +94,7 @@
 
      ;; atom motions are cool but annoying - see https://github.com/noctuid/lispyville/issues/61
 
-     ;; atom-motions ;; hmm -- remember to cw instead of cW
+     ;; greedy motions: just atom-motions
      (atom-motions t)
 
      ;; todo: these look cool -- remember, motions not movement
@@ -110,12 +110,11 @@
 
 (defun! ns/lisp-editing-init ()
   (aggressive-indent-mode)
-  ;; these modes break surround text motion
-  ;; (lispy-mode)
-  ;; (lispy-set-key-theme '(lispy c-digits))
-  ;; (lispyville-mode)
-  )
 
-;; (add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
-;; (add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)
-;; (add-hook 'fennel-mode #'ns/lisp-editing-init)
+  (lispy-mode)
+  (lispy-set-key-theme '(lispy c-digits))
+  (lispyville-mode))
+
+(add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
+(add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)
+(add-hook 'fennel-mode #'ns/lisp-editing-init)
