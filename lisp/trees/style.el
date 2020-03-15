@@ -36,6 +36,11 @@
     (disable-theme ns/loaded-theme))
 
   (load-theme theme t)
+  ;; todo: check loaded theme state
+  ;; (when (boundp ns/loaded-theme)
+  ;;   (when (not (eq theme ns/loaded-theme))
+  ;;     ))
+
   (setq ns/loaded-theme theme)
 
   (when (or (equal theme 'apropospriate-light)
@@ -95,8 +100,14 @@
 (setq window-divider-default-places t)
 
 ;; assume softer vertical border by matching comment face
-(set-face-attribute 'window-divider nil :foreground (face-attribute 'font-lock-comment-face :foreground))
-(set-face-attribute 'vertical-border nil :foreground (face-attribute 'font-lock-comment-face :foreground))
+(set-face-attribute 'window-divider nil :foreground
+  (face-attribute 'font-lock-comment-face :foreground))
+
+(set-face-attribute 'vertical-border nil :foreground
+  (face-attribute 'font-lock-comment-face :foreground))
+
+(set-face-attribute 'vertical-border nil :foreground
+  (face-attribute 'mode-line-inactive :background))
 
 (window-divider-mode t)
 
@@ -147,6 +158,7 @@
 
 ;; NO BOLD
 ;; (set-face-bold-p doesn't cover everything, some fonts use slant and underline as bold...)
+;; todo: maybe revisit your opinions on this
 (mapc (lambda (face)
         (set-face-attribute face nil
           :weight 'normal

@@ -218,6 +218,7 @@
   (ns/set-faces-monospace '(org-block
                              org-code
                              org-table
+                             org-formula
                              org-verbatim
                              company-tooltip
                              company-tooltip-common
