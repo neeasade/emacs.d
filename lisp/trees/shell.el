@@ -161,6 +161,8 @@ Everything past that can be tailored to your liking.
 (defun! ns/spawn-terminal ()
   (select-frame (make-frame))
   (ns/pickup-shell nil t)
+
+  ;; todo here: ensure there is no modeline on spawned terminal -- also maybe mode line refresh
   ;; return t so that elisp ns/spawn-terminal call is true
   t)
 
@@ -219,10 +221,43 @@ Everything past that can be tailored to your liking.
     term-color-white])
 
 ;; completions when editing shell scripts:
+;; works by spawning a subshell in the background, kinda weird
 (use-package company-shell
   :config
   (setq company-shell-clean-manpage t)
   (add-to-list 'company-backends 'company-shell)
-  ;; possible a weird one to add
-  (add-to-list 'company-backends 'company-shell-env))
+  ;; possibly a weird one to add
+  (add-to-list 'company-backends 'company-shell-env)
+  )
 
+;; todo: bind this
+(defun! ns/shell-eval-in-popped ()
+  ;; crude -- just inserts and sends
+  (defun ns/shell-send (string)
+    (with-current-buffer
+      (format "*shell-%s*" shell-pop-last-shell-buffer-index)
+      (insert string)
+      (comint-send-input)))
+
+  (if (use-region-p)
+    (ns/shell-send
+      (region-beginning) (region-end)
+      )
+
+    (if (s-blank-p (s-trim (thing-at-point 'line)))
+      (ns/shell-send
+        (save-excursion (forward-line -1)
+          (let (last-line (s-clean (thing-at-point 'line)))
+            (if (string= last-line "}\n")
+              "todo" ; search back/return entire function def
+              )
+            )
+
+          )
+        )
+      ;; (eros-eval-last-sexp nil)
+      ;; (eros-eval-defun nil)
+      ;; no notion of higher order thing
+      (ns/shell-send (thing-at-point 'line))
+
+      )))

@@ -16,6 +16,7 @@
 ;; /home/neeasade/.vimrc
 ;; todo: use noctuid's link package here to take advantage of different kinds of links.
 ;; todo: if it's a dir and we are in shell-mode, cd to the dir instead in the current shell
+;;  todo: expand $HOME in ffap-string-at-point
 (defun! ns/follow()
   ;; (message "ns/follow call")
   (or
@@ -117,6 +118,7 @@
 
 ;; hack: todo: not create an entry on getting content
 
+;; todo: this is broken/getting is impure -- maybe try and use org capture for the same purpose with a pure getter w/ orgql
 (defun ns/urlnote-get-content (&optional url)
   (save-window-excursion
     (ns/urlnote-jump url)
