@@ -16,7 +16,8 @@
 ;; todo: consider making this title
 (defun! ns/jump-to-blog-post ()
   (ivy-read "post: "
-    (f-entries (ns/blog-path "posts") (fn (s-ends-with-p ".org" <>)))
+    (f-entries (ns/blog-path "posts")
+      (fn (s-ends-with-p ".org" <>)))
     :action 'find-file))
 
 (ns/bind-soft "nq" 'ns/jump-to-blog-post)
@@ -73,7 +74,16 @@
       (:is-draft post-is-draft)
       (:title post-title)
       (:publish-date published-date)
-      (:html-dest (format "%s/%s.html" (ns/blog-path "site") (f-base path)))
+      (:html-dest (format "%s/%s.html"
+                    (ns/blog-path "site")
+                    (f-base path)
+
+                    ;; remove the date
+                    ;; (if is-post
+                    ;;   (substring (f-base path) 0 10)
+                    ;;   (f-base path))
+
+                    ))
       (:edited-date last-edited)
       (:history-link history-link)
       )))
