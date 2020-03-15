@@ -18,7 +18,19 @@
       "j" "e"
       "k" "n"
       "K" "N"
-      ))
+      )
+
+    ;; todo: test diffing
+    ;; I guess translate key doesn't work in control keybindings?
+    (evil-collection-define-key 'motion 'diff-mode-map
+      (kbd "C-n") 'diff-hunk-next
+      (kbd "C-e") 'diff-hunk-prev)
+
+    (evil-collection-define-key 'normal 'diff-mode-map
+      (kbd "C-n") 'diff-hunk-next
+      (kbd "C-e") 'diff-hunk-prev)
+    )
+
   (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
 
   (evil-collection-init))
@@ -92,6 +104,7 @@
   )
 
 (use-package evil-surround :config (global-evil-surround-mode 1))
+
 (use-package evil-embrace
   :config
   (general-define-key
@@ -153,9 +166,20 @@
   (or
     ;; (member buffername '("scratch.el"))
     (s-starts-with? "*" buffername)
-    (s-starts-with? "magit" buffername))
+    (s-starts-with? "magit" buffername)
+    (with-current-buffer (get-buffer buffername) (eq major-mode 'dired-mode))
+    )
   )
 
+;; (defun! ns/maybe-next ()
+;;   (when (ns/should-skip (buffer-name))
+;;     (next-buffer)))
+
+;; (defun! ns/maybe-prev ()
+;;   (when (ns/should-skip (buffer-name))
+;;     (previous-buffer)))
+
+;; fucking what -- why did I do the temp shit here
 (defun! ns/maybe-next ()
   (when (ns/should-skip (buffer-name))
     (let ((temp (window-next-buffers)))
