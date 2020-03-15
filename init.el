@@ -91,7 +91,8 @@
 (ns/compose
   development
   c
-  common-lisp
+  ;; common-lisp
+  fennel
 
   autohotkey
   clojure

@@ -1,4 +1,3 @@
-
 (use-package no-littering
   :config
   (require 'no-littering)
@@ -123,19 +122,22 @@
 (require 'profiler)
 (defun! ns/toggle-report ()
   (if (profiler-running-p)
-    (progn
-      (profiler-report)
-      (profiler-stop))
+    (progn (profiler-report) (profiler-stop))
     (profiler-cpu-start profiler-sampling-interval)))
 
-;; (defun ns/proced-init ()
-;;   (interactive)
-;;   ;; note: default update rate is 5 seconds
-;;   (proced-toggle-auto-update)
-;;   (delete-other-windows)
-;;   )
+(defun! ns/proced-init ()
+  ;; note: default update rate is 5 seconds
+  ;; (proced-toggle-auto-update)
+  (message "we are reaching here")
+  (delete-other-windows)
+  )
 
 ;; (advice-remove 'proced-mode #'ns/proced-init)
+(advice-add 'proced-mode :after #'ns/proced-init)
+
+;; (add-hook 'proced-mode-hook 'ns/proced-init)
+(remove-hook 'proced-mode-hook 'ns/proced-init)
+
 ;; (remove-hook 'proced-mode-hook 'ns/proced-init)
 
 (ns/bind
