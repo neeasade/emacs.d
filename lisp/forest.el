@@ -30,8 +30,8 @@
           (message "dash docs not enabled!")
           )))
 
-    (ns/bind "nd" 'ns/helpful-or-dashdoc)
-
+    ;; todo: should this be cider/emacslisp apropros in the mix
+    (ns/bind "nh" 'ns/helpful-or-dashdoc)
     )
 
   (use-package eros
@@ -149,6 +149,7 @@
 
 
   ;; (ns/guard ns/enable-home-p)
+  (ns/guard nil)
 
   (use-package dash)
 
@@ -173,9 +174,14 @@
 (defconfig zoom
   (use-package zoom
     :config
+    ;; if number, is lines/cols
+    ;; can also be ratio
     (setq zoom-size '(80 . 24))
-    (setq zoom-size '(0.58 . 0.618))
-    (zoom-mode 1)))
+
+    ;; (setq zoom-size '(0.58 . 0.618))
+    (zoom-mode 0)
+
+    ))
 
 (defconfig python
   (ns/install-dashdoc "Python 2" 'python-mode-hook)
@@ -515,8 +521,80 @@
 
 (defconfig lsp
   ;; want to use eglot + flycheck, hrm
-
   ;; (use-package cquery)
+  )
+
+(defconfig fennel
+  (use-package fennel-mode)
+
+  (defun ns/lisp-get-last-output ()
+    (when (inferior-lisp-proc)
+      (with-current-buffer (process-buffer (inferior-lisp-proc))
+        ;; the 2 is from the '>>'
+        (let* (
+                ;; (end-point (- (ns/last-face (point-max) 'comint-highlight-prompt) 2))
+                (end-point (ns/last-face (point-max) nil))
+                (start-point-maybe (ns/last-face end-point 'comint-highlight-prompt))
+                (start-point-maybe2 (ns/last-face end-point 'comint-highlight-input)))
+          (->>
+            (buffer-substring
+              (if (> start-point-maybe start-point-maybe2)
+                start-point-maybe
+                start-point-maybe2
+                )
+              ;; start-point
+              end-point)
+            (s-clean)
+            (replace-regexp-in-string "\n$" "")
+            (replace-regexp-in-string "^.\n" "")
+            )))))
+
+  (defun ns/peek-back-until (condition)
+    (if (funcall condition)
+      (point)
+      (progn
+        (goto-char (- (point) 1))
+        ;; (point)
+        (ns/peek-back-until condition))))
+
+  (defun ns/lisp-get-last-output ()
+    (when (inferior-lisp-proc)
+      (with-current-buffer (process-buffer (inferior-lisp-proc))
+        (let ((init
+                (save-excursion
+                  (goto-char (- (point-max) 3))
+                  (ns/peek-back-until
+                    (lambda () (string= (s-clean (thing-at-point 'symbol)) ">>")))
+                  )))
+          (buffer-substring
+            init
+            (- (point-max) 3)
+            )
+          ))))
+
+  (defun! ns/lisp-eval-overlay (eval-func)
+    (funcall eval-func)
+    (eros--make-result-overlay
+      ;; "placeholder"
+      (ns/lisp-get-last-output)
+      :where (point)
+      :duration eros-eval-result-duration))
+
+  ;; todo: make sure slime mode is turned off in fennel buffers
+  (defun! ns/smart-lisp-eval ()
+    (if (use-region-p)
+      (lisp-eval-region (region-beginning) (region-end))
+      (if (s-blank-p (s-trim (thing-at-point 'line)))
+        ;; (ns/lisp-eval-overlay (lambda () (lisp-eval-last-sexp nil)))
+        ;; (eros-eval-last-sexp nil)
+        (lisp-eval-last-sexp nil)
+        ;; (ns/lisp-eval-overlay (lambda () (lisp-eval-defun nil)))
+        ;; (eros-eval-defun nil)
+        (lisp-eval-defun nil)
+        )))
+
+  (ns/bind-mode 'fennel "e" 'ns/smart-lisp-eval)
+
   )
 
 (defconfig search-engines
