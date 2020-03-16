@@ -58,7 +58,8 @@
                     "[[https://neeasade.net][Root]]"
                     (format "[[%s][Source]]"
                       (concat
-                        "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/posts/"
+                        "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/"
+                        (if is-post "posts/" "pages/")
                         (f-filename path)
                         )
                       )
