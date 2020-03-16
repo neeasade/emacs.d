@@ -82,14 +82,13 @@
       (:publish-date published-date)
       (:html-dest (format "%s/%s.html"
                     (ns/blog-path "site")
-                    (f-base path)
+
+                    ;; (f-base path)
 
                     ;; remove the date
-                    ;; (if is-post
-                    ;;   (substring (f-base path) 0 10)
-                    ;;   (f-base path))
-
-                    ))
+                    (if is-post
+                      (substring (f-base path) 11)
+                      (f-base path))))
       (:edited-date last-edited)
       (:history-link history-link)
       )))
