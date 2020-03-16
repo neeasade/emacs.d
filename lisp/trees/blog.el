@@ -47,8 +47,8 @@
 
                  ,(when is-post
                     (ns/blog-make-nav-strip
-                      published-date
                       (format "[[%s][%s]]" history-link last-edited)
+                      published-date
                       ))
 
                  ,@(s-split "\n" (org-file-contents path))
@@ -56,6 +56,12 @@
                  ,(ns/blog-make-nav-strip
                     "[[file:./index.html][Index]]"
                     "[[https://neeasade.net][Root]]"
+                    (format "[[%s][Source]]"
+                      (concat
+                        "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/posts/"
+                        (f-filename path)
+                        )
+                      )
                     )
                  )))
 
