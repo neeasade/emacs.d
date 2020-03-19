@@ -258,3 +258,17 @@
     (if (ns/color-is-light-p color)
       (color-darken-name color percent)
       (color-lighten-name color percent))))
+
+;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
+;; this means you won't have to garbage collect for literal minutes when we leave emacs running
+;; all night long
+
+(named-timer-run :maybe-garbage-collect
+  ;; run the first time in 30 seconds (arbitrary, after init startup)
+  ;; relative times are.. strings? cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Timers.html
+  "30 sec"
+  (* 5 60)
+  (fn (when (> (second (current-idle-time))
+              (* 5 60))
+        (garbage-collect)
+        )))

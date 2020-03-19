@@ -26,10 +26,9 @@
 (use-package dash)  ;list
 (use-package a)     ;assoc lists
 (use-package async) ;async
-;; todo: use from github? -- nah just need to update your reference
-;;(use-package ts)    ;timestamps
+(use-package ts) ; timestamps
 
-;; other
+;; other/emacs enhancers
 (use-package hydra)
 (use-package general :config (general-override-mode t)) ; enable the override keymap
 (use-package request)
@@ -38,8 +37,10 @@
 (require 'cl-macs)
 (require 'man)
 
-(defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
+(use-package named-timer)
+(require 'named-timer)
 
+(defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
 
 ;; alias/clojure
