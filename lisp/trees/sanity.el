@@ -1,3 +1,5 @@
+
+;; should this be in dirt
 (use-package no-littering
   :config
   (require 'no-littering)
@@ -34,9 +36,13 @@
   )
 
 ;; todo: reconsider this, auto wrap large operations or something
-(setq gc-cons-threshold (eval-when-compile (* 5 1024 1024 1024)))
+
+(setq gc-cons-threshold (eval-when-compile (* 8 1024 1024 1024)))
+
 (defun ns/idle () (garbage-collect))
-(ns/add-firstrun-action '(run-with-idle-timer 2 t 'ns/idle))
+(run-with-idle-timer 2 t 'ns/idle)
+
+;; (run-with-idle-timer 2 t 'ns/idle)
 
 ;; trim gui
 (menu-bar-mode -1)

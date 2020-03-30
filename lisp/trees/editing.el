@@ -85,6 +85,14 @@
 (use-package lispy)
 (use-package lispyville)
 
+;; little too magical
+(setq lispy-safe-actions-ignore-strings t)
+
+;; others to look into:
+;; lispy-safe-threshold
+;; lispy-safe-actions-ignore-comments,
+;; lispy-safe-actions-no-pull-delimiters-into-comments
+
 (lispyville-set-key-theme
   '(operators
      c-w
@@ -113,7 +121,8 @@
 
   (lispy-mode)
   (lispy-set-key-theme '(lispy c-digits))
-  (lispyville-mode))
+  (lispyville-mode)
+  )
 
 (add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
 (add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)

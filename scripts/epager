@@ -1,4 +1,5 @@
 #!/bin/sh
+# todo: maybe move this to elisp shebang and then use stdin file -- just check if it's bound and then fallover to arg if it is not
 
 target=$(mktemp)
 

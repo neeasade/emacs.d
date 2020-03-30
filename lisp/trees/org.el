@@ -76,7 +76,9 @@
   ;; todo: elisp function to capture from qutebrowser inbox url to browse later
   capture-templates
   `(
-     ("t" "Todo" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %^{todo}" :prepend t :immediate-finish t)
+     ("t" "Todo" entry
+       (file+olp ,org-default-notes-file "Inbox" "Tasks")
+       "* TODO %^{todo}" :prepend t :immediate-finish t)
      ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %i%?" :prepend t)
      ("i" "Idea" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t :immediate-finish t)
      ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %i%?" :prepend t)
@@ -204,7 +206,8 @@
   "or" 'org-refile
   "ol" 'ns/make-org-link-to-here
   "om" 'ns/insert-mark-org-links
-  "ow" 'widen
+  ;; "ow" 'widen
+  "ow" (fn! (widen) (ns/focus-line))
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
 
@@ -284,19 +287,20 @@
     (kbd "E") 'org-toggle-heading))
 
 ;; notify on timestamps (this is broken)
-(ns/use-package org-wild-notifier "akhramov/org-wild-notifier.el"
-  :config
-  ;; org-wild-notifier-en
-  (setq-ns org-wild-notifier
-    alert-time 1 ;; min
-    notification-title "Reminder"
-    keyword-whitelist '()
-    keyword-blacklist '()
-    tags-whitelist '("testerino")
-    tags-blacklist nil
-    alert-times-property "alert_times")
+;; (ns/use-package org-wild-notifier "akhramov/org-wild-notifier.el"
+;;   :config
+;;   ;; org-wild-notifier-en
+;;   (setq-ns org-wild-notifier
+;;     alert-time 1 ;; min
+;;     notification-title "Reminder"
+;;     keyword-whitelist '()
+;;     keyword-blacklist '()
+;;     tags-whitelist '("testerino")
+;;     tags-blacklist nil
+;;     alert-times-property "alert_times")
 
-  (org-wild-notifier-mode))
+;;   (org-wild-notifier-mode)
+;;   )
 
 (use-package org-present
   :config

@@ -1,6 +1,5 @@
 (use-package indent-guide
   :config
-
   (set-face-foreground 'indent-guide-face
     (face-attribute 'font-lock-keyword-face :foreground))
 
@@ -12,35 +11,90 @@
 
 (use-package link-hint)
 
+(setq ns/verbose-follow t)
+
+;; /home/neeasade/My_Games/Skyrim/RendererInfo.txt:10
+;; file:/home/neeasade/My Games/Skyrim/RendererInfo.txt:10
+;; - link-hint-open-link-at-point
 ;; file:/home/neeasade/.vimrc
 ;; /home/neeasade/.vimrc
+
+;; $HOME/.vimrc - todo: link-hint-open-link-at-point handles this
 ;; todo: use noctuid's link package here to take advantage of different kinds of links.
 ;; todo: if it's a dir and we are in shell-mode, cd to the dir instead in the current shell
-;;  todo: expand $HOME in ffap-string-at-point
+
+;; if would be cool if this were tramp aware
+;; maybe ffap-string-at-point should be let'd -- used almost everywhere
+
+;; idea: rg could search $PATH and also git repo -- idea is jump to script when reading one
+;; maybe ns/follow could have a soft/query mode where you just message the filepath/type of thing you are looking at
+;; idea: if you have a region selected, the link logic stuff should act on that
+;; todo: if you are in org mode, looking at a link
+
+(defmacro ns/follow-log (message)
+  (when ns/verbose-follow (message message)))
+
 (defun! ns/follow()
-  ;; (message "ns/follow call")
+  "This is my home rolled DWIM at point function -- maybe it could be considered to be 'bad hyperbole'
+   Tries to integrate a few meta solutions
+   org link --> our own peek where we build an org file link --> jump to definition with smart-jump"
+
   (or
+    (when (string-empty-p (ffap-string-at-point))
+      (message "not looking at anything! (ffap-string-at-point)")
+      t
+      )
+
+    ;; (when (and (eq major-mode 'shell-mode)
+    ;;         (f-directory-p (ffap-string-at-point))
+    ;;         )
+    ;;   (goto-char (point-max))
+    ;;   (insert (concat "cd \"" (ffap-string-at-point) "\""))
+    ;;   (comint-send-input)
+    ;;   (ns/follow-log "ns/follow: resolved with shell-mode cd")
+    ;;   t
+    ;;   )
+
+    ;; nahh: maybe dired @ directory in current window rather than comint-send-input
+
     ;; first try to open with org handling (includes urls)
+    ;; todo: see how org-open-at-point handles spacing
     (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
 
+    ;; this handles org links as well
+
     ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
-    (let ((file-name (nth 0 (s-split ":" (f-full (ffap-string-at-point)))))
-           (file-line (nth 1 (s-split ":" (ffap-string-at-point))))
-           (file-char (nth 2 (s-split ":" (ffap-string-at-point)))))
+    (let* ((file-name (nth 0 (s-split ":" (f-full (ffap-string-at-point)))))
+            (file-name-optimistic
+              (if (f-exists-p file-name)
+                file-name
+                ;; peek ahead of the point a space or two and see if that's a valid path
+                ;; this is so that paths with a single space in them can be used
+                ;; hmmmmmmm
+
+                )
+              )
+
+            (file-line (nth 1 (s-split ":" (ffap-string-at-point))))
+            (file-char (nth 2 (s-split ":" (ffap-string-at-point))))
+
+            (full-file-name
+              (format "file:%s%s" file-name
+                (if file-line
+                  ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
+                  (format "::%s" (string-to-number file-line)) ""))
+              )
+            )
 
       (if (f-exists-p file-name)
         (progn
-          (org-open-link-from-string
-            (format "file:%s%s" file-name
-              (if file-line
-                ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
-                (format "::%s" (string-to-number file-line)) "")))
+          (org-open-link-from-string full-file-name)
 
           (when file-char
             (move-beginning-of-line nil)
             (move-to-column file-char))
 
-          ;; (message "ns/follow: resolved with org link")
+          (ns/follow-log (format "ns/follow: resolved with org link after building: %s" full-file-name))
           t)
 
         (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
@@ -55,34 +109,34 @@
                   ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
                   (format "::%s" (string-to-number file-line)) "")))
 
-            ;; (message "ns/follow: resolved with ripgrep")
+            (ns/follow-log "ns/follow: resolved with ripgrep")
             t
             ))
         )
       )
 
     ;; fall back to definitions with smart jump
-    ;; (message "ns/follow: resolving with smart-jump-go")
+    (ns/follow-log "ns/follow: resolving with smart-jump-go")
     (shut-up (smart-jump-go))
-    ))
+    )
 
-;; todo: handle the bash/shell line number format:
-;; /home/neeasade/.wm_theme: line 155:
-(ns/bind "nn" 'ns/follow)
+  ;; todo: handle the bash/shell line number format:
+  ;; /home/neeasade/.wm_theme: line 155:
+  (ns/bind "nn" 'ns/follow)
 
-(defmacro ns/make-char-table (name upper lower)
-  "Make a char table for a certain kind of character"
-  `(defvar ,name
-     (let ((str (make-string 127 0)))
-       (dotimes (i 127)
-         (aset str i i))
-       (dotimes (i 26)
-         (aset str (+ i ?A) (+ i ,upper))
-         (aset str (+ i ?a) (+ i ,lower)))
-       str)))
+  (defmacro ns/make-char-table (name upper lower)
+    "Make a char table for a certain kind of character"
+    `(defvar ,name
+       (let ((str (make-string 127 0)))
+         (dotimes (i 127)
+           (aset str i i))
+         (dotimes (i 26)
+           (aset str (+ i ?A) (+ i ,upper))
+           (aset str (+ i ?a) (+ i ,lower)))
+         str)))
 
-(ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
-(ns/make-char-table ns/widechar-table ?Ａ ?ａ)
+  (ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
+  (ns/make-char-table ns/widechar-table ?Ａ ?ａ))
 (ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
 (ns/make-char-table ns/cursive-table ?𝓐 ?𝓪)
 

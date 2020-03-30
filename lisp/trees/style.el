@@ -3,6 +3,7 @@
 ;;(use-package ujelly-theme)
 
 (use-package apropospriate-theme)
+;; (use-package modus-operandi-theme)
 
 (defun ns/update-xrdb-font (font &optional variable)
   (let ((key (if variable "st.font_variable" "st.font")))
@@ -95,7 +96,7 @@
 (setq window-divider-default-right-width 1)
 
 (ns/apply-frames (fn (set-frame-parameter <> 'right-divider-width 1)))
-(ns/apply-frames (fn (set-frame-parameter <> 'bottom-divider-width 0)))
+(ns/apply-frames (fn (set-frame-parameter <> 'bottom-divider-width 1)))
 
 (setq window-divider-default-places t)
 

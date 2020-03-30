@@ -86,6 +86,7 @@
         result))))
 
 
+;; cf http://trey-jackson.blogspot.com/2008/08/emacs-tip-25-shell-dirtrack-by-prompt.html
 (defun shell-sync-dir-with-prompt (string)
   "A preoutput filter function (see `comint-preoutput-filter-functions')
 which sets the shell buffer's path to the path embedded in a prompt string.
@@ -196,6 +197,7 @@ Everything past that can be tailored to your liking.
   nil
   )
 
+;; killing this for now -- maybe check if anything is running in the window
 (defun! ns/kill-spawned-shell (frame)
   (let ((windows (window-list frame)))
     (when (eq 1 (length windows))
@@ -203,7 +205,8 @@ Everything past that can be tailored to your liking.
         (when (s-match "\*spawn-shell.*" (buffer-name buffer))
           (kill-buffer buffer))))))
 
-(add-hook 'delete-frame-hook 'ns/kill-spawned-shell)
+;; (add-hook 'delete-frame-hook 'ns/kill-spawned-shell)
+;; (remove-hook 'delete-frame-hook 'ns/kill-spawned-shell)
 
 (ns/bind "at" 'ns/spawn-terminal)
 

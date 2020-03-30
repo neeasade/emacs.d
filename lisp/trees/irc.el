@@ -76,12 +76,12 @@
          :tls t
          :channels ("#unix"))
 
-       ("OFTC"
-         :nick ,ns/irc-nick
-         :host "irc.oftc.net"
-         :port (6667 . 6697)
-         :tls t
-         :channels ("#bitlbee"))
+       ;; ("OFTC"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "irc.oftc.net"
+       ;;   :port (6667 . 6697)
+       ;;   :tls t
+       ;;   :channels ("#bitlbee"))
 
        ("eigenstate"
          :nick ,ns/irc-nick
@@ -90,10 +90,10 @@
          :tls t
          :channels ("#myrddin"))
 
-       ("Bitlbee"
-         :nick ,ns/irc-nick
-         :host "localhost"
-         )
+       ;; ("Bitlbee"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "localhost"
+       ;;   )
 
        ("Rizon"
          :nick ,ns/irc-nick
@@ -240,9 +240,12 @@
       (setq nick circe-last-nick)))
 
   ;; don't double print nicks
+  ;; here is where we should pass type and maybe check against it
+
   (if (string= nick circe-last-nick)
     (setq nick "")
-    (setq-local circe-last-nick nick))
+    (setq-local circe-last-nick nick)
+    )
 
   (setq-local circe-last-message body)
 
@@ -649,6 +652,7 @@
               sayer-display)))
     (goto-char (point-max))
     (if sayer
+      ;; why did I propertize this
       (insert (propertize (format "> %s: %s" sayer (s-trim quote-text)) 'read-only nil))
       (insert (propertize (format "> %s" sayer (s-trim quote-text)) 'read-only nil)))))
 
@@ -692,29 +696,41 @@
 
   (defun showcase--get-buffer-groups ()
     "Get the list of buffers, grouped by their major mode."
-    (->>
-
-      ;; what you really want is like
-      ;; get the circe-server-mode buffers
-      ;; and then get the query and channel modes that belong to that buffer
-      (ns/buffers-by-mode
-        'circe-server-mode
-        ;; 'circe-query-mode
-        ;; 'circe-channel-mode
-        )
-
-      (map
-        (fn
-          ;; group by all
-          )
-        )
-
-      ;; (buffer-list)
-      ;; (--reject (eq ?\ (aref (buffer-name it) 0)))
+    (->> (buffer-list)
+      (--reject (eq ?\ (aref (buffer-name it) 0)))
       (--group-by (buffer-local-value 'major-mode it)))
     )
 
-  (first (showcase--get-buffer-groups))
+  (defun showcase--get-buffer-groups ()
+    "Get the list of buffers, grouped by their major mode."
+    (let ((message-buffers (ns/buffers-by-mode 'circe-query-mode 'circe-channel-mode)))
+      (-map
+        (lambda (server-buffer)
+          (cons
+            (->> (prin1-to-string server-buffer)
+              (s-split " ")
+              (nth 1)
+              (s-split ":")
+              (nth 0)
+              ;; (apply 'quote)
+              (intern)
+              )
+
+            (-filter
+              (lambda (message-buffer)
+                (eq server-buffer
+                  (buffer-local-value 'circe-server-buffer message-buffer)))
+              message-buffers
+              ))
+          )
+        (ns/buffers-by-mode 'circe-server-mode)
+        )))
+
+  (first
+    (showcase--get-buffer-groups)
+
+    ;; #<buffer irc.rizon.net:6697>
+    )
 
   (defun showcase-visit-buffer (&rest _)
     "Switch to the buffer saved in node at point."
@@ -737,7 +753,7 @@
     :icon-open (treemacs-as-icon "- " 'face 'font-lock-string-face)
     :icon-closed (treemacs-as-icon "+ " 'face 'font-lock-string-face)
     :query-function (treemacs-button-get (treemacs-current-button) :buffers)
-    ;; (treemacs-current-button)
+    ;; todo: render action here is what should change
     :render-action
     (treemacs-render-node
       :icon treemacs-buffer-leaf-icon
@@ -787,5 +803,8 @@
   (treemacs-scope-storage)
 
   )
+
+
+;; todo: maybe turn off all ctcp handling
 
 ;; (showcase--get-buffer-groups)

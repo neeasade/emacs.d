@@ -116,7 +116,8 @@
             'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
             'display `((space :align-to (- (+ right right-fringe right-margin)
                                           ,(* (if (number-or-marker-p (face-attribute 'mode-line :height))
-                                                (/ (doom-modeline--window-font-width)
+                                                (/
+                                                  (doom-modeline--font-width)
                                                   (frame-char-width) 1.0)
                                                 1)
                                              (-
@@ -263,7 +264,11 @@
     (progn
       (setq ns/modeline mode-line-format)
       (setq mode-line-format nil))
-    (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
+    (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline))))
+    )
+
+
+;; (doom-modeline-format--neeasade-doomline)
 
   (redraw-frame))
 
