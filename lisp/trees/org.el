@@ -8,7 +8,10 @@
   (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
 
 (setq-ns org
-  directory (~ "notes")
+  directory (if (f-exists-p (~ "sync/main/notes"))
+              (~ "sync/main/notes")
+              (~ "notes"))
+
   default-notes-file  (concat org-directory "/notes.org")
   default-diary-file  (concat org-directory "/journal.org")
   default-habits-file  (concat org-directory "/habits.org")
