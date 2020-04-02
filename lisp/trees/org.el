@@ -22,6 +22,7 @@
 
   ellipsis "_"
 
+  adapt-indentation nil
   startup-indented nil
   startup-folded t
   startup-align-all-tables t

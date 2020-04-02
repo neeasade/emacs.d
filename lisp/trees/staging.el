@@ -31,7 +31,7 @@
 ;; idea: if you have a region selected, the link logic stuff should act on that
 ;; todo: if you are in org mode, looking at a link
 
-(defmacro ns/follow-log (message)
+(defun ns/follow-log (message)
   (when ns/verbose-follow (message message)))
 
 (defun! ns/follow()
@@ -82,7 +82,8 @@
               (format "file:%s%s" file-name
                 (if file-line
                   ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
-                  (format "::%s" (string-to-number file-line)) ""))
+                  (format "::%s" (string-to-number file-line)) "")
+                )
               )
             )
 
@@ -118,25 +119,26 @@
     ;; fall back to definitions with smart jump
     (ns/follow-log "ns/follow: resolving with smart-jump-go")
     (shut-up (smart-jump-go))
-    )
+    ))
 
-  ;; todo: handle the bash/shell line number format:
-  ;; /home/neeasade/.wm_theme: line 155:
-  (ns/bind "nn" 'ns/follow)
 
-  (defmacro ns/make-char-table (name upper lower)
-    "Make a char table for a certain kind of character"
-    `(defvar ,name
-       (let ((str (make-string 127 0)))
-         (dotimes (i 127)
-           (aset str i i))
-         (dotimes (i 26)
-           (aset str (+ i ?A) (+ i ,upper))
-           (aset str (+ i ?a) (+ i ,lower)))
-         str)))
+;; todo: handle the bash/shell line number format:
+;; /home/neeasade/.wm_theme: line 155:
+(ns/bind "nn" 'ns/follow)
 
-  (ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
-  (ns/make-char-table ns/widechar-table ?Ａ ?ａ))
+(defmacro ns/make-char-table (name upper lower)
+  "Make a char table for a certain kind of character"
+  `(defvar ,name
+     (let ((str (make-string 127 0)))
+       (dotimes (i 127)
+         (aset str i i))
+       (dotimes (i 26)
+         (aset str (+ i ?A) (+ i ,upper))
+         (aset str (+ i ?a) (+ i ,lower)))
+       str)))
+
+(ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
+(ns/make-char-table ns/widechar-table ?Ａ ?ａ)
 (ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
 (ns/make-char-table ns/cursive-table ?𝓐 ?𝓪)
 

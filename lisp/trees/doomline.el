@@ -118,6 +118,7 @@
                                           ,(* (if (number-or-marker-p (face-attribute 'mode-line :height))
                                                 (/
                                                   (doom-modeline--font-width)
+
                                                   (frame-char-width) 1.0)
                                                 1)
                                              (-
