@@ -55,9 +55,9 @@
                      "#distrotube"
                      "#clojure"
                      "#fennel"
+                     ;; so noisy
                      ;; "#nixos"
                      "#nixos-chat"
-                     "#nixos-emacs"
                      )
          )
 

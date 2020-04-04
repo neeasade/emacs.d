@@ -4,6 +4,8 @@
               :repo "emacsmirror/org"
               :files ("lisp/*.el" "contrib/lisp/*.el")))
 
+(require 'org-habit)
+
 (when ns/enable-evil-p
   (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
 
@@ -225,6 +227,7 @@
   (ns/set-faces-monospace '(org-block
                              org-code
                              org-table
+                             org-macro
                              org-formula
                              org-verbatim
                              company-tooltip

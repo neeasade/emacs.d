@@ -24,6 +24,7 @@
 ;; todo: if it's a dir and we are in shell-mode, cd to the dir instead in the current shell
 
 ;; if would be cool if this were tramp aware
+;; update: just check (file-remote-p default-directory)
 ;; maybe ffap-string-at-point should be let'd -- used almost everywhere
 
 ;; idea: rg could search $PATH and also git repo -- idea is jump to script when reading one
