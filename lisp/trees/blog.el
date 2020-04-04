@@ -24,7 +24,18 @@
       (fn (s-ends-with-p ".org" <>)))
     :action 'find-file))
 
-(ns/bind-soft "nq" 'ns/jump-to-blog-post)
+(defun! ns/jump-to-blog-post-draft ()
+  (ivy-read "drafted post: "
+    (let ((default-directory (ns/blog-path "posts")))
+      (->>
+        (ns/shell-exec "grep -r draft . | sed -E 's/:#\\+draft.*//'")
+        (s-split "\n")
+        (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))
+        ))
+    :action 'find-file))
+
+(ns/bind-soft "nq" 'ns/jump-to-blog-post-draft)
+(ns/bind-soft "nQ" 'ns/jump-to-blog-post)
 
 (defun ns/blog-file-to-meta (path)
   ;; a helper
@@ -144,15 +155,19 @@
   ;; need to define these here for index listings
   (let* ((get-org-files (fn (f-entries <> (fn (s-ends-with-p ".org" <>)))))
           (org-post-metas (->> ns/blog-posts-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
-          (org-page-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta))))
-    (ns/blog-generate-from-metas (append org-post-metas org-page-metas)))
+          (org-page-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
 
-  ;; rss!
-  (with-temp-buffer
-    (insert (org-file-contents (ns/blog-path "rss/rss.org")))
-    (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
+          ;; don't ask about generation when exporting
+          (org-confirm-babel-evaluate (fn nil)))
+    (ns/blog-generate-from-metas (append org-post-metas org-page-metas))
 
+    (with-temp-buffer
+      (insert (org-file-contents (ns/blog-path "rss/rss.org")))
+      (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
+    )
+  t
   )
+(ns/blog-generate)
 
 (defun! ns/blog-generate-from-metas (org-metas)
   (let ((default-directory (ns/blog-path "site"))
@@ -165,11 +180,7 @@
          (org-time-stamp-custom-formats '("%Y-%m-%d"))
          (org-display-custom-times t)
 
-         ;; don't ask about generation when exporting
-         (org-confirm-babel-evaluate (fn nil)))
+         )
 
     (mapcar 'ns/blog-publish-file org-metas)
-    )
-
-  t ;; for calling from elisp script
-  )
+    ))
