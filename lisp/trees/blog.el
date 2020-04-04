@@ -9,11 +9,14 @@
 ;; - rss feed
 ;; - it's really slow right now (4s? we also have 0 caching so consider that)
 ;; (measure-time (ns/blog-generate)) ;; 4.269
-;; (measure-time (ns/blog-generate))
 ;; (ns/blog-generate)
 
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
+
+(setq ns/blog-posts-dir (ns/blog-path "posts"))
+(setq ns/blog-pages-dir (ns/blog-path "pages"))
+(setq ns/blog-site-dir (ns/blog-path "site"))
 
 (defun! ns/jump-to-blog-post ()
   (ivy-read "post: "
@@ -103,10 +106,32 @@
     (insert (ht-get org-file-meta :org-content))
     (org-export-to-file 'html (ht-get org-file-meta :html-dest))))
 
+;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
-  (ns/blog-generate (buffer-file-name (current-buffer))))
+  (let* ((file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta))
+          (post-html-file (ht-get file-meta :html-dest))
+          )
 
-(defun! ns/blog-generate (&optional preview-file)
+    (ns/blog-generate-from-metas (list file-meta))
+
+    (message post-html-file)
+    (if (string= (concat "file://" post-html-file) (ns/shell-exec "qb_active_url"))
+      (ns/shell-exec "qb_command :reload")
+      (browse-url post-html-file))))
+
+(defun! ns/blog-generate ()
+  ;; cleanup
+  (mapcar 'f-delete
+    (f-entries ns/blog-site-dir
+      (fn (s-ends-with-p ".html" <>))))
+  ;; need to define these here for index listings
+  (let* ((get-org-files (fn (f-entries <> (fn (s-ends-with-p ".org" <>)))))
+          (org-post-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
+          (org-page-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta))))
+    (ns/blog-generate-from-metas (append org-post-metas org-page-metas)))
+  )
+
+(defun! ns/blog-generate-from-metas (org-metas)
   (let ((default-directory (ns/blog-path "site"))
          (org-export-with-toc nil)
          (org-export-with-timestamps nil)
@@ -120,33 +145,7 @@
          ;; don't ask about generation when exporting
          (org-confirm-babel-evaluate (fn nil)))
 
-    ;; cleanup
-    (mapcar 'f-delete
-      (f-entries ns/blog-site-dir
-        (fn (s-ends-with-p ".html" <>))))
-
-    (defun org-dir-to-metas (dir)
-      (mapcar 'ns/blog-file-to-meta
-        (f-entries dir (fn (s-ends-with-p ".org" <>)))))
-
-    (let ((post-metas
-            (if preview-file
-              (list (ns/blog-file-to-meta preview-file))
-              (append
-                (org-dir-to-metas ns/blog-posts-dir)
-                (org-dir-to-metas ns/blog-page-dir)
-                )) )
-           )
-
-      (mapcar 'ns/blog-publish-file post-metas)
-
-      ;; pain
-      (when preview-file
-        (let ((post-html-file (ht-get (first post-metas) :html-dest)))
-          (message post-html-file)
-          (if (string= (concat "file://" post-html-file) (ns/shell-exec "qb_active_url"))
-            (ns/shell-exec "qb_command :reload")
-            (browse-url post-html-file)))))
+    (mapcar 'ns/blog-publish-file org-metas)
     )
 
   t ;; for calling from elisp script
