@@ -9,6 +9,7 @@
 ;; - rss feed
 ;; - it's really slow right now (4s? we also have 0 caching so consider that)
 ;; (measure-time (ns/blog-generate)) ;; 4.269
+
 ;; (ns/blog-generate)
 
 (defun ns/blog-path (ext)
@@ -126,7 +127,7 @@
       (fn (s-ends-with-p ".html" <>))))
   ;; need to define these here for index listings
   (let* ((get-org-files (fn (f-entries <> (fn (s-ends-with-p ".org" <>)))))
-          (org-post-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
+          (org-post-metas (->> ns/blog-posts-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
           (org-page-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta))))
     (ns/blog-generate-from-metas (append org-post-metas org-page-metas)))
   )
