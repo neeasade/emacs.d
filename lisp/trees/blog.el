@@ -9,7 +9,6 @@
 ;; - rss feed
 ;; - it's really slow right now (4s? we also have 0 caching so consider that)
 ;; (measure-time (ns/blog-generate)) ;; 4.269
-
 ;; (ns/blog-generate)
 
 (defun ns/blog-path (ext)
@@ -41,12 +40,24 @@
             (let ((git-query-result (ns/shell-exec (format "cd %s; git log -1 --format=%%cI %s" (f-dirname path) path))))
               (if (s-blank-p git-query-result)
                 nil (substring git-query-result 0 10))))
-          (published-date (when is-post (substring (f-base path) 0 10)))
+
+
 
           (history-link
             (format "https://github.com/neeasade/neeasade.github.io/commits/source/%s/%s"
               (if is-post "posts" "pages")
               (f-filename path)
+              ))
+
+          (org-file-content (s-split "\n" (org-file-contents path)))
+
+          (published-date
+            (when is-post
+              (let ((internal-pubdate (-first (fn (s-starts-with-p "#+pubdate:" <>)) org-file-content)))
+                (if internal-pubdate
+                  (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
+                  (substring (f-base path) 0 10)
+                  ))
               ))
 
           (post-org-content-lines
@@ -59,7 +70,7 @@
                       published-date
                       ))
 
-                 ,@(s-split "\n" (org-file-contents path))
+                 ,@org-file-content
 
                  ,(ns/blog-make-nav-strip
                     "[[file:./index.html][Index]]"
@@ -75,7 +86,7 @@
                  )))
 
           (post-title
-            (->> post-org-content-lines
+            (->> org-file-content
               (-first (fn (s-starts-with-p "#+title:" <>)))
               (s-replace "#+title: " "")))
           (post-is-draft
@@ -89,15 +100,20 @@
       (:is-draft post-is-draft)
       (:title post-title)
       (:publish-date published-date)
+
+      (:published-link
+        (format "https://notes.neeasade.net/%s.html"
+          (if is-post
+            (substring (f-base path) 11) ;; remove the date
+            (f-base path))))
+
       (:html-dest (format "%s/%s.html"
                     (ns/blog-path "site")
-
                     ;; (f-base path)
-
-                    ;; remove the date
                     (if is-post
-                      (substring (f-base path) 11)
+                      (substring (f-base path) 11) ;; remove the date
                       (f-base path))))
+
       (:edited-date last-edited)
       (:history-link history-link)
       )))
@@ -110,8 +126,7 @@
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
   (let* ((file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta))
-          (post-html-file (ht-get file-meta :html-dest))
-          )
+          (post-html-file (ht-get file-meta :html-dest)))
 
     (ns/blog-generate-from-metas (list file-meta))
 
@@ -125,11 +140,18 @@
   (mapcar 'f-delete
     (f-entries ns/blog-site-dir
       (fn (s-ends-with-p ".html" <>))))
+
   ;; need to define these here for index listings
   (let* ((get-org-files (fn (f-entries <> (fn (s-ends-with-p ".org" <>)))))
           (org-post-metas (->> ns/blog-posts-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
           (org-page-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta))))
     (ns/blog-generate-from-metas (append org-post-metas org-page-metas)))
+
+  ;; rss!
+  (with-temp-buffer
+    (insert (org-file-contents (ns/blog-path "rss/rss.org")))
+    (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
+
   )
 
 (defun! ns/blog-generate-from-metas (org-metas)
