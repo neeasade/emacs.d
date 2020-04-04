@@ -132,7 +132,11 @@
 
   (->> (seq-take recentf-list 6)
     (-filter (fn (not (s-ends-with-p "recentf" <>))))
-    (mapc (fn (when (f-exists-p <>)
+    (mapc (fn (when
+                (and
+                  ;; don't open up tramp files on startup, slow
+                  (not (file-remote-p <>))
+                  (f-exists-p <>))
                 (find-file <>)))))
 
   (when (f-exists-p (~ "extend.el"))

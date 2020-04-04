@@ -9,11 +9,12 @@
 ;; - rss feed
 ;; - it's really slow right now (4s? we also have 0 caching so consider that)
 ;; (measure-time (ns/blog-generate)) ;; 4.269
+;; (measure-time (ns/blog-generate))
+;; (ns/blog-generate)
 
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
 
-;; todo: consider making this title
 (defun! ns/jump-to-blog-post ()
   (ivy-read "post: "
     (f-entries (ns/blog-path "posts")
@@ -23,6 +24,7 @@
 (ns/bind-soft "nq" 'ns/jump-to-blog-post)
 
 (defun ns/blog-file-to-meta (path)
+  ;; a helper
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
       (list "\n#+BEGIN_CENTER\n[ "
@@ -38,8 +40,10 @@
           (published-date (when is-post (substring (f-base path) 0 10)))
 
           (history-link
-            (format "https://github.com/neeasade/neeasade.github.io/commits/source/posts/%s"
-              (f-filename path)))
+            (format "https://github.com/neeasade/neeasade.github.io/commits/source/%s/%s"
+              (if is-post "posts" "pages")
+              (f-filename path)
+              ))
 
           (post-org-content-lines
             (-non-nil
@@ -100,26 +104,17 @@
     (org-export-to-file 'html (ht-get org-file-meta :html-dest))))
 
 (defun! ns/blog-generate-and-open-current-file ()
-  (let* ((post-meta (ns/blog-file-to-meta (buffer-file-name (current-buffer))))
-          (post-html-file (ht-get post-meta :html-dest)))
-    (ns/blog-publish-file post-meta)
-    (message post-html-file)
-    (if (string= (concat "file://" post-html-file) (ns/shell-exec "qb_active_url"))
-      (ns/shell-exec "qb_command :reload")
-      (browse-url post-html-file))))
+  (ns/blog-generate (buffer-file-name (current-buffer))))
 
-(defun! ns/blog-generate ()
-  (let ((ns/blog-posts-dir (ns/blog-path "posts"))
-         (ns/blog-pages-dir (ns/blog-path "pages"))
-         (ns/blog-site-dir (ns/blog-path "site"))
-         (default-directory (ns/blog-path "site"))
+(defun! ns/blog-generate (&optional preview-file)
+  (let ((default-directory (ns/blog-path "site"))
          (org-export-with-toc nil)
          (org-export-with-timestamps nil)
          (org-export-with-date nil)
          (org-html-html5-fancy t)
 
+         ;; affects timestamp export format
          (org-time-stamp-custom-formats '("%Y-%m-%d"))
-
          (org-display-custom-times t)
 
          ;; don't ask about generation when exporting
@@ -130,9 +125,29 @@
       (f-entries ns/blog-site-dir
         (fn (s-ends-with-p ".html" <>))))
 
-    (let ((org-post-metas (mapcar 'ns/blog-file-to-meta (f-entries ns/blog-posts-dir (fn (s-ends-with-p ".org" <>)))))
-           (org-page-metas (mapcar 'ns/blog-file-to-meta (f-entries ns/blog-pages-dir (fn (s-ends-with-p ".org" <>))))))
-      (mapcar 'ns/blog-publish-file org-page-metas)
-      (mapcar 'ns/blog-publish-file org-post-metas)))
+    (defun org-dir-to-metas (dir)
+      (mapcar 'ns/blog-file-to-meta
+        (f-entries dir (fn (s-ends-with-p ".org" <>)))))
+
+    (let ((post-metas
+            (if preview-file
+              (list (ns/blog-file-to-meta preview-file))
+              (append
+                (org-dir-to-metas ns/blog-posts-dir)
+                (org-dir-to-metas ns/blog-page-dir)
+                )) )
+           )
+
+      (mapcar 'ns/blog-publish-file post-metas)
+
+      ;; pain
+      (when preview-file
+        (let ((post-html-file (ht-get (first post-metas) :html-dest)))
+          (message post-html-file)
+          (if (string= (concat "file://" post-html-file) (ns/shell-exec "qb_active_url"))
+            (ns/shell-exec "qb_command :reload")
+            (browse-url post-html-file)))))
+    )
+
   t ;; for calling from elisp script
   )
