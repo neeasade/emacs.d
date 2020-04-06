@@ -52,8 +52,6 @@
               (if (s-blank-p git-query-result)
                 nil (substring git-query-result 0 10))))
 
-
-
           (history-link
             (format "https://github.com/neeasade/neeasade.github.io/commits/source/%s/%s"
               (if is-post "posts" "pages")
@@ -129,10 +127,26 @@
       (:history-link history-link)
       )))
 
-(defun ns/blog-publish-file (org-file-meta)
-  (with-temp-buffer
-    (insert (ht-get org-file-meta :org-content))
-    (org-export-to-file 'html (ht-get org-file-meta :html-dest))))
+(defun! ns/blog-generate-from-metas (org-metas)
+  ;; publish with our org html export settings
+  (let ((default-directory (ns/blog-path "site"))
+         (org-export-with-toc nil)
+         (org-export-with-timestamps nil)
+         (org-export-with-date nil)
+         (org-html-html5-fancy t)
+
+         ;; affects timestamp export format
+         (org-time-stamp-custom-formats '("%Y-%m-%d"))
+         (org-display-custom-times t)
+         )
+
+    (mapcar
+      (fn (with-temp-buffer
+            (message (format "BLOG: making %s " (ht-get <> :path)))
+            (insert (ht-get <> :org-content))
+            (org-export-to-file 'html (ht-get <> :html-dest))))
+      org-metas)
+    ))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
@@ -161,30 +175,14 @@
           (org-confirm-babel-evaluate (fn nil)))
     (ns/blog-generate-from-metas (append org-post-metas org-page-metas))
 
+    (message "BLOG: making site rss!")
+    (require 'ox-rss)
     (with-temp-buffer
       (insert (org-file-contents (ns/blog-path "rss/rss.org")))
       (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
     )
   t
   )
-(ns/blog-generate)
-
-(defun! ns/blog-generate-from-metas (org-metas)
-  (let ((default-directory (ns/blog-path "site"))
-         (org-export-with-toc nil)
-         (org-export-with-timestamps nil)
-         (org-export-with-date nil)
-         (org-html-html5-fancy t)
-
-         ;; affects timestamp export format
-         (org-time-stamp-custom-formats '("%Y-%m-%d"))
-         (org-display-custom-times t)
-
-         )
-
-    (mapcar 'ns/blog-publish-file org-metas)
-    ))
-
 
 ;; cf https://writequit.org/articles/emacs-org-mode-generate-ids.html#the-problem
 (defun! eos/org-custom-id-get (&optional pom create prefix)

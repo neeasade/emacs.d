@@ -45,6 +45,7 @@
          :channels (:after-auth
                      "#bspwm"
                      "#qutebrowser"
+                     "#lobsters"
                      "#emacs"
                      "#sway-devel"
                      "#k-slug"
