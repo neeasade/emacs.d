@@ -2,11 +2,7 @@
 (use-package htmlize)
 
 ;; todo:
-;; - elisp publish function?
 ;; - jump to most recently edited file (atime should be fine)
-
-;; - sitemap? of the pages that aren't posts
-;; - rss feed
 ;; - it's really slow right now (4s? we also have 0 caching so consider that)
 ;; (measure-time (ns/blog-generate)) ;; 4.269
 ;; (ns/blog-generate)
@@ -41,9 +37,11 @@
   ;; a helper
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
-      (list "\n#+BEGIN_CENTER\n[ "
-        (->> items (s-join " ¦ "))
-        " ]\n#+END_CENTER\n")))
+      (list "\n#+BEGIN_CENTER\n"
+        "[ "
+        (->> (-remove 'not items) (s-join " | "))
+        " ]"
+        "\n#+END_CENTER\n")))
 
   (let* ((is-post
            (-contains-p (f-entries (ns/blog-path "posts") (fn (s-ends-with-p ".org" <>))) path))
@@ -88,9 +86,9 @@
                       (concat
                         "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/"
                         (if is-post "posts/" "pages/")
-                        (f-filename path)
-                        )
-                      )
+                        (f-filename path)))
+                    "[[https://notes.neeasade.net/sitemap.html][Sitemap]]"
+                    (when (not is-post) (format "[[%s][History]]" history-link))
                     )
                  )))
 
