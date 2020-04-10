@@ -817,52 +817,25 @@
 
 
   (ns/bind-mode 'alda "e" 'ns/smart-alda-eval)
-
-  )
-
-(defconfig scripting
-  ;; enable calling emacs lisp scripts in running emacs server via 'elisp' script
-  (add-to-list 'interpreter-mode-alist '("elisp" . emacs-lisp-mode))
-
-  ;; cf https://stackoverflow.com/questions/30568113/result-value-of-elisp-code-stored-in-a-file
-  (defun ns/eval-file (file &rest ns-args)
-    "Execute FILE and return the result of the last expression."
-    (eval
-      ;; (ignore-errors
-      (read-from-whole-string
-        (concat "(progn "
-          (with-temp-buffer
-            (insert-file-contents file)
-            (buffer-string))
-          ")"))))
-
-  ;; helper for unpacking args provided by eval-file
-  ;; (ns/let-script-args (named named2) body)
-  (defmacro ns/let-script-args (args &rest content)
-    `(let (,@(mapcar
-               (fn (list (nth <> args)
-                     (nth <> ns-args)))
-               (number-sequence 0 (- (length ns-args) 1))))
-       ,@content
-       ))
   )
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-(defconfig editing       (load "~/.emacs.d/lisp/trees/editing.el"))
-(defconfig evil          (load "~/.emacs.d/lisp/trees/evil.el"))
-(defconfig git           (load "~/.emacs.d/lisp/trees/git.el"))
-(defconfig interface     (load "~/.emacs.d/lisp/trees/interface.el"))
-(defconfig irc           (load "~/.emacs.d/lisp/trees/irc.el"))
-(defconfig org           (load "~/.emacs.d/lisp/trees/org.el"))
-(defconfig sanity        (load "~/.emacs.d/lisp/trees/sanity.el"))
-(defconfig shell         (load "~/.emacs.d/lisp/trees/shell.el"))
-(defconfig spaceline     (load "~/.emacs.d/lisp/trees/spaceline.el"))
-(defconfig doomline     (load "~/.emacs.d/lisp/trees/doomline.el"))
-(defconfig staging       (load "~/.emacs.d/lisp/trees/staging.el"))
-(defconfig util          (load "~/.emacs.d/lisp/trees/util.el"))
-(defconfig blog          (load "~/.emacs.d/lisp/trees/blog.el"))
-(defconfig-base style    (interactive) (load "~/.emacs.d/lisp/trees/style.el"))
+(defconfig editing    (load "~/.emacs.d/lisp/trees/editing.el"))
+(defconfig evil       (load "~/.emacs.d/lisp/trees/evil.el"))
+(defconfig git        (load "~/.emacs.d/lisp/trees/git.el"))
+(defconfig interface  (load "~/.emacs.d/lisp/trees/interface.el"))
+(defconfig irc        (load "~/.emacs.d/lisp/trees/irc.el"))
+(defconfig org        (load "~/.emacs.d/lisp/trees/org.el"))
+(defconfig sanity     (load "~/.emacs.d/lisp/trees/sanity.el"))
+(defconfig shell      (load "~/.emacs.d/lisp/trees/shell.el"))
+(defconfig spaceline  (load "~/.emacs.d/lisp/trees/spaceline.el"))
+(defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))
+(defconfig staging    (load "~/.emacs.d/lisp/trees/staging.el"))
+(defconfig util       (load "~/.emacs.d/lisp/trees/util.el"))
+(defconfig scripting  (load "~/.emacs.d/lisp/trees/scripting.el"))
+(defconfig blog       (load "~/.emacs.d/lisp/trees/blog.el"))
+(defconfig-base style (interactive) (load "~/.emacs.d/lisp/trees/style.el"))
 
 (provide 'forest)
 
