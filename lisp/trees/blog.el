@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 ;; for fontifying src blocks
 (use-package htmlize)
 
@@ -26,8 +27,7 @@
       (->>
         (ns/shell-exec "grep -r draft . | sed -E 's/:#\\+draft.*//'")
         (s-split "\n")
-        (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))
-        ))
+        (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))))
     :action 'find-file))
 
 (ns/bind-soft "nq" 'ns/jump-to-blog-post-draft)
@@ -38,9 +38,7 @@
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
       (list "\n#+BEGIN_CENTER\n"
-        "[ "
-        (->> (-remove 'not items) (s-join " | "))
-        " ]"
+        "[ " (->> (-remove 'not items) (s-join " | ")) " ]"
         "\n#+END_CENTER\n")))
 
   (let* ((is-post
@@ -64,8 +62,7 @@
                 (if internal-pubdate
                   (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
                   (substring (f-base path) 0 10)
-                  ))
-              ))
+                  ))))
 
           (post-org-content-lines
             (-non-nil
@@ -114,12 +111,26 @@
             (substring (f-base path) 11) ;; remove the date
             (f-base path))))
 
+      (:rss-title
+        (->> post-org-content-lines
+          (-first (fn (s-starts-with-p "#+rss_title:" <>)))
+          ((lambda (found)
+             (when found
+               (s-replace "#+rss_title: " "" found))))
+          ))
+
       (:html-dest (format "%s/%s.html"
                     (ns/blog-path "site")
                     ;; (f-base path)
-                    (if is-post
-                      (substring (f-base path) 11) ;; remove the date
-                      (f-base path))))
+                    (->> (if is-post
+                           (substring (f-base path) 11) ;; remove the date
+                           (f-base path))
+                      ;; this is crack code
+                      ;; build a bunch of removers, compose them, apply to path
+                      (funcall (apply '-compose (mapcar (lambda (char) (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,")))
+                      )
+
+                    ))
 
       (:edited-date last-edited)
       (:history-link history-link)
@@ -175,12 +186,18 @@
 
     (message "BLOG: making site rss!")
     (require 'ox-rss)
+
     (with-temp-buffer
       (insert (org-file-contents (ns/blog-path "rss/rss.org")))
       (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
+
     )
   t
   )
+
+
+(ns/use-package om "ndwarshuis/om.el")
+(require 'om)
 
 ;; cf https://writequit.org/articles/emacs-org-mode-generate-ids.html#the-problem
 (defun! eos/org-custom-id-get (&optional pom create prefix)
@@ -204,3 +221,15 @@
   "Add CUSTOM_ID properties to all headlines in the
    current file which do not already have one."
   (org-map-entries (lambda () (eos/org-custom-id-get (point) 'create))))
+
+(defun! ns/blog-new-post ()
+  (let*
+    ((title (read-from-minibuffer "new blog post title: "))
+      (date (ns/shell-exec "date +%Y-%m-%d"))
+      (file (format (~ "git/neeasade.github.io/posts/%s-%s.org") date
+              (s-replace " " "-" title)))
+      )
+    (find-file file)
+    (insert (format "#+title: %s\n" title))
+    (insert "#+draft: t\n\n")
+    ))
