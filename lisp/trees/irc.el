@@ -47,6 +47,7 @@
                      "#qutebrowser"
                      "#lobsters"
                      "#emacs"
+                     "#lobsters"
                      "#sway-devel"
                      "#k-slug"
                      "#qutebrowser-offtopic"
@@ -67,7 +68,7 @@
          :host "irc.cyberia.is"
          :port 6697
          :tls t
-         :channels ("#cyberia")
+         :channels ("#cyberia" "#2f30")
          )
 
        ("Nixers"
@@ -632,10 +633,10 @@
         ))))
 
 (defun! ns/kill-all-irc ()
-  (mapcar 'kill-buffer
-    (ns/buffers-by-mode 'circe-server-mode 'circe-query-mode
-      'circe-channel-mode
-      )))
+  ;; XXX this should be a let of some kind
+  (fset 'yes-or-no-p (fn t))
+  (mapcar 'kill-buffer (ns/buffers-by-mode 'circe-server-mode))
+  (fset 'yes-or-no-p 'y-or-n-p))
 
 (defun! ns/circe-quote ()
   "quote whoever spoke at point -- conflict potential in the first 7 chars of a nick"
@@ -653,9 +654,10 @@
               sayer-display)))
     (goto-char (point-max))
     (if sayer
-      ;; why did I propertize this
+      ;; the propertize is so the text isn't read only
       (insert (propertize (format "> %s: %s" sayer (s-trim quote-text)) 'read-only nil))
-      (insert (propertize (format "> %s" sayer (s-trim quote-text)) 'read-only nil)))))
+      (insert (propertize (format "> %s" sayer (s-trim quote-text)) 'read-only nil))
+      )))
 
 (ns/bind-mode 'circe-channel
   "qc" 'ns/circe-count-nicks-message
