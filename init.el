@@ -118,7 +118,7 @@
 
   irc 
   email
-  elfeed
+  rss
   )
 
 ;; liftoff

@@ -672,9 +672,8 @@
   ;; (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
   )
 
-(defconfig elfeed
+(defconfig rss
   (ns/guard ns/enable-home-p)
-  (ns/guard nil)
   (use-package elfeed
     :config
     (ns/bind "af" 'elfeed)
