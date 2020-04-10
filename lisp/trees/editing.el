@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 (use-package editorconfig :config (editorconfig-mode 1))
 (setq tab-width 4)
 
@@ -69,7 +71,7 @@
 (add-hook 'after-change-major-mode-hook 'spacemacs//set-evil-shift-width 'append)
 
 ;; only trim whitespace on lines you edit
-(use-package ws-butler :config (ws-butler-global-mode))
+(ns/use-package ws-butler "hlissner/ws-butler" :config (ws-butler-global-mode))
 
 ;; to always trim it all
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
