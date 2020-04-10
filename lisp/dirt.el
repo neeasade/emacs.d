@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 ;; lay the plot
 
 ;; get straight.el

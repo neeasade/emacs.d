@@ -1,5 +1,5 @@
-;;; -*- lexical-binding: t; -*-
-;; lexical needed for our def-modeline override
+;; -*- lexical-binding: t; -*-
+
 (use-package doom-modeline)
 
 (defface ns/mode-line-middle

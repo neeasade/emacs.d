@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 ;;; init.el --- this file has the knobs
 ;;; commentary:
 ;;; code:

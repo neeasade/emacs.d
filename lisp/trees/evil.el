@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; evil-collection
 (setq evil-want-keybinding nil)
 

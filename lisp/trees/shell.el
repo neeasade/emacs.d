@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; this mostly covers my usage of emacs shell-mode as my interactive shell
 (require 'comint)
 

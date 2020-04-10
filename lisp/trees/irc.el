@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (ns/guard ns/enable-home-p)
 
 ;; todo:

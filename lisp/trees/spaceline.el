@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (defun spacemacs/compute-powerline-height ()
   "Return an adjusted powerline height."
   (let ((scale (if (and (boundp 'powerline-scale) powerline-scale)

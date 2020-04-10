@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (global-set-key (kbd "C-e") 'previous-line)
 
 (use-package ivy

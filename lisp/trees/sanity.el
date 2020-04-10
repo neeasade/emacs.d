@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 
 ;; should this be in dirt
 (use-package no-littering

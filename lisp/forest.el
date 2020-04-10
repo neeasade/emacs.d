@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 ;;; forest.el --- forest.el
 ;;; Commentary:
 ;;; functions             | ns/asdf
