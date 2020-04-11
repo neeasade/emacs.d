@@ -90,24 +90,7 @@
 
 ;; cf http://trey-jackson.blogspot.com/2008/08/emacs-tip-25-shell-dirtrack-by-prompt.html
 (defun shell-sync-dir-with-prompt (string)
-  "A preoutput filter function (see `comint-preoutput-filter-functions')
-which sets the shell buffer's path to the path embedded in a prompt string.
-This is a more reliable way of keeping the shell buffer's path in sync
-with the shell, without trying to pattern match against all
-potential directory-changing commands, ala `shell-dirtrack-mode'.
-
-In order to work, your shell must be configured to embed its current
-working directory into the prompt.  Here is an example .zshrc
-snippet which turns this behavior on when running as an inferior Emacs shell:
-
-  if [ $EMACS ]; then
-     prompt='|Pr0mPT|%~|[%n@%m]%~%# '
-  fi
-
-The part that Emacs cares about is the '|Pr0mPT|%~|'
-Everything past that can be tailored to your liking.
-"
-  (if (string-match "|Pr0mPT|\\([^|]*\\)|" string)
+  (if (string-match "\\+Pr0mPT\\+\\([^+]*\\)\\+" string)
     (let ((cwd (match-string 1 string)))
       (setq default-directory
         (if (string-equal "/" (substring cwd -1))
@@ -161,41 +144,46 @@ Everything past that can be tailored to your liking.
 
 (ns/stage-terminal)
 
-(defun! ns/spawn-terminal ()
+(defun! ns/spawn-terminal (&optional cwd)
   (select-frame (make-frame))
-  (ns/pickup-shell nil t)
+  (ns/pickup-shell cwd t)
 
   ;; todo here: ensure there is no modeline on spawned terminal -- also maybe mode line refresh
   ;; return t so that elisp ns/spawn-terminal call is true
   t)
 
-;; todo: if cwd is a tramp dir do ssh to it first
 (defun! ns/pickup-shell (&optional cwd terminal)
   (when (not (get-buffer "*spawn-shell-staged*"))
     (ns/stage-terminal))
 
-  (progn
-    (switch-to-buffer (get-buffer "*spawn-shell-staged*"))
+  (if (file-remote-p (or cwd ""))
+    (let ((default-directory cwd)
+           ;; file-remote-p returns the tramp connection info without the path
+           (process-environment (cons (format "TRAMP_INFO=%s" (file-remote-p cwd)) process-environment)))
+      (message "handling this remote shell")
+      (message cwd)
+      (save-window-excursion (shell "*spawn-shell-remote-temp*"))
+      (switch-to-buffer (get-buffer "*spawn-shell-remote-temp*")))
+    (switch-to-buffer (get-buffer "*spawn-shell-staged*")))
 
-    (rename-buffer
-      (format "*spawn-shell-%s*"
-        ;; get the pid of the running bash process
-        (car (mapcar 'process-id
-               (-filter
-                 (fn (eq (process-buffer <>)
-                       (current-buffer)))
-                 (process-list))))))
+  (rename-buffer
+    (format "*spawn-shell-%s*"
+      ;; get the pid of the running bash process
+      (car (mapcar 'process-id
+             (-filter
+               (fn (eq (process-buffer <>)
+                     (current-buffer)))
+               (process-list))))))
 
-    (when terminal
-      (when (string= (get-resource "Emacs.padding_source") "st")
-        (set-window-fringes nil 0 0)))
+  (when terminal
+    (when (string= (get-resource "Emacs.padding_source") "st")
+      (set-window-fringes nil 0 0)))
 
-    (when cwd (shell-pop--cd-to-cwd-shell cwd))
+  (when cwd (shell-pop--cd-to-cwd-shell cwd))
 
-    ;; we don't care about how long it takes to stage the terminal
-    (make-thread (fn (ns/stage-terminal)))
-    t
-    )
+  ;; we don't care about how long it takes to stage the terminal
+  (make-thread (fn (ns/stage-terminal)))
+  ;; t
   nil
   )
 
