@@ -1,8 +1,10 @@
 ;; -*- lexical-binding: t; -*-
+
 (use-package indent-guide
   :config
   (set-face-foreground 'indent-guide-face
-    (face-attribute 'font-lock-keyword-face :foreground))
+    ;; (face-attribute 'font-lock-keyword-face :foreground)
+    (face-attribute 'font-lock-comment-face :foreground))
 
   ;; (set-face-foreground 'indent-guide-face (ns/color-tone (face-attribute 'default :background) 15 15))
 
@@ -330,3 +332,26 @@
               (* 5 60))
         (garbage-collect)
         )))
+
+(ns/bind
+  "nd"
+  (fn!
+    (ivy-read "directory: "
+      ;; todo: this should filter to the current tramp, rather than remove them all
+      ;; could then change ivy prompt show host
+      (-uniq ns/cd-dirs)
+
+      ;; todo: be more intelligent about remote relations
+      ;; (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) ns/cd-dirs))
+
+      :action
+      (lambda (dir)
+        (cond
+          ((eq major-mode 'dired-mode) (dired dir))
+          ((eq major-mode 'shell-mode)
+            (goto-char (point-max))
+            (insert (concat "cd \"" dir "\""))
+            (comint-send-input))
+          (t (insert dir))))
+
+      )))

@@ -79,24 +79,32 @@
   (kbd "<C-return>") (fn!
                        (->>
                          (dired-get-file-for-visit)
-                         (format "xdg-open \"%s\"")
+                         (format "setsid nohup xdg-open \"%s\" &")
                          (ns/shell-exec-dontcare))
-                       (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
+                       ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
+                       )
 
-  "s" (fn!
-        (ns/pickup-shell (expand-file-name default-directory))
-        (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
+  "s"
+  (fn!
+    (let ((existing-shell
+            ;; there's a silly issue here.
+            ;; when we call f-full tramp connections are realized but might not be connected, meaning lag/failure
+            ;; but we need f-full because sometimes '~' is used in default directory
+            ;; we can toss the tramp dirs before comparing with f-full/f-same-p to remove the delay
+            (->> (ns/buffers-by-mode 'shell-mode)
+              (-filter (fn (not (s-starts-with-p "*shell-" (buffer-name <>)))))
+              (-filter (fn (not (file-remote-p (buffer-local-value 'default-directory <>)))))
+              (-filter (fn (f-same-p (buffer-local-value 'default-directory <>)
+                             default-directory)))
+              (first))))
+
+      (if existing-shell
+        (switch-to-buffer existing-shell)
+        (ns/pickup-shell (expand-file-name default-directory))))
+    ;; todo: maybe:
+    ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
+    )
   "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))))
-;; todo: this won't bind? invalid prefix key? whaaaaat
-;; (ns/bind-mode 'dired
-;;   "nd" (fn!
-;;          (ivy-read "dir: "
-;;            ;; todo: this should filter to the current tramp, rather than remove them all
-;;            ;; could then change ivy prompt show host
-;;            (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) ns/cd-dirs))
-
-;;            :action (fn! (dired <>))))
-;;   )
 
 (defun my-resize-margins ()
   (let ((margin-size (if ns/center (/ (- (frame-width) 120) 2) 0)))
