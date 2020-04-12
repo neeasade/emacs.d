@@ -367,3 +367,29 @@
 
   (add-hook 'org-present-mode-hook 'ns/org-present-init)
   (add-hook 'org-present-mode-quit-hook 'ns/org-present-quit))
+
+;; standalone capture experience
+(defun! ns/org-capture-popup ()
+  (ns/shell-exec-dontcare "popup_window.sh -r")
+  (select-frame (make-frame '((name . "org-protocol-capture"))))
+  (org-capture))
+
+;; cf https://fuco1.github.io/2017-09-02-Maximize-the-org-capture-buffer.html
+(defvar my-org-capture-before-config nil)
+
+(defadvice org-capture (before save-config activate)
+  "Save the window configuration before `org-capture'."
+  (setq ns/my-org-capture-before-config (current-window-configuration)))
+
+(add-hook 'org-capture-mode-hook 'delete-other-windows)
+
+(defun my-org-capture-cleanup ()
+  "Clean up the frame created while capturing via org-protocol."
+  (when ns/my-org-capture-before-config
+    (set-window-configuration ns/my-org-capture-before-config))
+
+  (-when-let ((&alist 'name name) (frame-parameters))
+    (when (equal name "org-protocol-capture")
+      (delete-frame))))
+
+(add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
