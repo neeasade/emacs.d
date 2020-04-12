@@ -337,12 +337,10 @@
   "nd"
   (fn!
     (ivy-read "directory: "
-      ;; todo: this should filter to the current tramp, rather than remove them all
-      ;; could then change ivy prompt show host
-      (-uniq ns/cd-dirs)
-
-      ;; todo: be more intelligent about remote relations
-      ;; (-uniq (-filter (fn (not (s-starts-with-p "/ssh" <>))) ns/cd-dirs))
+      (->> ns/cd-dirs
+        (-uniq)
+        (-filter (fn (s-equals-p (file-remote-p <>)
+                       (file-remote-p default-directory)))))
 
       :action
       (lambda (dir)
@@ -350,7 +348,13 @@
           ((eq major-mode 'dired-mode) (dired dir))
           ((eq major-mode 'shell-mode)
             (goto-char (point-max))
-            (insert (concat "cd \"" dir "\""))
+            (insert (concat "cd \""
+                      (s-replace
+                        (or (file-remote-p dir) "")
+                        ""
+                        dir
+                        )
+                      "\""))
             (comint-send-input))
           (t (insert dir))))
 
