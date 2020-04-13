@@ -264,7 +264,8 @@
 
 (ns/bind
   "nt" (fn! (find-file (~ ".wm_theme")))
-  "id" (fn! (org-time-stamp nil))
+  "id" (fn! (org-time-stamp t))
+  "iD" (fn! (org-time-stamp nil))
   )
 
 ;; https://github.com/szermatt/emacs-bash-completion

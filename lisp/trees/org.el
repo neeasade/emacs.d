@@ -91,6 +91,7 @@
      ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %i%?" :prepend t)
      ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %t")
      ("j" "Journal" entry (file+datetree ,org-default-diary-file) "* %?\n%U\n" :clock-in t :clock-resume t)
+     ("n" "Note" entry (file+olp ,org-default-notes-file "notes") "* %i%?" :prepend t)
      )
 
   ;; current file or any of the agenda-files, max 9 levels deep
@@ -219,7 +220,9 @@
   "oa" 'org-agenda
 
   ;; todo: after this, open heading and center
-  "no" 'counsel-org-goto-all
+  "no" (fn!
+         (counsel-org-goto-all)
+         (ns/focus-line))
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)

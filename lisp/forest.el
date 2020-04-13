@@ -815,7 +815,6 @@
         (evil-force-normal-state)
         )))
 
-
   (ns/bind-mode 'alda "e" 'ns/smart-alda-eval)
   )
 
