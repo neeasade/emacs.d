@@ -214,6 +214,9 @@
     "E" 'cider-eval-print-last-sexp
     )
 
+  (add-to-list 'interpreter-mode-alist '("bb" . clojure-mode))
+  (add-to-list 'interpreter-mode-alist '("joker" . clojure-mode))
+
   (when (executable-find "joker")
     (use-package flycheck-joker :config (require 'flycheck-joker)))
   )
@@ -385,7 +388,9 @@
     (ns/bind-mode 'csharp "nr" 'omnisharp-find-usages)
     (ns/bind-mode 'csharp "nR" 'omnisharp-find-usages-with-ido)))
 
+
 (defconfig jump
+  (use-package dumb-jump)
   (use-package smart-jump
     :config
     (setq dumb-jump-selector 'ivy)

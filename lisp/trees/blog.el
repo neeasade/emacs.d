@@ -24,9 +24,9 @@
 (defun! ns/jump-to-blog-post-draft ()
   (ivy-read "drafted post: "
     (let ((default-directory (ns/blog-path "posts")))
-      (->>
-        (ns/shell-exec "grep -r draft . | sed -E 's/:#\\+draft.*//'")
-        (s-split "\n")
+      (->> (append
+             (->> "git ls-files -m" ns/shell-exec  (s-split "\n"))
+             (->>  "grep -r '#+draft' . | sed -E 's/:#\\+draft.*//'"ns/shell-exec  (s-split "\n")))
         (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))))
     :action 'find-file))
 

@@ -116,9 +116,7 @@
 
             (ns/follow-log "ns/follow: resolved with ripgrep")
             t
-            ))
-        )
-      )
+            ))))
 
     ;; fall back to definitions with smart jump
     (ns/follow-log "ns/follow: resolving with smart-jump-go")
@@ -332,7 +330,9 @@
   (fn (when (> (second (current-idle-time))
               (* 5 60))
         (garbage-collect)
-        )))
+
+        (when (executable-find "btags")
+          (ns/shell-exec "btags render")))))
 
 (ns/bind
   "nd"
@@ -360,3 +360,20 @@
           (t (insert dir))))
 
       )))
+
+(defun ns/emacs-to-theme ()
+  (use-package theme-magic)
+
+  (s-join "\n"
+    (append (seq-map-indexed
+              (fn (format "color%s=%s" (number-to-string <2>)
+                    (s-replace "#" "" <1>)))
+              (theme-magic--auto-extract-16-colors))
+
+      ;; (face-attribute 'mode-line :background)
+      ;; (face-attribute 'mode-line-inactive :background)
+
+      (list
+        (format "foreground=%s" (s-replace "#" "" (face-attribute 'default :foreground)))
+        (format "background=%s" (s-replace "#" "" (face-attribute 'default :background)))
+        (format "cursorColor=%s" (s-replace "#" "" (first evil-insert-state-cursor)))))))

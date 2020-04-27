@@ -229,6 +229,7 @@
                  "cappuccino"
                  "EGGServ"
                  "EggServ"
+                 "mockturtle"
                  "CuteServ"
                  "linkreader"
                  ) nick)
@@ -589,7 +590,15 @@
   (circe-command-ME (concat "is now playing " (ns/shell-exec "music infoname"))))
 
 (defun circe-command-CS (content)
-  (circe-command-MSG "chanserv" content))
+  (circe-command-MSG "chanserv" content)
+  )
+
+(defun circe-command-EXEC (content)
+  (->> content
+    ns/shell-exec
+    (s-split "\n")
+    circe-command-SAY
+    ))
 
 (defun circe-command-LIST (_)
   (irc-send-command (circe-server-process) "LIST"))

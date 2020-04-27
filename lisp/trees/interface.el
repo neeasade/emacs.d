@@ -69,7 +69,7 @@
 ;;  -v : Do natural sort .. so the file names starting with . will show up first.
 ;;  -F : Classify filenames by appending '*' to executables,
 ;;       '/' to directories, etc.
-(setq dired-listing-switches "-alGhvF --group-directories-first") ; default: "-al"
+(setq dired-listing-switches "-aAlGhvF --group-directories-first") ; default: "-al"
 
 (general-define-key
   :states '(normal)

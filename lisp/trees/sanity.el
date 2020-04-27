@@ -41,9 +41,9 @@
 (setq gc-cons-threshold (eval-when-compile (* 8 1024 1024 1024)))
 
 (defun ns/idle () (garbage-collect))
-(run-with-idle-timer 2 t 'ns/idle)
+(ns/add-firstrun-action
+  '(run-with-idle-timer 2 t 'ns/idle))
 
-;; (run-with-idle-timer 2 t 'ns/idle)
 
 ;; trim gui
 (menu-bar-mode -1)
@@ -67,9 +67,10 @@
 (make-directory (~ ".emacs.desktop") t)
 
 (setq-ns desktop
-  restore-eager 0
   auto-save-timeout 30
-  path (list (~ ".emacs.desktop")))
+  ;; this  is set by the no-littering package
+  ;; path (list (~ ".emacs.desktop"))
+  )
 
 ;; disabling in favor of recentf
 (desktop-save-mode 0)

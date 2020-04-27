@@ -89,7 +89,7 @@
      ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %i%?" :prepend t)
      ("i" "Idea" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t :immediate-finish t)
      ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %i%?" :prepend t)
-     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Reminders") "* %i%? \n %t")
+     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Periodic Reminders") "* %i%? \n %t")
      ("j" "Journal" entry (file+datetree ,org-default-diary-file) "* %?\n%U\n" :clock-in t :clock-resume t)
      ("n" "Note" entry (file+olp ,org-default-notes-file "notes") "* %i%?" :prepend t)
      )

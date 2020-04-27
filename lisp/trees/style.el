@@ -1,6 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 ;; todo: an xresources theme that doesn't suck/covers extensions that base16 covers
 (use-package base16-theme)
+(use-package lab-themes)
+
 ;;(use-package ujelly-theme)
 
 (use-package apropospriate-theme)
@@ -45,14 +47,19 @@
 
   (setq ns/loaded-theme theme)
 
-  (when (or (equal theme 'apropospriate-light)
-          (equal theme 'base16-grayscale-light)
-          )
-    ;; (setq apropospriate-mode-line-height nil)
-    (setq
-      evil-normal-state-cursor '("#8B94C6" box)
-      evil-insert-state-cursor '("#8B94C6" bar)
-      evil-visual-state-cursor '("#BDC6F8" box))
+  ;; I like this cursor color
+  (setq evil-normal-state-cursor '("#8B94C6" box)
+    evil-insert-state-cursor '("#8B94C6" bar)
+    evil-visual-state-cursor '("#BDC6F8" box))
+
+  (when (equal theme 'lab-light)
+    (set-face-attribute
+      'ivy-current-match nil
+
+      :background (face-attribute 'company-tooltip-selection :background)
+      :foreground (face-attribute 'company-tooltip-selection :foreground)
+      )
+
     ))
 
 (set-face-attribute 'fringe nil :background nil)

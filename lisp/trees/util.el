@@ -95,11 +95,13 @@
   "toggle bloat in the current buffer"
   (if (not (bound-and-true-p company-mode))
     (progn
+      (message "bloat-local: enabled")
       (company-mode)
       (flycheck-mode)
       (font-lock-mode)
       (git-gutter-mode))
     (progn
+      (message "bloat-local: disabled")
       (company-mode -1)
       (flycheck-mode -1)
       (font-lock-mode 0)
@@ -109,6 +111,7 @@
   "toggle global bloat"
   (if toggle
     (progn
+      (message "bloat-global: enabled")
       (global-company-mode)
       (global-flycheck-mode)
       (global-font-lock-mode)
@@ -117,6 +120,7 @@
         (global-git-gutter-mode t)))
 
     (progn
+      (message "bloat-global: disabled")
       (global-company-mode -1)
       (global-flycheck-mode -1)
       (global-font-lock-mode 0)
