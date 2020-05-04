@@ -110,10 +110,12 @@
   "v" 'org-mark-element
   "a" 'org-agenda
   "l" 'evil-org-open-links
-  "p" 'org-pomodoro
+  ;; "p" 'org-pomodoro
   "f" 'ns/org-set-active
   "b" 'ns/org-open-url
   )
+
+(ns/bind-mode 'org "op" 'org-pomodoro)
 
 ;; give us easy templates/tab completion like yasnippet and the like
 ;; form is '<<key><tab>', eg <s<tab> expands to src block
@@ -122,6 +124,8 @@
 
 (defun! ns/org-open-url() (browse-url (org-entry-get nil "url")))
 
+;; todo: get om.el for some of this
+;; https://github.com/ndwarshuis/om.el
 (defun! ns/org-set-active()
   (org-delete-property-globally "focus")
   (org-set-property "focus" "t")
@@ -135,15 +139,20 @@
     (save-window-excursion
       (ns/org-goto-active)
       (ns/org-set-active))
-    (s-clean ns/org-active-story)
-    ))
+    (s-clean ns/org-active-story)))
 
 (defun! ns/org-goto-active()
   (ns/find-or-open org-default-notes-file)
-  (goto-char (org-find-property "focus"))
+
+  (if org-clock-current-task
+    (org-clock-goto)
+    (goto-char (org-find-property "focus")))
+
   (org-show-context)
   (org-show-subtree)
-  (ns/focus-line))
+
+  (ns/focus-line)
+  )
 
 (use-package org-pomodoro
   :config
@@ -358,7 +367,8 @@
   (general-imap :keymaps 'org-present-mode-keymap
     "q" 'org-present-quit)
 
-  (ns/bind "op" 'org-present)
+  ;; todo: a different binding
+  ;; (ns/bind "op" 'org-present)
 
   (defun ns/org-present-quit ()
     (org-present-small)
@@ -396,3 +406,4 @@
       (delete-frame))))
 
 (add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
+
