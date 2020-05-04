@@ -57,7 +57,9 @@
 ;; https://github.com/noctuid/general.el#mapping-under-non-prefix-keys
 ;; but it's very laggy/intensive by comparison (measured in the profiler)
 (setq-default evil-escape-key-sequence "tn")
-(use-package evil-escape :config (evil-escape-mode))
+
+(ns/use-package evil-escape "hlissner/evil-escape"
+  :config (evil-escape-mode))
 
 (defun set-in-evil-states (key def maps)
   (while maps
