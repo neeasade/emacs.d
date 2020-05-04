@@ -1,11 +1,11 @@
 ;; -*- lexical-binding: t; -*-
+
 ;; for fontifying src blocks
 (use-package htmlize)
 
 ;; todo:
 ;; - jump to most recently edited file (atime should be fine)
-;; - it's really slow right now (4s? we also have 0 caching so consider that)
-;; (measure-time (ns/blog-generate)) ;; 4.269
+;; - it's really slow right now
 ;; (ns/blog-generate)
 
 (defun ns/blog-path (ext)
@@ -38,7 +38,9 @@
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
       (list "\n#+BEGIN_CENTER\n"
-        "[ " (->> (-remove 'not items) (s-join " | ")) " ]"
+        ;; "[ "
+        (->> (-remove 'not items) (s-join " • "))
+        ;; " ]"
         "\n#+END_CENTER\n")))
 
   (let* ((is-post
@@ -104,12 +106,6 @@
       (:is-draft post-is-draft)
       (:title post-title)
       (:publish-date published-date)
-
-      (:published-link
-        (format "https://notes.neeasade.net/%s.html"
-          (if is-post
-            (substring (f-base path) 11) ;; remove the date
-            (f-base path))))
 
       (:rss-title
         (->> post-org-content-lines
@@ -195,11 +191,11 @@
   t
   )
 
-
 (ns/use-package om "ndwarshuis/om.el")
 (require 'om)
 
 ;; cf https://writequit.org/articles/emacs-org-mode-generate-ids.html#the-problem
+;; enhancing this to also turn the header into an anchor link
 (defun! eos/org-custom-id-get (&optional pom create prefix)
   "Get the CUSTOM_ID property of the entry at point-or-marker POM.
    If POM is nil, refer to the entry at point. If the entry does
@@ -217,19 +213,40 @@
           (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
           id)))))
 
-(defun! eos/org-add-ids-to-headlines-in-file ()
-  "Add CUSTOM_ID properties to all headlines in the
-   current file which do not already have one."
-  (org-map-entries (lambda () (eos/org-custom-id-get (point) 'create))))
+(defun! ns/blog-enhance-headings ()
+  "make headings links to themselves"
+  (org-map-entries
+    (lambda ()
+      ;; ensure the headlines have some custom_id
+      (eos/org-custom-id-get (point) 'create)
+
+      ;; make the heading a link to itself if it's not already a link
+      (om-update-headline-at (point)
+        (lambda (old-heading)
+          (om-set-property :title
+            ;; get the old heading title text
+            (->> (-> old-heading om-headline-get-path last car)
+              ;; make it a link if it's not already one
+              ((lambda (old-heading-plain)
+                 (if (s-contains-p "[[" old-heading-plain)
+                   old-heading-plain
+                   (format "[[#%s][%s]]"
+                     ;; first need to get id
+                     (org-entry-get point "CUSTOM_ID")
+                     ;; (om-get-property :custom-id old-heading)
+                     ;; id
+                     old-heading-plain
+                     ))))
+              ;; (it expects a listed title)
+              (list))
+            old-heading
+            ))))))
 
 (defun! ns/blog-new-post ()
-  (let*
-    ((title (read-from-minibuffer "new blog post title: "))
-      (date (ns/shell-exec "date +%Y-%m-%d"))
-      (file (format (~ "git/neeasade.github.io/posts/%s-%s.org") date
-              (s-replace " " "-" title)))
-      )
+  (let* ((title (read-from-minibuffer "new blog post title: "))
+          (date (ns/shell-exec "date +%Y-%m-%d"))
+          (file (format (~ "git/neeasade.github.io/posts/%s-%s.org") date
+                  (s-replace " " "-" title))))
     (find-file file)
     (insert (format "#+title: %s\n" title))
-    (insert "#+draft: t\n\n")
-    ))
+    (insert "#+draft: t\n\n")))
