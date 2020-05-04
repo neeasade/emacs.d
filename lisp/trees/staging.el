@@ -377,3 +377,11 @@
         (format "foreground=%s" (s-replace "#" "" (face-attribute 'default :foreground)))
         (format "background=%s" (s-replace "#" "" (face-attribute 'default :background)))
         (format "cursorColor=%s" (s-replace "#" "" (first evil-insert-state-cursor)))))))
+
+
+(use-package git-link
+  :config
+  (setq git-link-open-in-browser t))
+
+;; todo: keybind to bring up spelling menu and correct, also allow underlines at point
+
