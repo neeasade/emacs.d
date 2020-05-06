@@ -27,6 +27,7 @@
       (->> (append
              (->> "git ls-files -m" ns/shell-exec  (s-split "\n"))
              (->>  "grep -r '#+draft' . | sed -E 's/:#\\+draft.*//'"ns/shell-exec  (s-split "\n")))
+        (-filter (fn (not (s-blank-p <>))))
         (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))))
     :action 'find-file))
 
@@ -46,7 +47,12 @@
   (let* ((is-post
            (-contains-p (f-entries (ns/blog-path "posts") (fn (s-ends-with-p ".org" <>))) path))
           (last-edited
-            (let ((git-query-result (ns/shell-exec (format "cd %s; git log -1 --format=%%cI %s" (f-dirname path) path))))
+            (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log -1 --format=%%cI '%s'"
+                                                     ;; appease the shell.
+                                                     (s-replace "'" "'\\''" (f-dirname path))
+                                                     (s-replace "'" "'\\''" path))
+                                      )))
+
               (if (s-blank-p git-query-result)
                 nil (substring git-query-result 0 10))))
 
@@ -187,6 +193,10 @@
       (insert (org-file-contents (ns/blog-path "rss/rss.org")))
       (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
 
+    (with-temp-buffer
+      (insert (org-file-contents (ns/blog-path "rss/rss_full.org")))
+      (org-export-to-file 'rss (ns/blog-path "site/rss_full.xml")))
+
     )
   t
   )
@@ -249,4 +259,5 @@
                   (s-replace " " "-" title))))
     (find-file file)
     (insert (format "#+title: %s\n" title))
+    (insert (format "#+pubdate: <%s>\n" date))
     (insert "#+draft: t\n\n")))
