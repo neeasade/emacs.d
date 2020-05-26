@@ -276,6 +276,7 @@
           (not (and (string= "emacs" match) (string= "#emacs" channel)))
           (not (and (string= "clojure" match) (string= "#clojure" channel)))
           (not (and (string= " nix " match) (string= "#nixos" channel)))
+          (not (and (string= " nix " match) (string= "#nixos-chat" channel)))
           )
 
         (with-current-buffer "*circe-highlight*"
@@ -476,6 +477,7 @@
   (lui-set-prompt (ns/make-message (buffer-name) "")))
 
 (add-hook 'circe-chat-mode-hook 'ns/set-circe-prompt)
+(add-hook 'circe-chat-mode-hook 'flyspell-mode)
 
 ;; (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
 ;; (add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
@@ -644,9 +646,11 @@
 
 (defun! ns/kill-all-irc ()
   ;; XXX this should be a let of some kind
-  (fset 'yes-or-no-p (fn t))
+  ;; doesn't appear to have any effect?
+  ;; (fset 'yes-or-no-p (fn t))
   (mapcar 'kill-buffer (ns/buffers-by-mode 'circe-server-mode))
-  (fset 'yes-or-no-p 'y-or-n-p))
+  ;; (fset 'yes-or-no-p 'y-or-n-p)
+  )
 
 (defun! ns/circe-quote ()
   "quote whoever spoke at point -- conflict potential in the first 7 chars of a nick"
