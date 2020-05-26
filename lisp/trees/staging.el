@@ -306,6 +306,9 @@
 ;; using in combination with lorri
 (use-package direnv)
 
+(defun ns/color-format (color)
+  (format "#%s" (substring color -6 nil)))
+
 (defun ns/color-greaten (percent color)
   (ns/shorten-color
     (if (ns/color-is-light-p color)
@@ -385,3 +388,8 @@
 
 ;; todo: keybind to bring up spelling menu and correct, also allow underlines at point
 
+;; spelling
+(use-package flyspell-correct-avy-menu
+  (require 'flyspell-correct-avy-menu)
+  (setq flyspell-correct-interface #'flyspell-correct-avy-menu))
+(define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
