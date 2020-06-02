@@ -36,16 +36,13 @@
        "Charter-14")))
 
 (let ((theme (intern (get-resource "Emacs.theme"))))
-  (when (boundp 'ns/loaded-theme)
-    (disable-theme ns/loaded-theme))
+  (when (not (boundp 'ns/loaded-theme))
+    (setq ns/loaded-theme nil))
 
-  (load-theme theme t)
-  ;; todo: check loaded theme state
-  ;; (when (boundp ns/loaded-theme)
-  ;;   (when (not (eq theme ns/loaded-theme))
-  ;;     ))
-
-  (setq ns/loaded-theme theme)
+  (when (not (eq ns/loaded-theme theme))
+    (disable-theme ns/loaded-theme)
+    (load-theme theme t)
+    (setq ns/loaded-theme theme))
 
   ;; I like this cursor color
   (setq evil-normal-state-cursor '("#8B94C6" box)
@@ -172,7 +169,7 @@
         (set-face-attribute face nil
           :weight 'normal
           :slant 'normal
-          :underline nil
+          ;; :underline nil
           ;;:inherit nil
           ))
   (face-list))

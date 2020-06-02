@@ -301,7 +301,8 @@
   (defun! ns/jump-file ()
     (ivy-read "file: "
       (ns/jump-file-candidates)
-      :action #'find-file))
+      :action (fn (when (f-exists-p <>)
+                  (find-file <>)))))
 
   (ns/bind "ne" 'ns/jump-file ))
 
@@ -823,6 +824,21 @@
   (ns/bind-mode 'alda "e" 'ns/smart-alda-eval)
   )
 
+
+(defconfig scripting
+  (add-to-list 'interpreter-mode-alist '("elisp" . emacs-lisp-mode))
+
+  ;; helper for unpacking args provided by eval-file
+  ;; use: (ns/let-script-args (named named2) body)
+  (defmacro ns/let-script-args (args &rest content)
+    `(let (,@(mapcar
+               (fn (list (nth <> args)
+                     (nth <> ns-args)))
+               (number-sequence 0 (- (length ns-args) 1))))
+       ,@content
+       ))
+  )
+
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
 (defconfig editing    (load "~/.emacs.d/lisp/trees/editing.el"))
@@ -837,7 +853,6 @@
 (defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))
 (defconfig staging    (load "~/.emacs.d/lisp/trees/staging.el"))
 (defconfig util       (load "~/.emacs.d/lisp/trees/util.el"))
-(defconfig scripting  (load "~/.emacs.d/lisp/trees/scripting.el"))
 (defconfig blog       (load "~/.emacs.d/lisp/trees/blog.el"))
 (defconfig-base style (interactive) (load "~/.emacs.d/lisp/trees/style.el"))
 

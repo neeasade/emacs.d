@@ -32,6 +32,7 @@
 
   src-fontify-natively t
   src-tag-acts-natively t
+  src-preserve-indentation t
 
   ;; export options
   html-checkbox-type 'html
@@ -68,6 +69,8 @@
 
   ;; todo: consider note option here.
   log-done 'time
+  ;; log state into drawer instead of inserting a list under the heading
+  log-into-drawer t
 
   ;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
 
@@ -223,7 +226,6 @@
   "or" 'org-refile
   "ol" 'ns/make-org-link-to-here
   "om" 'ns/insert-mark-org-links
-  ;; "ow" 'widen
   "ow" (fn! (widen) (ns/focus-line))
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
@@ -231,10 +233,14 @@
   ;; todo: after this, open heading and center
   "no" (fn!
          (counsel-org-goto-all)
-         (ns/focus-line))
+         (org-show-context)
+         (org-show-subtree)
+         (ns/focus-line)
+         )
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
+(add-hook 'org-mode-hook 'flyspell-mode)
 
 (defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block
@@ -406,4 +412,3 @@
       (delete-frame))))
 
 (add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
-

@@ -34,6 +34,9 @@
 
   completion-ignore-case  t
   dabbrev-case-fold-search nil
+
+  ;; allow for much more than the default amount of lisp bindings
+  max-specpdl-size 13000
   )
 
 ;; todo: reconsider this, auto wrap large operations or something

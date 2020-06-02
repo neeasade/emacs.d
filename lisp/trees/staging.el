@@ -330,12 +330,16 @@
   ;; relative times are.. strings? cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Timers.html
   "30 sec"
   (* 5 60)
-  (fn (when (> (second (current-idle-time))
-              (* 5 60))
-        (garbage-collect)
+  (fn
+    (when (> (second (current-idle-time))
+            (* 5 60))
+      (garbage-collect)
 
-        (when (executable-find "btags")
-          (ns/shell-exec "btags render")))))
+      ;; idea is you don't want to return to an inconsistent tagged visibility state after being away
+      ;; todo: emacs might be the wrong place for this
+      (when (executable-find "btags")
+        (ns/shell-exec "notify-send 'btags render from emacs maybe garbage collect'")
+        (ns/shell-exec "btags render")))))
 
 (ns/bind
   "nd"

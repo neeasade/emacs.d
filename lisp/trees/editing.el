@@ -85,6 +85,19 @@
 
 ;; lisp stuff
 (use-package lispy)
+
+(lispy-set-key-theme '(;; these are all possible options
+                        lispy
+                        c-digits
+                        special
+                        evilcp
+                        ;; c-digits
+                        ))
+
+;; I don't like motion in insert mode that much
+(define-key lispy-mode-map-lispy "[" nil)
+(define-key lispy-mode-map-lispy "]" nil)
+
 (use-package lispyville)
 
 ;; little too magical
@@ -119,12 +132,14 @@
 (use-package aggressive-indent)
 
 (defun! ns/lisp-editing-init ()
+  ;; issues with this setup:
+  ;; - too aggressive on the "" item handling sometimes (deletes match almost always, annoying to workaround)
+  ;; still, it's a very fun enhancer -- '<>' to slurp/barf is great, and the auto balancing is nice.
   (aggressive-indent-mode)
-
   (lispy-mode)
-  (lispy-set-key-theme '(lispy c-digits))
   (lispyville-mode)
   )
+
 
 (add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
 (add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)

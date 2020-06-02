@@ -8,6 +8,8 @@
 ;; - it's really slow right now
 ;; (ns/blog-generate)
 
+;; todo: check for conflicting html-destinations?
+
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
 
@@ -15,20 +17,28 @@
 (setq ns/blog-pages-dir (ns/blog-path "pages"))
 (setq ns/blog-site-dir (ns/blog-path "site"))
 
+;; todo: make this jump by title, not file name
 (defun! ns/jump-to-blog-post ()
   (ivy-read "post: "
-    (f-entries (ns/blog-path "posts")
-      (fn (s-ends-with-p ".org" <>)))
+    (reverse
+      (f-entries (ns/blog-path "posts")
+        (fn (s-ends-with-p ".org" <>))))
     :action 'find-file))
 
 (defun! ns/jump-to-blog-post-draft ()
   (ivy-read "drafted post: "
-    (let ((default-directory (ns/blog-path "posts")))
-      (->> (append
-             (->> "git ls-files -m" ns/shell-exec  (s-split "\n"))
-             (->>  "grep -r '#+draft' . | sed -E 's/:#\\+draft.*//'"ns/shell-exec  (s-split "\n")))
-        (-filter (fn (not (s-blank-p <>))))
-        (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))))
+    (or
+      (let ((default-directory (ns/blog-path "posts")))
+        (->> (append
+               (->> "git ls-files -m" ns/shell-exec  (s-split "\n") reverse)
+               (->>  "grep -r '#+draft' . | sed -E 's/:#\\+draft.*//'"ns/shell-exec  (s-split "\n")))
+          (-filter (fn (not (s-blank-p <>))))
+          (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))))
+      ;; if there are no drafts, fall over to all posts:
+      (reverse
+        (f-entries (ns/blog-path "posts")
+          (fn (s-ends-with-p ".org" <>))))
+      )
     :action 'find-file))
 
 (ns/bind-soft "nq" 'ns/jump-to-blog-post-draft)
@@ -69,8 +79,7 @@
               (let ((internal-pubdate (-first (fn (s-starts-with-p "#+pubdate:" <>)) org-file-content)))
                 (if internal-pubdate
                   (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
-                  (substring (f-base path) 0 10)
-                  ))))
+                  (substring (f-base path) 0 10)))))
 
           (post-org-content-lines
             (-non-nil

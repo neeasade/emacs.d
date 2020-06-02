@@ -14,6 +14,35 @@
   '((t (:inherit (font-lock-keyword-face bold))))
   "sep-edge" :group 'doom-modeline-faces)
 
+(set-face-attribute 'ns/mode-line-middle nil :background
+  (ns/color-greaten 14
+    (face-attribute 'font-lock-comment-face :foreground)
+    ))
+
+(set-face-attribute 'ns/mode-line-sep-edge nil :background
+  ;; (face-attribute 'default :background)
+  (ns/color-lessen 10
+    (face-attribute 'mode-line :background)
+    ))
+
+(set-face-attribute 'ns/mode-line-sep nil :background
+  (ns/color-lessen 6 (face-attribute 'mode-line :background)))
+
+(set-face-attribute 'mode-line nil :background
+  (ns/color-lessen 3 (face-attribute 'default :background))
+  ;; (face-attribute 'default :background)
+  )
+
+;; darken it up a little maybe
+;; (set-face-attribute 'mode-line-inactive nil :background (ns/color-lessen 5 (face-attribute 'default :background)))
+
+(set-face-attribute 'mode-line nil :height 100)
+(set-face-attribute 'mode-line-inactive nil :height 100)
+
+;; some themes like to tweak the box
+(set-face-attribute 'mode-line nil :box nil)
+(set-face-attribute 'mode-line-inactive nil :box nil)
+
 ;; upstream is really spacey
 (doom-modeline-def-segment buffer-position
   "The buffer position information."
@@ -147,37 +176,6 @@
   )
 
 
-(set-face-attribute 'ns/mode-line-middle nil :background
-  ;; (face-attribute 'default :background)
-  (ns/color-greaten 20 (face-attribute 'font-lock-comment-face :foreground))
-  )
-
-(set-face-attribute 'ns/mode-line-sep-edge nil :background
-  ;; (face-attribute 'default :background)
-  (ns/color-lessen 10 (face-attribute 'mode-line :background))
-
-  )
-
-;; todo: these face tweaks should really depend on the theme that's loaded maybe
-(set-face-attribute 'ns/mode-line-sep nil :background
-  (ns/color-lessen 6 (face-attribute 'mode-line :background)))
-
-(set-face-attribute 'mode-line nil :background
-  (ns/color-lessen 3 (face-attribute 'default :background))
-  ;; (face-attribute 'default :background)
-  )
-
-;; darken it up a little maybe
-;; (set-face-attribute 'mode-line-inactive nil :background (ns/color-lessen 5 (face-attribute 'default :background)))
-
-
-(set-face-attribute 'mode-line nil :height 100)
-(set-face-attribute 'mode-line-inactive nil :height 100)
-
-;; some themes like to tweak the box
-(set-face-attribute 'mode-line nil :box nil)
-(set-face-attribute 'mode-line-inactive nil :box nil)
-
 (setq-ns doom-modeline
   height (string-to-number (get-resource "Emacs.doomlineheight"))
   bar-width 3
@@ -211,7 +209,7 @@
      )
   '(
      ;; bar
-     next-buffers
+     ;; next-buffers
      ;; vcs ;; somehow this one makes the spacing off
      misc-info
      ;; input-method

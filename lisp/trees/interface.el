@@ -43,6 +43,7 @@
   (set-face-attribute 'hl-line nil :background
     ;; todo: make lessen script a defun and use here
     (ns/color-tone (first evil-visual-state-cursor) -7 -7))
+
   (hl-line-mode)
 
   ;; accumulate directories
@@ -79,7 +80,8 @@
   (kbd "<C-return>") (fn!
                        (->>
                          (dired-get-file-for-visit)
-                         (format "setsid nohup xdg-open \"%s\" &")
+                         ;; (format "setsid nohup xdg-open \"%s\" &")
+                         (format "xdg-open \"%s\"")
                          (ns/shell-exec-dontcare))
                        ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
                        )
@@ -96,6 +98,7 @@
               (-filter (fn (not (file-remote-p (buffer-local-value 'default-directory <>)))))
               (-filter (fn (f-same-p (buffer-local-value 'default-directory <>)
                              default-directory)))
+              ;; todo: maybe should also check if shell buffer is idle as well
               (first))))
 
       (if existing-shell

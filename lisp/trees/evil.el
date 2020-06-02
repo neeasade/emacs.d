@@ -200,6 +200,7 @@
 (advice-add #'previous-buffer :after #'ns/maybe-prev)
 
 (general-nmap
+  "[s" 'flyspell-goto-prev-error
   "]s" 'flyspell-goto-next-error
   "[b" 'evil-prev-buffer
   "]b" 'evil-next-buffer
