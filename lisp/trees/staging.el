@@ -333,13 +333,7 @@
   (fn
     (when (> (second (current-idle-time))
             (* 5 60))
-      (garbage-collect)
-
-      ;; idea is you don't want to return to an inconsistent tagged visibility state after being away
-      ;; todo: emacs might be the wrong place for this
-      (when (executable-find "btags")
-        (ns/shell-exec "notify-send 'btags render from emacs maybe garbage collect'")
-        (ns/shell-exec "btags render")))))
+      (garbage-collect))))
 
 (ns/bind
   "nd"
@@ -394,6 +388,8 @@
 
 ;; spelling
 (use-package flyspell-correct-avy-menu
+  :config
   (require 'flyspell-correct-avy-menu)
   (setq flyspell-correct-interface #'flyspell-correct-avy-menu))
+
 (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)

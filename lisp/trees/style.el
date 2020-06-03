@@ -55,9 +55,7 @@
 
       :background (face-attribute 'company-tooltip-selection :background)
       :foreground (face-attribute 'company-tooltip-selection :foreground)
-      )
-
-    ))
+      )))
 
 (set-face-attribute 'fringe nil :background nil)
 (set-face-background 'font-lock-comment-face nil)
