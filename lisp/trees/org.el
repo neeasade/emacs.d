@@ -394,7 +394,7 @@
   (org-capture))
 
 ;; cf https://fuco1.github.io/2017-09-02-Maximize-the-org-capture-buffer.html
-(defvar my-org-capture-before-config nil)
+(defvar ns/my-org-capture-before-config nil)
 
 (defadvice org-capture (before save-config activate)
   "Save the window configuration before `org-capture'."
