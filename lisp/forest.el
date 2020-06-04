@@ -681,27 +681,48 @@
 
 (defconfig rss
   (ns/guard ns/enable-home-p)
-  (use-package elfeed
-    :config
-    (ns/bind "af" 'elfeed)
-    (setq elfeed-feeds
-      '(
-         "https://hnrss.org/newest?q=emacs"
-         "http://pragmaticemacs.com/feed/"
-         "http://xkcd.com/rss.xml"
-         ))
 
-    ;; Entries older than 2 weeks are marked as read
-    (add-hook 'elfeed-new-entry-hook
-      (elfeed-make-tagger :before "2 weeks ago"
-        :remove 'unread)))
+  (use-package elfeed)
+  (use-package elfeed-protocol)
 
-  (use-package elfeed-goodies
-    :config (elfeed-goodies/setup))
+  (ns/bind "af" 'elfeed)
 
-  (use-package elfeed-org
-    ;; todo - could then get feeds out of this file
-    ))
+  ;; (setq elfeed-feeds
+  ;;   '(
+  ;;      "https://hnrss.org/newest?q=emacs"
+  ;;      "http://pragmaticemacs.com/feed/"
+  ;;      "http://xkcd.com/rss.xml"
+  ;;      )
+  ;;   )
+
+  (setq elfeed-use-curl t)
+  (elfeed-set-timeout 36000)
+
+  ;; (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
+
+  (elfeed-protocol-fever-reinit "redacted")
+
+  (setq elfeed-feeds (list
+                       (list "fever+<redacted"
+                         :api-url "redacted"
+                         :password "<redacted"
+                         :username ""
+                         :autotags '(("example.com" comic))
+                         ))
+
+    )
+
+  ;; Entries older than 2 weeks are marked as read
+  ;; (add-hook 'elfeed-new-entry-hook
+  ;;   (elfeed-make-tagger :before "2 weeks ago"
+  ;;     :remove 'unread))
+
+
+  ;; (use-package elfeed-goodies
+  ;;   :config (elfeed-goodies/setup))
+
+  ;; (use-package elfeed-org)
+  )
 
 (defconfig powershell
   (ns/guard ns/enable-windows-p)
@@ -837,6 +858,7 @@
                (number-sequence 0 (- (length ns-args) 1))))
        ,@content
        ))
+
   )
 
 ;; big bois

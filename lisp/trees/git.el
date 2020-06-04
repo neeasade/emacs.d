@@ -39,6 +39,12 @@
 
 (use-package evil-magit
   :config
+  (general-nmap magit-mode-map "q"
+    (fn!
+      (quit-window)
+      (when ns/magit-before-display-layout
+        (set-window-configuration ns/magit-before-display-layout))))
+
   (general-nmap magit-mode-map "n" 'evil-next-line)
   (general-nmap magit-mode-map "e" 'evil-previous-line)
   (general-vmap magit-mode-map "n" 'evil-next-line)
@@ -96,6 +102,9 @@
     (interactive)
     (magit-mode-setup #'magit-staging-mode)))
 
+
+(defvar ns/magit-before-display-layout nil)
+
 ;; cf https://github.com/alphapapa/unpackaged.el#improved-magit-status-command
 ;;;###autoload
 (defun unpackaged/magit-status ()
@@ -120,6 +129,7 @@ command was called, go to its unstaged changes section."
              (error (cl-return (magit-status-goto-initial-section-1))))))))
 
 (defun! ns/git-status()
+  (setq ns/magit-before-display-layout (current-window-configuration))
   (if ns/enable-windows-p (magit-staging)
     (unpackaged/magit-status)))
 
