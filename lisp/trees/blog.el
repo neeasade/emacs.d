@@ -33,12 +33,13 @@
                (->> "git ls-files -m" ns/shell-exec  (s-split "\n") reverse)
                (->>  "grep -r '#+draft' . | sed -E 's/:#\\+draft.*//'"ns/shell-exec  (s-split "\n")))
           (-filter (fn (not (s-blank-p <>))))
-          (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))))
+          (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))
+          (mapcar (fn (s-replace "/./" "/" <>)))
+          (-uniq)))
       ;; if there are no drafts, fall over to all posts:
       (reverse
         (f-entries (ns/blog-path "posts")
-          (fn (s-ends-with-p ".org" <>))))
-      )
+          (fn (s-ends-with-p ".org" <>)))))
     :action 'find-file))
 
 (ns/bind-soft "nq" 'ns/jump-to-blog-post-draft)
