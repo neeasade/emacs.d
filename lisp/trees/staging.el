@@ -23,6 +23,7 @@
 ;; /home/neeasade/.vimrc
 
 ;; $HOME/.vimrc - todo: link-hint-open-link-at-point handles this
+
 ;; todo: use noctuid's link package here to take advantage of different kinds of links.
 ;; todo: if it's a dir and we are in shell-mode, cd to the dir instead in the current shell
 
@@ -43,11 +44,14 @@
    Tries to integrate a few meta solutions
    org link --> our own peek where we build an org file link --> jump to definition with smart-jump"
 
+  ;; should be region if something is selected
+  ;; (let ((candidate (ffap-string-at-point))))
+
   (or
-    (when (string-empty-p (ffap-string-at-point))
-      (message "not looking at anything! (ffap-string-at-point)")
-      t
-      )
+    ;; (when (string-empty-p )
+    ;;   (message "not looking at anything! (ffap-string-at-point)")
+    ;;   t
+    ;;   )
 
     ;; (when (and (eq major-mode 'shell-mode)
     ;;         (f-directory-p (ffap-string-at-point))
@@ -68,14 +72,16 @@
     ;; this handles org links as well
 
     ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
-    (let* ((file-name (nth 0 (s-split ":" (f-full (ffap-string-at-point)))))
+    (let* ((file-name
+             ;; this split breaks because it will be ssh in the below/tramp'd:
+             ;; /ssh:neeasade@<ip>:/home/neeasade/
+             (nth 0 (s-split ":" (f-full (ffap-string-at-point)))))
             (file-name-optimistic
               (if (f-exists-p file-name)
                 file-name
                 ;; peek ahead of the point a space or two and see if that's a valid path
                 ;; this is so that paths with a single space in them can be used
                 ;; hmmmmmmm
-
                 )
               )
 
