@@ -220,7 +220,14 @@
               (mapcar 'cdr ns/markers)))))
 
 (ns/bind
-  "oo" (fn! (ns/find-or-open org-default-notes-file))
+  "oo" (fn! (let ((project-notes
+                    (concat (projectile-root-bottom-up
+                              (buffer-file-name))
+                      "notes.org")))
+              (ns/find-or-open
+                (if (f-exists-p project-notes)
+                  project-notes
+                  org-default-notes-file))))
   "of" 'ns/org-goto-active
   "oc" 'org-capture
   "or" 'org-refile
@@ -230,13 +237,12 @@
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
 
-  ;; todo: after this, open heading and center
   "no" (fn!
          (counsel-org-goto-all)
          (org-show-context)
+         (org-show-siblings)
          (org-show-subtree)
-         (ns/focus-line)
-         )
+         (ns/focus-line))
   )
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)

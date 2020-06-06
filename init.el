@@ -3,13 +3,6 @@
 ;;; commentary:
 ;;; code:
 
-(if (not (boundp 'ns/firstrun)) (setq ns/firstrun t))
-(setq ns/firstrun-action '())
-
-(defun ns/add-firstrun-action (action)
-  (setq ns/firstrun-action
-    (cons action ns/firstrun-action)))
-
 (setq
   ns/enable-windows-p (eq system-type 'windows-nt)
   ns/enable-linux-p (eq system-type 'gnu/linux)
@@ -22,11 +15,11 @@
      ("*.background"         . nil)
      ("Emacs.powerlinescale" . "1.1")
      ("Emacs.doomlineheight" . "1")
-     ("Emacs.theme"          . "base16-grayscale-light")
+     ("Emacs.theme"          . "lab-theme")
      ;; ("Emacs.theme"          . "apropospriate-light")
      ("Emacs.powerline"      . "bar")
      ("Emacs.padding_source" . "st") ;; font or st
-     ("st.borderpx"          . "30")
+     ("st.borderpx"          . "10")
      ;; default to whatever loads
      ("st.font"              . ,(font-get (face-attribute 'default :font) :name))
      ("st.font_variable"     . ,(font-get (face-attribute 'default :font) :name))
@@ -71,7 +64,6 @@
   ;; zoom
   ;; dimmer
   projectile
-  treemacs
   restclient
   latex
   search-engines
@@ -125,26 +117,28 @@
 ;; liftoff
 (ns/load core extra development communication staging check-for-orphans)
 
-(when ns/firstrun
-  (setq ns/firstrun nil)
-  ;; Emacs is terribly slow on windows
-  (ns/toggle-bloat-global ns/enable-linux-p)
-  (eval (cons 'progn ns/firstrun-action))
+(add-hook
+  ;; I know there _is_ an init hook, but I need to lookup what it is still
+  'init-hook-todo-lookup
+  (lambda ()
+    ;; Emacs is terribly slow on windows
+    (ns/toggle-bloat-global ns/enable-linux-p)
 
-  (->> (seq-take recentf-list 6)
-    (-filter (fn (not (s-ends-with-p "recentf" <>))))
-    (mapc (fn (when
-                (and
-                  ;; don't open up tramp files on startup, slow
-                  (not (file-remote-p <>))
-                  (f-exists-p <>))
-                (find-file <>)))))
+    (run-with-idle-timer 2 t 'garbage-collect)
 
-  (when (f-exists-p (~ "extend.el"))
-    (load (~ "extend.el")))
+    (->> (seq-take recentf-list 6)
+      (-filter (fn (not (s-ends-with-p "recentf" <>))))
+      (mapc (fn (when
+                  (and
+                    ;; don't open up tramp files on startup, slow
+                    (not (file-remote-p <>))
+                    (f-exists-p <>))
+                  (find-file <>)))))
 
-  (ns/style)
-  )
+    (when (f-exists-p (~ "extend.el"))
+      (load (~ "extend.el")))
+
+    (ns/style)))
 
 (provide 'init)
 ;;; init.el ends here

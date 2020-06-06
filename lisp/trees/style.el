@@ -16,24 +16,25 @@
     (setq ns/xrdb-fallback-values
       (cons `(,key . ,font) ns/xrdb-fallback-values))))
 
-;; if no query, check for some fallback fonts.
-(when (not (executable-find "xrq"))
-  (mapc
-    (fn (when (find-font (font-spec :name <>))
-          (ns/update-xrdb-font <>)))
-    '("Dejavu Sans Mono-14"
-       "DejaVu Sans Mono-14"
-       "Lucida Console-14"
-       "Go Mono-14"))
+(mapc
+  (fn (when (find-font (font-spec :name <>))
+        (ns/update-xrdb-font <>)))
+  '("Dejavu Sans Mono-14"
+     "DejaVu Sans Mono-14"
+     "Lucida Console-14"
+     "Noto Sans Mono-14"
+     "Source Code Pro-14"
+     "Go Mono-14"))
 
-  (mapc
-    (fn (when (find-font (font-spec :name <>))
-          (ns/update-xrdb-font <> t)))
-    '("Dejavu Sans-14"
-       "DejaVu Sans-14"
-       "Lucida Console-14"
-       "Go-14"
-       "Charter-14")))
+(mapc
+  (fn (when (find-font (font-spec :name <>))
+        (ns/update-xrdb-font <> t)))
+  '("Dejavu Sans-14"
+     "DejaVu Sans-14"
+     "Lucida Console-14"
+     "Noto Serif-14"
+     "Go-14"
+     "Charter-14"))
 
 (let ((theme (intern (get-resource "Emacs.theme"))))
   (when (not (boundp 'ns/loaded-theme))

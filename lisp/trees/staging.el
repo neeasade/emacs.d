@@ -14,8 +14,6 @@
 
 (use-package link-hint)
 
-(setq ns/verbose-follow t)
-
 ;; /home/neeasade/My_Games/Skyrim/RendererInfo.txt:10
 ;; file:/home/neeasade/My Games/Skyrim/RendererInfo.txt:10
 ;; - link-hint-open-link-at-point
@@ -36,8 +34,8 @@
 ;; idea: if you have a region selected, the link logic stuff should act on that
 ;; todo: if you are in org mode, looking at a link
 
-(defun ns/follow-log (message)
-  (when ns/verbose-follow (message message)))
+(defun ns/follow-log (msg)
+  (message msg))
 
 (defun! ns/follow()
   "This is my home rolled DWIM at point function -- maybe it could be considered to be 'bad hyperbole'
@@ -399,3 +397,12 @@
   (setq flyspell-correct-interface #'flyspell-correct-avy-menu))
 
 (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
+
+(named-timer-run :show-periodic-reminder
+  t
+  ;; every 3 hours
+  (* 60 60 3)
+  (fn
+    ;; todo: NOT IMPLEMENTED
+    ;; query notes file and notify-send it
+    ))

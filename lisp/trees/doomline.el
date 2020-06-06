@@ -22,8 +22,7 @@
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
   (ns/color-lessen 10
-    (face-attribute 'mode-line :background)
-    ))
+    (face-attribute 'mode-line :background)))
 
 (set-face-attribute 'ns/mode-line-sep nil :background
   (ns/color-lessen 6 (face-attribute 'mode-line :background)))

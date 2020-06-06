@@ -1,5 +1,5 @@
 ;; -*- lexical-binding: t; -*-
-(ns/guard ns/enable-home-p)
+
 
 ;; todo:
 ;; alerts on DMs as well as channel highlights

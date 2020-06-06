@@ -43,10 +43,6 @@
 
 (setq gc-cons-threshold (eval-when-compile (* 8 1024 1024 1024)))
 
-(defun ns/idle () (garbage-collect))
-(ns/add-firstrun-action
-  '(run-with-idle-timer 2 t 'ns/idle))
-
 
 ;; trim gui
 (menu-bar-mode -1)
@@ -102,7 +98,6 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 (fset 'which 'executable-find)
 
-
 ;; don't ask to kill running processes when killing a buffer.
 (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
@@ -116,10 +111,9 @@
 (setq recentf-max-menu-items 1000)
 (setq recentf-max-saved-items 1000)
 
-(defun ns/save-files()
-  (shut-up (recentf-save-list)))
-
-(ns/add-firstrun-action '(run-at-time nil (* 5 60) 'ns/save-files))
+(named-timer-run :sync-recentf-list
+  t (* 5 60)
+  (fn (shut-up (recentf-save-list))))
 
 (setq whitespace-line-column 120)
 

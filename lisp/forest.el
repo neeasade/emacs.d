@@ -1,12 +1,9 @@
 ;; -*- lexical-binding: t; -*-
-;;; forest.el --- forest.el
+;;; forest.el --- Take a walk through the parentheses.
 ;;; Commentary:
-;;; functions             | ns/asdf
-;;; pred functions        | ns/asdf-p
-;;; interactive functions | ns/asdf
-;;; enable vars           | ns/enable-asdf-p
-;;; vars                  | ns/asdf
-;;; buffer local vars     | ns/enable-asdf
+;;; namespace             : 'ns/'
+;;; predicate convention  : suffix '-p'
+;;; interactive convention: suffix '!'
 ;;; code:
 
 (defconfig elisp
@@ -104,11 +101,6 @@
 
   (use-package flycheck-pos-tip)
   (eval-after-load 'flycheck '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages)))
-
-(defconfig treemacs
-  (use-package treemacs)
-  (use-package treemacs-evil)
-  (use-package treemacs-projectile))
 
 (defconfig company
   (use-package company
@@ -302,7 +294,7 @@
     (ivy-read "file: "
       (ns/jump-file-candidates)
       :action (fn (when (f-exists-p <>)
-                  (find-file <>)))))
+                    (find-file <>)))))
 
   (ns/bind "ne" 'ns/jump-file ))
 
@@ -849,7 +841,7 @@
 (defconfig scripting
   (add-to-list 'interpreter-mode-alist '("elisp" . emacs-lisp-mode))
 
-  ;; helper for unpacking args provided by eval-file
+  ;; helper for unpacking args provided by elisp script as shebang
   ;; use: (ns/let-script-args (named named2) body)
   (defmacro ns/let-script-args (args &rest content)
     `(let (,@(mapcar
@@ -857,9 +849,7 @@
                      (nth <> ns-args)))
                (number-sequence 0 (- (length ns-args) 1))))
        ,@content
-       ))
-
-  )
+       )))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
@@ -867,11 +857,10 @@
 (defconfig evil       (load "~/.emacs.d/lisp/trees/evil.el"))
 (defconfig git        (load "~/.emacs.d/lisp/trees/git.el"))
 (defconfig interface  (load "~/.emacs.d/lisp/trees/interface.el"))
-(defconfig irc        (load "~/.emacs.d/lisp/trees/irc.el"))
+(defconfig irc        (ns/guard ns/enable-home-p) (load "~/.emacs.d/lisp/trees/irc.el"))
 (defconfig org        (load "~/.emacs.d/lisp/trees/org.el"))
 (defconfig sanity     (load "~/.emacs.d/lisp/trees/sanity.el"))
 (defconfig shell      (load "~/.emacs.d/lisp/trees/shell.el"))
-(defconfig spaceline  (load "~/.emacs.d/lisp/trees/spaceline.el"))
 (defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))
 (defconfig staging    (load "~/.emacs.d/lisp/trees/staging.el"))
 (defconfig util       (load "~/.emacs.d/lisp/trees/util.el"))

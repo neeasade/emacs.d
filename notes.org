@@ -1,4 +1,4 @@
-** emacs
+* emacs
 todo: persist the variable that holds visited directories on occasion
 
 piper
@@ -16,129 +16,111 @@ https://github.com/akermu/emacs-libvterm/issues/115#issuecomment-521303725
 try out dired copy paste operations/do they persist when you aggressively cull the dired buffers like you do
 maybe add a dired focus hook to refresh the display, irritating when the reference is old
 
-https://github.com/kostafey/ejc-sql
-
 expand region
-
-idea: org capture to a new blog post /checkout doct
-can create the file/new targets -- maybe doct/that org capture plugin is worth looking into
 
 idea: smart eval but in sh-mode
 
 idea: unpop shells not in the current frame
     it's kind of annoying to see the same text when you have shell-1 open i ndifferent windows at the same time
 
-https://github.com/hlolli/csound-mode
-
 idea: make a sql query backend for qutebrowser to use here: https://github.com/cireu/counsel-ffdata
-
-https://github.com/Fuco1/dired-hacks
-
-make  minor mode for your keybinds so you can have overrides for all modes (eg info and man modes)
 
 maybe checkout LSP mode as well
 
-https://github.com/raxod502/selectrum
-
-https://github.com/ilya-babanov/emacs-bpr
-
 markdown org like support
 
+neat proced htop-like graph
 https://gitlab.com/RobertCochran/neato-graph-bar
 proced mode
 needs proced-update
-
-http://tonyballantyne.com/graphs.html
-
-look up the named timer thing in emacs
-idea: ivy query realtime against qutebrowser history
-
-idea was integration with avy and or ivy somehow
-
-checkout https://github.com/clojure-emacs/clj-refactor.el
 
 try to get some ideas from this https://medium.com/breathe-publication/understanding-vims-jump-list-7e1bfc72cdf0
 
 idea: org links to xref trail
 idea: jump to pop shell show last command running process
 
-look at orgql for some of the stuff you want to do, like periodic query reminders
+** plugins
 
-large file mode: https://github.com/m00natic/vlfi
-
-*** plugins
-**** org
-***** evil org bindings: https://gist.github.com/amirrajan/301e74dc844a4c9ffc3830dc4268f177
-***** https://github.com/justbur/emacs-vdiff
-***** https://github.com/benma/visual-regexp-steroids.el
+*** org
+**** evil org bindings: https://gist.github.com/amirrajan/301e74dc844a4c9ffc3830dc4268f177
+**** https://github.com/justbur/emacs-vdiff
+**** https://github.com/benma/visual-regexp-steroids.el
     maybe come back to this -- I don't like the live editing in the minibuffer because you then can't get the query you made very easily. Maybe we can come back and use like a standalone buffer to highlight in a test output or something
 
     (I just like regextesters interface on the inter dot net I guess)
-**** other
-***** https://github.com/magit/with-editor
-***** https://gitlab.com/jjzmajic/ewal
-***** https://github.com/justbur/emacs-vdiff
-***** ledger-mode
+*** other
+**** https://github.com/kostafey/ejc-sql
+**** https://github.com/hlolli/csound-mode
+**** https://github.com/Fuco1/dired-hacks
+**** https://github.com/raxod502/selectrum
+**** https://github.com/ilya-babanov/emacs-bpr
+**** http://tonyballantyne.com/graphs.html
+**** https://github.com/clojure-emacs/clj-refactor.el
+**** large file mode: https://github.com/m00natic/vlfi
+**** https://github.com/magit/with-editor
+**** https://gitlab.com/jjzmajic/ewal
+**** https://github.com/justbur/emacs-vdiff
+**** ledger-mode
 checkout: https://github.com/atheriel/evil-ledger -- but you will have
 to change your cx command binding for exchange (transactions use x in
 ledger)
 
-***** https://github.com/NicolasPetton/Indium
-***** use this for shx clear alias https://github.com/politza/ealias
+**** https://github.com/NicolasPetton/Indium
+**** use this for shx clear alias https://github.com/politza/ealias
     only useful if you can reuse aliases over tramp
 
-***** https://github.com/tumashu/ivy-posframe
-***** https://github.com/abo-abo/auto-yasnippet
-***** use this https://github.com/kaz-yos/eval-in-repl/tree/fea05a5b81d74ac53cb2a83aa83a73d9526bcc42
-***** https://github.com/skangas/mentor
-***** https://github.com/ppareit/graphviz-dot-mode
+**** https://github.com/tumashu/ivy-posframe
+**** https://github.com/abo-abo/auto-yasnippet
+**** use this https://github.com/kaz-yos/eval-in-repl/tree/fea05a5b81d74ac53cb2a83aa83a73d9526bcc42
+**** https://github.com/skangas/mentor
+**** https://github.com/ppareit/graphviz-dot-mode
 
-**** TODO https://github.com/purcell/envrc
-*** ideas
-**** org
-***** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
-***** spellcheck in org mode (either throught languagetool or aspell)
+*** TODO https://github.com/purcell/envrc
+** ideas
+*** org
+**** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
+**** spellcheck in org mode (either throught languagetool or aspell)
 https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
-***** https://www.reddit.com/r/emacs/comments/97naje/what_is_everyones_org_mode_indentation_preferences/
-***** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
-***** https://www.reddit.com/r/emacs/comments/9cxj13/trouble_with_orgmode_stars/
-***** https://github.com/sabof/org-bullets/issues/11#issuecomment-439228372
-***** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-***** https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
+**** https://www.reddit.com/r/emacs/comments/97naje/what_is_everyones_org_mode_indentation_preferences/
+**** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
+**** https://www.reddit.com/r/emacs/comments/9cxj13/trouble_with_orgmode_stars/
+**** https://github.com/sabof/org-bullets/issues/11#issuecomment-439228372
+**** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+**** https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
 
 
-***** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-***** into org agendas
-***** revisit org-brain
-***** https://github.com/TeMPOraL/conffiles/blob/master/emacs26/.emacs.d/elisp/init-org-mode.el
-***** https://github.com/Kungsgeten/org-brain#other-useful-packages
-**** other
-***** https://www.reddit.com/r/emacs/comments/bg1018/rediscovering_vanilla_emacs_text_editing/eliw0f1/
+**** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+**** into org agendas
+**** revisit org-brain
+**** https://github.com/TeMPOraL/conffiles/blob/master/emacs26/.emacs.d/elisp/init-org-mode.el
+**** https://github.com/Kungsgeten/org-brain#other-useful-packages
+*** other
+**** https://www.reddit.com/r/emacs/comments/bg1018/rediscovering_vanilla_emacs_text_editing/eliw0f1/
 
-***** https://www.reddit.com/r/emacs/comments/8qkkh9/poll_theme_activation_on_loading/e0k7j4v/
-***** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
-***** http://endlessparentheses.com/leave-the-cursor-at-start-of-match-after-isearch.html
-***** https://www.reddit.com/r/emacs/comments/9ucpg1/for_people_using_the_default_emacs_keybindings/e939fnw/
+**** https://www.reddit.com/r/emacs/comments/8qkkh9/poll_theme_activation_on_loading/e0k7j4v/
+**** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
+**** http://endlessparentheses.com/leave-the-cursor-at-start-of-match-after-isearch.html
+**** https://www.reddit.com/r/emacs/comments/9ucpg1/for_people_using_the_default_emacs_keybindings/e939fnw/
 
-***** https://gist.github.com/cocagne/4088467
+**** https://gist.github.com/cocagne/4088467
 
-***** review: https://sanctum.geek.nz/arabesque/advanced-vim-registers/
+**** review: https://sanctum.geek.nz/arabesque/advanced-vim-registers/
 
-***** latex workflow https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
+**** latex workflow https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
 
-***** for no cd process shell pop -- check if running something:
+**** for no cd process shell pop -- check if running something:
 https://stackoverflow.com/questions/8291899/is-there-a-direct-elisp-way-to-check-if-a-process-is-running-in-an-emacs-term-bu
 can fix hanging autoCD on long running processes
 
-***** https://github.com/munen/emacs.d
-***** http://kitchingroup.cheme.cmu.edu/blog/category/emacs/
-***** overload CD so it will ignore tramp
-***** https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
-***** https://www.reddit.com/r/emacs/comments/8of6tx/tip_how_to_be_a_beast_with_hydra/
-***** https://www.reddit.com/r/emacs/comments/8ekz0u/how_to_pastethencopy/
-***** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
-***** steal latex setup from https://github.com/rememberYou/.emacs.d
-*****  idea: jump to input prompt area keybind
+**** https://github.com/munen/emacs.d
+**** http://kitchingroup.cheme.cmu.edu/blog/category/emacs/
+**** overload CD so it will ignore tramp
+**** https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
+**** https://www.reddit.com/r/emacs/comments/8of6tx/tip_how_to_be_a_beast_with_hydra/
+**** https://www.reddit.com/r/emacs/comments/8ekz0u/how_to_pastethencopy/
+**** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
+**** steal latex setup from https://github.com/rememberYou/.emacs.d
+****  idea: jump to input prompt area keybind
 - deadgrep
 - comint prompt area
 - irc message prompt?
@@ -149,16 +131,16 @@ mode/shell, irc... (think I will use nf)
 
 This hasn't happened because it's not _super_ inconvienent to gg or G to where I need to go
 
-***** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
-***** latex https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
-***** figure out some project workspace workflow in emacs
-*** maybe/not really interested
-**** https://github.com/wolray/symbol-overlay
-**** https://github.com/mpdel/mpdel
+**** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
+**** latex https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
+**** figure out some project workspace workflow in emacs
+** maybe/not really interested
+*** https://github.com/wolray/symbol-overlay
+*** https://github.com/mpdel/mpdel
 you're currently pretty satisfied with mpc and your music script
 The one reason this is still in the list is maybe for the playlist/mpd view could be cool.
 
-*** emacs conf 2019
+** emacs conf 2019
   checkout atherial(?) -- helm-twitch and add ivy calls (benefit is less resources than streaming twitch in the browser)
   checkout ledger mode
   idea: super nN: follow something until initial definition in code
