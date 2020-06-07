@@ -1,3 +1,4 @@
+
 * emacs
 todo: persist the variable that holds visited directories on occasion
 
@@ -11,8 +12,6 @@ https://github.com/akermu/emacs-libvterm/issues/115#issuecomment-521303725
 
 try out dired copy paste operations/do they persist when you aggressively cull the dired buffers like you do
 maybe add a dired focus hook to refresh the display, irritating when the reference is old
-
-idea: smart eval but in sh-mode
 
 idea: unpop shells not in the current frame
     it's kind of annoying to see the same text when you have shell-1 open i ndifferent windows at the same time
@@ -137,3 +136,30 @@ The one reason this is still in the list is maybe for the playlist/mpd view coul
   checkout ledger mode
   idea: super nN: follow something until initial definition in code
   look into debug adapter protocol
+
+** pinebook pro emacs issues
+failed to get:  ts, better-jumper, flyspell-correct-avy-menu
+failed with error: org-pomodoro
+thinspace doom modeline mod was noticably heavy -- maybe just be ok with full space separators and smaller font in the modeline
+
+** pinebook pro dotfiles issues
+need to support more fallback terms -- konsole is what shippped with it -- maybe scrape a list from arch wiki
+
+battery location:
+
+#+begin_src diff
++BATC=/sys/class/power_supply/cw2015-battery/capacity
++BATS=/sys/class/power_supply/cw2015-battery/status
+#+end_src
+
+xbright script:
+#+begin_src diff
+-echo xrandr --output LVDS-1 --brightness 0$(echo "$current / 100" | bc -l | cut -c -3)
+-xrandr --output LVDS-1 --brightness 0$(echo "$current / 100" | bc -l | cut -c -3)
++# echo xrandr --output LVDS-1 --brightness 0$(echo "$current / 100" | bc -l | cut -c -3)
++# xrandr --output eDP-1 --brightness 0$(echo "$current / 100" | bc -l | cut -c -3)
++max=$(cat /sys/class/backlight/edp-backlight/max_brightness)
++result=$(echo "$current / 100 * $max" | bc -l | awk -F. '{print $1}')
++echo "$result" | sudo tee /sys/class/backlight/edp-backlight/brightness
++echo "$result / $max"
+#+end_src
