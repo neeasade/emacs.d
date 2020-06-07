@@ -207,34 +207,33 @@
   (add-to-list 'company-backends 'company-shell-env)
   )
 
-;; todo: bind this
-(defun! ns/shell-eval-in-popped ()
-  ;; crude -- just inserts and sends
-  (defun ns/shell-send (string)
-    (with-current-buffer
-      (format "*shell-%s*" shell-pop-last-shell-buffer-index)
-      (insert string)
-      (comint-send-input)))
+;; crude -- just inserts and sends
+(defun ns/shell-send (string)
+  (with-current-buffer
+    (format "*shell-%s*" shell-pop-last-shell-buffer-index)
+    (goto-char (point-max))
+    (insert string)
+    (comint-send-input)))
 
+(defun! ns/shell-eval-in-popped ()
   (if (use-region-p)
-    (ns/shell-send
-      (region-beginning) (region-end)
-      )
+    (ns/shell-send (buffer-substring (region-beginning) (region-end)))
 
     (if (s-blank-p (s-trim (thing-at-point 'line)))
+      ;; top level function definition
       (ns/shell-send
-        (save-excursion (forward-line -1)
-          (let (last-line (s-clean (thing-at-point 'line)))
-            (if (string= last-line "}\n")
-              "todo" ; search back/return entire function def
-              )
-            )
-
-          )
+        ;; (save-excursion (forward-line -1)
+        ;;   (let ((last-line (s-clean (thing-at-point 'line))))
+        ;;     (if (string= last-line "}\n")
+        ;;       ;; search back/return entire function def
+        ;;       "todo"
+        ;;       )))
         )
+
       ;; (eros-eval-last-sexp nil)
       ;; (eros-eval-defun nil)
       ;; no notion of higher order thing
-      (ns/shell-send (thing-at-point 'line))
+      (ns/shell-send (thing-at-point 'line)))))
 
-      )))
+(provide 'shell)
+;;; shell.el ends here

@@ -1,22 +1,16 @@
 * emacs
 todo: persist the variable that holds visited directories on occasion
 
-piper
-https://github.com/dengste/org-caldav
-https://github.com/sergeyklay/bnf-mode
-
 improve your pager game maybe -- better buffer name? no file association?
 
-idea: experiment with a keybind for saving layout and then restoring it later - maybe you could even name layouts
-
 need to get an org solution with agenda/reminders/carryover
+
+idea: experiment with a keybind for saving layout and then restoring it later - maybe you could even name layouts
 
 https://github.com/akermu/emacs-libvterm/issues/115#issuecomment-521303725
 
 try out dired copy paste operations/do they persist when you aggressively cull the dired buffers like you do
 maybe add a dired focus hook to refresh the display, irritating when the reference is old
-
-expand region
 
 idea: smart eval but in sh-mode
 
@@ -26,8 +20,6 @@ idea: unpop shells not in the current frame
 idea: make a sql query backend for qutebrowser to use here: https://github.com/cireu/counsel-ffdata
 
 maybe checkout LSP mode as well
-
-markdown org like support
 
 neat proced htop-like graph
 https://gitlab.com/RobertCochran/neato-graph-bar
@@ -40,8 +32,9 @@ idea: org links to xref trail
 idea: jump to pop shell show last command running process
 
 ** plugins
-
 *** org
+**** https://github.com/sergeyklay/bnf-mode
+**** https://github.com/dengste/org-caldav
 **** evil org bindings: https://gist.github.com/amirrajan/301e74dc844a4c9ffc3830dc4268f177
 **** https://github.com/justbur/emacs-vdiff
 **** https://github.com/benma/visual-regexp-steroids.el
@@ -49,6 +42,7 @@ idea: jump to pop shell show last command running process
 
     (I just like regextesters interface on the inter dot net I guess)
 *** other
+**** expand region
 **** https://github.com/kostafey/ejc-sql
 **** https://github.com/hlolli/csound-mode
 **** https://github.com/Fuco1/dired-hacks
@@ -79,7 +73,7 @@ ledger)
 ** ideas
 *** org
 **** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
-**** spellcheck in org mode (either throught languagetool or aspell)
+**** checkout languagetool
 https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
 **** https://www.reddit.com/r/emacs/comments/97naje/what_is_everyones_org_mode_indentation_preferences/
 **** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
@@ -91,7 +85,6 @@ https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
 
 **** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
 **** into org agendas
-**** revisit org-brain
 **** https://github.com/TeMPOraL/conffiles/blob/master/emacs26/.emacs.d/elisp/init-org-mode.el
 **** https://github.com/Kungsgeten/org-brain#other-useful-packages
 *** other
@@ -111,7 +104,6 @@ https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
 **** for no cd process shell pop -- check if running something:
 https://stackoverflow.com/questions/8291899/is-there-a-direct-elisp-way-to-check-if-a-process-is-running-in-an-emacs-term-bu
 can fix hanging autoCD on long running processes
-
 **** https://github.com/munen/emacs.d
 **** http://kitchingroup.cheme.cmu.edu/blog/category/emacs/
 **** overload CD so it will ignore tramp

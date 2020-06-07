@@ -40,9 +40,12 @@
   )
 
 ;; todo: reconsider this, auto wrap large operations or something
-
-(setq gc-cons-threshold (eval-when-compile (* 8 1024 1024 1024)))
-
+(setq gc-cons-threshold
+  (->> "free | awk '/^Mem/{print $2}'"
+    (ns/shell-exec)
+    (string-to-number)
+    (* 0.70)
+    (floor)))
 
 ;; trim gui
 (menu-bar-mode -1)
