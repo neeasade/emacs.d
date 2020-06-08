@@ -223,9 +223,8 @@
   "oo" (fn! (let ((project-notes (concat (projectile-root-bottom-up
                                            (buffer-file-name)) "notes.org")))
               (ns/find-or-open
-                (if
-                  (and (f-exists-p project-notes)
-                    (not (string= (buffer-file-name) project-notes)))
+                (if (and (f-exists-p project-notes)
+                      (not (string= (buffer-file-name) project-notes)))
                   project-notes
                   org-default-notes-file))))
   "of" 'ns/org-goto-active

@@ -1,19 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env elisp
+;; elisp-eval: read_stdin=true
 
-if [ -p /dev/stdin ]; then
-    file="${HOME}/fzftemp"
-    if [ -d /dev/shm/ ]; then
-	file=/dev/shm/fzftemp
-    fi
-
-    command="cat -" > "$file"
-else
-    command="rg --files $@"
-fi
-
-export FORCE_STDIN=t
-export elisp_timeout=10
-
-# the axis of eval
-eval "$command" | \
-    elisp -r '(condition-case () (ivy-read "" (s-split "\n" (f-read *stdin-file*)) :action (lambda(option) option)) (quit nil))'
+(condition-case ()
+    (ivy-read
+     "fzf: "
+     (s-split "\n" (f-read *stdin-file*))
+     :action (lambda(option) option))
+  (quit nil))

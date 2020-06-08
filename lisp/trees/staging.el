@@ -338,7 +338,12 @@
               (second (current-idle-time))
               (* 5 60))
         (garbage-collect)
-        ;; save everyone:
+
+        ;; auto revert any who have changed on disk
+        (auto-revert-buffers)
+
+        ;; save everyone
+        (save-some-buffers t)
         )))
 
 (ns/bind
@@ -364,9 +369,7 @@
                         )
                       "\""))
             (comint-send-input))
-          (t (insert dir))))
-
-      )))
+          (t (insert dir)))))))
 
 (defun ns/emacs-to-theme ()
   (use-package theme-magic)
