@@ -600,8 +600,8 @@
   (->> content
     ns/shell-exec
     (s-split "\n")
-    circe-command-SAY
-    ))
+    (cons (format "$ %s" content))
+    (mapc 'circe-command-SAY)))
 
 (defun circe-command-LIST (_)
   (irc-send-command (circe-server-process) "LIST"))
