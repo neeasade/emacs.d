@@ -45,22 +45,20 @@
     )
 
   ;; interactive shell-pop bound to spc t index shell
-  (defun makepop (index)
-    (let ((funcname (intern (concat "shell-pop-" (number-to-string index)))))
-      (eval `(progn
-               (defun ,funcname () (interactive)
-                 (let ((old-shell-index shell-pop-last-shell-buffer-index)
-                        (old-shell-buffer shell-pop-last-shell-buffer-name))
-                   (shell-pop ,index)
+  (defun ns/shell-pop (index)
+    (let ((old-shell-index shell-pop-last-shell-buffer-index)
+           (old-shell-buffer shell-pop-last-shell-buffer-name))
+      (shell-pop index)
 
-                   ,(when (= index 9)
-                      '(setq
-                         shell-pop-last-shell-buffer-index old-shell-index
-                         shell-pop-last-shell-buffer-buffer old-shell-buffer))))
-               (ns/bind ,(concat "t" (number-to-string index)) ',funcname)))))
+      (when (= index 9)
+        (setq shell-pop-last-shell-buffer-index old-shell-index
+          shell-pop-last-shell-buffer-buffer old-shell-buffer)))
 
-  ;; give us 1-9
-  (mapcar 'makepop (number-sequence 1 9))
+    ;; todo here: if looking at a popped shell with no long running process, close the window of the same name in other frames
+    )
+
+  (mapcar (lambda (i) (ns/bind (concat "t" (number-to-string i)) (fn! (ns/shell-pop i))))
+    (number-sequence 1 9))
 
   ;; treat 9 special, meant to be a long running buffer
   (ns/bind "'" (fn!
@@ -68,16 +66,13 @@
                    (if (string= (buffer-name (current-buffer)) "*shell-9*")
                      shell-pop-last-shell-buffer-index nil))))
 
-  ;; todo: if a shell-pop-1-8 is open, close it before doing this (not just the active window)
   (ns/bind "\"" (fn!
                   (if (string= (buffer-name (current-buffer)) "*shell-9*")
                     (evil-window-delete)
                     (progn
-                      (shell-pop
-                        (if (string= (buffer-name (current-buffer)) "*shell-9*")
-                          shell-pop-last-shell-buffer-index nil))
-                      (shell-pop-9)))))
-  )
+                      (shell-pop (if (string= (buffer-name (current-buffer)) "*shell-9*")
+                                   shell-pop-last-shell-buffer-index nil))
+                      (shell-pop-9))))))
 
 (defun! ns/windowshot ()
   "get a string that is the currently displayed text in emacs window"
@@ -86,7 +81,6 @@
       (if (eq major-mode 'shell-mode)
         (substring result 0 (- (length result) (length "shellshot") 1))
         result))))
-
 
 ;; cf http://trey-jackson.blogspot.com/2008/08/emacs-tip-25-shell-dirtrack-by-prompt.html
 (defun shell-sync-dir-with-prompt (string)

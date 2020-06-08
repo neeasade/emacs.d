@@ -330,14 +330,16 @@
 ;; all night long
 
 (named-timer-run :maybe-garbage-collect
-  ;; run the first time in 30 seconds (arbitrary, after init startup)
+  ;; run the first time in 30 seconds
   ;; relative times are.. strings? cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Timers.html
   "30 sec"
   (* 5 60)
-  (fn
-    (when (> (second (current-idle-time))
-            (* 5 60))
-      (garbage-collect))))
+  (fn (when (> ;; PUNS
+              (second (current-idle-time))
+              (* 5 60))
+        (garbage-collect)
+        ;; save everyone:
+        )))
 
 (ns/bind
   "nd"
