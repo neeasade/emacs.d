@@ -123,9 +123,9 @@
             ))))
 
     ;; fall back to definitions with smart jump
-    (ns/follow-log "ns/follow: resolving with smart-jump-go")
-    (shut-up (smart-jump-go))
-    ))
+    (progn
+      (ns/follow-log "ns/follow: resolving with smart-jump-go")
+      (shut-up (smart-jump-go)))))
 
 
 ;; todo: handle the bash/shell line number format:

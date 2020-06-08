@@ -65,6 +65,7 @@
     (mapcar (fn (->> (car <>) (s-chop-prefix "(defconfig ") (s-chomp))))
     (cons "style")
     (cons "dirt")
+    (cons "init")
     ))
 
 (defun! ns/check-for-orphans ()
@@ -81,8 +82,8 @@
     :action
     (fn (interactive)
       (cond
-        ((string= "dirt" <>)
-          (ns/find-or-open (~ ".emacs.d/lisp/dirt.el")))
+        ((string= "dirt" <>) (ns/find-or-open (~ ".emacs.d/lisp/dirt.el")))
+        ((string= "init" <>) (ns/find-or-open (~ ".emacs.d/init.el")))
         ((f-exists-p (format (~ ".emacs.d/lisp/trees/%s.el") <>))
           (ns/find-or-open (format (~ ".emacs.d/lisp/trees/%s.el") <>)))
         (t
