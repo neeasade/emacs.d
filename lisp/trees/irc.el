@@ -13,7 +13,7 @@
   circe-default-user ns/irc-nick
   circe-default-realname ns/irc-nick)
 
-(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs" "lorri" "clojure" " nix "))
+(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs" "clojure" " nix "))
 
 (setq-ns lui
   logging-directory (~ ".ircnew")
@@ -45,12 +45,12 @@
          :nickserv-password ,(pass "freenode")
          :channels (:after-auth
                      "#bspwm"
-                     "#qutebrowser"
                      "#lobsters"
                      "#emacs"
-                     "#lobsters"
+                     "#nixers_net"
                      "#sway-devel"
                      "#k-slug"
+                     "#qutebrowser"
                      "#qutebrowser-offtopic"
                      "##9fans"
                      "#clojure"
@@ -61,6 +61,7 @@
                      ;; so noisy
                      ;; "#nixos"
                      "#nixos-chat"
+                     "#nixos-emacs"
                      )
          )
 
