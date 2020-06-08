@@ -20,14 +20,14 @@
 (setq straight-cache-autoloads t)
 
 ;; elisp enhancers
-(use-package fn)    ;function
-(use-package s)     ;string
-(use-package f)     ;file
-(use-package ht)    ;hash table
-(use-package dash)  ;list
-(use-package a)     ;assoc lists
-(use-package async) ;async
-(use-package ts) ; timestamps
+(use-package fn)    ; function
+(use-package s)     ; string
+(use-package f)     ; file
+(use-package ht)    ; hash table
+(use-package dash)  ; list
+(use-package a)     ; assoc lists
+(use-package async) ; async
+(use-package ts)    ; timestamps
 
 ;; other/emacs enhancers
 (use-package hydra)
@@ -92,7 +92,6 @@
      ,@binds))
 
 (defun ns/bind-mode (mode &rest binds)
-
   ;; unbind anything that might be bound in ~mode~ already
   ;; todo: this better later
 
