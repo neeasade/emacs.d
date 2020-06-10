@@ -164,4 +164,6 @@ command was called, go to its unstaged changes section."
   "gm" 'git-smerge-menu/body
   "gd" 'vdiff-mode ; ,h for a hydra!
   "gs" 'ns/git-status
+  ;; open in place
+  "gS" 'magit-status
   )

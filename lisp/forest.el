@@ -54,19 +54,14 @@
           (insert (current-kill 0)))))
 
     (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
-    (ns/bind-mode 'emacs-lisp "E" 'eval-print-last-sexp)
-
-    )
-
-  ;; for when you don't know what you want (hard part will be remembering to use this)
-  (use-package suggest)
+    (ns/bind-mode 'emacs-lisp "E" 'eval-print-last-sexp))
 
   (use-package elsa
     :config
     (use-package flycheck-elsa)
     (add-hook 'emacs-lisp-mode-hook #'flycheck-elsa-setup)
 
-    ;; note: elsa needs cask:
+    ;; note: elsa needs cask to do anything:
     ;; (executable-find "cask")
     ))
 

@@ -40,11 +40,11 @@
       rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
 
 (defun ns/dired-init()
+  (hl-line-mode)
+
   (set-face-attribute 'hl-line nil :background
     ;; todo: make lessen script a defun and use here
     (ns/color-tone (first evil-visual-state-cursor) -7 -7))
-
-  (hl-line-mode)
 
   ;; accumulate directories
   (when (not (boundp 'ns/cd-dirs))

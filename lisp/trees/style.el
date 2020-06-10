@@ -1,9 +1,6 @@
 ;; -*- lexical-binding: t; -*-
-;; todo: an xresources theme that doesn't suck/covers extensions that base16 covers
 (use-package base16-theme)
 (use-package lab-themes)
-
-;;(use-package ujelly-theme)
 
 (use-package apropospriate-theme)
 ;; (use-package modus-operandi-theme)

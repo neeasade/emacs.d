@@ -16,8 +16,7 @@
 
 (set-face-attribute 'ns/mode-line-middle nil :background
   (ns/color-greaten 14
-    (face-attribute 'font-lock-comment-face :foreground)
-    ))
+    (face-attribute 'font-lock-comment-face :foreground)))
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)

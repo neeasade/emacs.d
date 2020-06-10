@@ -258,17 +258,6 @@
   (ns/bind-mode 'python "e" 'eir-eval-in-python)
   )
 
-;; optionally transform #<12> to #<6>
-(defun ns/shorten-color (color)
-  (if (= (length color) 7)
-    color
-    (-as-> color C
-      (color-name-to-rgb C)
-      `(color-rgb-to-hex ,@C 2)
-      (eval C))))
-
-(ns/shorten-color "#cccccc")
-
 (ns/bind
   "nt" (fn! (find-file (~ ".wm_theme")))
   "id" (fn! (org-time-stamp t))
@@ -419,3 +408,25 @@
 ;;   :config
 ;;   (require 'unicode-fonts)
 ;;   (unicode-fonts-setup))
+
+;; colors
+
+;; optionally transform #<12> to #<6>
+(defun ns/shorten-color (color)
+  "COLOR #HHHHHHHHHHHH to #HHHHHH"
+  (if (= (length color) 7)
+    color
+    (-as-> color C
+      (color-name-to-rgb C)
+      `(color-rgb-to-hex ,@C 2)
+      (eval C))))
+
+(defun ns/longen-color (color)
+  "COLOR #HHHHHH to #HHHHHHHHHHHH"
+  (if (= (length color) 7)
+    (let* ((convert (lambda (p1 p2) (/ (string-to-number (substring color p1 p2) 16) 255.0)))
+            (red (funcall convert 1 3))
+            (green (funcall convert 3 5))
+            (blue (funcall convert 5 7)))
+      (color-rgb-to-hex red green blue))
+    color))
