@@ -73,7 +73,7 @@
   ;; music
   pdf
   ledger
-  emoji
+  ;; emoji
   filehooks
   writing
   deadgrep
@@ -117,9 +117,7 @@
 ;; liftoff
 (ns/load core extra development communication staging check-for-orphans)
 
-(add-hook
-  ;; I know there _is_ an init hook, but I need to lookup what it is still
-  'init-hook-todo-lookup
+(add-hook 'after-init-hook
   (lambda ()
     ;; Emacs is terribly slow on windows
     (ns/toggle-bloat-global ns/enable-linux-p)

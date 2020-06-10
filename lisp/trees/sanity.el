@@ -37,6 +37,9 @@
 
   ;; allow for much more than the default amount of lisp bindings
   max-specpdl-size 13000
+
+  ;; only wrap comments in programming modes when it's enabled there
+  comment-auto-fill-only-comments t
   )
 
 ;; todo: reconsider this, auto wrap large operations or something

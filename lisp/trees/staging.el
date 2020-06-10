@@ -20,6 +20,11 @@
 ;; file:/home/neeasade/.vimrc
 ;; /home/neeasade/.vimrc
 
+;; # ns/follow should be reworked to check over different candidate types, going from full line -> word at point -> word + 'stuff' at point
+;; # handle this jump kind:
+;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
+
+
 ;; $HOME/.vimrc - todo: link-hint-open-link-at-point handles this
 
 ;; todo: use noctuid's link package here to take advantage of different kinds of links.
@@ -408,3 +413,9 @@
     ;; todo: NOT IMPLEMENTED
     ;; query notes file and notify-send it
     ))
+
+;; takes awhile -- doesn't handle noto color emoji?
+;; (use-package unicode-fonts
+;;   :config
+;;   (require 'unicode-fonts)
+;;   (unicode-fonts-setup))

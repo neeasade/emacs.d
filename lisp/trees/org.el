@@ -137,6 +137,10 @@
   )
 
 ;; for externals to call into
+
+;; todo: should this actually be a call into last standup undone heading? less flexible but more auto tracking last
+;; thing you were doing
+
 (defun ns/org-get-active()
   (if (not (bound-and-true-p ns/org-active-story))
     (save-window-excursion
