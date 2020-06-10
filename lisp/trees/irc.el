@@ -13,7 +13,8 @@
   circe-default-user ns/irc-nick
   circe-default-realname ns/irc-nick)
 
-(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs" "clojure" " nix "))
+
+(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs " "clojure" " nix "))
 
 (setq-ns lui
   logging-directory (~ ".ircnew")
@@ -274,7 +275,7 @@
           (not (string= circe-last-nick "me"))
 
           ;; don't care if some things are mentioned in their primary channel
-          (not (and (string= "emacs" match) (string= "#emacs" channel)))
+          (not (and (string= "emacs " match) (string= "#emacs" channel)))
           (not (and (string= "clojure" match) (string= "#clojure" channel)))
           (not (and (string= " nix " match) (string= "#nixos" channel)))
           (not (and (string= " nix " match) (string= "#nixos-chat" channel)))

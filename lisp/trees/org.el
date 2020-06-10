@@ -220,13 +220,12 @@
               (mapcar 'cdr ns/markers)))))
 
 (ns/bind
-  "oo" (fn! (let ((project-notes (concat (projectile-root-bottom-up
-                                           (buffer-file-name)) "notes.org")))
-              (ns/find-or-open
-                (if (and (f-exists-p project-notes)
-                      (not (string= (buffer-file-name) project-notes)))
-                  project-notes
-                  org-default-notes-file))))
+  "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
+                     (project-notes (if buffer-file-name
+                                      (concat (projectile-root-bottom-up buffer-file-name) "notes.org") org-default-notes-file)))
+               (ns/find-or-open (if (and (f-exists-p project-notes)
+                                      (not (string= buffer-file-name project-notes)))
+                                  project-notes org-default-notes-file))))
   "of" 'ns/org-goto-active
   "oc" 'org-capture
   "or" 'org-refile
@@ -241,8 +240,9 @@
          (org-show-context)
          (org-show-siblings)
          (org-show-subtree)
-         (ns/focus-line))
-  )
+         (ns/focus-line)))
+
+
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
 (add-hook 'org-mode-hook 'flyspell-mode)
