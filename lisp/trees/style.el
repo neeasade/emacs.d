@@ -160,14 +160,14 @@
 
 ;; (set-face-bold-p doesn't cover everything, some fonts use slant and underline as bold...)
 ;; todo: maybe revisit your opinions on this
-;; (mapc (lambda (face)
-;;         (set-face-attribute face nil
-;;           :weight 'normal
-;;           :slant 'normal
-;;           ;; :underline nil
-;;           ;;:inherit nil
-;;           ))
-;;   (face-list))
+(mapc (lambda (face)
+        (set-face-attribute face nil
+          ;; :weight 'normal
+          :slant 'normal
+          ;; :underline nil
+          ;;:inherit nil
+          ))
+  (face-list))
 
 ;; gross colors, but need something so we have a signifier in unique match case
 ;; todo: maybe fix gross colors

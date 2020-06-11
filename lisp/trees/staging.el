@@ -275,7 +275,8 @@
 ;; - move color towards bg/fg/<n color>
 ;; - make color a minimum distance from a set color
 ;; - make percent functions a global intensity setting
-;; - a better visual method than xah's inline face bg
+(setq rainbow-html-colors nil)
+(setq rainbow-x-colors nil)
 
 (use-package rainbow-mode
   :config

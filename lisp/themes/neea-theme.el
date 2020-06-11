@@ -5,12 +5,6 @@
 ;; see this table for white point references and what they are meant to represent in LAB:
 ;; https://en.wikipedia.org/wiki/Standard_illuminant#White_points_of_standard_illuminants
 
-;; emacs ships with the following white space consts (annotated with info from linked table):
-;; color-d50-xyz | Horizon Light. ICC profile PCS
-;; color-d55-xyz | Mid-morning / Mid-afternoon Daylight
-;; color-d65-xyz | Noon Daylight: Television, sRGB color space
-;; color-d75-xyz | North sky Daylight
-
 ;; Hue is an angle from red at 0 to yellow to green to cyan to blue to magenta to red
 ;; angle mapping in hue in degrees: (HSL space)
 ;; note: for HUE in color.el these are all within the 1.0 range/collapsed
@@ -37,29 +31,99 @@
   (let ((color start))
     (while (and (not (funcall condition color))
              (not (string= (funcall op color) color)))
+      (message color)
       (setq color (funcall op color))) color))
 
-(defun ns/color-name-to-lab (name)
+;; iterate color, but return all inbetween steps
+(defun ns/iterate-color (start op condition)
+  "Do OP on START color until CONDITION is met or op has no effect."
+  (let ((color start))
+    (while (and (not (funcall condition color))
+             (not (string= (funcall op color) color)))
+      (message color)
+      (setq color (funcall op color))) color))
+
+(defun ns/color-name-to-lab (name &optional white-point)
   "Transform NAME into LAB colorspace with some lighting assumption."
   (-as-> name <>
     (color-name-to-rgb <>)
     (apply 'color-srgb-to-xyz <>)
-    (append <> (list (ht-get ns/theme :white-point)))
+    (append <> (list (or white-point (ht-get ns/theme :white-point))))
     (apply 'color-xyz-to-lab <>)))
 
-(defun ns/color-lab-to-name (lab)
-  (->> (append lab (list (ht-get ns/theme :white-point)))
+(defun ns/color-lab-to-name (lab &optional white-point)
+  (->> (append lab (list (or white-point (ht-get ns/theme :white-point))))
     (apply 'color-lab-to-xyz)
     (apply 'color-xyz-to-srgb)
+    (-map 'color-clamp)
     (apply 'color-rgb-to-hex)))
 
-;; tests
+(defun ns/color-tint-with-light (name w1 w2)
+  "convert a color wrt white points W1 and W2 through the lab colorspace"
+  (ns/color-lab-to-name (ns/color-name-to-lab name w1) w2))
+
+(-map
+  (lambda (percent)
+    (ns/iterate-color
+      "#00C5E0"
+      (lambda (c) (ns/color-tint-with-light c
+                    color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+                    color-d75-xyz ;; | North sky Daylight
+                    ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+                    ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space
+                    ))
+      (lambda (c) (>
+                    (ns/color-name-distance c "#00C5E0")
+                    ;; (ns/color-contrast c "#00C5E0")
+                    percent))))
+  '(3 6 9 12 15)
+  ;; '(1 1.1 1.2 1.3 1.4)
+  ;; '(2 4 6 8)
+  )
+
+(defun ns/color-weird (color percent)
+  (ns/iterate-color
+    color
+    (lambda (c)
+      (color-lighten-name c 1)
+      ;; ns/color-tint-with-light c ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+      ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+      ;; color-d75-xyz ;; | North sky Daylight
+      ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space
+      )
+    (lambda (c) (>
+                  (ns/color-name-distance c color)
+                  ;; (ns/color-contrast c "#00C5E0")
+                  percent))))
+
+;; '(3 6 9 12 15)
+;; '(1 1.1 1.2 1.3 1.4)
+;; '(2 4 6 8)
+
+
+
+
+("#0000c7d1ffff" "#0000c7d1ffff" "#0000ebdbffff" "#0000f4a5ffff" "#0000fd2dffff")
+
+("#0000c7d1ffff" "#0000c7d1ffff" "#0000c7d1ffff" "#0000c7d1ffff")
+
+("#0000c7d1ffff" "#0000c7d1ffff" "#0000ebdbffff" "#0000f4a5ffff" "#0000fd2dffff")
+
+;; ("#0000c6c1ed38" "#0000c7d3fa17" "#0000eb39ffff" "#0000f4dcffff" "#0000fd3fffff")
+
+(ns/color-tint-with-light   "#bb40cf15e4de" color-d50-xyz color-d55-xyz )
+
+(ns/color-name-distance
+  "#c4a1cdebd89a"
+  ;; "#bb40cf15e4de"
+  ;; "#b051d04bf19e"
+  "#00C5E0")
+
 (->> "#ccddee" color-name-to-rgb (apply 'color-srgb-to-lab)
   ;; (apply 'color-lab-to-srgb)
   ;; (apply 'color-rgb-to-hex)
   (ns/color-lab-to-name)
   )
-
 
 (defun ns/color-name-distance (c1 c2)
   ;; note: there are 3 additional optional params to cie-de2000: compensation for {lightness,chroma,hue}
@@ -68,45 +132,53 @@
     (ns/color-name-to-lab c1)
     (ns/color-name-to-lab c2)))
 
-;; (ns/color-name-distance "#000000" "#ffffff")
-;; the builtin:
-;; (color-distance "#000000" "#ffffff")
-
-;; (ns/iterate-color "#ffffff"
-;;   (lambda (c) (color-darken-name c 0.5))
-;;   (lambda (color)
-;;     (>
-;;       ;; (ns/color-name-distance "#ffffff" color)
-;;       (ns/color-contrast "#ffffff" color)
-;;       19
-;;       ;; 6.8
-;;       )))
-
 ;; some thoughts:
 ;; contrast ratio as measurement is really only good as luminance meatric
 ;; color distance is useful if we're doing weird things maybe?
 
+
+;; from our automata tiling repos
+;; /* #ebe5ff */
+;; /* #eef0f3 */
+;; /* #d7cdff */
+
+(color-darken-name "#d7cdff" 10)
+
+"#aee19a9affff"
+
 (setq ns/theme
   (let*
-    ((foreground 'todo)
-      (background 'todo)
-      (accent1 'todo)
-      (accent2 'todo))
+    ((foreground  "#5A5E65" )
+      (background  "#EEF0F3")
+      ;; (accent1 "#d7cdff")
+      (accent1 "#aee19a9affff")
+
+      (comp (apply 'color-rgb-to-hex (color-complement accent1)))
+      (accent2
+        (ns/iterate-color comp
+          ;; accent1
+          (fn (color-lighten-name <> 2))
+          (fn (< (ns/color-contrast accent1 <>) 3))
+          ;; (fn (< (ns/color-name-distance accent1 <>) 20))
+          )))
 
     (ht
       (:foreground foreground)
       (:background background)
 
-      (:faded 'todo)
+      (:faded-fg (ns/color-lessen 50 foreground))
+      ;; (:focused-fg (ns/color-lessen 10 accent1))
 
-      (:star background)
-      (:star-1 background)
-      (:star-2 background)
+      (:accent1 accent1)
+      (:accent1-1 (ns/color-weird accent1 10))
+      (:accent1-2 (ns/color-weird accent1 15))
 
-      (:moon background)
-      (:moon-1 background)
-      (:moon-2 background)
+      ;; todo: handle the fade/alts here better
+      (:accent2 accent2)
+      (:accent2-1 (ns/color-weird accent2 10))
+      (:accent2-2 (ns/color-weird accent2 15))
 
+      ;; note: ICC is https://en.wikipedia.org/wiki/ICC_profile
       (:white-point
         color-d65-xyz
         ;; color-d50-xyz | Horizon Light. ICC profile PCS
@@ -114,6 +186,40 @@
         ;; color-d65-xyz | Noon Daylight: Television, sRGB color space
         ;; color-d75-xyz | North sky Daylight
         ))))
+
+#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :accent1 "#aee19a9affff" :accent1-1 "#cb89be6cfffe" :accent1-2 "#dbe9d2e4fffe" :accent2 "#618079df0000" :accent2-1 "#7a1098930000" :accent2-2 "#8658a7ed0000" :white-point (0.950455 1.0 1.088753) ...))
+
+#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#8567ff" :accent1 "#aee19a9affff" :accent1-1 "#cb89be6cfffe" :accent1-2 "#dbe9d2e4fffe" :accent2 "#618079df0000" :accent2-1 "#7a1098930000" :accent2-2 "#8658a7ed0000" :white-point (0.950455 1.0 1.088753) ...))
+
+#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#8567ff" :accent1 "#aee19a9affff" :accent1-1 "#bb29a9f4ffff" :accent1-2 "#e831e23efffe" :accent2 "#618079df0000" :accent2-1 "#6dc889390000" :accent2-2 "#71e08e570000" :white-point (0.950455 1.0 1.088753) ...))
+
+
+#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#8567ff" :accent1 "#aee19a9affff" :accent1-1 "#87dd9ed3ffff" :accent1-2 "#4905a2b6ffff" :accent2 "#618079df0000" :accent2-1 "#593d7b0b266e" :accent2-2 "#53b57bac3445" :white-point (0.950455 1.0 1.088753) ...))
+
+;; #005f87
+;; 'color00' : ['#eeeeee', '255'],
+;; \       'color01' : ['#af0000', '124'],
+;; \       'color02' : ['#008700', '28'],
+;; \       'color03' : ['#5f8700', '64'],
+;; \       'color04' : ['#0087af', '31'],
+;; \       'color05' : ['#878787', '102'],
+;; \       'color06' : ['#005f87', '24'],
+;; \       'color07' : ['#444444', '238'],
+;; \       'color08' : ['#bcbcbc', '250'],
+;; \       'color09' : ['#d70000', '160'],
+;; \       'color10' : ['#d70087', '162'],
+;; \       'color11' : ['#8700af', '91'],
+;; \       'color12' : ['#d75f00', '166'],
+;; \       'color13' : ['#d75f00', '166'],
+;; \       'color14' : ['#005faf', '25'],
+;; \       'color15' : ['#005f87', '24'],
+;; \       'color16' : ['#0087af', '31'],
+;; \       'color17' : ['#008700', '28'],
+
+#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#ae9aff" :accent1 "#d7cdff" :accent1-1 "#b958d13cffff" :accent1-2 "#9322d473ffff" :accent2 "#71e18e560000" :accent2-1 "#68598fae2e51" :accent2-2 "#61f590663e3d" :white-point (0.950455 1.0 1.088753) ...))
+
+"#d7cdff" "#c07cd0c4ffff" "#9568d4e2ffff" :
+#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#ae9aff" :accent1 "#d7cdff" :accent1-1 "#c07cd0c4ffff" :accent1-2 "#9568d4e2ffff" :accent2 "#71e18e560000" :accent2-1 "#691d8fb1276e" :accent2-2 "#60ae90be3ae6" :white-point (0.950455 1.0 1.088753) ...))
 
 (ht-get ns/theme :white-point)
 
