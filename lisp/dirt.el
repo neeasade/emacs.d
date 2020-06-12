@@ -52,6 +52,13 @@
   `(defun ,label ,args
      (interactive) ,@body))
 
+(defun ht-transform (table transform-function)
+  "Apply some transformation to all colors in a hashtable"
+  (eval `(ht ,@(-map (fn (list <>
+                           (funcall transform-function
+                             (ht-get table <>))))
+                 (ht-keys table)))))
+
 (defun s-clean (s)
   "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
