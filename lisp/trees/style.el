@@ -41,6 +41,9 @@
     (disable-theme ns/loaded-theme)
     (load-theme theme t)
     (setq ns/loaded-theme theme))
+  (set-face-attribute
+    'font-lock-comment-delimiter-face nil
+    :foreground (face-attribute 'font-lock-comment-face :foreground))
 
   ;; I like this cursor color
   (setq evil-normal-state-cursor '("#8B94C6" box)
