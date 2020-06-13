@@ -60,15 +60,6 @@
 ;; I really like this color, lets see some properties of it.
 ;; #9abcdd
 
-(color-name-to-rgb "#9abcdd")
-;; => (0.6039215686274509 0.7372549019607844 0.8666666666666667)
-
-(apply 'color-rgb-to-hsl (color-name-to-rgb "#9abcdd"))
-;; (0.582089552238806 0.4962962962962964 0.7352941176470589)
-
-(apply 'color-rgb-to-hsv (color-name-to-rgb "#9abcdd"))
-;; (3.6573765220896104 0.30316742081447967 0.8666666666666667)
-
 (require 'base16-theme)
 
 (defun ns/make-color-helpers ()
@@ -128,12 +119,6 @@
 
 (ns/make-color-helpers)
 
-;; misc colors
-;; "#bb40cf15e4de"
-;; /* #ebe5ff */
-;; /* #d7cdff */
-;; "#00C5E0"
-
 (setq ns/theme-white-point
   ;; note: ICC is https://en.wikipedia.org/wiki/ICC_profile
   ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
@@ -154,6 +139,8 @@
     (apply 'color-lch-to-lab <>)
     (ns/color-lab-to-name <> ns/theme-white-point)))
 
+(add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
+
 (let*
   ;; from the lab light theme
   ((foreground  "#5A5E65")
@@ -162,8 +149,6 @@
     (accent1
       (-as-> foreground <>
         (ns/color-name-to-lab <> ns/theme-white-point)
-
-        ;; take it towards green and yellow
         (apply (lambda (L A B)
                  (list
                    (+ L 10)
@@ -178,8 +163,6 @@
     (accent2
       (-as-> foreground <>
         (ns/color-name-to-lab <> ns/theme-white-point)
-
-        ;; take it towards green and yellow
         (apply (lambda (L A B)
                  (list
                    (+ L 10)
@@ -191,15 +174,21 @@
 
         (ns/color-lab-to-name <> ns/theme-white-point)))
 
-    (accent1_ (ns/color-derive-accent accent1 10))
-    (accent1__ (ns/color-derive-accent accent1_ 10))
-    (accent2_ (ns/color-derive-accent accent2 10))
-    (accent2__ (ns/color-derive-accent accent2_ 10))
+    (accent1_ (ns/color-derive-accent accent1 20))
+    (accent1__ (ns/color-derive-accent accent1_ 20))
+    (accent2_ (ns/color-derive-accent accent2 20))
+    (accent2__ (ns/color-derive-accent accent2_ 20))
+
+    (foreground_ (ns/color-derive-accent foreground 20))
+    (foreground__ (ns/color-derive-accent foreground_ 20))
     )
 
   (setq ns/theme
     (ht
       (:foreground foreground)
+      (:foreground_ foreground_)
+      (:foreground__ foreground__)
+
       (:background background)
 
       (:accent1 accent1)
@@ -211,30 +200,17 @@
       (:accent2__ accent2__)
       )))
 
-
-;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-;;     (
-;;       :foreground "#5A5E65"
-;;       :background "#EEF0F3"
-
-;;       :accent1 "#00008f61cf98"
-;;       :accent1_ "#5653a8cde341"
-;;       :accent1__ "#834cc303f71e"
-
-;;       :accent2 "#1fed897317c5"
-;;       :accent2_ "#4b25a3443c34"
-;;       :accent2__ "#6e9bbd925d1f" ...))
-
-
-;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-;;     (:foreground "#5A5E65"
-;;       :background "#EEF0F3"
-;;       :accent1 "#00008f61cf98"
-;;       :accent1_ "#161aaae9f504"
-;;       :accent1__ "#2701c74affff"
-;;       :accent2 "#1fed897317c5"
-;;       :accent2_ "#37afa5902af2"
-;;       :accent2__ "#4de4c28e3d87" ...))
+;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (
+;; :foreground "#5A5E65"
+;; :foreground_ "#94c6902d86f9"
+;; :foreground__ "#c25cc6d3cedf"
+;; :background "#EEF0F3"
+;; :accent1 "#00008f61cf98"
+;; :accent1_ "#834cc303f71f"
+;; :accent1__ "#d1b4f987ffff"
+;; :accent2 "#1fed897317c5"
+;; :accent2_ "#6e9bbd935d1f"
+;; :accent2__ "#b258f39a9fc7" ...
 
 (deftheme neea)
 (base16-theme-define 'neea
@@ -245,7 +221,7 @@
     ;; guidelines location: http://chriskempson.com/projects/base16/
     ;; I've also noted some faces I care about
 
-    :base00 background ;; Default Background
+    :base00 (ht-get ns/theme :background) ;; Default Background
 
     ;; ivy-current-match background
     :base01 (ns/fade-min-contrast star 100 2) ;; Lighter Background (Used for status bars)
