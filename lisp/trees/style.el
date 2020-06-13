@@ -1,4 +1,8 @@
 ;; -*- lexical-binding: t; -*-
+
+;; ensure we can load our custom theme
+(add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
+
 (use-package base16-theme)
 (use-package lab-themes)
 
@@ -33,14 +37,20 @@
      "Go-14"
      "Charter-14"))
 
-(let ((theme (intern (get-resource "Emacs.theme"))))
+(let (
+       ;; (theme (intern (get-resource "Emacs.theme")))
+       (theme 'neea)
+       )
   (when (not (boundp 'ns/loaded-theme))
     (setq ns/loaded-theme nil))
 
-  (when (not (eq ns/loaded-theme theme))
-    (disable-theme ns/loaded-theme)
-    (load-theme theme t)
-    (setq ns/loaded-theme theme))
+  (load-theme theme t)
+
+  ;; (when (not (eq ns/loaded-theme theme))
+  ;;   (disable-theme ns/loaded-theme)
+  ;;   (load-theme theme t)
+  ;;   (setq ns/loaded-theme theme))
+
   (set-face-attribute
     'font-lock-comment-delimiter-face nil
     :foreground (face-attribute 'font-lock-comment-face :foreground))

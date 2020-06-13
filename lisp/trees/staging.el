@@ -320,8 +320,6 @@
       (color-darken-name color percent)
       (color-lighten-name color percent))))
 
-(memoize 'ns/color-lessen)
-
 
 ;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
 ;; this means you won't have to garbage collect for literal minutes when we leave emacs running
@@ -342,6 +340,8 @@
 
         ;; save everyone
         (save-some-buffers t)
+
+        ;; todo here: if on pinebook, suspend
         )))
 
 (ns/bind
@@ -435,4 +435,4 @@
       (color-rgb-to-hex red green blue))
     color))
 
-(use-package memoize)
+;; (use-package memoize)

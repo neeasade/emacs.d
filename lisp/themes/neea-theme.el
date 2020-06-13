@@ -42,23 +42,17 @@
 ;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
 ;; have high value and low saturation.
 
-;; THEME THOUGHTS
 ;; kinds of colors we want to create:
 ;; fg, bg
-
 ;; 2 faded fg levels (modeline, then comments)
-;; 2 accents -- each with strong and weak versions
-;;      the export might be just still be gradient style (it's easier to reason about emphasis if the star is a middle color, I think)
+;; 2 accents + fades on accents
 
-;; my thinking right now is that we'll derive 'lightness' from the foreground color -- and then tint
-;; the hue to get our accent colors, and then from there tweak properties to get the 'weaker' and
-;; 'stronger' variants of the colors.
+;; my thinking right now is that we'll derive 'lightness' from the foreground color, then tilt
+;; create accent colors based on directions in the lab space (note: maybe also provide a way to give
+;; and accent color)
 
 ;; additionally if we steal accent colors from somewhere we can snipe the hue and then use that as
 ;; our base with foreground (new color is HSL, accent H, accent S, foreground L)
-
-;; I really like this color, lets see some properties of it.
-;; #9abcdd
 
 (require 'base16-theme)
 
@@ -72,9 +66,13 @@
 
   (defun ns/color-iterate (start op condition)
     "Do OP on START color until CONDITION is met or op has no effect."
-    (let ((color start))
+    (let ((color start)
+           (iterations 0))
       (while (and (not (funcall condition color))
-               (not (string= (funcall op color) color)))
+               (not (string= (funcall op color) color))
+               (< iterations 10000))
+        ;; (message color)
+        (setq iterations (+ iterations 1))
         (setq color (funcall op color))) color))
 
   ;; TODO:
@@ -114,7 +112,17 @@
       (ns/color-name-to-lab c1)
       (ns/color-name-to-lab c2)))
 
-  ;; todo: rgb to srgb?
+  (defun ns/color-lab-lighten (c value)
+    (ns/color-lab-transform c
+      (lambda (L A B) (list (+ L value) A B))))
+
+  (defun ns/color-lch-transform (c transform)
+    (ns/color-lab-transform c
+      (lambda (L A B)
+        (apply 'color-lch-to-lab
+          (apply transform (color-lab-to-lch L A B))))))
+
+  ;; todo: rgb to srgb/some form of gamma correction?
   )
 
 (ns/make-color-helpers)
@@ -127,7 +135,8 @@
   ;; color-d75-xyz ;; | North sky Daylight
   )
 
-(defun ns/color-derive-accent (origin mod)
+;; saving this one as a 'safe' fallback
+(defun ns/color-derive-accent-safe (origin mod)
   (-as-> origin <>
     (ns/color-name-to-lab <> ns/theme-white-point)
     (apply 'color-lab-to-lch <>)
@@ -140,7 +149,36 @@
     (apply 'color-lch-to-lab <>)
     (ns/color-lab-to-name <> ns/theme-white-point)))
 
-(add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
+(defun ns/color-derive-accent (origin mod)
+  (ns/color-iterate origin
+    (lambda (c)
+      (-as-> c <>
+        (ns/color-name-to-lab <> ns/theme-white-point)
+        (apply 'color-lab-to-lch <>)
+        (apply (lambda (L C H)
+                 (list
+                   (+ L 2)
+                   (- C 2)
+                   ;; (+ L mod)
+                   ;; (- C (/ mod 2))
+                   ;; (- C mod)
+                   H)) <>)
+        (apply 'color-lch-to-lab <>)
+        (ns/color-lab-to-name <> ns/theme-white-point)))
+
+    (lambda (c) (> (ns/color-name-distance
+                     ;; consider passing hue correction here
+                     origin c)
+                  (* 1.5  mod)
+                  ;; mod
+                  ))))
+
+(defun ns/color-lab-transform (color transform)
+  "Generate an accent color from COLOR using TRANSFORM, a LAB colorspace function."
+  (-as-> color <>
+    (ns/color-name-to-lab <> ns/theme-white-point)
+    (apply transform <>)
+    (ns/color-lab-to-name <> ns/theme-white-point)))
 
 (let*
   ;; from the lab light theme
@@ -148,40 +186,37 @@
     (background  "#F2F5F8")
 
     (accent1
-      (-as-> foreground <>
-        (ns/color-name-to-lab <> ns/theme-white-point)
-        (apply (lambda (L A B)
-                 (list
-                   (+ L 10)
-                   ;; going towards green, away from red
-                   (- A (* 0.5 (+ A 100)))
-                   ;; going towards blue, away from yello
-                   (- B (* 0.7 (+ B 100)))
-                   )) <>)
-
-        (ns/color-lab-to-name <> ns/theme-white-point)))
+      (ns/color-lab-transform foreground
+        (lambda (L A B)
+          (list
+            (+ L 5)
+            ;; going towards green, away from red
+            (- A (* 0.5 (+ A 100)))
+            ;; going towards blue, away from yello
+            (- B (* 0.7 (+ B 100)))
+            ))))
 
     (accent2
-      (-as-> foreground <>
-        (ns/color-name-to-lab <> ns/theme-white-point)
-        (apply (lambda (L A B)
-                 (list
-                   (+ L 10)
-                   ;; going towards green, away from red
-                   (- A (* 0.6 (+ A 100)))
-                   ;; going towards yellow, away from blue
-                   (+ B (* 0.6 (- 200 (+ B 100))))
-                   )) <>)
+      (ns/color-lab-transform foreground
+        (lambda (L A B)
+          (list
+            ;; (+ L 10)
+            (+ L 5)
+            ;; going towards green, away from red
+            (- A (* 0.6 (+ A 100)))
+            ;; going towards yellow, away from blue
+            (+ B (* 0.6 (- 200 (+ B 100))))
+            ))))
 
-        (ns/color-lab-to-name <> ns/theme-white-point)))
-
+    ;; todo: revisit numbers here
     (accent1_ (ns/color-derive-accent accent1 10))
     (accent1__ (ns/color-derive-accent accent1_ 10))
+
     (accent2_ (ns/color-derive-accent accent2 10))
     (accent2__ (ns/color-derive-accent accent2_ 10))
 
-    (foreground_ (ns/color-derive-accent foreground 20))
-    (foreground__ (ns/color-derive-accent foreground_ 10))
+    (foreground_ (ns/color-lab-lighten foreground 20))
+    (foreground__ (ns/color-lab-lighten foreground_ 6))
     )
 
   (setq ns/theme
@@ -198,8 +233,37 @@
 
       (:accent2 accent2)
       (:accent2_ accent2_)
-      (:accent2__ accent2__)
-      )))
+
+      (:accent2__
+        ;; (ns/color-lab-lighten accent2__ -10)
+        accent2__
+        ))))
+
+;; (ht-set ns/theme :accent2__)
+
+;; todo: this theme should also handle org outline levels colors explicitly
+
+;; note: here is the place for lighting and gamma correction functions, EG:
+
+;; take the chroma of everything down a bit (more towards "gray")
+(setq ns/theme
+  (ht-transform ns/theme
+    (lambda (c)
+      (ns/color-lch-transform c
+        (lambda (L C H) (list L (- C 3) H))))))
+
+;; example transform:
+;; (setq ns/theme
+;;   (ht-transform ns/theme
+;;     (lambda (c)
+;;       ;; (ns/color-lab-lighten)
+;;       (ns/color-tint-with-light
+;;         c
+;;         color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
+;;         ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+;;         color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+;;         ;; color-d75-xyz ;; | North sky Daylight
+;;         ))))
 
 (deftheme neea)
 
