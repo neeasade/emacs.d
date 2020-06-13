@@ -128,59 +128,113 @@
 
 (ns/make-color-helpers)
 
-;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-;; color-d75-xyz ;; | North sky Daylight
-;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space
-
 ;; misc colors
 ;; "#bb40cf15e4de"
 ;; /* #ebe5ff */
 ;; /* #d7cdff */
 ;; "#00C5E0"
 
-(setq ns/theme
-  (let*
-    ((foreground  "#5A5E65" )
-      (background  "#EEF0F3")
-      ;; (accent1 "#d7cdff")
-      (accent1 "#aee19a9affff")
+(setq ns/theme-white-point
+  ;; note: ICC is https://en.wikipedia.org/wiki/ICC_profile
+  ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+  ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+  color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
+  ;; color-d75-xyz ;; | North sky Daylight
+  )
 
-      (comp (apply 'color-rgb-to-hex (color-complement accent1)))
-      (accent2
-        (ns/iterate-color comp
-          ;; accent1
-          (fn (color-lighten-name <> 2))
-          (fn (< (ns/color-contrast accent1 <>) 3))
-          ;; (fn (< (ns/color-name-distance accent1 <>) 20))
-          )))
+(defun ns/color-derive-accent (origin mod)
+  (-as-> origin <>
+    (ns/color-name-to-lab <> ns/theme-white-point)
+    (apply 'color-lab-to-lch <>)
+    (apply (lambda (L C H)
+             (list
+               (+ L mod)
+               (- C (/ mod 2))
+               H)) <>)
+    (apply 'color-lch-to-lab <>)
+    (ns/color-lab-to-name <> ns/theme-white-point)))
 
+(let*
+  ;; from the lab light theme
+  ((foreground  "#5A5E65")
+    (background  "#EEF0F3")
+
+    (accent1
+      (-as-> foreground <>
+        (ns/color-name-to-lab <> ns/theme-white-point)
+
+        ;; take it towards green and yellow
+        (apply (lambda (L A B)
+                 (list
+                   (+ L 10)
+                   ;; green
+                   (- A (* 0.5 (+ A 100)))
+                   ;; blue
+                   (- B (* 0.5 (+ B 100)))
+                   )) <>)
+
+        (ns/color-lab-to-name <> ns/theme-white-point)))
+
+    (accent2
+      (-as-> foreground <>
+        (ns/color-name-to-lab <> ns/theme-white-point)
+
+        ;; take it towards green and yellow
+        (apply (lambda (L A B)
+                 (list
+                   (+ L 10)
+                   ;; going to negative 100 (green)
+                   (- A (* 0.5 (+ A 100)))
+                   ;; going to positive 100 (yellow)
+                   (+ B (* 0.5 (- 200 (+ B 100))))
+                   )) <>)
+
+        (ns/color-lab-to-name <> ns/theme-white-point)))
+
+    (accent1_ (ns/color-derive-accent accent1 10))
+    (accent1__ (ns/color-derive-accent accent1_ 10))
+    (accent2_ (ns/color-derive-accent accent2 10))
+    (accent2__ (ns/color-derive-accent accent2_ 10))
+    )
+
+  (setq ns/theme
     (ht
       (:foreground foreground)
       (:background background)
 
-      ;; (:foreground-fade (ns/color-lessen 50 foreground))
-      (:foreground-fade (ns/color-lessen 50 foreground))
-      (:faded-fg (ns/color-lessen 50 foreground))
-      ;; (:focused-fg (ns/color-lessen 10 accent1))
-
       (:accent1 accent1)
-      (:accent1-1 (ns/color-weird accent1 10))
-      (:accent1-2 (ns/color-weird accent1 15))
+      (:accent1_ accent1_)
+      (:accent1__ accent1__)
 
-      ;; todo: handle the fade/alts here better
       (:accent2 accent2)
-      (:accent2-1 (ns/color-weird accent2 10))
-      (:accent2-2 (ns/color-weird accent2 15))
+      (:accent2_ accent2_)
+      (:accent2__ accent2__)
+      )))
 
-      ;; note: ICC is https://en.wikipedia.org/wiki/ICC_profile
-      (:white-point
-        color-d65-xyz
-        ;; color-d50-xyz | Horizon Light. ICC profile PCS
-        ;; color-d55-xyz | Mid-morning / Mid-afternoon Daylight
-        ;; color-d65-xyz | Noon Daylight: Television, sRGB color space
-        ;; color-d75-xyz | North sky Daylight
-        ))))
+
+;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;     (
+;;       :foreground "#5A5E65"
+;;       :background "#EEF0F3"
+
+;;       :accent1 "#00008f61cf98"
+;;       :accent1_ "#5653a8cde341"
+;;       :accent1__ "#834cc303f71e"
+
+;;       :accent2 "#1fed897317c5"
+;;       :accent2_ "#4b25a3443c34"
+;;       :accent2__ "#6e9bbd925d1f" ...))
+
+
+;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+;;     (:foreground "#5A5E65"
+;;       :background "#EEF0F3"
+;;       :accent1 "#00008f61cf98"
+;;       :accent1_ "#161aaae9f504"
+;;       :accent1__ "#2701c74affff"
+;;       :accent2 "#1fed897317c5"
+;;       :accent2_ "#37afa5902af2"
+;;       :accent2__ "#4de4c28e3d87" ...))
 
 (deftheme neea)
 (base16-theme-define 'neea
