@@ -10,6 +10,9 @@
 ;; https://www.w3.org/TR/WCAG20/#relativeluminancedef
 ;; emacs shipped color.el
 
+;; todo: consider cieCAM02
+;; https://en.wikipedia.org/wiki/CIECAM02
+
 ;; HSL - Hue Saturation Luminance -- all 0.0 -> 1.0
 ;; HSV - Hue Saturation Value Hue in radians, SV is 0.0 -> 1.0
 
@@ -112,6 +115,13 @@
       (ns/color-name-to-lab c1)
       (ns/color-name-to-lab c2)))
 
+  (defun ns/color-lab-transform (color transform)
+    "Generate an accent color from COLOR using TRANSFORM, a LAB colorspace function."
+    (-as-> color <>
+      (ns/color-name-to-lab <> ns/theme-white-point)
+      (apply transform <>)
+      (ns/color-lab-to-name <> ns/theme-white-point)))
+
   (defun ns/color-lab-lighten (c value)
     (ns/color-lab-transform c
       (lambda (L A B) (list (+ L value) A B))))
@@ -125,8 +135,6 @@
   ;; todo: rgb to srgb/some form of gamma correction?
   )
 
-(ns/make-color-helpers)
-
 (setq ns/theme-white-point
   ;; note: ICC is https://en.wikipedia.org/wiki/ICC_profile
   ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
@@ -135,56 +143,43 @@
   ;; color-d75-xyz ;; | North sky Daylight
   )
 
+(ns/make-color-helpers)
+
 ;; saving this one as a 'safe' fallback
 (defun ns/color-derive-accent-safe (origin mod)
-  (-as-> origin <>
-    (ns/color-name-to-lab <> ns/theme-white-point)
-    (apply 'color-lab-to-lch <>)
-    (apply (lambda (L C H)
-             (list
-               (+ L mod)
-               ;; (- C (/ mod 2))
-               (- C mod)
-               H)) <>)
-    (apply 'color-lch-to-lab <>)
-    (ns/color-lab-to-name <> ns/theme-white-point)))
+  (ns/color-lch-transform origin
+    (lambda (L C H)
+      (list
+        (+ L mod)
+        ;; (- C (/ mod 2))
+        (- C mod)
+        H))))
 
 (defun ns/color-derive-accent (origin mod)
   (ns/color-iterate origin
     (lambda (c)
-      (-as-> c <>
-        (ns/color-name-to-lab <> ns/theme-white-point)
-        (apply 'color-lab-to-lch <>)
-        (apply (lambda (L C H)
-                 (list
-                   (+ L 2)
-                   (- C 2)
-                   ;; (+ L mod)
-                   ;; (- C (/ mod 2))
-                   ;; (- C mod)
-                   H)) <>)
-        (apply 'color-lch-to-lab <>)
-        (ns/color-lab-to-name <> ns/theme-white-point)))
+      (ns/color-lch-transform c
+        (lambda (L C H)
+          (list
+            (+ L 2)
+            (- C 2)
+            ;; (+ L mod)
+            ;; (- C (/ mod 2))
+            ;; (- C mod)
+            H))))
 
-    (lambda (c) (> (ns/color-name-distance
-                     ;; consider passing hue correction here
-                     origin c)
-                  (* 1.5  mod)
-                  ;; mod
-                  ))))
-
-(defun ns/color-lab-transform (color transform)
-  "Generate an accent color from COLOR using TRANSFORM, a LAB colorspace function."
-  (-as-> color <>
-    (ns/color-name-to-lab <> ns/theme-white-point)
-    (apply transform <>)
-    (ns/color-lab-to-name <> ns/theme-white-point)))
+    (lambda (c)
+      (> (ns/color-name-distance
+           ;; todo: consider passing hue correction here
+           origin c)
+        (* 1.5  mod)
+        ;; mod
+        ))))
 
 (let*
   ;; from the lab light theme
   ((foreground  "#5A5E65")
     (background  "#F2F5F8")
-
     (accent1
       (ns/color-lab-transform foreground
         (lambda (L A B)
@@ -237,34 +232,32 @@
       (:accent2__
         ;; (ns/color-lab-lighten accent2__ -10)
         accent2__
-        ))))
+        )))
 
-;; (ht-set ns/theme :accent2__)
+  ;; note: here is the place for lighting and gamma correction functions
+
+  ;; take the chroma of everything up a bit (away from "gray")
+  (setq ns/theme
+    (ht-transform ns/theme
+      (lambda (c)
+        (ns/color-lch-transform c
+          (lambda (L C H) (list L (+ C 5) H))))))
+
+  ;; example transform:
+  ;; (setq ns/theme
+  ;;   (ht-transform ns/theme
+  ;;     (lambda (c)
+  ;;       ;; (ns/color-lab-lighten)
+  ;;       (ns/color-tint-with-light
+  ;;         c
+  ;;         color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
+  ;;         ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+  ;;         color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+  ;;         ;; color-d75-xyz ;; | North sky Daylight
+  ;;         ))))
+  )
 
 ;; todo: this theme should also handle org outline levels colors explicitly
-
-;; note: here is the place for lighting and gamma correction functions, EG:
-
-;; take the chroma of everything down a bit (more towards "gray")
-(setq ns/theme
-  (ht-transform ns/theme
-    (lambda (c)
-      (ns/color-lch-transform c
-        (lambda (L C H) (list L (- C 3) H))))))
-
-;; example transform:
-;; (setq ns/theme
-;;   (ht-transform ns/theme
-;;     (lambda (c)
-;;       ;; (ns/color-lab-lighten)
-;;       (ns/color-tint-with-light
-;;         c
-;;         color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
-;;         ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-;;         color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-;;         ;; color-d75-xyz ;; | North sky Daylight
-;;         ))))
-
 (deftheme neea)
 
 (base16-theme-define 'neea
