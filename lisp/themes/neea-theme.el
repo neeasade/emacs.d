@@ -174,13 +174,13 @@
 
         (ns/color-lab-to-name <> ns/theme-white-point)))
 
-    (accent1_ (ns/color-derive-accent accent1 20))
-    (accent1__ (ns/color-derive-accent accent1_ 20))
-    (accent2_ (ns/color-derive-accent accent2 20))
-    (accent2__ (ns/color-derive-accent accent2_ 20))
+    (accent1_ (ns/color-derive-accent accent1 10))
+    (accent1__ (ns/color-derive-accent accent1_ 10))
+    (accent2_ (ns/color-derive-accent accent2 10))
+    (accent2__ (ns/color-derive-accent accent2_ 10))
 
     (foreground_ (ns/color-derive-accent foreground 20))
-    (foreground__ (ns/color-derive-accent foreground_ 20))
+    (foreground__ (ns/color-derive-accent foreground_ 10))
     )
 
   (setq ns/theme
@@ -212,7 +212,22 @@
 ;; :accent2_ "#6e9bbd935d1f"
 ;; :accent2__ "#b258f39a9fc7" ...
 
+;; ns/theme
+
+;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (
+;; foreground "#5A5E65"
+;; foreground_ "#94c6902d86f9"
+;; foreground__ "#c25cc6d3cedf"
+;; background "#EEF0F3"
+;; accent1 "#00008f61cf98"
+;; accent1_ "#5653a8cde341"
+;; accent1__ "#834cc303f71e"
+;; accent2 "#1fed897317c5"
+;; accent2_ "#4b25a3443c34"
+;; accent2__ "#6e9bbd925d1f"
+
 (deftheme neea)
+
 (base16-theme-define 'neea
   (list
     ;; The comments on the sections here are from the base16 styling guidelines, not necessarily
@@ -223,43 +238,45 @@
 
     :base00 (ht-get ns/theme :background) ;; Default Background
 
-    ;; ivy-current-match background
-    :base01 (ns/fade-min-contrast star 100 2) ;; Lighter Background (Used for status bars)
+    ;; ivy-current-match background, isearch match background, inactive modeline background
+    :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
 
-    :base02 (ns/fade-min-contrast star 100 2) ;; Selection Background
+    ;; font-comment delimiter face, region, active modeline background
+    :base02 (ht-get ns/theme :accent1_) ;; Selection Background
 
-    :base03 (ns/fade-color foreground 20) ;; Comments, Invisibles, Line Highlighting
-    :base04 foreground                    ;; Dark Foreground (Used for status bars)
+    :base03 (ht-get ns/theme :foreground__) ;; Comments, Invisibles, Line Highlighting
+    :base04 (ht-get ns/theme :foreground_)  ;; Dark Foreground (Used for status bars)
 
-    :base05 foreground                    ;; Default Foreground, Caret, Delimiters, Operators
+    :base05 (ht-get ns/theme :foreground) ;; Default Foreground, Caret, Delimiters, Operators
 
-    :base06 foreground                    ;; Light Foreground (Not often used)
+    :base06 (ht-get ns/theme :foreground_) ;; Light Foreground (Not often used)
 
-    :base07 background ;; Light Background (Not often used)
+    :base07 (ht-get ns/theme :foreground_) ;; Light Background (Not often used)
 
-    ;; org-todo
-    :base08 (ns/fade-color star 15) ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
+    ;; org-todo, variables
+    :base08 (ht-get ns/theme :accent2) ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
 
     ;; ivy-current-match foreground
-    :base09 foreground              ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
+    :base09 (ht-get ns/theme :foreground) ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
 
-    :base0A (ns/fade-color star 20) ;; Classes, Markup Bold, Search Text Background
+    :base0A (ht-get ns/theme :foreground__) ;; Classes, Markup Bold, Search Text Background
 
     ;; font-lock-string-face
-    :base0B star       ;; Strings, Inherited Class, Markup Code, Diff Inserted
+    ;; this should maybe be accent1__
+    :base0B (ht-get ns/theme :accent2__) ;; Strings, Inherited Class, Markup Code, Diff Inserted
 
-    :base0C foreground ;; Support, Regular Expressions, Escape Characters, Markup Quotes
+    :base0C (ht-get ns/theme :foreground_) ;; Support, Regular Expressions, Escape Characters, Markup Quotes
 
-    ;; prompt, function-name
-    :base0D (ns/bolden-color star 30) ;; Functions, Methods, Attribute IDs, Headings
+    ;; prompt, function-name, search match foreground
+    :base0D (ht-get ns/theme :accent1) ;; Functions, Methods, Attribute IDs, Headings
 
     ;; keyword-face, org-date
-    :base0E star       ;; Keywords, Storage, Selector, Markup Italic, Diff Changed
+    :base0E (ht-get ns/theme :accent1_) ;; Keywords, Storage, Selector, Markup Italic, Diff Changed
 
-    :base0F foreground ;; Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
+    :base0F (ht-get ns/theme :foreground) ;; Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
     ))
 
-(provide-theme 'base16-neeatheme)
+(provide-theme 'neea)
 
 (provide 'neea-theme)
 ;;; neea-theme.el ends here
