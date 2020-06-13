@@ -123,20 +123,18 @@
         (ns/color-lch-transform c
           (lambda (L C H) (list L (+ C 5) H))))))
 
-  ;; (ns/color-tint-with-light "#cccccc" ns/theme-white-point ns/theme-white-point)
-
-  ;; (setq ns/theme
-  ;;   (ht-transform ns/theme
-  ;;     (lambda (c)
-  ;;       ;; (ns/color-lab-lighten)
-  ;;       (ns/color-tint-with-light
-  ;;         c
-  ;;         ns/theme-white-point
-  ;;         ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
-  ;;         ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-  ;;         color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-  ;;         ;; color-d75-xyz ;; | North sky Daylight
-  ;;         ))))
+  (setq ns/theme
+    (ht-transform ns/theme
+      (lambda (c)
+        ;; (ns/color-lab-lighten)
+        (ns/color-tint-with-light
+          c
+          ns/theme-white-point
+          ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
+          ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+          ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+          color-d75-xyz ;; | North sky Daylight
+          ))))
 
   )
 

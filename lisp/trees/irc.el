@@ -1,6 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-
 ;; todo:
 ;; alerts on DMs as well as channel highlights
 ;; don't alert on highlights if the window is focused and we are not idle

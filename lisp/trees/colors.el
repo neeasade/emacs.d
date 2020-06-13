@@ -46,8 +46,6 @@
 ;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
 ;; have high value and low saturation.
 
-
-
 (defun ns/color-format (color)
   (format "#%s" (substring color -6 nil)))
 
@@ -169,6 +167,13 @@
     (lambda (L A B)
       (apply 'color-lch-to-lab
         (apply transform (color-lab-to-lch L A B))))))
+
+(defun ns/color-hsl-transform (c transform)
+  (->> (color-name-to-rgb c)
+    (apply 'color-rgb-to-hsl)
+    (apply transform)
+    (apply 'color-hsl-to-rgb)
+    (apply 'color-rgb-to-hex)))
 
 ;; todo: rgb to srgb/some form of gamma correction?
 ;; maybe steal a little from https://github.com/yurikhan/yk-color/blob/master/yk-color.el
