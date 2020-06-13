@@ -134,7 +134,8 @@
     (apply (lambda (L C H)
              (list
                (+ L mod)
-               (- C (/ mod 2))
+               ;; (- C (/ mod 2))
+               (- C mod)
                H)) <>)
     (apply 'color-lch-to-lab <>)
     (ns/color-lab-to-name <> ns/theme-white-point)))
@@ -144,7 +145,7 @@
 (let*
   ;; from the lab light theme
   ((foreground  "#5A5E65")
-    (background  "#EEF0F3")
+    (background  "#F2F5F8")
 
     (accent1
       (-as-> foreground <>
@@ -152,10 +153,10 @@
         (apply (lambda (L A B)
                  (list
                    (+ L 10)
-                   ;; green
+                   ;; going towards green, away from red
                    (- A (* 0.5 (+ A 100)))
-                   ;; blue
-                   (- B (* 0.5 (+ B 100)))
+                   ;; going towards blue, away from yello
+                   (- B (* 0.7 (+ B 100)))
                    )) <>)
 
         (ns/color-lab-to-name <> ns/theme-white-point)))
@@ -166,10 +167,10 @@
         (apply (lambda (L A B)
                  (list
                    (+ L 10)
-                   ;; going to negative 100 (green)
-                   (- A (* 0.5 (+ A 100)))
-                   ;; going to positive 100 (yellow)
-                   (+ B (* 0.5 (- 200 (+ B 100))))
+                   ;; going towards green, away from red
+                   (- A (* 0.6 (+ A 100)))
+                   ;; going towards yellow, away from blue
+                   (+ B (* 0.6 (- 200 (+ B 100))))
                    )) <>)
 
         (ns/color-lab-to-name <> ns/theme-white-point)))
@@ -200,32 +201,6 @@
       (:accent2__ accent2__)
       )))
 
-;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (
-;; :foreground "#5A5E65"
-;; :foreground_ "#94c6902d86f9"
-;; :foreground__ "#c25cc6d3cedf"
-;; :background "#EEF0F3"
-;; :accent1 "#00008f61cf98"
-;; :accent1_ "#834cc303f71f"
-;; :accent1__ "#d1b4f987ffff"
-;; :accent2 "#1fed897317c5"
-;; :accent2_ "#6e9bbd935d1f"
-;; :accent2__ "#b258f39a9fc7" ...
-
-;; ns/theme
-
-;; #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (
-;; foreground "#5A5E65"
-;; foreground_ "#94c6902d86f9"
-;; foreground__ "#c25cc6d3cedf"
-;; background "#EEF0F3"
-;; accent1 "#00008f61cf98"
-;; accent1_ "#5653a8cde341"
-;; accent1__ "#834cc303f71e"
-;; accent2 "#1fed897317c5"
-;; accent2_ "#4b25a3443c34"
-;; accent2__ "#6e9bbd925d1f"
-
 (deftheme neea)
 
 (base16-theme-define 'neea
@@ -241,8 +216,8 @@
     ;; ivy-current-match background, isearch match background, inactive modeline background
     :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
 
-    ;; font-comment delimiter face, region, active modeline background
-    :base02 (ht-get ns/theme :accent1_) ;; Selection Background
+    ;; font-comment-delimiter, region, active modeline background
+    :base02 (ht-get ns/theme :accent1__) ;; Selection Background
 
     :base03 (ht-get ns/theme :foreground__) ;; Comments, Invisibles, Line Highlighting
     :base04 (ht-get ns/theme :foreground_)  ;; Dark Foreground (Used for status bars)
