@@ -1,10 +1,19 @@
 ;; -*- lexical-binding: t; -*-
 
-;; this is a great resource: https://peteroupc.github.io/colorgen.html
+;; cf:
+;; https://en.wikipedia.org/wiki/CIELAB_color_space
+;; LAB only: https://en.wikipedia.org/wiki/Standard_illuminant#White_points_of_standard_illuminants
+;; https://peteroupc.github.io/colorgen.html
+;; http://colorizer.org/
+;; https://github.com/yurikhan/yk-color/blob/master/yk-color.el
+;; https://www.htmlcsscolor.com/hex/9ABCDD
+;; https://www.w3.org/TR/WCAG20/#relativeluminancedef
+;; emacs shipped color.el
 
-;; see this table for white point references and what they are meant to represent in LAB:
-;; https://en.wikipedia.org/wiki/Standard_illuminant#White_points_of_standard_illuminants
+;; HSL - Hue Saturation Luminance -- all 0.0 -> 1.0
+;; HSV - Hue Saturation Value Hue in radians, SV is 0.0 -> 1.0
 
+;; notes for hue:
 ;; Hue is an angle from red at 0 to yellow to green to cyan to blue to magenta to red
 ;; angle mapping in hue in degrees: (HSL space)
 ;; note: for HUE in color.el these are all within the 1.0 range/collapsed
@@ -15,136 +24,120 @@
 ;; 240 - 300 blue to magenta
 ;; 300 - 360 magenta to red
 
-;; 180 - 240 -- this will be our favored hue maybe? cyan to blue
+;; LAB
+;; - L*, or lightness of a color (how bright that color appears in comparison to white), is 0 or
+;;   greater and 100 or less, where 0 is black and 100 is white.
+;; - a* is a coordinate of the red/green axis (positive points to red, negative to green).
+;; - b* is a coordinate of the yellow/blue axis (positive points to yellow, negative to blue).
+
+;; LCH
+;; - Lightness (L*) remains unchanged.
+;; - Chroma (C*) is the distance of the color from the "gray" line.
+;; - Hue (h, an angle)(12) ranges from magenta at roughly 0 to red to yellow to green to cyan to blue to magenta.
+
+;; sRGB vs linear RGB
+;; sRGB is kinda like declaring intent wrt a standard white point? (LAB makes this explicit)
+
+;; Pastels
+;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
+;; have high value and low saturation.
+
+;; THEME THOUGHTS
+;; kinds of colors we want to create:
+;; fg, bg
+
+;; 2 faded fg levels (modeline, then comments)
+;; 2 accents -- each with strong and weak versions
+;;      the export might be just still be gradient style (it's easier to reason about emphasis if the star is a middle color, I think)
+
+;; my thinking right now is that we'll derive 'lightness' from the foreground color -- and then tint
+;; the hue to get our accent colors, and then from there tweak properties to get the 'weaker' and
+;; 'stronger' variants of the colors.
+
+;; additionally if we steal accent colors from somewhere we can snipe the hue and then use that as
+;; our base with foreground (new color is HSL, accent H, accent S, foreground L)
+
+;; I really like this color, lets see some properties of it.
+;; #9abcdd
+
+(color-name-to-rgb "#9abcdd")
+;; => (0.6039215686274509 0.7372549019607844 0.8666666666666667)
+
+(apply 'color-rgb-to-hsl (color-name-to-rgb "#9abcdd"))
+;; (0.582089552238806 0.4962962962962964 0.7352941176470589)
+
+(apply 'color-rgb-to-hsv (color-name-to-rgb "#9abcdd"))
+;; (3.6573765220896104 0.30316742081447967 0.8666666666666667)
 
 (require 'base16-theme)
 
-;; aim for minimum contrast ratios of 7:1 (between background and foreground)?
-(defun ns/color-contrast (c1 c2)
-  (let ((rl1 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c1))))
-         (rl2 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c2)))))
-    (/ (+ 0.05 (max rl1 rl2))
-      (+ 0.05 (min rl1 rl2)))))
+(defun ns/make-color-helpers ()
+  "Contain the help."
+  (defun ns/color-contrast-ratio (c1 c2)
+    (let ((rl1 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c1))))
+           (rl2 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c2)))))
+      (/ (+ 0.05 (max rl1 rl2))
+        (+ 0.05 (min rl1 rl2)))))
 
-(defun ns/iterate-color (start op condition)
-  "Do OP on START color until CONDITION is met or op has no effect."
-  (let ((color start))
-    (while (and (not (funcall condition color))
-             (not (string= (funcall op color) color)))
-      (message color)
-      (setq color (funcall op color))) color))
+  (defun ns/color-iterate (start op condition)
+    "Do OP on START color until CONDITION is met or op has no effect."
+    (let ((color start))
+      (while (and (not (funcall condition color))
+               (not (string= (funcall op color) color)))
+        (setq color (funcall op color))) color))
 
-;; iterate color, but return all inbetween steps
-(defun ns/iterate-color (start op condition)
-  "Do OP on START color until CONDITION is met or op has no effect."
-  (let ((color start))
-    (while (and (not (funcall condition color))
-             (not (string= (funcall op color) color)))
-      (message color)
-      (setq color (funcall op color))) color))
+  ;; TODO:
+  (defun ns/color-iterate-collection (start op condition)
+    "Do OP on START color until CONDITION is met or op has no effect (return all steps)."
+    (let ((color start))
+      (while (and (not (funcall condition color))
+               (not (string= (funcall op color) color)))
+        (setq color (funcall op color)))
+      color))
 
-(defun ns/color-name-to-lab (name &optional white-point)
-  "Transform NAME into LAB colorspace with some lighting assumption."
-  (-as-> name <>
-    (color-name-to-rgb <>)
-    (apply 'color-srgb-to-xyz <>)
-    (append <> (list (or white-point (ht-get ns/theme :white-point))))
-    (apply 'color-xyz-to-lab <>)))
+  (defun ns/color-name-to-lab (name &optional white-point)
+    "Transform NAME into LAB colorspace with some lighting assumption."
+    (-as-> name <>
+      (color-name-to-rgb <>)
+      (apply 'color-srgb-to-xyz <>)
+      (append <> (list white-point))
+      (apply 'color-xyz-to-lab <>)))
 
-(defun ns/color-lab-to-name (lab &optional white-point)
-  (->> (append lab (list (or white-point (ht-get ns/theme :white-point))))
-    (apply 'color-lab-to-xyz)
-    (apply 'color-xyz-to-srgb)
-    (-map 'color-clamp)
-    (apply 'color-rgb-to-hex)))
+  (defun ns/color-lab-to-name (lab &optional white-point)
+    (->> (append lab (list white-point))
+      (apply 'color-lab-to-xyz)
+      (apply 'color-xyz-to-srgb)
+      ;; when pulling it out we might die
+      (-map 'color-clamp)
+      (apply 'color-rgb-to-hex)))
 
-(defun ns/color-tint-with-light (name w1 w2)
-  "convert a color wrt white points W1 and W2 through the lab colorspace"
-  (ns/color-lab-to-name (ns/color-name-to-lab name w1) w2))
+  (defun ns/color-tint-with-light (name w1 w2)
+    "convert a color wrt white points W1 and W2 through the lab colorspace"
+    (ns/color-lab-to-name (ns/color-name-to-lab name w1) w2))
 
-(-map
-  (lambda (percent)
-    (ns/iterate-color
-      "#00C5E0"
-      (lambda (c) (ns/color-tint-with-light c
-                    color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-                    color-d75-xyz ;; | North sky Daylight
-                    ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-                    ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space
-                    ))
-      (lambda (c) (>
-                    (ns/color-name-distance c "#00C5E0")
-                    ;; (ns/color-contrast c "#00C5E0")
-                    percent))))
-  '(3 6 9 12 15)
-  ;; '(1 1.1 1.2 1.3 1.4)
-  ;; '(2 4 6 8)
+  (defun ns/color-name-distance (c1 c2)
+    ;; note: there are 3 additional optional params to cie-de2000: compensation for
+    ;; {lightness,chroma,hue} (all 0.0-1.0)
+    ;; https://en.wikipedia.org/wiki/Color_difference#CIEDE2000
+    (color-cie-de2000
+      (ns/color-name-to-lab c1)
+      (ns/color-name-to-lab c2)))
+
+  ;; todo: rgb to srgb?
   )
 
-(defun ns/color-weird (color percent)
-  (ns/iterate-color
-    color
-    (lambda (c)
-      (color-lighten-name c 1)
-      ;; ns/color-tint-with-light c ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-      ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-      ;; color-d75-xyz ;; | North sky Daylight
-      ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space
-      )
-    (lambda (c) (>
-                  (ns/color-name-distance c color)
-                  ;; (ns/color-contrast c "#00C5E0")
-                  percent))))
+(ns/make-color-helpers)
 
-;; '(3 6 9 12 15)
-;; '(1 1.1 1.2 1.3 1.4)
-;; '(2 4 6 8)
+;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+;; color-d75-xyz ;; | North sky Daylight
+;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space
 
-
-
-
-("#0000c7d1ffff" "#0000c7d1ffff" "#0000ebdbffff" "#0000f4a5ffff" "#0000fd2dffff")
-
-("#0000c7d1ffff" "#0000c7d1ffff" "#0000c7d1ffff" "#0000c7d1ffff")
-
-("#0000c7d1ffff" "#0000c7d1ffff" "#0000ebdbffff" "#0000f4a5ffff" "#0000fd2dffff")
-
-;; ("#0000c6c1ed38" "#0000c7d3fa17" "#0000eb39ffff" "#0000f4dcffff" "#0000fd3fffff")
-
-(ns/color-tint-with-light   "#bb40cf15e4de" color-d50-xyz color-d55-xyz )
-
-(ns/color-name-distance
-  "#c4a1cdebd89a"
-  ;; "#bb40cf15e4de"
-  ;; "#b051d04bf19e"
-  "#00C5E0")
-
-(->> "#ccddee" color-name-to-rgb (apply 'color-srgb-to-lab)
-  ;; (apply 'color-lab-to-srgb)
-  ;; (apply 'color-rgb-to-hex)
-  (ns/color-lab-to-name)
-  )
-
-(defun ns/color-name-distance (c1 c2)
-  ;; note: there are 3 additional optional params to cie-de2000: compensation for {lightness,chroma,hue}
-  ;; https://en.wikipedia.org/wiki/Color_difference#CIEDE2000
-  (color-cie-de2000
-    (ns/color-name-to-lab c1)
-    (ns/color-name-to-lab c2)))
-
-;; some thoughts:
-;; contrast ratio as measurement is really only good as luminance meatric
-;; color distance is useful if we're doing weird things maybe?
-
-
-;; from our automata tiling repos
+;; misc colors
+;; "#bb40cf15e4de"
 ;; /* #ebe5ff */
-;; /* #eef0f3 */
 ;; /* #d7cdff */
-
-(color-darken-name "#d7cdff" 10)
-
-"#aee19a9affff"
+;; "#00C5E0"
 
 (setq ns/theme
   (let*
@@ -166,6 +159,8 @@
       (:foreground foreground)
       (:background background)
 
+      ;; (:foreground-fade (ns/color-lessen 50 foreground))
+      (:foreground-fade (ns/color-lessen 50 foreground))
       (:faded-fg (ns/color-lessen 50 foreground))
       ;; (:focused-fg (ns/color-lessen 10 accent1))
 
@@ -186,74 +181,6 @@
         ;; color-d65-xyz | Noon Daylight: Television, sRGB color space
         ;; color-d75-xyz | North sky Daylight
         ))))
-
-#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :accent1 "#aee19a9affff" :accent1-1 "#cb89be6cfffe" :accent1-2 "#dbe9d2e4fffe" :accent2 "#618079df0000" :accent2-1 "#7a1098930000" :accent2-2 "#8658a7ed0000" :white-point (0.950455 1.0 1.088753) ...))
-
-#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#8567ff" :accent1 "#aee19a9affff" :accent1-1 "#cb89be6cfffe" :accent1-2 "#dbe9d2e4fffe" :accent2 "#618079df0000" :accent2-1 "#7a1098930000" :accent2-2 "#8658a7ed0000" :white-point (0.950455 1.0 1.088753) ...))
-
-#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#8567ff" :accent1 "#aee19a9affff" :accent1-1 "#bb29a9f4ffff" :accent1-2 "#e831e23efffe" :accent2 "#618079df0000" :accent2-1 "#6dc889390000" :accent2-2 "#71e08e570000" :white-point (0.950455 1.0 1.088753) ...))
-
-
-#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#8567ff" :accent1 "#aee19a9affff" :accent1-1 "#87dd9ed3ffff" :accent1-2 "#4905a2b6ffff" :accent2 "#618079df0000" :accent2-1 "#593d7b0b266e" :accent2-2 "#53b57bac3445" :white-point (0.950455 1.0 1.088753) ...))
-
-;; #005f87
-;; 'color00' : ['#eeeeee', '255'],
-;; \       'color01' : ['#af0000', '124'],
-;; \       'color02' : ['#008700', '28'],
-;; \       'color03' : ['#5f8700', '64'],
-;; \       'color04' : ['#0087af', '31'],
-;; \       'color05' : ['#878787', '102'],
-;; \       'color06' : ['#005f87', '24'],
-;; \       'color07' : ['#444444', '238'],
-;; \       'color08' : ['#bcbcbc', '250'],
-;; \       'color09' : ['#d70000', '160'],
-;; \       'color10' : ['#d70087', '162'],
-;; \       'color11' : ['#8700af', '91'],
-;; \       'color12' : ['#d75f00', '166'],
-;; \       'color13' : ['#d75f00', '166'],
-;; \       'color14' : ['#005faf', '25'],
-;; \       'color15' : ['#005f87', '24'],
-;; \       'color16' : ['#0087af', '31'],
-;; \       'color17' : ['#008700', '28'],
-
-#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#ae9aff" :accent1 "#d7cdff" :accent1-1 "#b958d13cffff" :accent1-2 "#9322d473ffff" :accent2 "#71e18e560000" :accent2-1 "#68598fae2e51" :accent2-2 "#61f590663e3d" :white-point (0.950455 1.0 1.088753) ...))
-
-"#d7cdff" "#c07cd0c4ffff" "#9568d4e2ffff" :
-#s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:foreground "#5A5E65" :background "#EEF0F3" :faded-fg "#c2c4c8" :focused-fg "#ae9aff" :accent1 "#d7cdff" :accent1-1 "#c07cd0c4ffff" :accent1-2 "#9568d4e2ffff" :accent2 "#71e18e560000" :accent2-1 "#691d8fb1276e" :accent2-2 "#60ae90be3ae6" :white-point (0.950455 1.0 1.088753) ...))
-
-(ht-get ns/theme :white-point)
-
-;; (apply 'color-rgb-to-hsl (color-name-to-rgb "#ccddee"))
-
-(apply 'color-srgb-to-lab (color-name-to-rgb "#ccddee"))
-
-;; HSL - Hue Saturation Luminance -- all 0.0 -> 1.0
-;; HSV - Hue Saturation Value Hue in radians, SV is 0.0 -> 1.0
-
-;; (defun ns/tint-to-color (name target percent)
-;;   "tint NAME to TARGET color by PERCENT of all HSL properties"
-;;   ;; maybe todo: have tint accept some generic color property
-;;   (let* (
-;;           ;; (is-light (ns/color-is-light-p (ns/theme 'foreground)))
-;;           (tint-function (if is-light 'color-darken-name 'color-lighten-name))
-;;           (luminance (third (apply 'color-rgb-to-hsl (color-name-to-rgb name))))
-;;           ;; original (tints to black or white instead of fg bg):
-;;           ;; (l-percent (* percent (if is-light luminance (- 1 luminance))))
-
-
-;;           (bg-l (third (apply 'color-rgb-to-hsl (color-name-to-rgb (ns/theme 'background)))))
-;;           (fg-l (third (apply 'color-rgb-to-hsl (color-name-to-rgb (ns/theme 'foreground)))))
-;;           (l-percent (* percent (if is-light (- luminance bg-l) (- fg-l luminance))))
-;;           )
-;;     (funcall tint-function name l-percent)))
-
-;; enforce a minimum contrast
-
-;; (defun ns/fade-min-contrast (name percent contrast)
-;;   (ns/contrast-color (ns/fade-color name percent) contrast 'ns/bolden-color))
-
-;; (defun ns/bolden-min-contrast (name percent contrast)
-;;   (ns/contrast-color (ns/bolden-color name percent) contrast 'ns/fade-color))
 
 (deftheme neea)
 (base16-theme-define 'neea
@@ -288,6 +215,7 @@
 
     :base0A (ns/fade-color star 20) ;; Classes, Markup Bold, Search Text Background
 
+    ;; font-lock-string-face
     :base0B star       ;; Strings, Inherited Class, Markup Code, Diff Inserted
 
     :base0C foreground ;; Support, Regular Expressions, Escape Characters, Markup Quotes

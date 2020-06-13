@@ -320,6 +320,9 @@
       (color-darken-name color percent)
       (color-lighten-name color percent))))
 
+(memoize 'ns/color-lessen)
+
+
 ;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
 ;; this means you won't have to garbage collect for literal minutes when we leave emacs running
 ;; all night long
@@ -431,3 +434,5 @@
             (blue (funcall convert 5 7)))
       (color-rgb-to-hex red green blue))
     color))
+
+(use-package memoize)

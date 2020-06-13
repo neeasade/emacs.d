@@ -60,14 +60,7 @@
         'help-echo "Buffer position - mouse-1: Display Line and Column Mode Menu"
         'mouse-face mouse-face
         'local-map local-map)
-      (doom-modeline-spc)
-      )))
-
-(defsubst doom-modeline-spc ()
-  "Text style with whitespace (thin)."
-  (propertize " " 'face (if (doom-modeline--active)
-                          'mode-line
-                          'mode-line-inactive)))
+      (doom-modeline-spc))))
 
 (doom-modeline-def-segment buffer-info-neeasade
   (concat
@@ -75,8 +68,7 @@
     (doom-modeline-spc)
     (doom-modeline--buffer-name)
     ;; (doom-modeline--buffer-file-name)
-    (doom-modeline--buffer-state-icon)
-    ))
+    (doom-modeline--buffer-state-icon)))
 
 (defun ns/next-buffer-name ()
   (->> (window-next-buffers)
@@ -89,8 +81,7 @@
     ))
 
 (defun ns/prev-buffer-name ()
-  (->>
-    (window-prev-buffers)
+  (->> (window-prev-buffers)
     ;; (reverse)
     (-map 'first)
     (-map 'buffer-name)
@@ -121,58 +112,13 @@
 
 (doom-modeline-def-segment sep
   "Text style with whitespace."
-  (propertize " " 'face (if (doom-modeline--active)
-                          'ns/mode-line-sep
-                          'mode-line-inactive)))
+  (propertize
+    " "
+    'face (if (doom-modeline--active)
+            'ns/mode-line-sep
+            'mode-line-inactive)))
 
 (column-number-mode) ; give us column info in the modeline
-
-(defun ns/doom-modeline-def-modeline (name lhs rhs)
-  (let ((sym (intern (format "doom-modeline-format--%s" name)))
-         (lhs-forms (doom-modeline--prepare-segments lhs))
-         (rhs-forms (doom-modeline--prepare-segments rhs)))
-    (defalias sym
-      (lambda ()
-
-        (list lhs-forms
-          (propertize " " 'face (if (doom-modeline--active)
-                                  'ns/mode-line-sep-edge
-                                  'mode-line-inactive))
-          (propertize
-            " "
-            'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
-            'display `((space :align-to (- (+ right right-fringe right-margin)
-                                          ,(* (if (number-or-marker-p (face-attribute 'mode-line :height))
-                                                (/
-                                                  (doom-modeline--font-width)
-
-                                                  (frame-char-width) 1.0)
-                                                1)
-                                             (-
-                                               (string-width
-                                                 (format-mode-line
-                                                   (cons "" rhs-forms)))
-                                               (round
-                                                 (/
-                                                   (seq-count
-                                                     (lambda (c) (= c ? )); XXX there is a thin space here (literal charater ?).
-                                                     (format-mode-line
-                                                       (cons "" rhs-forms))
-                                                     )
-                                                   ;; the magic number
-                                                   1.5
-                                                   )))
-                                             )))))
-          (propertize " " 'face (if (doom-modeline--active)
-                                  'ns/mode-line-sep-edge
-                                  'mode-line-inactive))
-          rhs-forms))
-      (concat "Modeline:\n"
-        (format "  %s\n  %s"
-          (prin1-to-string lhs)
-          (prin1-to-string rhs)))))
-  )
-
 
 (setq-ns doom-modeline
   height (string-to-number (get-resource "Emacs.doomlineheight"))
@@ -193,7 +139,7 @@
   after-update-env-hook nil
   )
 
-(ns/doom-modeline-def-modeline 'neeasade-doomline
+(doom-modeline-def-modeline 'neeasade-doomline
   '(
      ;; sep
      remote-host
@@ -237,8 +183,7 @@
       ;; if we don't want modeline, we still might want
       ;; padding on the bottom if we aren't using frame padding
       (if (s-equals-p (get-resource "Emacs.padding_source") "st") nil " " ))
-    '(shell-mode)
-    )
+    '(shell-mode))
 
   (when (and (not (s-equals-p (get-resource "Emacs.padding_source") "st"))
           (not toggle))
@@ -248,8 +193,7 @@
   (setq window-divider-default-bottom-width (if toggle 0 1))
   (ns/apply-frames (fn (set-frame-parameter <> 'bottom-divider-width (if toggle 0 1))))
   ;; force redraw of all frames
-  (ns/apply-frames (fn nil))
-  )
+  (ns/apply-frames (fn nil)))
 
 ;; refesh all mode lines based on the value of the modeline in the current buffer
 (ns/bind "M" (fn! (ns/refresh-all-modeline (not mode-line-format))))
@@ -261,11 +205,9 @@
     (progn
       (setq ns/modeline mode-line-format)
       (setq mode-line-format nil))
-    (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline))))
-    )
+    (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
 
-
-;; (doom-modeline-format--neeasade-doomline)
+  ;; (doom-modeline-format--neeasade-doomline)
 
   (redraw-frame))
 
