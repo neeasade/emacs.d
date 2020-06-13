@@ -53,7 +53,7 @@
      (interactive) ,@body))
 
 (defun ht-transform (table transform-function)
-  "Apply some transformation to all colors in a hashtable"
+  "Apply some transformation to all values in a hashtable"
   (eval `(ht ,@(-map (fn (list <>
                            (funcall transform-function
                              (ht-get table <>))))
@@ -72,8 +72,7 @@
                     (intern (format "%s-%s" namespace (car <>)))
                     (cadr <>))))
       (cons 'setq)
-      (-flatten-n 1)
-      )))
+      (-flatten-n 1))))
 
 (defun ~ (path)
   (concat

@@ -56,6 +56,7 @@
 (ns/compose
   extra
 
+  colors
   company
   flycheck
   jump

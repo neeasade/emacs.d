@@ -19,11 +19,11 @@
 ;; - link-hint-open-link-at-point
 ;; file:/home/neeasade/.vimrc
 ;; /home/neeasade/.vimrc
+;; inline file path kind (eg in some notes) =~/.local/share/fonts/=
 
 ;; # ns/follow should be reworked to check over different candidate types, going from full line -> word at point -> word + 'stuff' at point
 ;; # handle this jump kind:
 ;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
-
 
 ;; $HOME/.vimrc - todo: link-hint-open-link-at-point handles this
 
@@ -279,46 +279,12 @@
 (setq rainbow-x-colors nil)
 
 (use-package rainbow-mode
-  :config
-  (ns/bind "tc" 'rainbow-mode))
-
-(use-package kurecolor
-  :config
-  (setq-ns kurecolor-color-adjust
-    ;; these are in percent
-    brightness-step 2
-    saturation-step 2
-    hue-step 2)
-
-  ;; maybe these should be on the rainbow mode map
-  (ns/bind
-    "cl" 'kurecolor-increase-brightness-by-step
-    "cL" 'kurecolor-decrease-brightness-by-step
-    "ch" 'kurecolor-increase-hue-by-step
-    "cH" 'kurecolor-decrease-hue-by-step
-    "cs" 'kurecolor-increase-saturation-by-step
-    "cS" 'kurecolor-decrease-saturation-by-step
-    ))
+  :config (ns/bind "tc" 'rainbow-mode))
 
 ;; M-x direnv-update-environment
 ;; sync from the pov of the current file
 ;; using in combination with lorri
 (use-package direnv)
-
-(defun ns/color-format (color)
-  (format "#%s" (substring color -6 nil)))
-
-(defun ns/color-greaten (percent color)
-  (ns/shorten-color
-    (if (ns/color-is-light-p color)
-      (color-lighten-name color percent)
-      (color-darken-name color percent))))
-
-(defun ns/color-lessen (percent color)
-  (ns/shorten-color
-    (if (ns/color-is-light-p color)
-      (color-darken-name color percent)
-      (color-lighten-name color percent))))
 
 
 ;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
@@ -371,15 +337,11 @@
 
 (defun ns/emacs-to-theme ()
   (use-package theme-magic)
-
   (s-join "\n"
     (append (seq-map-indexed
               (fn (format "color%s=%s" (number-to-string <2>)
                     (s-replace "#" "" <1>)))
               (theme-magic--auto-extract-16-colors))
-
-      ;; (face-attribute 'mode-line :background)
-      ;; (face-attribute 'mode-line-inactive :background)
 
       (list
         (format "foreground=%s" (s-replace "#" "" (face-attribute 'default :foreground)))
@@ -415,24 +377,5 @@
 
 ;; colors
 
-;; optionally transform #<12> to #<6>
-(defun ns/shorten-color (color)
-  "COLOR #HHHHHHHHHHHH to #HHHHHH"
-  (if (= (length color) 7)
-    color
-    (-as-> color C
-      (color-name-to-rgb C)
-      `(color-rgb-to-hex ,@C 2)
-      (eval C))))
-
-(defun ns/longen-color (color)
-  "COLOR #HHHHHH to #HHHHHHHHHHHH"
-  (if (= (length color) 7)
-    (let* ((convert (lambda (p1 p2) (/ (string-to-number (substring color p1 p2) 16) 255.0)))
-            (red (funcall convert 1 3))
-            (green (funcall convert 3 5))
-            (blue (funcall convert 5 7)))
-      (color-rgb-to-hex red green blue))
-    color))
-
 ;; (use-package memoize)
+;; (use-package persist)

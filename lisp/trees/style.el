@@ -1,12 +1,12 @@
 ;; -*- lexical-binding: t; -*-
 
 ;; ensure we can load our custom theme
+(use-package base16-theme)
+
 (add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
 
-(use-package base16-theme)
-(use-package lab-themes)
-
-(use-package apropospriate-theme)
+;; (use-package lab-themes)
+;; (use-package apropospriate-theme)
 ;; (use-package modus-operandi-theme)
 
 (defun ns/update-xrdb-font (font &optional variable)
@@ -34,7 +34,7 @@
      "DejaVu Sans-14"
      "Lucida Console-14"
      "Noto Serif-14"
-     "Go-14"
+     ;; "Go-14" ; not serif'd
      "Charter-14"))
 
 (let (
@@ -147,14 +147,13 @@
 
 (use-package hl-todo
   :config
-  (let* ((comment-color (face-attribute 'font-lock-comment-face :foreground))
-          (highlight-color (ns/color-tone comment-color 30 30)))
 
+  (let* ((highlight-color (ns/color-tone (face-attribute 'font-lock-comment-face :foreground) 30 30)))
     (setq hl-todo-keyword-faces
       `(("TODO" . ,highlight-color)
          ("todo" . ,highlight-color)
-         ("NOTE" . ,highlight-color)
-         ("note" . ,highlight-color)
+         ;; ("NOTE" . ,highlight-color)
+         ;; ("note" . ,highlight-color)
          ))
 
     ;; todo: this doesn't seem to update magit-todos
@@ -162,8 +161,7 @@
       (setq magit-todos-keywords hl-todo-keyword-faces)
       (magit-todos-mode 0)
       (magit-todos-mode 1)
-      )
-    )
+      ))
 
   (general-nmap
     "]t" 'hl-todo-next

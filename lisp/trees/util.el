@@ -18,23 +18,6 @@
       (eww url))
     (eww url)))
 
-(defun ns/color-is-light-p (name)
-  (let*
-    ((rgb (color-name-to-rgb name))
-      (red (first rgb))
-      (green (second rgb))
-      (blue (third rgb))
-      ;; cf https://en.wikipedia.org/wiki/YIQ#From_RGB_to_YIQ
-      (yiq (+ (* red .299) (* green .587) (* blue .114))))
-    (>= yiq 0.5)
-    ))
-
-(defun ns/color-tone (name light dark)
-  "tone name a percent based on if light or dark - generally want softer value for dark."
-  (if (ns/color-is-light-p name)
-    (color-darken-name name light)
-    (color-lighten-name name dark)))
-
 (defun ns/what-face (pos)
   (interactive "d")
   (let ((face (or (get-char-property (point) 'read-face-name)
