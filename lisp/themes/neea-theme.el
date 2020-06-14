@@ -56,7 +56,7 @@
         ))))
 
 (let*
-  ;; from the lab light theme
+  ;; fg bg from the lab light theme by MetroWind.
   ((foreground  "#5A5E65")
     (background  "#F2F5F8")
     (accent1
@@ -116,6 +116,7 @@
   ;; note: here is the place for lighting and gamma correction functions
   ;; todo: investigate the different color blending options for transforms here
 
+  ;; todo: ht-transform that lets us exclude keys or include them in the function call
   ;; take the chroma of everything up a bit (away from "gray")
   (setq ns/theme
     (ht-transform ns/theme
