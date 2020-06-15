@@ -60,67 +60,67 @@
         ))))
 
 (let*
-    ;; fg bg from the lab light theme by MetroWind.
-    ((foreground  "#5A5E65")
-     (background  "#F2F5F8")
+  ;; fg bg from the lab light theme by MetroWind.
+  ((foreground  "#5A5E65")
+    (background  "#F2F5F8")
 
-     (accent1
+    (accent1
       (ns/color-lab-transform foreground
-			      (lambda (L A B)
-				(list
-				 (+ L 5)
-				 ;; L
-				 ;; going towards green, away from red
-				 (- A (* 0.5 (+ A 100)))
-				 ;; to red
-				 ;; (+ A (* 0.6 (- 200 (+ A 100))))
-				 ;; going towards blue, away from yellow
-				 (- B (* 0.7 (+ B 100)))
-				 ))))
+        (lambda (L A B)
+          (list
+            (+ L 5)
+            ;; L
+            ;; going towards green, away from red
+            (- A (* 0.5 (+ A 100)))
+            ;; to red
+            ;; (+ A (* 0.6 (- 200 (+ A 100))))
+            ;; going towards blue, away from yellow
+            (- B (* 0.7 (+ B 100)))
+            ))))
 
-     (accent2
+    (accent2
       (ns/color-lab-transform foreground
-			      (lambda (L A B)
-				(list
-				 ;; (+ L 10)
-				 (- L 2)
-				 ;; going towards green, away from red
-				 (- A (* 0.8 (+ A 100)))
-				 ;; (- A (* 0.0 (+ A 100)))
-				 ;; going towards yellow, away from blue
-				 (+ B (* 0.4 (- 200 (+ B 100))))
-				 ))))
+        (lambda (L A B)
+          (list
+            ;; (+ L 10)
+            (- L 2)
+            ;; going towards green, away from red
+            (- A (* 0.8 (+ A 100)))
+            ;; (- A (* 0.0 (+ A 100)))
+            ;; going towards yellow, away from blue
+            (+ B (* 0.4 (- 200 (+ B 100))))
+            ))))
 
-     ;; todo: revisit numbers here
-     (accent1_ (ns/color-derive-accent accent1 10))
-     (accent1__ (ns/color-derive-accent accent1_ 10))
+    ;; todo: revisit numbers here
+    (accent1_ (ns/color-derive-accent accent1 10))
+    (accent1__ (ns/color-derive-accent accent1_ 10))
 
-     (accent2_ (ns/color-derive-accent accent2 10))
-     (accent2__ (ns/color-derive-accent accent2_ 10))
+    (accent2_ (ns/color-derive-accent accent2 10))
+    (accent2__ (ns/color-derive-accent accent2_ 10))
 
-     (foreground_ (ns/color-lab-lighten foreground 20))
-     (foreground__ (ns/color-lab-lighten foreground_ 6))
-     )
+    (foreground_ (ns/color-lab-lighten foreground 20))
+    (foreground__ (ns/color-lab-lighten foreground_ 6))
+    )
 
   (setq ns/theme
 	(ht
-	 (:foreground foreground)
-	 (:foreground_ foreground_)
-	 (:foreground__ foreground__)
+      (:foreground foreground)
+      (:foreground_ foreground_)
+      (:foreground__ foreground__)
 
-	 (:background background)
+      (:background background)
 
-	 (:accent1 accent1)
-	 (:accent1_ accent1_)
-	 (:accent1__ accent1__)
+      (:accent1 accent1)
+      (:accent1_ accent1_)
+      (:accent1__ accent1__)
 
-	 (:accent2 accent2)
-	 (:accent2_ accent2_)
+      (:accent2 accent2)
+      (:accent2_ accent2_)
 
-	 (:accent2__
-          ;; (ns/color-lab-lighten accent2__ -10)
-          accent2__
-          )))
+      (:accent2__
+        ;; (ns/color-lab-lighten accent2__ -10)
+        accent2__
+        )))
 
   ;; note: here is the place for lighting and gamma correction functions
   ;; todo: investigate the different color blending options for transforms here
@@ -128,41 +128,39 @@
   ;; tweak only the accents:
   (setq ns/theme
 	(ht-transform-kv ns/theme
-			 (lambda (k v)
-			   (if (s-starts-with-p ":accent" (prin1-to-string k))
-			       (ns/color-lch-transform
-				v (lambda (L C H)
-				    (list
-				     ;; luminance
-				     L
+      (lambda (k v)
+        (if (s-starts-with-p ":accent" (prin1-to-string k))
+          (ns/color-lch-transform
+            v (lambda (L C H)
+                (list
+                  ;; luminance
+                  L
 
-				     ;; distance from gray -- higher is furthur.
-				     (* 1.7 C)
-				     ;; (+ C 10)
+                  ;; distance from gray -- higher is furthur.
+                  (* 1.7 C)
+                  ;; (+ C 10)
 
-				     ;; we never really tweak hue here
-				     H)))
-			     v))))
-  ns/theme
+                  ;; we never really tweak hue here
+                  H)))
+          v))))
 
   ;; correlate this with screen brightness -- the lower you turn it you will want to turn this down
   ;; todo: for this to be accurate you must be sure of the initial color adjustments in sRBG
   ;; that implies gamma correction/measure in an enviroment controlled or similar to the one described at
   ;; https://en.wikipedia.org/wiki/SRGB
 
-  ;; (setq ns/theme
-  ;;   (ht-transform-v ns/theme
-  ;;     (lambda (c)
-  ;;       ;; (ns/color-lab-lighten)
-  ;;       (ns/color-tint-with-light
-  ;;         c
-  ;;         ns/theme-white-point
-  ;;         ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
-  ;;         ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-  ;;         ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-  ;;         color-d75-xyz ;; | North sky Daylight
-  ;;         ))))
-  )
+  ;; white point const meanings
+  ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
+  ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+  ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+  ;; color-d75-xyz ;; | North sky Daylight
+
+  ;; when outside, or with really low brightness, try out these transforms:
+  (->>
+    ;; (fn (ns/color-tint-with-light <> ns/theme-white-point color-d55-xyz))
+    (fn (ns/color-tint-with-light <> ns/theme-white-point color-d50-xyz))
+    (ht-transform-v ns/theme)
+    (setq ns/theme)))
 
 ;; todo: this theme should also handle org outline levels colors explicitly
 (deftheme neea)

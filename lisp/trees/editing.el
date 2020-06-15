@@ -32,8 +32,7 @@
 
 (use-package editorconfig
   :config
-  (editorconfig-mode 0)
-
+  (editorconfig-mode 1)
   )
 
 (setq tab-width 4)

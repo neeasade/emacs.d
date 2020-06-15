@@ -11,8 +11,6 @@ want: helpers for working with hue in degrees -> whatever color.el LCH expects
 
 todo: persist the variable that holds visited directories on occasion
 
-check upstream base16 repo to see if you can help with issues/theme support
-
 improve your pager game maybe -- better buffer name? no file association?
 
 need to get an org solution with agenda/reminders/carryover
@@ -66,9 +64,6 @@ to change your cx command binding for exchange (transactions use x in
 ledger)
 
 **** https://github.com/NicolasPetton/Indium
-**** use this for shx clear alias https://github.com/politza/ealias
-    only useful if you can reuse aliases over tramp
-
 **** https://github.com/tumashu/ivy-posframe
 **** https://github.com/abo-abo/auto-yasnippet
 **** use this https://github.com/kaz-yos/eval-in-repl/tree/fea05a5b81d74ac53cb2a83aa83a73d9526bcc42
@@ -78,7 +73,6 @@ ledger)
 *** TODO https://github.com/purcell/envrc
 ** ideas
 *** org
-**** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
 **** checkout languagetool https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
 **** https://www.reddit.com/r/emacs/comments/97naje/what_is_everyones_org_mode_indentation_preferences/
 **** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
@@ -130,8 +124,6 @@ mode/shell, irc... (think I will use nf)
 This hasn't happened because it's not _super_ inconvienent to gg or G to where I need to go
 
 **** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
-**** latex https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
-**** figure out some project workspace workflow in emacs
 ** maybe/not really interested
 *** https://github.com/wolray/symbol-overlay
 *** https://github.com/mpdel/mpdel
