@@ -50,7 +50,7 @@
   (format "#%s" (substring color -6 nil)))
 
 (defun ns/color-greaten (percent color)
-  (ns/shorten-color
+  (ns/color-shorten
     (if (ns/color-is-light-p color)
       (color-lighten-name color percent)
       (color-darken-name color percent))))
@@ -62,7 +62,7 @@
       (color-lighten-name color percent))))
 
 ;; optionally transform #<12> to #<6>
-(defun ns/shorten-color (color)
+(defun ns/color-shorten (color)
   "COLOR #HHHHHHHHHHHH to #HHHHHH"
   (if (= (length color) 7)
     color
@@ -71,7 +71,7 @@
       `(color-rgb-to-hex ,@C 2)
       (eval C))))
 
-(defun ns/longen-color (color)
+(defun ns/color-longen (color)
   "COLOR #HHHHHH to #HHHHHHHHHHHH"
   (if (= (length color) 7)
     (let* ((convert (lambda (p1 p2) (/ (string-to-number (substring color p1 p2) 16) 255.0)))

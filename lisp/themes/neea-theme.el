@@ -16,6 +16,10 @@
 (require 'base16-theme)
 (require 'color)
 
+;; the definition of 'white' as displayed on the screen your viewing it on
+;; picture you are a photographer, taking pictured in different lighting conditions -- sunlight and
+;; incandescent lighting conditions are very different, for example.
+;; well here, your monitor is like the photograph, and this point represents "white" on your screen.
 (setq ns/theme-white-point
   ;; note: ICC is https://en.wikipedia.org/wiki/ICC_profile
   ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
@@ -59,14 +63,18 @@
   ;; from the lab light theme
   ((foreground  "#5A5E65")
     (background  "#F2F5F8")
+
     (accent1
       (ns/color-lab-transform foreground
         (lambda (L A B)
           (list
             (+ L 5)
+            ;; L
             ;; going towards green, away from red
             (- A (* 0.5 (+ A 100)))
-            ;; going towards blue, away from yello
+            ;; to red
+            ;; (+ A (* 0.6 (- 200 (+ A 100))))
+            ;; going towards blue, away from yellow
             (- B (* 0.7 (+ B 100)))
             ))))
 
@@ -75,11 +83,12 @@
         (lambda (L A B)
           (list
             ;; (+ L 10)
-            (+ L 5)
+            (- L 2)
             ;; going towards green, away from red
-            (- A (* 0.6 (+ A 100)))
+            (- A (* 0.8 (+ A 100)))
+            ;; (- A (* 0.0 (+ A 100)))
             ;; going towards yellow, away from blue
-            (+ B (* 0.6 (- 200 (+ B 100))))
+            (+ B (* 0.4 (- 200 (+ B 100))))
             ))))
 
     ;; todo: revisit numbers here
@@ -123,19 +132,23 @@
         (ns/color-lch-transform c
           (lambda (L C H) (list L (+ C 5) H))))))
 
-  (setq ns/theme
-    (ht-transform ns/theme
-      (lambda (c)
-        ;; (ns/color-lab-lighten)
-        (ns/color-tint-with-light
-          c
-          ns/theme-white-point
-          ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
-          ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-          ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-          color-d75-xyz ;; | North sky Daylight
-          ))))
+  ;; correlate this with screen brightness -- the lower you turn it you will want to turn this down
+  ;; todo: for this to be accurate you must be sure of the initial color adjustments in sRBG
+  ;; that implies gamma correction/measure in an enviroment controlled or similar to the one described at
+  ;; https://en.wikipedia.org/wiki/SRGB
 
+  ;; (setq ns/theme
+  ;;   (ht-transform ns/theme
+  ;;     (lambda (c)
+  ;;       ;; (ns/color-lab-lighten)
+  ;;       (ns/color-tint-with-light
+  ;;         c
+  ;;         ns/theme-white-point
+  ;;         ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
+  ;;         ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
+  ;;         ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
+  ;;         color-d75-xyz ;; | North sky Daylight
+  ;;         ))))
   )
 
 ;; todo: this theme should also handle org outline levels colors explicitly
@@ -167,7 +180,8 @@
     :base07 (ht-get ns/theme :foreground_) ;; Light Background (Not often used)
 
     ;; org-todo, variables
-    :base08 (ht-get ns/theme :accent2) ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
+    ;; :base08 (ht-get ns/theme :accent2) ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
+    :base08 (ht-get ns/theme :accent2_) ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
 
     ;; ivy-current-match foreground
     :base09 (ht-get ns/theme :foreground) ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
