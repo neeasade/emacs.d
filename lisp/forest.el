@@ -649,18 +649,21 @@
   ;; todo
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
 
-  (use-package writeroom-mode)
-  (add-hook 'writeroom-mode-hook 'flyspell-mode)
+  (use-package olivetti)
+
+  ;; (use-package writeroom-mode)
+  ;; (add-hook 'writeroom-mode-hook 'flyspell-mode)
 
   (setq-default fill-column 100)
-  (add-hook 'writeroom-mode-hook 'auto-fill-mode)
+  ;; (add-hook 'olivetti-mode auto-fill-mode)
 
+  ;; todo: revisit this
   ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
   ;; There is no need for "^" as the regexp is matched at the beginning of line.
   (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
 
   ;; toggle focus?
-  (ns/bind "tf" 'writeroom-mode)
+  (ns/bind "tf" 'olivetti-mode)
 
   (use-package mw-thesaurus)
   ;; (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)

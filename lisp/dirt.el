@@ -52,7 +52,15 @@
   `(defun ,label ,args
      (interactive) ,@body))
 
-(defun ht-transform (table transform-function)
+(defun ht-transform-kv (table transform-function)
+  "Apply some transformation to all keys + values in a hashtable"
+  (eval `(ht ,@(-map (fn (list <>
+                           (funcall transform-function
+                             <>
+                             (ht-get table <>))))
+                 (ht-keys table)))))
+
+(defun ht-transform-v (table transform-function)
   "Apply some transformation to all values in a hashtable"
   (eval `(ht ,@(-map (fn (list <>
                            (funcall transform-function

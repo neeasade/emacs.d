@@ -9,8 +9,7 @@
   ;; (set-face-foreground 'indent-guide-face (ns/color-tone (face-attribute 'default :background) 15 15))
 
   (setq indent-guide-char "|")
-  (indent-guide-global-mode 0)
-  )
+  (indent-guide-global-mode 0))
 
 (use-package link-hint)
 
@@ -379,3 +378,4 @@
 
 ;; (use-package memoize)
 ;; (use-package persist)
+
