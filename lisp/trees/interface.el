@@ -42,11 +42,6 @@
 (defun ns/dired-init()
   (hl-line-mode)
 
-  ;; todo: move this to the color -- can't be here so colors.el can be loaded in 'extra'
-  ;; (set-face-attribute 'hl-line nil :background
-  ;;   ;; todo: make lessen script a defun and use here
-  ;;   (ns/color-tone (first evil-visual-state-cursor) -7 -7))
-
   ;; accumulate directories
   (when (not (boundp 'ns/cd-dirs))
     (setq ns/cd-dirs (list)))
