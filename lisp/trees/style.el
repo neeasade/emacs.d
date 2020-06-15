@@ -1,13 +1,36 @@
 ;; -*- lexical-binding: t; -*-
 
-;; ensure we can load our custom theme
 (use-package base16-theme)
 
 (add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
 
-;; (use-package lab-themes)
-;; (use-package apropospriate-theme)
-;; (use-package modus-operandi-theme)
+;; todo: we are now depending on populated values in ns/theme in some places might be appropriate to
+;; store a backup theme, because this depends on color.el/a static interface to it
+
+;; todo: some stuff here could probably be pulled into the theme itself, actually
+
+(defun! ns/font-reset ()
+  (set-face-attribute 'default nil :font (get-resource "st.font"))
+  (ns/apply-frames
+    (fn (set-frame-parameter <> 'font (get-resource "st.font")))))
+
+;; todo later: this let* is really a step-by-step labeled flow
+;; the -as-> macro might fit nicely
+;; also -- this multiply thing might be a dumb idea, maybe just prompt for desired font-size instead
+(defun! ns/font-multiply ()
+  (let* ((font (get-resource "st.font"))
+          (multiplier (string-to-number
+                        (read-string
+                          (format "font multiplier (apply to '%s'): " font))))
+          (old-num (string-to-number (second (s-split "-" font))))
+          (new-num (round (* multiplier old-num)))
+          (new-font (format "%s-%s"
+                      (first (s-split "-" font))
+                      (number-to-string new-num))))
+
+    (message "new font: %s" new-font)
+    (set-face-attribute 'default nil :font new-font)
+    (set-frame-font (get-resource new-font) nil t)))
 
 (defun ns/update-xrdb-font (font &optional variable)
   (let ((key (if variable "st.font_variable" "st.font")))
@@ -34,45 +57,36 @@
      "DejaVu Sans-14"
      "Lucida Console-14"
      "Noto Serif-14"
-     ;; "Go-14" ; not serif'd
      "Charter-14"))
 
-(let (
-       ;; (theme (intern (get-resource "Emacs.theme")))
-       (theme 'neea)
-       )
-  (when (not (boundp 'ns/loaded-theme))
-    (setq ns/loaded-theme nil))
+(when (not (boundp 'ns/loaded-theme))
+  (setq ns/loaded-theme nil))
 
-  (load-theme theme t)
+;; (load-theme  t)
+(load-theme 'neea t)
 
-  ;; (when (not (eq ns/loaded-theme theme))
-  ;;   (disable-theme ns/loaded-theme)
-  ;;   (load-theme theme t)
-  ;;   (setq ns/loaded-theme theme))
+;; (when (not (eq ns/loaded-theme theme))
+;;   (disable-theme ns/loaded-theme)
+;;   (load-theme theme t)
+;;   (setq ns/loaded-theme theme))
 
-  (set-face-attribute
-    'font-lock-comment-delimiter-face nil
-    :foreground (face-attribute 'font-lock-comment-face :foreground))
+;; ｃｏｎｆｏｒｍ
+(set-face-attribute
+  'font-lock-comment-delimiter-face nil
+  :foreground (face-attribute 'font-lock-comment-face :foreground))
 
-  ;; I like this cursor color
-  (setq evil-normal-state-cursor '("#8B94C6" box)
-    evil-insert-state-cursor '("#8B94C6" bar)
-    evil-visual-state-cursor '("#BDC6F8" box))
+(let ((accent1 (ht-get ns/theme :accent1))
+       (accent1_ (ht-get ns/theme :accent1_)))
+  (setq
+    evil-normal-state-cursor `(,accent1_ box)
+    evil-insert-state-cursor `(,accent1_ bar)
+    evil-visual-state-cursor `(,accent1_ box))
+  ;; (set-face-attribute 'comint-highlight-prompt nil :foreground accent1)
+  )
 
-  (when (equal theme 'lab-light)
-    (set-face-attribute
-      'ivy-current-match nil
-
-      :background (face-attribute 'company-tooltip-selection :background)
-      :foreground (face-attribute 'company-tooltip-selection :foreground)
-      )))
-
+(set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
 (set-face-attribute 'fringe nil :background nil)
-(set-face-background 'font-lock-comment-face nil)
-
-(set-face-attribute 'comint-highlight-prompt nil
-  :foreground (car evil-normal-state-cursor))
+(set-face-attribute 'font-lock-comment-face nil :background nil)
 
 ;; handle 2 padding approaches
 ;; use internal border on frames, or fake it with fringe mode and a header line on each buffer
@@ -102,10 +116,6 @@
   (add-to-list 'default-frame-alist
     `(internal-border-width . ,(if st-padding-p st-padding 0))))
 
-;; sync w/ term background
-;; todo: revisit
-;; (set-background-color (get-resource "*.background"))
-
 ;; window divider stuff
 (setq window-divider-default-right-width 1)
 
@@ -132,8 +142,7 @@
 (add-hook 'after-make-frame-functions 'ns/set-fringe-bg)
 
 ;; set font on current and future
-(set-face-attribute 'default nil :font (get-resource "st.font"))
-(set-frame-font (get-resource "st.font") nil t)
+(ns/font-reset)
 
 (setq-default indicate-empty-lines nil)
 
@@ -147,8 +156,11 @@
 
 (use-package hl-todo
   :config
+  (let ((highlight-color
+          (ns/color-lessen
+            30
+            (face-attribute 'font-lock-comment-face :foreground))))
 
-  (let* ((highlight-color (ns/color-tone (face-attribute 'font-lock-comment-face :foreground) 30 30)))
     (setq hl-todo-keyword-faces
       `(("TODO" . ,highlight-color)
          ("todo" . ,highlight-color)
@@ -156,12 +168,10 @@
          ;; ("note" . ,highlight-color)
          ))
 
-    ;; todo: this doesn't seem to update magit-todos
-    (when (bound-and-true-p magit-todos-mode)
-      (setq magit-todos-keywords hl-todo-keyword-faces)
-      (magit-todos-mode 0)
-      (magit-todos-mode 1)
-      ))
+    ;; todo: this doesn't seem to update magit-todos? - not seeing 'todo' show up
+    (setq magit-todos-keywords hl-todo-keyword-faces)
+    ;; highlight-color
+    )
 
   (general-nmap
     "]t" 'hl-todo-next
@@ -169,26 +179,19 @@
 
   (global-hl-todo-mode))
 
-;; (set-face-bold-p doesn't cover everything, some fonts use slant and underline as bold...)
-;; todo: maybe revisit your opinions on this
-(mapc (lambda (face)
-        (set-face-attribute face nil
-          ;; :weight 'normal
-          :slant 'normal
-          ;; :underline nil
-          ;;:inherit nil
-          ))
-  (face-list))
+;; allow font effects in org mode faces, but not in other places
+(->> (face-list)
+  (-filter (fn (not (s-starts-with-p "org" (prin1-to-string <>)))))
+  (-map (fn (set-face-attribute <> nil
+              ;; :weight 'normal
+              :slant 'normal
+              :underline nil
+              ;; :inherit nil
+              ))))
 
-;; gross colors, but need something so we have a signifier in unique match case
-;; todo: maybe fix gross colors
-;; (set-face-attribute 'avy-lead-face nil :background (ns/color-tone (face-attribute 'default :background) 30 30))
-;; (set-face-attribute 'avy-lead-face nil :foreground (ns/color-tone (face-attribute 'default :foreground) 30 30))
 
-(set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
 
 (when (fboundp 'ns/style-circe) (ns/style-circe))
 (when (fboundp 'ns/style-org) (ns/style-org))
 
-;; (ns/spaceline)
 (ns/doomline)

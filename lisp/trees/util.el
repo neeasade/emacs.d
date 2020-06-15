@@ -46,9 +46,7 @@
     f-read
     (s-match-strings-all  "^(defconfig [^ \(\)]+")
     (mapcar (fn (->> (car <>) (s-chop-prefix "(defconfig ") (s-chomp))))
-    (cons "style")
-    (cons "dirt")
-    (cons "init")
+    (append '("style" "dirt" "init" "theme"))
     ))
 
 (defun! ns/check-for-orphans ()
@@ -66,6 +64,7 @@
     (fn (interactive)
       (cond
         ((string= "dirt" <>) (ns/find-or-open (~ ".emacs.d/lisp/dirt.el")))
+        ((string= "theme" <>) (ns/find-or-open (~ ".emacs.d/themes/neea-theme.el")))
         ((string= "init" <>) (ns/find-or-open (~ ".emacs.d/init.el")))
         ((f-exists-p (format (~ ".emacs.d/lisp/trees/%s.el") <>))
           (ns/find-or-open (format (~ ".emacs.d/lisp/trees/%s.el") <>)))

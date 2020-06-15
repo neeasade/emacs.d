@@ -1,5 +1,17 @@
 * emacs
+
+https://en.wikipedia.org/wiki/SRGB
+
+todo: LCH hue is in radians? or degrees?
+    hue is in degrees, might be negative
+    what does a negative hue mean? tried a LCH transform to ensure positive, got differing results
+;; (if (> 0 H) (* -1 H) H)
+want: helpers for working with hue in degrees -> whatever color.el LCH expects
+    maybe: -1 is -180 and 1 is 180? doesn't appear to be... hue is weird.
+
 todo: persist the variable that holds visited directories on occasion
+
+check upstream base16 repo to see if you can help with issues/theme support
 
 improve your pager game maybe -- better buffer name? no file association?
 
@@ -32,7 +44,6 @@ idea: jump to pop shell show last command running process
 *** org
 **** https://github.com/sergeyklay/bnf-mode
 **** https://github.com/dengste/org-caldav
-**** evil org bindings: https://gist.github.com/amirrajan/301e74dc844a4c9ffc3830dc4268f177
 **** https://github.com/justbur/emacs-vdiff
 **** https://github.com/benma/visual-regexp-steroids.el
     maybe come back to this -- I don't like the live editing in the minibuffer because you then can't get the query you made very easily. Maybe we can come back and use like a standalone buffer to highlight in a test output or something
@@ -43,13 +54,11 @@ idea: jump to pop shell show last command running process
 **** https://github.com/kostafey/ejc-sql
 **** https://github.com/hlolli/csound-mode
 **** https://github.com/Fuco1/dired-hacks
-**** https://github.com/raxod502/selectrum
 **** https://github.com/ilya-babanov/emacs-bpr
 **** http://tonyballantyne.com/graphs.html
 **** https://github.com/clojure-emacs/clj-refactor.el
 **** large file mode: https://github.com/m00natic/vlfi
 **** https://github.com/magit/with-editor
-**** https://gitlab.com/jjzmajic/ewal
 **** https://github.com/justbur/emacs-vdiff
 **** ledger-mode
 checkout: https://github.com/atheriel/evil-ledger -- but you will have
@@ -70,8 +79,7 @@ ledger)
 ** ideas
 *** org
 **** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
-**** checkout languagetool
-https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
+**** checkout languagetool https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
 **** https://www.reddit.com/r/emacs/comments/97naje/what_is_everyones_org_mode_indentation_preferences/
 **** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
 **** https://www.reddit.com/r/emacs/comments/9cxj13/trouble_with_orgmode_stars/
@@ -81,6 +89,7 @@ https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
 
 
 **** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+
 **** into org agendas
 **** https://github.com/TeMPOraL/conffiles/blob/master/emacs26/.emacs.d/elisp/init-org-mode.el
 **** https://github.com/Kungsgeten/org-brain#other-useful-packages

@@ -21,6 +21,9 @@
 ;; Hue is an angle from red at 0 to yellow to green to cyan to blue to magenta to red
 ;; angle mapping in hue in degrees: (HSL space)
 ;; note: for HUE in color.el these are all within the 1.0 range/collapsed
+
+;; to see these colors inline here with rainbow-mode:
+;; (setq rainbow-x-colors t)
 ;; 0   - 60 red to yellow
 ;; 60  - 120 yellow to green
 ;; 120 - 180 green to cyan
@@ -45,6 +48,8 @@
 ;; Pastels
 ;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
 ;; have high value and low saturation.
+
+;; todo: consider: longen colors before operations on names, just generally
 
 (defun ns/color-format (color)
   (format "#%s" (substring color -6 nil)))
