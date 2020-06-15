@@ -543,8 +543,8 @@
     ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
       (default-fg (face-attribute 'default :foreground))
       (default-bg (face-attribute 'default :background))
-      (highlight-fg (ns/color-tone default-fg 20 20))
-      (fade-fg (ns/color-tone default-fg 35 40)))
+      (highlight-fg (ns/color-lessen default-fg))
+      (fade-fg (ns/color-lessen default-fg 35)))
 
     (set-face-attribute 'circe-server-face          nil  :foreground fade-fg)
     (set-face-attribute 'lui-time-stamp-face        nil  :foreground fade-fg)

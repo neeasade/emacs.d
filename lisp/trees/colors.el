@@ -76,6 +76,7 @@
       `(color-rgb-to-hex ,@C 2)
       (eval C))))
 
+
 (defun ns/color-longen (color)
   "COLOR #HHHHHH to #HHHHHHHHHHHH"
   (if (= (length color) 7)
@@ -96,12 +97,6 @@
       ;; cf https://en.wikipedia.org/wiki/YIQ#From_RGB_to_YIQ
       (yiq (+ (* red .299) (* green .587) (* blue .114))))
     (>= yiq 0.5)))
-
-(defun ns/color-tone (name light dark)
-  "tone name a percent based on if light or dark - generally want softer value for dark."
-  (if (ns/color-is-light-p name)
-    (color-darken-name name light)
-    (color-lighten-name name dark)))
 
 (defun ns/color-contrast-ratio (c1 c2)
   (let ((rl1 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c1))))
