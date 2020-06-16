@@ -342,10 +342,14 @@
                     (s-replace "#" "" <1>)))
               (theme-magic--auto-extract-16-colors))
 
-      (list
-        (format "foreground=%s" (s-replace "#" "" (face-attribute 'default :foreground)))
-        (format "background=%s" (s-replace "#" "" (face-attribute 'default :background)))
-        (format "cursorColor=%s" (s-replace "#" "" (first evil-insert-state-cursor)))))))
+      (-map
+        (fn (format "%s=%s" (car <>)
+              (s-replace "#" "" (ns/shorten-color (cadr <>)))))
+        (-partition 2
+          (list
+            "foreground" (face-attribute 'default :foreground)
+            "background" (face-attribute 'default :background)
+            "cursorColor" (first evil-insert-state-cursor)))))))
 
 (use-package git-link
   :config

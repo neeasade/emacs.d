@@ -1,5 +1,10 @@
 * emacs
 
+emacs color :notes
+https://darksair.org/blog/p/2018/uhd-is-future/
+https://en.wikipedia.org/wiki/CIECAM02
+http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
+
 https://en.wikipedia.org/wiki/SRGB
 
 todo: LCH hue is in radians? or degrees?

@@ -103,7 +103,7 @@
     )
 
   (setq ns/theme
-	(ht
+    (ht
       (:foreground foreground)
       (:foreground_ foreground_)
       (:foreground__ foreground__)
@@ -116,19 +116,15 @@
 
       (:accent2 accent2)
       (:accent2_ accent2_)
-
-      (:accent2__
-        ;; (ns/color-lab-lighten accent2__ -10)
-        accent2__
-        )))
+      (:accent2__ accent2__)))
 
   ;; note: here is the place for lighting and gamma correction functions
   ;; todo: investigate the different color blending options for transforms here
 
-  ;; tweak only the accents:
   (setq ns/theme
-	(ht-transform-kv ns/theme
+    (ht-transform-kv ns/theme
       (lambda (k v)
+        ;; tweak only the accents:
         (if (s-starts-with-p ":accent" (prin1-to-string k))
           (ns/color-lch-transform
             v (lambda (L C H)
@@ -156,11 +152,12 @@
   ;; color-d75-xyz ;; | North sky Daylight
 
   ;; when outside, or with really low brightness, try out these transforms:
-  (->>
-    ;; (fn (ns/color-tint-with-light <> ns/theme-white-point color-d55-xyz))
-    (fn (ns/color-tint-with-light <> ns/theme-white-point color-d50-xyz))
-    (ht-transform-v ns/theme)
-    (setq ns/theme)))
+  ;; (->>
+  ;;   (fn (ns/color-tint-with-light <> ns/theme-white-point color-d55-xyz))
+  ;;   ;; (fn (ns/color-tint-with-light <> ns/theme-white-point color-d50-xyz))
+  ;;   (ht-transform-v ns/theme)
+  ;;   (setq ns/theme))
+  )
 
 ;; todo: this theme should also handle org outline levels colors explicitly
 (deftheme neea)

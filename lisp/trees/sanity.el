@@ -162,7 +162,7 @@
   "tn" (fn! (setq-local display-line-numbers (if display-line-numbers nil 'relative)))
   "tl" 'toggle-truncate-lines
   "ts" 'ns/style
-  "ti" 'reload-init
+  "ti" (fn! (reload-init) (ns/style))
   "m" 'ns/toggle-modeline
   "tp" 'ns/toggle-report
 

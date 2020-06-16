@@ -227,6 +227,7 @@
   "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
                      (project-notes (if buffer-file-name
                                       (concat (projectile-root-bottom-up buffer-file-name) "notes.org") org-default-notes-file)))
+               ;; todo: this doesn't work if the notes file isn't already open? what?
                (ns/find-or-open (if (and (f-exists-p project-notes)
                                       (not (string= buffer-file-name project-notes)))
                                   project-notes org-default-notes-file))))
