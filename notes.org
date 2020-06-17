@@ -1,5 +1,7 @@
 * emacs
 
+very nice guide: https://00stack.in/nixos-ressources/pbp-nixos
+
 emacs color :notes
 https://darksair.org/blog/p/2018/uhd-is-future/
 https://en.wikipedia.org/wiki/CIECAM02
@@ -47,7 +49,7 @@ idea: jump to pop shell show last command running process
 *** org
 **** https://github.com/sergeyklay/bnf-mode
 **** https://github.com/dengste/org-caldav
-**** https://github.com/justbur/emacs-vdiff
+**** https://github.com/justbur/emacs-vdiff                            :doom:
 **** https://github.com/benma/visual-regexp-steroids.el
     maybe come back to this -- I don't like the live editing in the minibuffer because you then can't get the query you made very easily. Maybe we can come back and use like a standalone buffer to highlight in a test output or something
 
@@ -58,35 +60,33 @@ idea: jump to pop shell show last command running process
 **** https://github.com/hlolli/csound-mode
 **** https://github.com/Fuco1/dired-hacks
 **** https://github.com/ilya-babanov/emacs-bpr
-**** http://tonyballantyne.com/graphs.html
 **** https://github.com/clojure-emacs/clj-refactor.el
-**** large file mode: https://github.com/m00natic/vlfi
+**** large file mode: https://github.com/m00natic/vlfi                 :doom:
 **** https://github.com/magit/with-editor
-**** https://github.com/justbur/emacs-vdiff
-**** ledger-mode
+**** https://github.com/justbur/emacs-vdiff                            :doom:
+**** ledger-mode                                                       :doom:
 checkout: https://github.com/atheriel/evil-ledger -- but you will have
 to change your cx command binding for exchange (transactions use x in
 ledger)
 
 **** https://github.com/NicolasPetton/Indium
 **** https://github.com/tumashu/ivy-posframe
+make this HUGE
 **** https://github.com/abo-abo/auto-yasnippet
-**** use this https://github.com/kaz-yos/eval-in-repl/tree/fea05a5b81d74ac53cb2a83aa83a73d9526bcc42
+**** https://github.com/kaz-yos/eval-in-repl/tree/fea05a5b81d74ac53cb2a83aa83a73d9526bcc42
 **** https://github.com/skangas/mentor
 **** https://github.com/ppareit/graphviz-dot-mode
-
+a nice dot reference: http://tonyballantyne.com/graphs.html
+maybe add both of these to http://notes.neeasade.net/tldr-org-mode--graphviz.html
 *** TODO https://github.com/purcell/envrc
 ** ideas
 *** org
 **** checkout languagetool https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
-**** https://www.reddit.com/r/emacs/comments/97naje/what_is_everyones_org_mode_indentation_preferences/
 **** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
-**** https://www.reddit.com/r/emacs/comments/9cxj13/trouble_with_orgmode_stars/
-**** https://github.com/sabof/org-bullets/issues/11#issuecomment-439228372
+**** https://github.com/integral-dw/org-superstar-mode
+give this a go
 **** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
 **** https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
-
-
 **** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
 
 **** into org agendas
@@ -95,26 +95,23 @@ ledger)
 *** other
 **** https://www.reddit.com/r/emacs/comments/bg1018/rediscovering_vanilla_emacs_text_editing/eliw0f1/
 
-**** https://www.reddit.com/r/emacs/comments/8qkkh9/poll_theme_activation_on_loading/e0k7j4v/
 **** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
 **** http://endlessparentheses.com/leave-the-cursor-at-start-of-match-after-isearch.html
 **** https://www.reddit.com/r/emacs/comments/9ucpg1/for_people_using_the_default_emacs_keybindings/e939fnw/
 
-**** https://gist.github.com/cocagne/4088467
-
 **** review: https://sanctum.geek.nz/arabesque/advanced-vim-registers/
-
 **** latex workflow https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
 
-**** for no cd process shell pop -- check if running something:
+**** shell-mode check running processes
 https://stackoverflow.com/questions/8291899/is-there-a-direct-elisp-way-to-check-if-a-process-is-running-in-an-emacs-term-bu
-can fix hanging autoCD on long running processes
-**** https://github.com/munen/emacs.d
+can fix hanging auto CD on long running processes
+**** shell-pop cd tramp smart
+potentially use dired logic as reference -- find some shell-mode present on the $host without a running process or create one
 **** http://kitchingroup.cheme.cmu.edu/blog/category/emacs/
-**** overload CD so it will ignore tramp
-**** https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
 **** https://www.reddit.com/r/emacs/comments/8of6tx/tip_how_to_be_a_beast_with_hydra/
 **** https://www.reddit.com/r/emacs/comments/8ekz0u/how_to_pastethencopy/
+maybe just treat some mark as implicit paste target for a keybind
+add a hook for on evil yank and then remove it on yank?
 **** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
 **** steal latex setup from https://github.com/rememberYou/.emacs.d
 ****  idea: jump to input prompt area keybind
@@ -136,14 +133,11 @@ you're currently pretty satisfied with mpc and your music script
 The one reason this is still in the list is maybe for the playlist/mpd view could be cool.
 
 ** emacs conf 2019
-  checkout atherial(?) -- helm-twitch and add ivy calls (benefit is less resources than streaming twitch in the browser)
-  checkout ledger mode
-  look into debug adapter protocol
+look into debug adapter protocol
 
 ** pinebook pro emacs issues
 failed to get:  ts, better-jumper, flyspell-correct-avy-menu
 failed with error: org-pomodoro
-thinspace doom modeline mod was noticably heavy -- maybe just be ok with full space separators and smaller font in the modeline
 
 ** pinebook pro dotfiles issues
 need to support more fallback terms -- konsole is what shippped with it -- maybe scrape a list from arch wiki
