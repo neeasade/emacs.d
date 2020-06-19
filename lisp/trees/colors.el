@@ -50,6 +50,7 @@
 ;; have high value and low saturation.
 
 ;; todo: consider: longen colors before operations on names, just generally
+(require 'color)
 
 (defun ns/color-format (color)
   (format "#%s" (substring color -6 nil)))

@@ -14,7 +14,7 @@
 ;; our base with foreground (new color is HSL, accent H, accent S, foreground L)
 
 (require 'base16-theme)
-(require 'color)
+(ns/colors)
 
 ;; the definition of 'white' as displayed on the screen your viewing it on
 ;; picture you are a photographer, taking pictured in different lighting conditions -- sunlight and

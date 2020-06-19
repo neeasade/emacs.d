@@ -51,7 +51,7 @@ idea: jump to pop shell show last command running process
 **** https://github.com/dengste/org-caldav
 **** https://github.com/justbur/emacs-vdiff                            :doom:
 **** https://github.com/benma/visual-regexp-steroids.el
-    maybe come back to this -- I don't like the live editing in the minibuffer because you then can't get the query you made very easily. Maybe we can come back and use like a standalone buffer to highlight in a test output or something
+maybe come back to this -- I don't like the live editing in the minibuffer because you then can't get the query you made very easily. Maybe we can come back and use like a standalone buffer to highlight in a test output or something
 
     (I just like regextesters interface on the inter dot net I guess)
 *** other
@@ -83,8 +83,6 @@ maybe add both of these to http://notes.neeasade.net/tldr-org-mode--graphviz.htm
 *** org
 **** checkout languagetool https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
 **** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
-**** https://github.com/integral-dw/org-superstar-mode
-give this a go
 **** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
 **** https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
 **** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
@@ -105,6 +103,7 @@ give this a go
 **** shell-mode check running processes
 https://stackoverflow.com/questions/8291899/is-there-a-direct-elisp-way-to-check-if-a-process-is-running-in-an-emacs-term-bu
 can fix hanging auto CD on long running processes
+***** peep https://github.com/sboosali/configuration
 **** shell-pop cd tramp smart
 potentially use dired logic as reference -- find some shell-mode present on the $host without a running process or create one
 **** http://kitchingroup.cheme.cmu.edu/blog/category/emacs/
