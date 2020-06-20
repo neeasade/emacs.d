@@ -843,8 +843,7 @@
   (defmacro ns/let-script-args (args &rest content)
     `(let (,@(mapcar
                (fn (list (nth <> args)
-                     (nth <> ns-args)
-                     ))
+                     (nth <> ns-args)))
                (number-sequence 0 (- (length args) 1))))
        ,@content)))
 

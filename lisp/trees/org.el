@@ -72,31 +72,6 @@
   ;; log state into drawer instead of inserting a list under the heading
   log-into-drawer t
 
-  ;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
-
-  ;; new setup outline
-  ;; todo: edna
-  ;; :TRIGGER:  next-sibling chain!("TRIGGER")  todo!("NEXT") self delete-property!("TRIGGER")
-  ;; * Inbox
-  ;; ** Tasks
-  ;; ** Ideas
-  ;; ** Reminders
-
-  ;; cf https://orgmode.org/manual/Capture-templates.html#Capture-templates
-  ;; todo: elisp function to capture from qutebrowser inbox url to browse later
-  capture-templates
-  `(
-     ("t" "Todo" entry
-       (file+olp ,org-default-notes-file "Inbox" "Tasks")
-       "* TODO %^{todo}" :prepend t :immediate-finish t)
-     ("T" "Todo with details" entry (file+olp ,org-default-notes-file "Inbox" "Tasks") "* TODO %i%?" :prepend t)
-     ("i" "Idea" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %^{idea}" :prepend t :immediate-finish t)
-     ("I" "Idea with details" entry (file+olp ,org-default-notes-file "Inbox" "Ideas") "* %i%?" :prepend t)
-     ("r" "Reminder" entry (file+olp ,org-default-notes-file "Inbox" "Periodic Reminders") "* %i%? \n %t")
-     ("j" "Journal" entry (file+datetree ,org-default-diary-file) "* %?\n%U\n" :clock-in t :clock-resume t)
-     ("n" "Note" entry (file+olp ,org-default-notes-file "notes") "* %i%?" :prepend t)
-     )
-
   ;; current file or any of the agenda-files, max 9 levels deep
   refile-targets '((nil :maxlevel . 9)
                     (org-agenda-files :maxlevel . 9))

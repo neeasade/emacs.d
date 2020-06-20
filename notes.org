@@ -1,12 +1,92 @@
 * emacs
+unrelated here: nice guide: https://00stack.in/nixos-ressources/pbp-nixos
 
-very nice guide: https://00stack.in/nixos-ressources/pbp-nixos
+** capture
+*** TODO find a way to get refile with a capture-like interface
+*** TODO try to get some ideas from this https://medium.com/breathe-publication/understanding-vims-jump-list-7e1bfc72cdf0
+*** TODO dired as a file manager
+-- try out dired copy paste operations/do they persist when you aggressively cull the dired buffers
+like you do
+-- maybe add a dired focus hook to refresh the display, irritating when the reference is
+old
 
-emacs color :notes
+*** TODO vterm line editing
+noctuid mentioned this issue WRT nice line editing:
+https://github.com/akermu/emacs-libvterm/issues/115#issuecomment-521303725
+
+*** TODO shell-mode jump by process
+jump to shell-mode buffer by running process
+ivy-list would show current running thing
+*** TODO https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
+*** TODO http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+*** TODO https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
+*** TODO http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+
+*** TODO https://github.com/TeMPOraL/conffiles/blob/master/emacs26/.emacs.d/elisp/init-org-mode.el
+*** TODO https://github.com/Kungsgeten/org-brain#other-useful-packages
+*** TODO https://www.reddit.com/r/emacs/comments/bg1018/rediscovering_vanilla_emacs_text_editing/eliw0f1/
+
+*** TODO https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
+*** TODO http://endlessparentheses.com/leave-the-cursor-at-start-of-match-after-isearch.html
+*** TODO https://www.reddit.com/r/emacs/comments/9ucpg1/for_people_using_the_default_emacs_keybindings/e939fnw/
+
+*** TODO review: https://sanctum.geek.nz/arabesque/advanced-vim-registers/
+*** TODO latex workflow https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
+
+*** TODO shell-mode check running processes
+https://stackoverflow.com/questions/8291899/is-there-a-direct-elisp-way-to-check-if-a-process-is-running-in-an-emacs-term-bu
+can fix hanging auto CD on long running processes
+**** peep https://github.com/sboosali/configuration
+*** TODO shell-pop cd tramp smart
+potentially use dired logic as reference --
+find some shell-mode present on the $host without a running process or create one
+
+*** TODO http://kitchingroup.cheme.cmu.edu/blog/category/emacs/
+*** TODO https://www.reddit.com/r/emacs/comments/8of6tx/tip_how_to_be_a_beast_with_hydra/
+*** TODO https://www.reddit.com/r/emacs/comments/8ekz0u/how_to_pastethencopy/
+maybe just treat some mark as implicit paste target for a keybind
+add a hook for on evil yank and then remove it on yank?
+*** TODO https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
+*** TODO steal latex setup from https://github.com/rememberYou/.emacs.d
+*** TODO idea: jump to input prompt area keybind
+- deadgrep
+- comint prompt area
+- irc message prompt?
+
+in deadgrep mode, a keybind to change the search, and filetype
+(jumping back to the top is getting annoying) also for comint
+mode/shell, irc... (think I will use nf)
+
+This hasn't happened because it's not _super_ inconvienent to gg or G to where I need to go
+
+*** TODO https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
+
+*** TODO layout saver
+idea: experiment with a keybind for saving layout and then restoring it later - maybe you could even
+name layouts
+
+*** TODO languagetool https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
+*** TODO LSP mode
+*** TODO idea: generate org file links to marks in the current xref trail
+*** TODO proced htop-like graph
+https://gitlab.com/RobertCochran/neato-graph-bar
+*** TODO checkout debug adapter protocol
+*** TODO unpop shells not in the current frame on shell-pop call
+it's kind of annoying to see the same text when you have shell-1 open in different windows at the same time
+** tasks
+
+*** TODO improve your pager game
+- better buffer name?
+- no file association?
+- just insert stdin file contents and then delete it?
+
+*** TODO revisit color notes
 https://darksair.org/blog/p/2018/uhd-is-future/
-https://en.wikipedia.org/wiki/CIECAM02
-http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
 
+https://en.wikipedia.org/wiki/CIECAM02
+^downside to this is there's not builtin support like lab space
+
+http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
 https://en.wikipedia.org/wiki/SRGB
 
 todo: LCH hue is in radians? or degrees?
@@ -16,37 +96,14 @@ todo: LCH hue is in radians? or degrees?
 want: helpers for working with hue in degrees -> whatever color.el LCH expects
     maybe: -1 is -180 and 1 is 180? doesn't appear to be... hue is weird.
 
-todo: persist the variable that holds visited directories on occasion
 
-improve your pager game maybe -- better buffer name? no file association?
 
-need to get an org solution with agenda/reminders/carryover
+*** TODO persist the variable that holds visited directories on occasion
 
-idea: experiment with a keybind for saving layout and then restoring it later - maybe you could even name layouts
+*** TODO checkout plugins
+plugins to integrate or dismiss
+tagging some that are present in doom with :doom: while I consider
 
-https://github.com/akermu/emacs-libvterm/issues/115#issuecomment-521303725
-
-try out dired copy paste operations/do they persist when you aggressively cull the dired buffers like you do
-maybe add a dired focus hook to refresh the display, irritating when the reference is old
-
-idea: unpop shells not in the current frame on shell-pop
-    it's kind of annoying to see the same text when you have shell-1 open in different windows at the same time
-
-idea: make a sql query backend for qutebrowser to use here: https://github.com/cireu/counsel-ffdata
-
-maybe checkout LSP mode as well
-
-neat proced htop-like graph
-https://gitlab.com/RobertCochran/neato-graph-bar
-proced mode
-needs proced-update
-
-try to get some ideas from this https://medium.com/breathe-publication/understanding-vims-jump-list-7e1bfc72cdf0
-idea: org links to xref trail
-idea: jump to pop shell show last command running process
-
-** plugins
-*** org
 **** https://github.com/sergeyklay/bnf-mode
 **** https://github.com/dengste/org-caldav
 **** https://github.com/justbur/emacs-vdiff                            :doom:
@@ -54,7 +111,6 @@ idea: jump to pop shell show last command running process
 maybe come back to this -- I don't like the live editing in the minibuffer because you then can't get the query you made very easily. Maybe we can come back and use like a standalone buffer to highlight in a test output or something
 
     (I just like regextesters interface on the inter dot net I guess)
-*** other
 **** expand region
 **** https://github.com/kostafey/ejc-sql
 **** https://github.com/hlolli/csound-mode
@@ -78,67 +134,15 @@ make this HUGE
 **** https://github.com/ppareit/graphviz-dot-mode
 a nice dot reference: http://tonyballantyne.com/graphs.html
 maybe add both of these to http://notes.neeasade.net/tldr-org-mode--graphviz.html
-*** TODO https://github.com/purcell/envrc
-** ideas
-*** org
-**** checkout languagetool https://www.reddit.com/r/emacs/comments/fxs92h/comment/fmxqhpb
-**** https://www.reddit.com/r/emacs/comments/8nvnlu/extending_orgmode/
-**** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-**** https://emacs.stackexchange.com/questions/477/how-do-i-automatically-save-org-mode-buffers
-**** http://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-
-**** into org agendas
-**** https://github.com/TeMPOraL/conffiles/blob/master/emacs26/.emacs.d/elisp/init-org-mode.el
-**** https://github.com/Kungsgeten/org-brain#other-useful-packages
-*** other
-**** https://www.reddit.com/r/emacs/comments/bg1018/rediscovering_vanilla_emacs_text_editing/eliw0f1/
-
-**** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
-**** http://endlessparentheses.com/leave-the-cursor-at-start-of-match-after-isearch.html
-**** https://www.reddit.com/r/emacs/comments/9ucpg1/for_people_using_the_default_emacs_keybindings/e939fnw/
-
-**** review: https://sanctum.geek.nz/arabesque/advanced-vim-registers/
-**** latex workflow https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
-
-**** shell-mode check running processes
-https://stackoverflow.com/questions/8291899/is-there-a-direct-elisp-way-to-check-if-a-process-is-running-in-an-emacs-term-bu
-can fix hanging auto CD on long running processes
-***** peep https://github.com/sboosali/configuration
-**** shell-pop cd tramp smart
-potentially use dired logic as reference -- find some shell-mode present on the $host without a running process or create one
-**** http://kitchingroup.cheme.cmu.edu/blog/category/emacs/
-**** https://www.reddit.com/r/emacs/comments/8of6tx/tip_how_to_be_a_beast_with_hydra/
-**** https://www.reddit.com/r/emacs/comments/8ekz0u/how_to_pastethencopy/
-maybe just treat some mark as implicit paste target for a keybind
-add a hook for on evil yank and then remove it on yank?
-**** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
-**** steal latex setup from https://github.com/rememberYou/.emacs.d
-****  idea: jump to input prompt area keybind
-- deadgrep
-- comint prompt area
-- irc message prompt?
-
-in deadgrep mode, a keybind to change the search, and filetype
-(jumping back to the top is getting annoying) also for comint
-mode/shell, irc... (think I will use nf)
-
-This hasn't happened because it's not _super_ inconvienent to gg or G to where I need to go
-
-**** https://stackoverflow.com/questions/32822036/how-to-kill-all-buffers-with-buffer-file-in-a-certain-location
-** maybe/not really interested
-*** https://github.com/wolray/symbol-overlay
-*** https://github.com/mpdel/mpdel
-you're currently pretty satisfied with mpc and your music script
-The one reason this is still in the list is maybe for the playlist/mpd view could be cool.
-
-** emacs conf 2019
-look into debug adapter protocol
-
-** pinebook pro emacs issues
+**** https://github.com/purcell/envrc
+** notes
+*** pinebook pro emacs issues
 failed to get:  ts, better-jumper, flyspell-correct-avy-menu
 failed with error: org-pomodoro
 
-** pinebook pro dotfiles issues
+really this is just melpa index issues? can still workaround with ns/use-package, ugh
+*** pinebook pro dotfiles issues
+
 need to support more fallback terms -- konsole is what shippped with it -- maybe scrape a list from arch wiki
 
 battery location:

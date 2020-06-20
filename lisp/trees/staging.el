@@ -378,6 +378,25 @@
         :title "*Reminder*"
         ))))
 
+
+;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
+
+;; (named-timer-run :org-alert-scheduled
+;;   ;; ugghhh
+;;   t
+;;   20
+;;   (fn
+;;     (when (not (get-file-buffer org-default-notes-file))
+;;       (find-file org-default-notes-file))
+
+;;     (with-current-buffer (get-file-buffer org-default-notes-file)
+;;       (->> (om-get-headlines)
+;;         ;; parse scheduled time, see if any are ahead of NOW,
+;;         ;; alert if we haven't for this heading
+;;         ;; org-ql is probably a good candidate here
+;;         ))))
+
+
 ;; takes awhile -- doesn't handle noto color emoji?
 ;; (use-package unicode-fonts
 ;;   :config
@@ -391,3 +410,67 @@
 ;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
 ;;
 (use-package dtrt-indent :config (dtrt-indent-global-mode 1))
+
+;; (use-package org-doct)
+(ns/use-package org-doct "progfolio/doct")
+(require 'doct)
+
+;; (use-package ts)    ; timestamps
+(ns/use-package ts "alphapapa/ts.el")    ; timestamps
+
+(ns/use-package org-super-agenda "alphapapa/org-super-agenda")
+(require 'org-super-agenda)
+
+
+
+(defun ns/make-project-capture (project &optional key)
+  `(,project-name
+     :keys ,(or key (-> project-name string-to-list first char-to-string))
+     :file ,org-default-notes-file
+     ;; :prepend t
+     :children (("task" :keys "t" :todo-state "TODO"
+                  :immediate-finish t
+                  :template ("* %{todo-state} %^{Description}" "%?")
+                  :olp ("projects" ,project "tasks"))
+                 ("capture" :keys "c" :todo-state "TODO"
+                   :immediate-finish t
+                   :template ("* %{todo-state} %^{Description}" "%?")
+                   :olp ("projects" ,project "captures"))
+                 ("note" :keys "n"
+                   :immediate-finish t
+                   :template ("* %^{Description}" "%?")
+                   :olp ("projects" ,project "notes"))
+
+                 ("task" :keys "T" :todo-state "TODO"
+                   :template ("* %{todo-state} %{Description}" "%?")
+                   :olp ("projects" ,project "tasks"))
+                 ("capture" :keys "C" :todo-state "TODO"
+                   :template ("* %{todo-state} %{Description}" "%?")
+                   :olp ("projects" ,project "captures"))
+                 ("note" :keys "N"
+                   :template ("* %{Description}" "%?")
+                   :olp ("projects" ,project "notes"))
+                 )))
+
+(setq org-capture-templates
+  (doct
+    `(
+       ;; alternative approach:
+       ;; ("Projects" :keys "p"
+       ;;   :children
+       ;;   (;; projects:
+       ;;     ,(ns/make-project-capture "other")
+       ;;     ))
+
+       ;; todo: this dynamic under 'projects' heading in notes
+       ,(ns/make-project-capture "example")
+       ,(ns/make-project-capture "rice")
+       ,(ns/make-project-capture "emacs")
+       ,(ns/make-project-capture "meta")
+
+       ;; todo: reminder capture
+       ("Journal" :keys "j"
+         :template "* %?\n%U\n"
+         :clock-in t :clock-resume t
+         :datetree t :file ,org-default-diary-file
+         ))))
