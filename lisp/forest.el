@@ -835,7 +835,6 @@
   (ns/bind-mode 'alda "e" 'ns/smart-alda-eval)
   )
 
-
 (defconfig scripting
   (add-to-list 'interpreter-mode-alist '("elisp" . emacs-lisp-mode))
 
@@ -844,10 +843,10 @@
   (defmacro ns/let-script-args (args &rest content)
     `(let (,@(mapcar
                (fn (list (nth <> args)
-                     (nth <> ns-args)))
-               (number-sequence 0 (- (length ns-args) 1))))
-       ,@content
-       )))
+                     (nth <> ns-args)
+                     ))
+               (number-sequence 0 (- (length args) 1))))
+       ,@content)))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
