@@ -1,39 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
-
-;; stolen from doom emacs (still porting -- doesn't appear to work for me)
-;; editorconfig cannot procure the correct settings for extension-less files.
-;; Executable scripts with a shebang line, for example. So why not use Emacs'
-;; major mode to drop editorconfig a hint? We temporarily append an extension
-;; to `buffer-file-name' when talking to editorconfig.
-
-;; (defun doom*editorconfig-smart-detection (orig-fn)
-;;   "Retrieve the properties for the current file. If it doesn't have an
-;; extension, try to guess one."
-;;   (let ((buffer-file-name
-;;           (if (and (not (bound-and-true-p org-src-mode))
-;;                 (file-name-extension buffer-file-name))
-;;             buffer-file-name
-;;             (format "%s%s" buffer-file-name
-;;               (if-let* ((ext (cdr (assq major-mode +editorconfig-mode-alist))))
-;;                 (concat "." ext)
-;;                 "")))))
-;;     (message "I as called!")
-;;     (funcall orig-fn)))
-
-;; (advice-add #'editorconfig-call-editorconfig-exec :around #'doom*editorconfig-smart-detection)
-
-;; (defvar +editorconfig-mode-alist
-;;   '((sh-mode     . "sh")
-;;      (python-mode . "py")
-;;      (ruby-mode   . "rb")
-;;      (perl-mode   . "pl")
-;;      (php-mode    . "php")))
-
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1)
-  )
+(use-package editorconfig :config (editorconfig-mode 1))
 
 (setq tab-width 4)
 

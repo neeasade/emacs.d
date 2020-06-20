@@ -64,7 +64,7 @@
     (fn (interactive)
       (cond
         ((string= "dirt" <>) (ns/find-or-open (~ ".emacs.d/lisp/dirt.el")))
-        ((string= "theme" <>) (ns/find-or-open (~ ".emacs.d/themes/neea-theme.el")))
+        ((string= "theme" <>) (ns/find-or-open (~ ".emacs.d/lisp/themes/neea-theme.el")))
         ((string= "init" <>) (ns/find-or-open (~ ".emacs.d/init.el")))
         ((f-exists-p (format (~ ".emacs.d/lisp/trees/%s.el") <>))
           (ns/find-or-open (format (~ ".emacs.d/lisp/trees/%s.el") <>)))
@@ -251,6 +251,9 @@
 ;; using this package only for a tramp aware 'open file as root' function
 ;; initially went to steal but turned out to be many functions to steal
 (use-package crux)
+
+;; Might be a little too unstable for util.el
+(ns/use-package om "ndwarshuis/om.el" :config (require 'om))
 
 (ns/bind
   "qf" 'ns/what-face

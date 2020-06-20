@@ -72,7 +72,7 @@
                     (progn
                       (shell-pop (if (string= (buffer-name (current-buffer)) "*shell-9*")
                                    shell-pop-last-shell-buffer-index nil))
-                      (shell-pop-9))))))
+                      (ns/shell-pop 9))))))
 
 (defun! ns/windowshot ()
   "get a string that is the currently displayed text in emacs window"

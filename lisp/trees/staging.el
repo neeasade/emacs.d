@@ -365,12 +365,18 @@
 
 (named-timer-run :show-periodic-reminder
   t
-  ;; every 3 hours
-  (* 60 60 3)
+  (* 60 60 2)
   (fn
-    ;; todo: NOT IMPLEMENTED
-    ;; query notes file and notify-send it
-    ))
+    (when (< (second (current-idle-time)) 120)
+      (alert (let ((reminders
+                     (org-ql-select org-default-notes-file
+                       '(tags "reminders")
+                       :action '(s-clean (org-get-heading t t)))
+                     ))
+               (nth (random (length reminders)) reminders))
+        :severity 'normal
+        :title "*Reminder*"
+        ))))
 
 ;; takes awhile -- doesn't handle noto color emoji?
 ;; (use-package unicode-fonts
@@ -378,8 +384,10 @@
 ;;   (require 'unicode-fonts)
 ;;   (unicode-fonts-setup))
 
-;; colors
-
-;; (use-package memoize)
 ;; (use-package persist)
 
+;; automatic detection of indent settings (vim-sleuth)
+;; todo: doom does a thing where they blend the major mode w/ editor config
+;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
+;;
+(use-package dtrt-indent :config (dtrt-indent-global-mode 1))

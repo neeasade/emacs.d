@@ -15,7 +15,9 @@
   "sep-edge" :group 'doom-modeline-faces)
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (ns/color-greaten 14 (face-attribute 'font-lock-comment-face :foreground)))
+  (ns/color-greaten 14 (face-attribute 'font-lock-comment-face :foreground))
+  ;; (face-attribute 'default :background)
+  )
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
@@ -137,7 +139,42 @@
   after-update-env-hook nil
   )
 
-(doom-modeline-def-modeline 'neeasade-doomline
+;; fork is to define a 'mode-line-middle face for the center of the modeline
+(defun ns/doom-modeline-def-modeline (name lhs &optional rhs)
+  "Defines a modeline format and byte-compiles it.
+NAME is a symbol to identify it (used by `doom-modeline' for retrieval).
+LHS and RHS are lists of symbols of modeline segments defined with
+`doom-modeline-def-segment'.
+
+Example:
+  (doom-modeline-def-modeline 'minimal
+    '(bar matches \" \" buffer-info)
+    '(media-info major-mode))
+  (doom-modeline-set-modeline 'minimal t)"
+  (let ((sym (intern (format "doom-modeline-format--%s" name)))
+         (lhs-forms (doom-modeline--prepare-segments lhs))
+         (rhs-forms (doom-modeline--prepare-segments rhs)))
+    (defalias sym
+      (lambda ()
+        (list lhs-forms
+          (propertize
+            " "
+            'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
+            'display `((space
+                         :align-to
+                         (- (+ right right-fringe right-margin)
+                           ,(* (let ((width (doom-modeline--font-width)))
+                                 (or (and (= width 1) 1)
+                                   (/ width (frame-char-width) 1.0)))
+                              (string-width
+                                (format-mode-line (cons "" rhs-forms))))))))
+          rhs-forms))
+      (concat "Modeline:\n"
+        (format "  %s\n  %s"
+          (prin1-to-string lhs)
+          (prin1-to-string rhs))))))
+
+(ns/doom-modeline-def-modeline 'neeasade-doomline
   '(
      ;; sep
      remote-host

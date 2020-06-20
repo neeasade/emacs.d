@@ -422,3 +422,5 @@
       (delete-frame))))
 
 (add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
+
+(setq org-archive-subtree-save-file-p t) ; save target buffer after archiving

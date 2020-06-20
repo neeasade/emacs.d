@@ -211,8 +211,7 @@
   t
   )
 
-(ns/use-package om "ndwarshuis/om.el")
-(require 'om)
+
 
 ;; cf https://writequit.org/articles/emacs-org-mode-generate-ids.html#the-problem
 ;; enhancing this to also turn the header into an anchor link
@@ -234,7 +233,7 @@
           id)))))
 
 (defun! ns/blog-enhance-headings ()
-  "make headings links to themselves"
+  "make headings links to themselves -- uses om.el to do so"
   (org-map-entries
     (lambda ()
       ;; ensure the headlines have some custom_id
