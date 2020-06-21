@@ -6,6 +6,22 @@ evil-org-open-links: open links in the current visual selection
 unrelated here: nice guide: https://00stack.in/nixos-ressources/pbp-nixos
 
 ** capture
+*** saved notes <2020-06-21 Sun 17:31>
+**** TODO init.el loading in batch mode for site generation
+**** TODO org-export sceduled headings for phone orgzly -- some timer to do that when sync folder is present
+**** TODO org scheduled notifications
+**** TODO make qutebrowser url notes checker
+:LOGBOOK:
+CLOCK: [2020-06-20 Sat 13:28]--[2020-06-20 Sat 13:59] =>  0:31
+:END:
+
+org-notify is only for deadlines -- not very useful for me I think
+you want something that will alert on scheduled things, not deadline things
+
+conclusion on this one -- org-ql timestamp compare
+
+
+
 *** TODO find a way to get refile with a capture-like interface
 *** TODO try to get some ideas from this https://medium.com/breathe-publication/understanding-vims-jump-list-7e1bfc72cdf0
 *** TODO dired as a file manager
