@@ -90,7 +90,6 @@
   "l" 'evil-org-open-links
   ;; "p" 'org-pomodoro
   "f" 'ns/org-set-active
-  "b" 'ns/org-open-url
   )
 
 (ns/bind-mode 'org "op" 'org-pomodoro)
@@ -99,8 +98,6 @@
 ;; form is '<<key><tab>', eg <s<tab> expands to src block
 ;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
 (require 'org-tempo)
-
-(defun! ns/org-open-url() (browse-url (org-entry-get nil "url")))
 
 ;; todo: get om.el for some of this
 ;; https://github.com/ndwarshuis/om.el
