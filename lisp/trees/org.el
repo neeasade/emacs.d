@@ -87,9 +87,9 @@
   "T" 'org-show-todo-tree
   "v" 'org-mark-element
   "a" 'org-agenda
-  "l" 'evil-org-open-links
-  ;; "p" 'org-pomodoro
-  "f" 'ns/org-set-active
+  ;; todo: want a "jump to parent"
+  "f" 'ns/org-set-unique-property
+  "F" (fn! (ns/org-set-unique-property (read-string "property name: ")))
   )
 
 (ns/bind-mode 'org "op" 'org-pomodoro)
@@ -99,73 +99,91 @@
 ;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
 (require 'org-tempo)
 
-;; todo: get om.el for some of this
-;; https://github.com/ndwarshuis/om.el
-(defun! ns/org-set-active()
-  (org-delete-property-globally "focus")
-  (org-set-property "focus" "t")
+(defun! ns/org-set-unique-property (&optional property value)
+  (let ((prop (or property "focus")))
+    (org-delete-property-globally prop)
+    (org-set-property prop (or value "t"))))
 
-  (setq ns/org-active-story (substring-no-properties (org-get-heading t t t t)))
-  )
-
-;; for externals to call into
-
-;; todo: should this actually be a call into last standup undone heading? less flexible but more auto tracking last
-;; thing you were doing
-
-(defun ns/org-get-active()
-  (if (not (bound-and-true-p ns/org-active-story))
-    (save-window-excursion
-      (ns/org-goto-active)
-      (ns/org-set-active))
-    (s-clean ns/org-active-story)))
-
-(defun! ns/org-goto-active()
-  (ns/find-or-open org-default-notes-file)
+(defun! ns/org-goto-active (&optional property)
+  (find-file org-default-notes-file)
 
   (if org-clock-current-task
     (org-clock-goto)
-    (goto-char (org-find-property "focus")))
+    ;; todo: pull in org_task_elisp functions to emacs.d
+    (->> (ns/notes-current-standup-headline)
+      (ns/notes-current-standup-task) cadr
+      ((lambda (props) (plist-get props :contents-begin)))
+      (goto-char)))
+
+  (ns/org-jump-to-element-content)
 
   (org-show-context)
   (org-show-subtree)
-
-  (ns/focus-line)
-  )
+  (ns/focus-line))
 
 (use-package org-pomodoro
+  ;; pomodoro, tied to music playing status
   :config
   (defun ns/toggle-music (action)
-    (shell-command (format "%s %s" (if ns/enable-home-p "player.sh" "mpc") action)))
+    (let ((target (or (executable-find "player.sh") "mpc")))
+      (ns/shell-exec-dontcare (concat target " " action))))
 
-  (add-hook 'org-pomodoro-started-hook
-    (apply-partially #'ns/toggle-music "play"))
+  ;; named functions so we don't append lambdas on init reload
+  (defun ns/toggle-music-play () (ns/toggle-music "play"))
+  (defun ns/toggle-music-pause () (ns/toggle-music "pause"))
+  (add-hook 'org-pomodoro-started-hook 'ns/toggle-music-play)
+  (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play)
+  (add-hook 'org-pomodoro-finished-hook 'ns/toggle-music-pause))
 
-  (add-hook 'org-pomodoro-break-finished-hook
-    (apply-partially #'ns/toggle-music "play"))
+(defun ns/org-jump-to-element-content ()
+  (->> (om-parse-this-headline) cadr
+    ((lambda (props) (plist-get props :contents-begin)))
+    (goto-char))
 
-  (add-hook 'org-pomodoro-finished-hook
-    (apply-partially #'ns/toggle-music "pause")))
+  (let ((first-element (org-element-at-point)))
+    (when (eq 'property-drawer (car first-element))
+      (goto-char (org-element-property :end first-element))))
+
+  (let ((first-element (org-element-at-point)))
+    (when (eq 'drawer (car first-element))
+      (goto-char (org-element-property :end first-element))))
+
+  ;; if we're looking at a headline, we went too far
+  ;; (easily possible with blank headlines)
+  (when (s-starts-with-p "*" (thing-at-point 'line))
+    (evil-previous-line))
+
+  ;; todo: consider ensuring drawers are collapsed after this
+  )
 
 ;; insert an org link to the current location on the focused heading in notes.org
 (defun! ns/make-org-link-to-here ()
-  (let* ((line (number-to-string (line-number-at-pos)))
+  (let* ((line-content (s-trim (thing-at-point 'line)))
+          (line (number-to-string (line-number-at-pos)))
           (link (format "file:%s::%s" (buffer-file-name) line))
           ;; (label (format "%s:%s" (buffer-name) line))
           (filepath (s-replace (s-replace "\\" "/" (~ "")) "~/" (buffer-file-name)))
           (label (format "%s:%s" filepath line))
-          (org-link (format "[[%s][%s]]\n" link label)))
+          (org-link (format "[[%s][%s]]" link label)))
 
     (with-current-buffer (find-file-noselect org-default-notes-file)
+      ;; todo: save excursion is not working here?
       (save-excursion
-        (goto-char (org-find-property "focus"))
-        ;; cf https://stackoverflow.com/questions/52121961/emacs-org-mode-insert-text-after-heading-properties
-        (goto-char (org-element-property :contents-begin (org-element-at-point)))
-        (let ((first-element (org-element-at-point)))
-          (when (eq 'property-drawer (car first-element))
-            (goto-char (org-element-property :end first-element))))
+        (if org-clock-current-task
+          (org-clock-goto)
+          ;; todo: this should instead be the same logic as elisp_org_task?
+          (goto-char (org-find-property (or property "focus"))))
 
-        (insert org-link)))))
+        (ns/org-jump-to-element-content)
+        
+        ;; file link staleness concerns:
+        ;; could also store checksum of file?
+        ;; maybe note the date?
+        ;; maybe just have a validation function that checks that the link content matches/red flag
+        (insert
+          (format "%s : ~%s~\n"
+            (s-pad-right 20 " " org-link)
+            line-content))))))
 
 (defun! ns/evil-delete-marks ()
   (evil-delete-marks "ABCDEFGHIJKLMNOPQRSTUPWXYZ"))

@@ -1,4 +1,8 @@
 * emacs
+
+cool function to use more often:
+evil-org-open-links: open links in the current visual selection
+
 unrelated here: nice guide: https://00stack.in/nixos-ressources/pbp-nixos
 
 ** capture
@@ -75,6 +79,7 @@ https://gitlab.com/RobertCochran/neato-graph-bar
 it's kind of annoying to see the same text when you have shell-1 open in different windows at the same time
 ** tasks
 
+*** TODO capture idea: standup for today (get refile for free as well)
 *** TODO improve your pager game
 - better buffer name?
 - no file association?
