@@ -182,65 +182,48 @@
 ;;         (string-inflection-java-style-cycle))
 ;;       (t (string-inflection-ruby-style-cycle)))))
 
-;; hack: todo: not create an entry on getting content
+;; todo: idea: org-capture for current qutebrowser url
 
-;; todo: this is broken/getting is impure -- maybe try and use org capture for the same purpose with a pure getter w/ orgql
-(defun ns/urlnote-get-content (&optional url)
-  (save-window-excursion
-    (ns/urlnote-jump url)
-    (s-clean (org-get-entry))))
+(defun ns/urlnote-get-point (url)
+  (let ((url-plain
+          (when url
+            (if (s-contains-p "?" url)
+              (first (s-split "?" url)) url))))
 
-(defun ns/urlnote-get-or-add (url)
-  "return a marker on the note entry"
-  (defun ns/find-url-heading (path)
     (catch 'error
       (condition-case msg
-        (org-find-olp `(,(concat org-directory "/projects/url.org")
-                         "URL notes"
-                         ,@path))
+        (marker-position
+          (org-find-olp
+            (if url-plain
+              (list org-default-notes-file "url notes" url-plain)
+              (list org-default-notes-file "url notes")
+              )))
         (error
+          ;; show what went wrong:
           ;; (nth 1 msg)
-          nil
-          ))))
+          nil)))))
 
-  ;; note: only handles one level currently
-  (defun ns/add-url-heading (path)
-    (let ((parent (-remove-last (fn t) path))
-           (child (-last (fn t) path)))
-      ;; todo: this with a full file path
-      (with-current-buffer "url.org"
-        (when
-          (and (not (ns/find-url-heading path))
-            (ns/find-url-heading parent))
-          (progn
-            (goto-char (ns/find-url-heading parent))
-            (org-insert-heading-after-current)
-            (insert child)
-            (org-do-demote))))))
+(defun ns/urlnote-get-content (url)
+  (let ((url-point (ns/urlnote-get-point url)))
+    (when url-point
+      (with-current-buffer
+        (get-file-buffer org-default-notes-file)
+        (->> url-point
+          om-parse-subtree-at
+          )))))
 
-  (let ((parent (-> url url-generic-parse-url url-host))
-         (child url))
+(defun ns/urlnote-jump (url)
+  (find-file org-default-notes-file)
+  (goto-char (ns/urlnote-get-point url)))
 
-    (when (not (ns/find-url-heading (list parent)))
-      (ns/add-url-heading (list parent)))
-
-    (when (not (ns/find-url-heading (list parent child)))
-      (ns/add-url-heading (list parent child)))
-
-    (ns/find-url-heading (list parent child))))
-
-(defun! ns/urlnote-jump (&optional url)
-  (let ((target (or url
-                  (->> (simpleclip-get-contents) s-trim s-clean))))
-    (when (ffap-url-p target)
-
-      (let ((marker (ns/urlnote-get-or-add target)))
-        (switch-to-buffer (marker-buffer marker))
-        (goto-char (marker-position marker)))
-
-      (org-show-context)
-      (org-show-subtree)
-      (ns/focus-line))))
+(defun ns/urlnote-make-and-jump (url)
+  (find-file org-default-notes-file)
+  (goto-char (ns/urlnote-get-point nil))
+  (org-insert-heading-after-current)
+  ;; todo: make url plain
+  (insert url)
+  (org-do-demote)
+  (newline))
 
 (use-package eval-in-repl
   :config
