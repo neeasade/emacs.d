@@ -223,9 +223,9 @@
                                   project-notes org-default-notes-file))))
   "of" 'ns/org-goto-active
   "oc" 'org-capture
-  "or" 'org-refile
+  ;; "or" 'org-refile
   "ol" 'ns/make-org-link-to-here
-  "om" 'ns/insert-mark-org-links
+  ;; "om" 'ns/insert-mark-org-links
   "ow" (fn! (widen) (ns/focus-line))
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda

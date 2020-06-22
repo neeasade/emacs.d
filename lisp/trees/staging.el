@@ -395,8 +395,9 @@
 (use-package dtrt-indent :config (dtrt-indent-global-mode 1))
 
 ;; (use-package org-doct)
-(ns/use-package org-doct "progfolio/doct")
-(require 'doct)
+(ns/use-package org-doct "progfolio/doct"
+  :config
+  (require 'doct))
 
 ;; (use-package ts)    ; timestamps
 (ns/use-package ts "alphapapa/ts.el")    ; timestamps
@@ -404,56 +405,124 @@
 (ns/use-package org-super-agenda "alphapapa/org-super-agenda")
 (require 'org-super-agenda)
 
-
-
-(defun ns/make-project-capture (project &optional key)
-  `(,project-name
-     :keys ,(or key (-> project-name string-to-list first char-to-string))
+(defun ns/make-project-capture (project &optional template-override key)
+  `(,project
+     :keys ,(or key (-> project string-to-list first char-to-string))
      :file ,org-default-notes-file
-     ;; :prepend t
+     ;; todo: maybe want: a way to override the olp path and file? (eg, project level notes)
+     ;; alternatively, just import the notes into your main ones
      :children (("task" :keys "t" :todo-state "TODO"
                   :immediate-finish t
-                  :template ("* %{todo-state} %^{Description}" "%?")
+                  :template ,(or template-override (list "* %{todo-state} %^{Description}" "%?"))
                   :olp ("projects" ,project "tasks"))
                  ("capture" :keys "c" :todo-state "TODO"
                    :immediate-finish t
-                   :template ("* %{todo-state} %^{Description}" "%?")
+                   :template ,(or template-override (list "* %{todo-state} %^{Description}" "%?"))
                    :olp ("projects" ,project "captures"))
                  ("note" :keys "n"
                    :immediate-finish t
-                   :template ("* %^{Description}" "%?")
+                   :template ,(or template-override (list "* %^{Description}" "%?"))
                    :olp ("projects" ,project "notes"))
 
                  ("task" :keys "T" :todo-state "TODO"
-                   :template ("* %{todo-state} %{Description}" "%?")
+                   :template ,(or template-override (list "* %{todo-state} %{Description}" "%?"))
                    :olp ("projects" ,project "tasks"))
                  ("capture" :keys "C" :todo-state "TODO"
-                   :template ("* %{todo-state} %{Description}" "%?")
+                   :template ,(or template-override (list "* %{todo-state} %{Description}" "%?"))
                    :olp ("projects" ,project "captures"))
                  ("note" :keys "N"
-                   :template ("* %{Description}" "%?")
+                   :template ,(or template-override (list "* %{Description}" "%?"))
                    :olp ("projects" ,project "notes"))
                  )))
 
-(setq org-capture-templates
+;; in the future if we want to nest projects under a heading:
+;; ("Projects" :keys "p"
+;;   :children
+;;   (;; projects:
+;;     ,(ns/make-project-capture "other")
+;;     ))
+
+;; :template ("* %i")
+;; :immediate-finish t
+
+;; todo: this dynamic under 'projects' heading in notes/source from elsewhere
+(setq ns/org-capture-project-list
+  '(
+     "emacs"
+     "rice"
+     "blog"
+     "fighting fantasy"
+     "bspwwm"
+     ))
+
+(setq ns/org-capture-project-templates
   (doct
     `(
-       ;; alternative approach:
-       ;; ("Projects" :keys "p"
-       ;;   :children
-       ;;   (;; projects:
-       ;;     ,(ns/make-project-capture "other")
-       ;;     ))
+       ,(ns/make-project-capture "meta" nil "c")
+       ,@(-map 'ns/make-project-capture ns/org-capture-project-list)
 
-       ;; todo: this dynamic under 'projects' heading in notes
-       ,(ns/make-project-capture "example")
-       ,(ns/make-project-capture "rice")
-       ,(ns/make-project-capture "emacs")
-       ,(ns/make-project-capture "meta")
+       ;; ("Reminder" :keys "r"
+       ;;   :template "* %?\n%U\n"
+       ;;   )
 
-       ;; todo: reminder capture
        ("Journal" :keys "j"
          :template "* %?\n%U\n"
          :clock-in t :clock-resume t
          :datetree t :file ,org-default-diary-file
          ))))
+
+(setq ns/org-capture-region-templates
+  (doct
+    `(
+       ,(ns/make-project-capture "meta" nil "c")
+       ,@(-map (fn (ns/make-project-capture <> "* %i"))
+           ns/org-capture-project-list)
+
+       ;; ("Reminder" :keys "r"
+       ;;   :template "* %?\n%U\n"
+       ;;   )
+
+       ("Journal" :keys "j"
+         :template "* %?\n%U\n"
+         :clock-in t :clock-resume t
+         :datetree t :file ,org-default-diary-file
+         ))))
+
+(setq org-capture-templates ns/org-capture-project-templates)
+
+;; binding idea: org move?
+;; wait just keep org refile - don't make it dynamic
+(defun! ns/capture-current-subtree ()
+  (let ((ns/org-points
+          (save-excursion
+            (list
+              (progn (org-back-to-heading) (point))
+              (progn (org-back-to-heading) (evil-forward-word-begin) (point))
+              (progn (org-end-of-subtree) (point))))))
+
+    (set-mark (second ns/org-points))
+    (goto-char (third ns/org-points))
+    ;; (activate-mark)
+
+    (setq org-capture-templates ns/org-capture-region-templates)
+
+    (when (org-capture)
+      ;; assume we succeeded
+      (kill-region (first ns/org-points) (third ns/org-points))
+      (when (s-blank-str-p (thing-at-point 'line))
+        (kill-line))))
+
+  ;; todo: catch quit for revert as well
+  (setq org-capture-templates ns/org-project-templates))
+
+
+(ns/bind
+  "or" 'ns/capture-current-subtree
+  ;; "org move"
+  "om" 'org-refile
+  )
+
+
+;; (setq org-capture-templates)
+
+;; refile the current subtree to capture targets
