@@ -105,21 +105,21 @@
     (org-set-property prop (or value "t"))))
 
 (defun! ns/org-goto-active (&optional property)
+  "Go to the currently clocked in task, or the next task under PROPERTY"
   (find-file org-default-notes-file)
 
   (if org-clock-current-task
-    (org-clock-goto)
-    ;; todo: pull in org_task_elisp functions to emacs.d
-    (->> (ns/notes-current-standup-headline)
+    (progn (org-clock-goto)
+      (ns/org-jump-to-element-content))
+    (->> (org-find-property property)
+      (om-parse-headline-at)
       (ns/notes-current-standup-task) cadr
-      ((lambda (props) (plist-get props :contents-begin)))
+      ((lambda (props)
+         (or (plist-get props :contents-begin)
+           (plist-get props :begin))))
       (goto-char)))
 
-  (ns/org-jump-to-element-content)
-
-  (org-show-context)
-  (org-show-subtree)
-  (ns/focus-line))
+  (ns/org-jump-to-element-content))
 
 (use-package org-pomodoro
   ;; pomodoro, tied to music playing status
@@ -136,24 +136,45 @@
   (add-hook 'org-pomodoro-finished-hook 'ns/toggle-music-pause))
 
 (defun ns/org-jump-to-element-content ()
-  (->> (om-parse-this-headline) cadr
-    ((lambda (props) (plist-get props :contents-begin)))
-    (goto-char))
+  "Jump from a anywhere in a headline to the start of it's content"
+  ;; org mode is cursed
 
-  (let ((first-element (org-element-at-point)))
-    (when (eq 'property-drawer (car first-element))
-      (goto-char (org-element-property :end first-element))))
+  ;; (org-show-context)
+  ;; (org-show-siblings)
+  ;; (org-show-subtree)
+  (org-show-all)
 
-  (let ((first-element (org-element-at-point)))
-    (when (eq 'drawer (car first-element))
-      (goto-char (org-element-property :end first-element))))
+  (let* ((props (cadr (om-parse-this-headline)))
+          (contents-begin (plist-get props :contents-begin))
+          (begin (plist-get props :begin)))
+    (goto-char (or contents-begin begin))
 
-  ;; if we're looking at a headline, we went too far
-  ;; (easily possible with blank headlines)
-  (when (s-starts-with-p "*" (thing-at-point 'line))
-    (evil-previous-line))
+    (if contents-begin
+      (progn
+        (let ((first-element (org-element-at-point)))
+          (when (eq 'property-drawer (car first-element))
+            (goto-char (org-element-property :end first-element))))
+
+        (let ((first-element (org-element-at-point)))
+          (when (eq 'drawer (car first-element))
+            (goto-char (org-element-property :end first-element))))
+
+        ;; if we're looking at a headline, we went too far
+        ;; (easily possible with blank headlines)
+        (when (s-starts-with-p "*" (thing-at-point 'line))
+          (evil-previous-line)))
+
+      ;; empty headline
+      (when (s-starts-with-p "*" (thing-at-point 'line))
+        (evil-next-line)
+        (when
+          (s-starts-with-p "*" (thing-at-point 'line))
+          (evil-open-above 1)
+          (evil-normal-state)
+          ))))
 
   ;; todo: consider ensuring drawers are collapsed after this
+  (ns/focus-line)
   )
 
 ;; insert an org link to the current location on the focused heading in notes.org
@@ -232,15 +253,11 @@
 
   "no" (fn!
          (counsel-org-goto-all)
-         (org-show-context)
-         (org-show-siblings)
-         (org-show-subtree)
-         (ns/focus-line)))
-
+         (ns/org-jump-to-element-content)))
 
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
-(add-hook 'org-mode-hook 'flyspell-mode)
+;; (add-hook 'org-mode-hook 'flyspell-mode)
 
 (defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block
