@@ -186,8 +186,7 @@
   ;; https://en.wikipedia.org/wiki/Pastel_(color)
   ;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
   ;; have high value and low saturation.
-  (ns/color-hsl-transform
-    c
+  (ns/color-hsl-transform c
     (lambda (H S L)
       (list
         H
