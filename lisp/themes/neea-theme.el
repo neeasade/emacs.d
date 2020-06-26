@@ -136,8 +136,10 @@
 
     ;; todo: revisit numbers here
     (accent1_ (ns/color-derive-accent-left accent1 8))
-    (accent1__ (ns/color-derive-accent-left accent1_ 4))
 
+    (accent1__ (ns/color-derive-accent-left accent1_ 4))
+    (accent1__ (ns/color-lab-darken accent1__ 10))
+    (accent1__ (color-desaturate-name accent1__ 10))
     (accent2_ (ns/color-derive-accent-right accent2 10))
 
     ;; the special care here is because accent2__ is for strings
@@ -244,7 +246,9 @@
     ;; ivy-current-match foreground
     :base09 (ht-get ns/theme :foreground) ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
 
-    :base0A (ht-get ns/theme :accent1__) ;; Classes, Markup Bold, Search Text Background
+    ;; :base0A (ns/color-lab-darken (ht-get ns/theme :accent1__) 4)
+    :base0A (ht-get ns/theme :accent1__)
+    ;; Classes, Markup Bold, Search Text Background
 
     ;; font-lock-string-face
     ;; this should maybe be accent1__
