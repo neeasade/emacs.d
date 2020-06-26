@@ -50,6 +50,7 @@
                      "#nixers_net"
                      "#sway-devel"
                      "#k-slug"
+                     "#LawrenceLUG"
                      "#qutebrowser"
                      "#qutebrowser-offtopic"
                      "##9fans"
@@ -275,6 +276,7 @@
 
           ;; don't care if some things are mentioned in their primary channel
           (not (and (string= "emacs " match) (string= "#emacs" channel)))
+          (not (and (string= "clojure" match) (string= "#clojure-beginners" channel)))
           (not (and (string= "clojure" match) (string= "#clojure" channel)))
           (not (and (string= " nix " match) (string= "#nixos" channel)))
           (not (and (string= " nix " match) (string= "#nixos-chat" channel)))
@@ -592,9 +594,11 @@
   (interactive "sAction: ")
   (circe-command-ME (concat "is now playing " (ns/shell-exec "music infoname"))))
 
+(defun circe-command-SHRUG (content)
+  (circe-command-SAY (concat content " ¯\\_(ツ)_/¯")))
+
 (defun circe-command-CS (content)
-  (circe-command-MSG "chanserv" content)
-  )
+  (circe-command-MSG "chanserv" content))
 
 (defun circe-command-EXEC (content)
   (->> content

@@ -111,7 +111,7 @@
   (if org-clock-current-task
     (progn (org-clock-goto)
       (ns/org-jump-to-element-content))
-    (->> (org-find-property property)
+    (->> (org-find-property (or property "focus"))
       (om-parse-headline-at)
       (ns/notes-current-standup-task) cadr
       ((lambda (props)

@@ -125,14 +125,15 @@
 
     (run-with-idle-timer 2 t 'garbage-collect)
 
-    (->> (seq-take recentf-list 6)
-      (-filter (fn (not (s-ends-with-p "recentf" <>))))
-      (mapc (fn (when
-                  (and
-                    ;; don't open up tramp files on startup, slow
-                    (not (file-remote-p <>))
-                    (f-exists-p <>))
-                  (find-file <>)))))
+    (->> recentf-list
+      (-filter (fn
+                 (and
+                   ;; tramp slow
+                   (not (file-remote-p <>))
+                   (not (s-ends-with-p "recentf" <>))
+                   (f-exists-p <>))))
+      (-take 6)
+      (mapc 'find-file))
 
     (when (f-exists-p (~ "extend.el"))
       (load (~ "extend.el")))

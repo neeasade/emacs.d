@@ -174,7 +174,20 @@
     (apply 'color-rgb-to-hsl)
     (apply transform)
     (apply 'color-hsl-to-rgb)
+    (-map 'color-clamp)
     (apply 'color-rgb-to-hex)))
+
+(defun ns/color-pastel (c &optional Smod Vmod)
+  "Make a color more pastel in the hsl space"
+  ;; https://en.wikipedia.org/wiki/Pastel_(color)
+  (ns/color-hsl-transform
+    c
+    (lambda (H S L)
+      (list
+        H
+        (/ S (or Smod 1.1))
+        (* L (or Vmod 1.1))
+        ))))
 
 ;; todo: rgb to srgb/some form of gamma correction?
 ;; maybe steal a little from https://github.com/yurikhan/yk-color/blob/master/yk-color.el
