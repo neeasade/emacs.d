@@ -84,6 +84,8 @@
   ;; (set-face-attribute 'comint-highlight-prompt nil :foreground accent1)
   )
 
+(set-face-attribute 'isearch nil :background nil)
+
 (set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
 (set-face-attribute 'fringe nil :background nil)
 (set-face-attribute 'font-lock-comment-face nil :background nil)
@@ -189,7 +191,8 @@
               ;; :inherit nil
               ))))
 
-
+;; todo: allow underlines in default face in org mode buffers -- see buffer-face-mode
+;; todo: we also want to allow underlines in font-lock-comment probably -- spelling errs in code comments
 
 (when (fboundp 'ns/style-circe) (ns/style-circe))
 (when (fboundp 'ns/style-org) (ns/style-org))

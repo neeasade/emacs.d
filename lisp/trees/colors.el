@@ -163,6 +163,10 @@
   (ns/color-lab-transform c
     (lambda (L A B) (list (+ L value) A B))))
 
+(defun ns/color-lab-darken (c value)
+  (ns/color-lab-transform c
+    (lambda (L A B) (list (- L value) A B))))
+
 (defun ns/color-lch-transform (c transform)
   (ns/color-lab-transform c
     (lambda (L A B)
@@ -180,12 +184,14 @@
 (defun ns/color-pastel (c &optional Smod Vmod)
   "Make a color more pastel in the hsl space"
   ;; https://en.wikipedia.org/wiki/Pastel_(color)
+  ;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
+  ;; have high value and low saturation.
   (ns/color-hsl-transform
     c
     (lambda (H S L)
       (list
         H
-        (/ S (or Smod 1.1))
+        (* S (or Smod 0.9))
         (* L (or Vmod 1.1))
         ))))
 

@@ -38,44 +38,84 @@
         (- C mod)
         H))))
 
-(defun ns/color-derive-accent (origin mod)
+(defun ns/color-derive-accent-left (origin mod)
   (ns/color-iterate origin
     (lambda (c)
-      (ns/color-lch-transform c
-        (lambda (L C H)
-          (list
-            (+ L 2)
-            (- C 2)
-            ;; (+ L mod)
-            ;; (- C (/ mod 2))
-            ;; (- C mod)
-            H))))
+      (-> c
+
+        ;; (ns/color-lch-transform
+        ;;   (lambda (L C H)
+        ;;     (list L (* C 0.9) H)))
+        (ns/color-pastel 0.9 1.3)
+        )
+      )
 
     (lambda (c)
       (> (ns/color-name-distance
            ;; todo: consider passing hue correction here
            origin c)
-        (* 1.5  mod)
-        ;; mod
+        mod
         ))))
+
+(defun ns/color-derive-accent-right (origin mod)
+  (ns/color-iterate origin
+    (lambda (c)
+      (-> c
+
+        ;; (ns/color-lch-transform
+        ;;   (lambda (L C H)
+        ;;     (list L (* C 0.9) H)))
+        (ns/color-pastel 0.9 1.1)
+        ;; (ns/color-pastel 0.9 1.2)
+        )
+      )
+
+    (lambda (c)
+      (> (ns/color-name-distance
+           ;; todo: consider passing hue correction here
+           origin c)
+        mod
+        ))))
+
+(defun ns/theme-enforce-contrast (c background foreground)
+  (let* ((main-ratio (ns/color-contrast-ratio foreground background))
+          (c-ratio (ns/color-contrast-ratio c background))
+          ;; (bg-is-light (ns/color-is-light-p background))
+          )
+    (ns/color-iterate
+      c
+      (fn (color-darken-name <> 0.5))
+      ;; (fn (> ratio (ns/color-contrast-ratio <> background)))
+      (fn (>=
+            ;; ratio
+            (ns/color-contrast-ratio <> background)
+            (* 0.75 main-ratio)
+            ))
+      )))
+
+;; (let ((foreground  "#5A5E65")
+;;        (background "#EEF0F3"))
+;;   (ns/theme-enforce-contrast "#dddddd" background foreground))
+
 
 (let*
   ;; fg bg from the lab light theme by MetroWind.
   ((foreground  "#5A5E65")
-    (background  "#F2F5F8")
+    (background "#EEF0F3")
 
     (accent1
       (ns/color-lab-transform foreground
         (lambda (L A B)
           (list
-            (+ L 5)
+            (+ L 3)
             ;; L
             ;; going towards green, away from red
-            (- A (* 0.5 (+ A 100)))
+            ;; (- A (* 0.5 (+ A 100)))
             ;; to red
-            ;; (+ A (* 0.6 (- 200 (+ A 100))))
+            (+ A (* 0.3 (- 200 (+ A 100))))
             ;; going towards blue, away from yellow
-            (- B (* 0.7 (+ B 100)))
+            (- B (* 0.9 (+ B 100)))
+            ;; (+ A (* 0.3 (- 200 (+ A 100))))
             ))))
 
     (accent2
@@ -83,23 +123,43 @@
         (lambda (L A B)
           (list
             ;; (+ L 10)
-            (- L 2)
+            ;; (- L 2)
+            (+ L 3)
             ;; going towards green, away from red
-            (- A (* 0.8 (+ A 100)))
+            (- A (* 0.9 (+ A 100)))
+            ;; (+ A (* 0.8 (- 200 (+ A 100))))
             ;; (- A (* 0.0 (+ A 100)))
             ;; going towards yellow, away from blue
+            ;; (- B (* 0.9 (+ B 100)))
             (+ B (* 0.4 (- 200 (+ B 100))))
             ))))
 
     ;; todo: revisit numbers here
-    (accent1_ (ns/color-derive-accent accent1 10))
-    (accent1__ (ns/color-derive-accent accent1_ 10))
+    (accent1_ (ns/color-derive-accent-left accent1 8))
+    (accent1__ (ns/color-derive-accent-left accent1_ 4))
 
-    (accent2_ (ns/color-derive-accent accent2 10))
-    (accent2__ (ns/color-derive-accent accent2_ 10))
+    (accent2_ (ns/color-derive-accent-right accent2 10))
 
-    (foreground_ (ns/color-lab-lighten foreground 20))
-    (foreground__ (ns/color-lab-lighten foreground_ 6))
+    ;; the special care here is because accent2__ is for strings
+    ;; and strings are everywhere
+    (accent2__ (ns/color-derive-accent-right accent2_ 8))
+    (accent2__ (ns/color-lab-lighten accent2__ 2))
+    (accent2__ (color-desaturate-name accent2__ 10))
+
+    ;; (foreground_
+    ;;   (ns/color-iterate foreground
+    ;;     (fn (ns/color-lab-lighten <> 1))
+    ;;     (fn (> (ns/color-name-distance <> foreground) 10)))
+    ;;   )
+
+    ;; (foreground__
+    ;;   (ns/color-iterate foreground_
+    ;;     (fn (ns/color-lab-lighten <> 1))
+    ;;     (fn (> (ns/color-name-distance <> foreground_) 10)))
+    ;;   )
+
+    (foreground_ (ns/color-derive-accent-right foreground 10))
+    (foreground__ (ns/color-derive-accent-right foreground_ 4))
     )
 
   (setq ns/theme
@@ -121,24 +181,13 @@
   ;; note: here is the place for lighting and gamma correction functions
   ;; todo: investigate the different color blending options for transforms here
 
-  (setq ns/theme
-    (ht-transform-kv ns/theme
-      (lambda (k v)
-        ;; tweak only the accents:
-        (if (s-starts-with-p ":accent" (prin1-to-string k))
-          (ns/color-lch-transform
-            v (lambda (L C H)
-                (list
-                  ;; luminance
-                  L
-
-                  ;; distance from gray -- higher is furthur.
-                  (* 1.7 C)
-                  ;; (+ C 10)
-
-                  ;; we never really tweak hue here
-                  H)))
-          v))))
+  ;; (setq ns/theme
+  ;;   (ht-transform-kv ns/theme
+  ;;     (lambda (k v)
+  ;;       (if (s-starts-with-p ":accent" (prin1-to-string k))
+  ;;         ;; (ns/theme-enforce-contrast v background foreground)
+  ;;         (color-desaturate-name v 5)
+  ;;         v))))
 
   ;; correlate this with screen brightness -- the lower you turn it you will want to turn this down
   ;; todo: for this to be accurate you must be sure of the initial color adjustments in sRBG
@@ -174,6 +223,7 @@
 
     ;; ivy-current-match background, isearch match background, inactive modeline background
     :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
+    ;; :base01 (ht-get ns/theme :foreground__) ;; Lighter Background (Used for status bars)
 
     ;; font-comment-delimiter, region, active modeline background
     :base02 (ht-get ns/theme :accent1__) ;; Selection Background
@@ -194,7 +244,7 @@
     ;; ivy-current-match foreground
     :base09 (ht-get ns/theme :foreground) ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
 
-    :base0A (ht-get ns/theme :foreground__) ;; Classes, Markup Bold, Search Text Background
+    :base0A (ht-get ns/theme :accent1__) ;; Classes, Markup Bold, Search Text Background
 
     ;; font-lock-string-face
     ;; this should maybe be accent1__

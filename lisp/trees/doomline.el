@@ -15,8 +15,9 @@
   "sep-edge" :group 'doom-modeline-faces)
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (ns/color-greaten 14 (face-attribute 'font-lock-comment-face :foreground))
+  ;; (ns/color-greaten 14 (face-attribute 'font-lock-comment-face :foreground))
   ;; (face-attribute 'default :background)
+  (ht-get ns/theme :accent1__)
   )
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
