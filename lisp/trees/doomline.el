@@ -20,7 +20,7 @@
   (ns/color-pastel
     (ht-get ns/theme :accent1__)
     0.9
-    1.05))
+    1.15))
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)

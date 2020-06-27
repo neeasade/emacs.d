@@ -86,13 +86,13 @@
 
 (set-face-attribute 'isearch nil :background nil)
 
-(set-face-attribute
-  'font-lock-type-face nil
-  :foreground
-  (-> (ht-get ns/theme :accent1__)
-    (ns/color-lab-darken 10)
-    (color-desaturate-name 10)
-    ))
+;; (set-face-attribute
+;;   'font-lock-type-face nil
+;;   :foreground
+;;   (-> (ht-get ns/theme :accent1__)
+;;     (ns/color-lab-darken 10)
+;;     (color-desaturate-name 10)
+;;     ))
 
 (set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
 (set-face-attribute 'fringe nil :background nil)

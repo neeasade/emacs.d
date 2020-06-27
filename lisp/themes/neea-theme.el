@@ -137,7 +137,13 @@
     ;; todo: revisit numbers here
     (accent1_ (ns/color-derive-accent-left accent1 8))
 
-    (accent1__ (ns/color-derive-accent-left accent1_ 4))
+    (accent1__
+      (->  accent1_
+        (ns/color-derive-accent-left 4)
+        (ns/color-lab-darken 10)
+        (color-desaturate-name 10)
+        ))
+
 
     (accent2_ (ns/color-derive-accent-right accent2 10))
 

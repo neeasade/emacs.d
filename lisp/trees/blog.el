@@ -45,6 +45,14 @@
 (ns/bind-soft "nq" 'ns/jump-to-blog-post-draft)
 (ns/bind-soft "nQ" 'ns/jump-to-blog-post)
 
+(defun ns/blog-make-hsep ()
+  (format "#+begin_center
+%s
+#+end_center"
+    (let* ((options "🍇🍉🍓🍅🍄🍈🍍")
+            (index (random (length options))))
+      (substring options index (+ index 1)))))
+
 (defun ns/blog-file-to-meta (path)
   ;; a helper
   (defun ns/blog-make-nav-strip (&rest items)
@@ -73,7 +81,11 @@
               (f-filename path)
               ))
 
-          (org-file-content (s-split "\n" (org-file-contents path)))
+          (org-file-content
+            (-map
+              ;; call our custom hsep macro for delimiters
+              (fn (if (string= <> "-----") "{{{hsep()}}}" <>))
+              (s-split "\n" (org-file-contents path))))
 
           (published-date
             (when is-post
