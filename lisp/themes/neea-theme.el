@@ -99,9 +99,15 @@
 
 
 (let*
-  ;; fg bg from the lab light theme by MetroWind.
-  ((foreground  "#5A5E65")
-    (background "#EEF0F3")
+  (
+    ;; (foreground  "#5A5E65")
+
+    (background
+      (ns/color-lab-to-name
+        '(97 0 0)
+        ns/theme-white-point))
+
+    (foreground (ns/color-lab-darken "#5A5E65" 4))
 
     (accent1
       (ns/color-lab-transform foreground
@@ -124,7 +130,7 @@
           (list
             ;; (+ L 10)
             ;; (- L 2)
-            (+ L 3)
+            (+ L 2)
             ;; going towards green, away from red
             (- A (* 0.9 (+ A 100)))
             ;; (+ A (* 0.8 (- 200 (+ A 100))))
@@ -136,14 +142,12 @@
 
     ;; todo: revisit numbers here
     (accent1_ (ns/color-derive-accent-left accent1 8))
-
     (accent1__
-      (->  accent1_
+      (-> accent1_
         (ns/color-derive-accent-left 4)
-        (ns/color-lab-darken 10)
-        (color-desaturate-name 10)
-        ))
-
+        (ns/color-lab-lighten 10)
+        )
+      )
 
     (accent2_ (ns/color-derive-accent-right accent2 10))
 
@@ -153,20 +157,8 @@
     (accent2__ (ns/color-lab-lighten accent2__ 2))
     (accent2__ (color-desaturate-name accent2__ 10))
 
-    ;; (foreground_
-    ;;   (ns/color-iterate foreground
-    ;;     (fn (ns/color-lab-lighten <> 1))
-    ;;     (fn (> (ns/color-name-distance <> foreground) 10)))
-    ;;   )
-
-    ;; (foreground__
-    ;;   (ns/color-iterate foreground_
-    ;;     (fn (ns/color-lab-lighten <> 1))
-    ;;     (fn (> (ns/color-name-distance <> foreground_) 10)))
-    ;;   )
-
     (foreground_ (ns/color-derive-accent-right foreground 10))
-    (foreground__ (ns/color-derive-accent-right foreground_ 4))
+    (foreground__ (ns/color-derive-accent-right foreground_ 6))
     )
 
   (setq ns/theme
@@ -183,7 +175,9 @@
 
       (:accent2 accent2)
       (:accent2_ accent2_)
-      (:accent2__ accent2__)))
+      (:accent2__ accent2__)
+
+      ))
 
   ;; note: here is the place for lighting and gamma correction functions
   ;; todo: investigate the different color blending options for transforms here
@@ -228,12 +222,13 @@
 
     :base00 (ht-get ns/theme :background) ;; Default Background
 
-    ;; ivy-current-match background, isearch match background, inactive modeline background
-    :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
-    ;; :base01 (ht-get ns/theme :foreground__) ;; Lighter Background (Used for status bars)
+    ;; ivy-current-match background, isearch match foreground, inactive modeline background
+    ;; :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
+    :base01 (ht-get ns/theme :accent1__) ;; Lighter Background (Used for status bars)
 
     ;; font-comment-delimiter, region, active modeline background
     :base02 (ht-get ns/theme :accent1__) ;; Selection Background
+    ;; :base02 (ht-get ns/theme :accent2__) ;; Selection Background
 
     :base03 (ht-get ns/theme :foreground__) ;; Comments, Invisibles, Line Highlighting
     :base04 (ht-get ns/theme :foreground_)  ;; Dark Foreground (Used for status bars)
@@ -251,8 +246,8 @@
     ;; ivy-current-match foreground
     :base09 (ht-get ns/theme :foreground) ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
 
-    ;; :base0A (ns/color-lab-darken (ht-get ns/theme :accent1__) 4)
-    :base0A (ht-get ns/theme :accent1__)
+    ;; types
+    :base0A (ht-get ns/theme :accent1)
     ;; Classes, Markup Bold, Search Text Background
 
     ;; font-lock-string-face
@@ -266,6 +261,7 @@
 
     ;; keyword-face, org-date
     :base0E (ht-get ns/theme :accent1_) ;; Keywords, Storage, Selector, Markup Italic, Diff Changed
+    ;; :base0E (ht-get ns/theme :accent1) ;; Keywords, Storage, Selector, Markup Italic, Diff Changed
 
     :base0F (ht-get ns/theme :foreground) ;; Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
     ))

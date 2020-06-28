@@ -3,24 +3,27 @@
 (use-package doom-modeline)
 
 (defface ns/mode-line-middle
-  '((t (:inherit (font-lock-keyword-face))))
+  '((t (:inherit (mode-line))))
   "middle mode line color" :group 'doom-modeline-faces)
 
 (defface ns/mode-line-sep
-  '((t (:inherit (font-lock-keyword-face))))
+  '((t (:inherit (mode-line))))
   "sep" :group 'doom-modeline-faces)
 
 (defface ns/mode-line-sep-edge
-  '((t (:inherit (font-lock-keyword-face))))
+  '((t (:inherit (mode-line))))
   "sep-edge" :group 'doom-modeline-faces)
 
 (set-face-attribute 'ns/mode-line-middle nil :background
   ;; (ns/color-greaten 14 (face-attribute 'font-lock-comment-face :foreground))
-  ;; (face-attribute 'default :background)
-  (ns/color-pastel
-    (ht-get ns/theme :accent1__)
-    0.9
-    1.15))
+
+  (face-attribute 'mode-line :background)
+
+  ;; (ns/color-pastel
+  ;;   ;; (ht-get ns/theme :accent2__)
+  ;;   0.9 1.15
+  ;;   )
+  )
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
@@ -37,7 +40,12 @@
   )
 
 ;; darken it up a little maybe
-;; (set-face-attribute 'mode-line-inactive nil :background (ns/color-lessen 5 (face-attribute 'default :background)))
+
+;; :base01  ;; Lighter Background (Used for status bars)
+(set-face-attribute 'mode-line-inactive nil :background
+  (color-darken-name (ht-get ns/theme :background) 7)
+  ;; (ns/color-lessen 5 (face-attribute 'default :background))
+  )
 
 (set-face-attribute 'mode-line nil :height 100)
 (set-face-attribute 'mode-line-inactive nil :height 100)
