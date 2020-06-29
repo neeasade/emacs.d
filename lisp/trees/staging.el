@@ -522,6 +522,20 @@
   "om" 'org-refile
   )
 
+;; allow shell blocks in org mode to be executed:
+(org-babel-do-load-languages 'org-babel-load-languages
+  '((shell . t)))
+
+;; EG, call with org-babel-execute-src-block on:
+;; the ':results output silent' means don't insert into the buffer
+;; #+begin_src sh :results output silent
+;; <code to execute>
+;; #+end_src
+(ns/bind-mode 'org "e"
+  (fn! (when (org-in-src-block-p)
+         ;; living dangerously
+         (let ((org-confirm-babel-evaluate (fn nil)))
+           (org-babel-execute-src-block)))))
 
 ;; (setq org-capture-templates)
 

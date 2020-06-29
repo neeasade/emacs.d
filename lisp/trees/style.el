@@ -83,7 +83,12 @@
   )
 
 (set-face-attribute 'isearch nil :foreground (ht-get ns/theme :accent1__))
-(set-face-attribute 'isearch nil :background (ht-get ns/theme :foreground_))
+(set-face-attribute 'isearch nil :background (ht-get ns/theme :foreground))
+
+(set-face-attribute 'magit-diff-context-highlight nil
+  :background
+  (ns/color-lab-darken (ht-get ns/theme :background) 4)
+  )
 
 (set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
 (set-face-attribute 'fringe nil :background nil)

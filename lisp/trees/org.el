@@ -80,7 +80,7 @@
   refile-use-outline-path t                  ; Show full paths for refiling
 
   ;; this way we don't haev to create annoying outlines
-  refile-allow-creating-parent-nodes t
+  refile-allow-creating-parent-nodes 'confirm
   )
 
 (ns/bind-leader-mode
@@ -134,9 +134,19 @@
   ;; named functions so we don't append lambdas on init reload
   (defun ns/toggle-music-play () (ns/toggle-music "play"))
   (defun ns/toggle-music-pause () (ns/toggle-music "pause"))
-  (add-hook 'org-pomodoro-started-hook 'ns/toggle-music-play)
-  (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play)
-  (add-hook 'org-pomodoro-finished-hook 'ns/toggle-music-pause))
+
+  (defun ns/pomodoro-start-hook ()
+    (ns/toggle-music-play)
+    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_PAUSE"))
+
+  (defun ns/pomodoro-finish-hook ()
+    (ns/toggle-music-pause)
+    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME"))
+
+  (add-hook 'org-pomodoro-started-hook 'ns/pomodoro-start-hook)
+  (add-hook 'org-pomodoro-finished-hook 'ns/pomodoro-finish-hook)
+  (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play))
+
 
 (defun ns/org-jump-to-element-content ()
   "Jump from a anywhere in a headline to the start of it's content"
