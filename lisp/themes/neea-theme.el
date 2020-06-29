@@ -104,8 +104,13 @@
 
     (background
       (ns/color-lab-to-name
-        '(97 0 0)
-        ns/theme-white-point))
+        '(97
+           ;; 0
+           -10
+           0
+           )
+        ns/theme-white-point)
+      )
 
     (foreground (ns/color-lab-darken "#5A5E65" 4))
 
@@ -140,16 +145,23 @@
             (+ B (* 0.4 (- 200 (+ B 100))))
             ))))
 
+    ;; (accent1 accent2)
+
+    (accent2_ (ns/color-derive-accent-right accent2 10))
+
     ;; todo: revisit numbers here
     (accent1_ (ns/color-derive-accent-left accent1 8))
+
     (accent1__
-      (-> accent1_
+      (->
+        ;; accent1_
+        accent2_
         (ns/color-derive-accent-left 4)
-        (ns/color-lab-lighten 10)
+        (ns/color-lab-lighten 13)
+        ;; (ns/color-lab-lighten 30)
         )
       )
 
-    (accent2_ (ns/color-derive-accent-right accent2 10))
 
     ;; the special care here is because accent2__ is for strings
     ;; and strings are everywhere
@@ -182,13 +194,15 @@
   ;; note: here is the place for lighting and gamma correction functions
   ;; todo: investigate the different color blending options for transforms here
 
-  ;; (setq ns/theme
-  ;;   (ht-transform-kv ns/theme
-  ;;     (lambda (k v)
-  ;;       (if (s-starts-with-p ":accent" (prin1-to-string k))
-  ;;         ;; (ns/theme-enforce-contrast v background foreground)
-  ;;         (color-desaturate-name v 5)
-  ;;         v))))
+  (setq ns/theme
+    (ht-transform-kv ns/theme
+      (lambda (k v)
+        (if (s-starts-with-p ":accent" (prin1-to-string k))
+          ;; (ns/theme-enforce-contrast v background foreground)
+          ;; (color-desaturate-name v 30)
+          (ns/color-lch-transform v (lambda (L C H) (list L (* C 0.7) H)))
+          ;; v
+          v))))
 
   ;; correlate this with screen brightness -- the lower you turn it you will want to turn this down
   ;; todo: for this to be accurate you must be sure of the initial color adjustments in sRBG
@@ -248,6 +262,7 @@
 
     ;; types
     :base0A (ht-get ns/theme :accent1)
+
     ;; Classes, Markup Bold, Search Text Background
 
     ;; font-lock-string-face

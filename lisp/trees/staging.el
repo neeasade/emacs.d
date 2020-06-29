@@ -327,7 +327,7 @@
 
       (-map
         (fn (format "%s=%s" (car <>)
-              (s-replace "#" "" (ns/shorten-color (cadr <>)))))
+              (s-replace "#" "" (ns/color-shorten (cadr <>)))))
         (-partition 2
           (list
             "foreground" (face-attribute 'default :foreground)

@@ -80,7 +80,7 @@
   refile-use-outline-path t                  ; Show full paths for refiling
 
   ;; this way we don't haev to create annoying outlines
-  refile-allow-creating-parent-nodes
+  refile-allow-creating-parent-nodes t
   )
 
 (ns/bind-leader-mode

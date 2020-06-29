@@ -75,24 +75,15 @@
   'font-lock-comment-delimiter-face nil
   :foreground (face-attribute 'font-lock-comment-face :foreground))
 
-(let ((accent1 (ht-get ns/theme :accent1))
-       (accent1_ (ht-get ns/theme :accent1_)))
+(let ((c (ht-get ns/theme :accent2_)))
   (setq
-    evil-normal-state-cursor `(,accent1_ box)
-    evil-insert-state-cursor `(,accent1_ bar)
-    evil-visual-state-cursor `(,accent1_ box))
-  ;; (set-face-attribute 'comint-highlight-prompt nil :foreground accent1)
+    evil-normal-state-cursor `(,c box)
+    evil-insert-state-cursor `(,c bar)
+    evil-visual-state-cursor `(,c box))
   )
 
-(set-face-attribute 'isearch nil :background nil)
-
-;; (set-face-attribute
-;;   'font-lock-type-face nil
-;;   :foreground
-;;   (-> (ht-get ns/theme :accent1__)
-;;     (ns/color-lab-darken 10)
-;;     (color-desaturate-name 10)
-;;     ))
+(set-face-attribute 'isearch nil :foreground (ht-get ns/theme :accent1__))
+(set-face-attribute 'isearch nil :background (ht-get ns/theme :foreground_))
 
 (set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
 (set-face-attribute 'fringe nil :background nil)
