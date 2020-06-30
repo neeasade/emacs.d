@@ -4,10 +4,7 @@
 
 (add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
 
-;; todo: we are now depending on populated values in ns/theme in some places might be appropriate to
-;; store a backup theme, because this depends on color.el/a static interface to it
-
-;; todo: some stuff here could probably be pulled into the theme itself, actually
+;; todo: store a backup of the theme (ns/theme fallback)
 
 (defun! ns/font-reset ()
   (set-face-attribute 'default nil :font (get-resource "st.font"))
@@ -65,34 +62,45 @@
 ;; (load-theme  t)
 (load-theme 'neea t)
 
-;; (when (not (eq ns/loaded-theme theme))
-;;   (disable-theme ns/loaded-theme)
-;;   (load-theme theme t)
-;;   (setq ns/loaded-theme theme))
+;; override some base16 decisions
+;; (side note: I couldn't get this to work in the theme itself)
+;; played with: custom-theme-set-faces and custom-theme-recalc-face and all sorts of dumb stuff
+;; gave up and extending here:
 
-;; ｃｏｎｆｏｒｍ
-(set-face-attribute
-  'font-lock-comment-delimiter-face nil
-  :foreground (face-attribute 'font-lock-comment-face :foreground))
 
+;; todo: this theme should also handle org outline levels colors explicitly
+(let ((base16-tweaks
+        `(
+           ;; face pace-part value
+           ;; value may be a key from ns/theme
+           (font-lock-comment-delimiter-face :foreground :foreground_)
+           (isearch :foreground :background+)
+           (isearch :background :foreground)
+           (comint-highlight-prompt :foreground :foreground)
+           (fringe :background nil)
+           (font-lock-comment-face :background nil)
+           (magit-diff-context-highlight :background
+             ,(ns/color-lab-darken (ht-get ns/theme :background) 4))
+           (window-divider :foreground :foreground_)
+           )))
+
+  ;; if we were doing this the /right/ rather than set face attributes we would
+  ;; update theme faces and recalc them -- but then we'd have to know all properties we want to change
+  ;; easier to shove one off's in the above list as I encounter them
+  (-map (lambda (input)
+          (apply (lambda (face part key)
+                   (set-face-attribute face nil part
+                     (if (-contains-p (ht-keys ns/theme) key)
+                       (ht-get ns/theme key) key)))
+            input)) base16-tweaks
+    ))
+
+;; evil
 (let ((c (ht-get ns/theme :accent2_)))
   (setq
     evil-normal-state-cursor `(,c box)
     evil-insert-state-cursor `(,c bar)
-    evil-visual-state-cursor `(,c box))
-  )
-
-(set-face-attribute 'isearch nil :foreground (ht-get ns/theme :accent1__))
-(set-face-attribute 'isearch nil :background (ht-get ns/theme :foreground))
-
-(set-face-attribute 'magit-diff-context-highlight nil
-  :background
-  (ns/color-lab-darken (ht-get ns/theme :background) 4)
-  )
-
-(set-face-attribute 'comint-highlight-prompt nil :foreground (face-attribute 'default :foreground))
-(set-face-attribute 'fringe nil :background nil)
-(set-face-attribute 'font-lock-comment-face nil :background nil)
+    evil-visual-state-cursor `(,c box)))
 
 ;; handle 2 padding approaches
 ;; use internal border on frames, or fake it with fringe mode and a header line on each buffer
@@ -129,16 +137,6 @@
 (ns/apply-frames (fn (set-frame-parameter <> 'bottom-divider-width 1)))
 
 (setq window-divider-default-places t)
-
-;; assume softer vertical border by matching comment face
-(set-face-attribute 'window-divider nil :foreground
-  (face-attribute 'font-lock-comment-face :foreground))
-
-(set-face-attribute 'vertical-border nil :foreground
-  (face-attribute 'font-lock-comment-face :foreground))
-
-(set-face-attribute 'vertical-border nil :foreground
-  (face-attribute 'mode-line-inactive :background))
 
 (window-divider-mode t)
 

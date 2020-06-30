@@ -89,6 +89,13 @@
 
 ;; todo: consider conflict management/at the time of binding yell about the takeover
 
+;; (general-unbind
+;;   :states '(normal visual)
+;;   :keymaps 'override
+;;   :prefix "SPC"
+;;   "e"
+;;   )
+
 ;; binding wrappers
 (defmacro ns/bind (&rest binds)
   `(general-define-key

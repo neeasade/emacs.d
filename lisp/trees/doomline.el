@@ -14,36 +14,23 @@
   '((t (:inherit (mode-line))))
   "sep-edge" :group 'doom-modeline-faces)
 
-(set-face-attribute 'ns/mode-line-middle nil :background
-  ;; (ns/color-greaten 14 (face-attribute 'font-lock-comment-face :foreground))
-
-  (face-attribute 'mode-line :background)
-
-  ;; (ns/color-pastel
-  ;;   ;; (ht-get ns/theme :accent2__)
-  ;;   0.9 1.15
-  ;;   )
-  )
-
-(set-face-attribute 'ns/mode-line-sep-edge nil :background
-  ;; (face-attribute 'default :background)
-  (ns/color-lessen 10 (face-attribute 'mode-line :background))
-  )
-
-(set-face-attribute 'ns/mode-line-sep nil :background
-  (ns/color-lessen 6 (face-attribute 'mode-line :background)
-    ))
-
 (set-face-attribute 'mode-line nil :background
   (ns/color-lessen 3 (face-attribute 'default :background))
   ;; (face-attribute 'default :background)
   )
 
+(set-face-attribute 'ns/mode-line-sep-edge nil :background
+  ;; (face-attribute 'default :background)
+  (ns/color-lessen 10 (face-attribute 'mode-line :background)))
+
+(set-face-attribute 'ns/mode-line-sep nil :background
+  (ns/color-lessen 6 (face-attribute 'mode-line :background)))
+
 ;; darken it up a little maybe
 
 ;; :base01  ;; Lighter Background (Used for status bars)
 (set-face-attribute 'mode-line-inactive nil :background
-  (color-darken-name (ht-get ns/theme :background) 7)
+  (ns/color-lessen 7 (ht-get ns/theme :background))
   ;; (ns/color-lessen 5 (face-attribute 'default :background))
   )
 
