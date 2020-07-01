@@ -19,6 +19,11 @@
   ;; (face-attribute 'default :background)
   )
 
+(set-face-attribute 'ns/mode-line-middle nil :background
+  (ns/color-lessen 3 (face-attribute 'default :background))
+  ;; (face-attribute 'default :background)
+  )
+
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
   (ns/color-lessen 10 (face-attribute 'mode-line :background)))

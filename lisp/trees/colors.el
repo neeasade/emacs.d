@@ -13,7 +13,6 @@
 
 ;; todo: consider cieCAM02
 ;; https://en.wikipedia.org/wiki/CIECAM02
-
 ;; HSL - Hue Saturation Luminance -- all 0.0 -> 1.0
 ;; HSV - Hue Saturation Value Hue in radians, SV is 0.0 -> 1.0
 
@@ -22,14 +21,25 @@
 ;; angle mapping in hue in degrees: (HSL space)
 ;; note: for HUE in color.el these are all within the 1.0 range/collapsed
 
-;; to see these colors inline here with rainbow-mode:
-;; (setq rainbow-x-colors t)
-;; 0   - 60 red to yellow
-;; 60  - 120 yellow to green
-;; 120 - 180 green to cyan
-;; 180 - 240 cyan to blue
-;; 240 - 300 blue to magenta
-;; 300 - 360 magenta to red
+;; lch H:
+;; 0 red
+;; 90 yellow
+;; 180 green
+;; 270 blue
+
+;; NOTE: hue is different in LCH and HSL
+;; in lch going from 4 primary colors red yellow green blue, along 90 degrees
+
+;; hue visualized (degrees):
+;; HSL with .5 saturation and .5 luminance
+;; and LCH -> d65 lab with 50 sat and luminance
+;; 0   red      "#bfff3fff3fff"
+;; 60  yellow   "#bfffbfff3fff"
+;; 120 green    "#3fffbfff3fff"
+;; 180 cyan     "#3fffbfffbfff"
+;; 240 blue     "#3fff3fffbfff"
+;; 300 magenta  "#bfff3fffbfff"
+;; 360 red      "#bfff3fff3fff"
 
 ;; LAB
 ;; - L*, or lightness of a color (how bright that color appears in comparison to white), is 0 or
@@ -66,6 +76,15 @@
     (if (ns/color-is-light-p color)
       (color-darken-name color percent)
       (color-lighten-name color percent))))
+
+(defun ns/color-tint-ratio (c against ratio)
+  (ns/color-iterate c
+    (if (ns/color-is-light-p c)
+      (fn (ns/color-lab-darken <> 0.2))
+      (fn (ns/color-lab-lighten <> 0.2)))
+
+    (fn (> (ns/color-contrast-ratio <> against)
+          (- ratio 0.1)))))
 
 ;; optionally transform #<12> to #<6>
 (defun ns/color-shorten (color)
@@ -178,7 +197,20 @@
   (ns/color-lab-transform c
     (lambda (L A B)
       (apply 'color-lch-to-lab
-        (apply transform (color-lab-to-lch L A B))))))
+        (let ((result (apply transform (color-lab-to-lch L A B))))
+          (list (first result)
+            (second result)
+            ;; clamp hue radian value
+            ;; 6.28
+            ;; (mod (abs 6.4) 6.28)
+
+            (mod (abs (third result)) 6.28))))))
+
+  ;; (ns/color-lab-transform c
+  ;;   (lambda (L A B)
+  ;;     (apply 'color-lch-to-lab
+  ;;       (apply transform (color-lab-to-lch L A B)))))
+  )
 
 (defun ns/color-hsl-transform (c transform)
   (->> (color-name-to-rgb c)
@@ -203,3 +235,36 @@
 
 ;; todo: rgb to srgb/some form of gamma correction?
 ;; maybe steal a little from https://github.com/yurikhan/yk-color/blob/master/yk-color.el
+
+;; ;; noting some experiments
+;; (let
+;;   ((color-start
+;;      (ns/color-lab-to-name
+;;        (color-lch-to-lab
+;;          ;; 40
+;;          50
+;;          70
+;;          ;; (degrees-to-radians 300)
+;;          (degrees-to-radians 315)
+;;          ;; (degrees-to-radians 346)
+;;          )))
+
+;;     (interval (degrees-to-radians 120)))
+;;   (list
+;;     ;; by straight up rotation:
+;;     ;; color-start
+;;     ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
+;;     ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
+;;     ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
+
+;;     ;; 2 sets of complements by an initial offset:
+;;     color-start
+;;     (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (degrees-to-radians 180) H))))
+;;     (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval H))))
+;;     (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval (degrees-to-radians 180) H))))
+;;     ))
+
+;; (accent2 (nth 3 accent-rotations))
+;; (accent1 (nth 2 accent-rotations))
+;; (accent1_ (nth 0 accent-rotations))
+;; (accent2_ (nth 1 accent-rotations))

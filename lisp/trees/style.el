@@ -78,10 +78,13 @@
            (isearch :background :foreground)
            (comint-highlight-prompt :foreground :foreground)
            (fringe :background nil)
+           ;; (mode-line :background nil)
            (font-lock-comment-face :background nil)
            (magit-diff-context-highlight :background
              ,(ns/color-lab-darken (ht-get ns/theme :background) 4))
            (window-divider :foreground :foreground_)
+           ;; match variables to functions
+           (font-lock-function-name-face :foreground :accent2)
            )))
 
   ;; if we were doing this the /right/ rather than set face attributes we would
@@ -96,7 +99,7 @@
     ))
 
 ;; evil
-(let ((c (ht-get ns/theme :accent2_)))
+(let ((c (ht-get ns/theme :accent2)))
   (setq
     evil-normal-state-cursor `(,c box)
     evil-insert-state-cursor `(,c bar)
@@ -160,10 +163,7 @@
 
 (use-package hl-todo
   :config
-  (let ((highlight-color
-          (ns/color-lessen
-            30
-            (face-attribute 'font-lock-comment-face :foreground))))
+  (let ((highlight-color (face-attribute 'font-lock-comment-face :foreground)))
 
     (setq hl-todo-keyword-faces
       `(("TODO" . ,highlight-color)
@@ -174,7 +174,6 @@
 
     ;; todo: this doesn't seem to update magit-todos? - not seeing 'todo' show up
     (setq magit-todos-keywords hl-todo-keyword-faces)
-    ;; highlight-color
     )
 
   (general-nmap

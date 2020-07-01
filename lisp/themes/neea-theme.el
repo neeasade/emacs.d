@@ -17,6 +17,33 @@
   ;; color-d75-xyz ;; | North sky Daylight
   )
 
+;; (face-attribute 'default :foreground)
+;; "#6af87bbf6957"
+
+
+;; save themes
+(setq ns/theme-melon
+  #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+	    (:accent2_ "#44048cdd4404"
+        :accent2 "#28ef740328ef"
+        :accent1_ "#eb7e614e9cdc"
+        :accent1 "#edad125370dc"
+        :background+ "#876ad14982d3"
+        :background "#e989fcb0e774"
+        :foreground_ "#6af87bbf6957"
+        :foreground "#2cc03bc32bad")))
+
+(setq ns/theme-soft
+  #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+      (:accent2_ "#a8e969a00000"
+        :accent2 "#9e145777cceb"
+        :accent1_ "#0000919c94c5"
+        :accent1 "#0000919c94c5"
+        :background+ "#ffffca0bffff"
+        :background "#fffff98bffff"
+        :foreground_ "#92728c539259"
+        :foreground "#586652b35849" )))
+
 (defun ns/color-derive-accent-left (origin mod)
   (ns/color-iterate origin
     (lambda (c)
@@ -34,8 +61,14 @@
   (ns/color-iterate origin
     (lambda (c)
       (-> c
-        ;; (ns/color-lch-transform (lambda (L C H) (list L (* C 0.9) H)))
-        (ns/color-pastel 0.9 1.1)))
+        ;; (ns/color-lch-transform (lambda (L C H) (list
+        ;;                                           (+ L 0.5)
+        ;;                                           (+ C 1)
+        ;;                                           ;; (+ (degrees-to-radians 1) H)
+        ;;                                           )))
+
+        (ns/color-pastel 0.9 1.1)
+        ))
 
     (lambda (c)
       (> (ns/color-name-distance
@@ -44,81 +77,108 @@
         mod
         ))))
 
+;; LAB definition for color.el:
+;; L: Luminance 0-100
+;; A: Green -100 <--> 100 Red
+;; B: Blue  -100 <--> 100 Yellow
+
 (let*
   (
     ;; the most important color:
     (background
       (ns/color-lab-to-name
-        '(97
-           ;; 0
-           -10
-           8
-           )
-        ns/theme-white-point))
+        '(100 10 0)
+        ns/theme-white-point)
+
+      )
 
     ;; foreground and faded foreground will be contrast ratio based:
     (foreground
-      (ns/color-iterate background
-        (fn (ns/color-lab-darken <> 0.5))
-        (fn (> (ns/color-contrast-ratio <> background)
-              3.9
-              ))))
+      (ns/color-tint-ratio background background 2.8)
+      ;; (ns/color-iterate background
+      ;;   (fn (ns/color-lab-darken <> 0.5))
+      ;;   (fn (> (ns/color-contrast-ratio <> background)
+      ;;         3.9
+      ;;         )))
+      )
 
     (foreground_
-      (ns/color-iterate background
-        (fn (ns/color-lab-darken <> 0.5))
-        (fn (> (ns/color-contrast-ratio <> background)
-              2
-              ))))
+      (ns/color-tint-ratio background background 1.8)
+      ;; (ns/color-iterate background
+      ;;   (fn (ns/color-lab-darken <> 0.5))
+      ;;   (fn (> (ns/color-contrast-ratio <> background)
+      ;;         2
+      ;;         )))
+      )
 
-    ;; accents are where the real fun is -- play in LAB space with foreground being initial starting point
     (accent1
-      (ns/color-lab-transform foreground
-        (lambda (L A B)
+      (ns/color-lch-transform foreground
+        (lambda (L C H)
           (list
-            (+ L 28)
+            ;; (first (ns/color-name-to-lab foreground_))
+            40
             ;; L
-            ;; going towards green, away from red
-            ;; (- A (* 0.5 (+ A 100)))
-            ;; to red
-            (+ A (* 0.8 (- 200 (+ A 100))))
-            ;; going towards blue, away from yellow
-            ;; (- B (* 0.9 (+ B 100)))
-            B
-            ;; (+ A (* 0.3 (- 200 (+ A 100))))
+            ;; (* 2 C)
+            C
+            (degrees-to-radians 270)
             ))))
 
     (accent2
       (-> foreground
-        (ns/color-lab-transform
-          (lambda (L A B)
+        (ns/color-lch-transform
+          (lambda (L C H)
             (list
-              ;; (+ L 10)
-              ;; (- L 2)
-              (+ L 2)
-              ;; going towards green, away from red
-              (- A (* 0.9 (+ A 100)))
-              ;; (+ A (* 0.8 (- 200 (+ A 100))))
-              ;; (- A (* 0.0 (+ A 100)))
-              ;; going towards yellow, away from blue
-              ;; (- B (* 0.9 (+ B 100)))
-              (+ B (* 0.4 (- 200 (+ B 100))))
-              )))
-        (ns/color-derive-accent-right 10)
-        ))
+              ;; L
+              40
+              ;; (first (ns/color-name-to-lab foreground_))
+              ;; (* 2 C)
+              C
+              (degrees-to-radians 90)
+              )))))
 
-    (accent1_ (ns/color-derive-accent-left accent1 4))
+    ;; (accent1_ (ns/color-derive-accent-left accent1 4))
+    (accent1_
+      (ns/color-lch-transform accent1
+        (lambda (L C H)
+          (list
+            L
+            (* C 3)
+            H
+            )
+          )
+        )
+      ;; (ns/color-derive-accent-right accent1 10)
+      )
 
     ;; strings:
-    (accent2_ (ns/color-derive-accent-right accent2 8))
+    (accent2_
+      (ns/color-lch-transform accent2
+        (lambda (L C H)
+          (list
+            L
+            (* C 3)
+            H
+            )
+          )
+        )
+
+      ;; (ns/color-derive-accent-right accent2 10)
+      )
 
     ;; active BG (selections)
     (background+
-      (ns/color-iterate accent2_
+      ;; (ns/color-tint-ratio accent2 background 1.2)
+
+      (ns/color-iterate
+        accent2
         (fn (ns/color-lab-lighten <> 0.5) )
-        (fn (< (ns/color-contrast-ratio <> background)
-              1.4
-              ))))
+        (fn (< (ns/color-contrast-ratio <>
+                 background
+                 )
+              1.3
+              ;; 1.1
+              )))
+      )
     )
 
   (setq ns/theme
@@ -165,55 +225,57 @@
   ;;   ;; (fn (ns/color-tint-with-light <> ns/theme-white-point color-d50-xyz))
   ;;   (ht-transform-v ns/theme)
   ;;   (setq ns/theme))
+  )
 
-  (deftheme neea)
-  (base16-theme-define 'neea
-    (list
-      ;; The comments on the sections here are from the base16 styling guidelines, not necessarily
-      ;; what the emacs base16 theme package follows.
+(setq ns/theme ns/theme-melon)
 
-      ;; guidelines location: http://chriskempson.com/projects/base16/
-      ;; I've also noted some faces I care about
+(deftheme neea)
+(base16-theme-define 'neea
+  (list
+    ;; The comments on the sections here are from the base16 styling guidelines, not necessarily
+    ;; what the emacs base16 theme package follows.
 
-      :base00 background ;; Default Background
+    ;; guidelines location: http://chriskempson.com/projects/base16/
+    ;; I've also noted some faces I care about
 
-      ;; ivy-current-match background, isearch match foreground, inactive modeline background
-      ;; :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
-      :base01 background+ ;; Lighter Background (Used for status bars)
+    :base00 (ht-get ns/theme :background) ;; Default Background
 
-      ;; font-comment-delimiter, region, active modeline background
-      :base02 background+ ;; Selection Background
-      ;; :base02 accent2_ ;; Selection Background
+    ;; ivy-current-match background, isearch match foreground, inactive modeline background
+    ;; :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
+    :base01 (ht-get ns/theme :background+)  ;; Lighter Background (Used for status bars)
 
-      :base03 foreground_ ;; Comments, Invisibles, Line Highlighting
-      :base04 foreground_ ;; Dark Foreground (Used for status bars)
-      :base05 foreground  ;; Default Foreground, Caret, Delimiters, Operators
-      :base06 foreground_ ;; Light Foreground (Not often used)
-      :base07 foreground_ ;; Light Background (Not often used)
+    ;; font-comment-delimiter, region, active modeline background
+    :base02 (ht-get ns/theme :background+)  ;; Selection Background
 
-      ;; org-todo, variables
-      ;; :base08 accent2 ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
-      :base08 accent2 ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
+    :base03 (ht-get ns/theme :foreground_) ;; Comments, Invisibles, Line Highlighting
+    :base04 (ht-get ns/theme :foreground_) ;; Dark Foreground (Used for status bars)
+    :base05 (ht-get ns/theme :foreground)  ;; Default Foreground, Caret, Delimiters, Operators
+    :base06 (ht-get ns/theme :foreground_) ;; Light Foreground (Not often used)
+    :base07 (ht-get ns/theme :foreground_) ;; Light Background (Not often used)
 
-      ;; ivy-current-match foreground
-      :base09 foreground ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
+    ;; org-todo, variables
+    ;; :base08 accent2 ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
+    :base08 (ht-get ns/theme :accent2) ;; Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted
 
-      ;; types
-      :base0A accent1 ;; Classes, Markup Bold, Search Text Background
+    ;; ivy-current-match foreground
+    :base09 (ht-get ns/theme :foreground) ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
 
-      ;; font-lock-string-face
-      :base0B accent2_ ;; Strings, Inherited Class, Markup Code, Diff Inserted
+    ;; types
+    :base0A (ht-get ns/theme :accent1) ;; Classes, Markup Bold, Search Text Background
 
-      :base0C foreground_ ;; Support, Regular Expressions, Escape Characters, Markup Quotes
+    ;; font-lock-string-face
+    :base0B (ht-get ns/theme :accent2_) ;; Strings, Inherited Class, Markup Code, Diff Inserted
 
-      ;; prompt, function-name, search match foreground
-      :base0D accent1 ;; Functions, Methods, Attribute IDs, Headings
+    :base0C (ht-get ns/theme :foreground_)  ;; Support, Regular Expressions, Escape Characters, Markup Quotes
 
-      ;; keyword-face, org-date
-      :base0E accent1_ ;; Keywords, Storage, Selector, Markup Italic, Diff Changed
+    ;; prompt, function-name, search match foreground
+    :base0D (ht-get ns/theme :accent1) ;; Functions, Methods, Attribute IDs, Headings
 
-      :base0F foreground_ ;; Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
-      )))
+    ;; keyword-face, org-date
+    :base0E (ht-get ns/theme :accent1_) ;; Keywords, Storage, Selector, Markup Italic, Diff Changed
+
+    :base0F (ht-get ns/theme :foreground_)  ;; Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
+    ))
 
 (provide-theme 'neea)
 (provide 'neea-theme)

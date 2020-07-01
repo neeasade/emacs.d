@@ -546,7 +546,9 @@
       (default-fg (face-attribute 'default :foreground))
       (default-bg (face-attribute 'default :background))
       (highlight-fg (ns/color-lessen 20 default-fg))
-      (fade-fg (ns/color-lessen 35 default-fg)))
+      ;; (fade-fg (ns/color-lessen 35 default-fg))
+      (fade-fg (face-attribute 'font-lock-comment-face :foreground))
+      )
 
     (set-face-attribute 'circe-server-face          nil  :foreground fade-fg)
     (set-face-attribute 'lui-time-stamp-face        nil  :foreground fade-fg)
@@ -610,7 +612,6 @@
 (defun circe-command-LIST (_)
   (irc-send-command (circe-server-process) "LIST"))
 
-
 (ns/bind
   "ai" (fn!
          (ns/init-circe)
@@ -657,6 +658,7 @@
   ;; (fset 'yes-or-no-p 'y-or-n-p)
   )
 
+;; todo: if this is region, quote the region rather than whole line
 (defun! ns/circe-quote ()
   "quote whoever spoke at point -- conflict potential in the first 7 chars of a nick"
 
