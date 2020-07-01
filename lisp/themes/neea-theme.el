@@ -228,6 +228,7 @@
   )
 
 (setq ns/theme ns/theme-melon)
+(setq ns/theme ns/theme-soft)
 
 (deftheme neea)
 (base16-theme-define 'neea

@@ -24,6 +24,11 @@
   ;; (face-attribute 'default :background)
   )
 
+;; (face-attribute 'mode-line :foreground)
+(set-face-attribute 'doom-modeline-buffer-file nil :foreground (ht-get ns/theme :accent2))
+(set-face-attribute 'doom-modeline-buffer-modified nil :foreground (ht-get ns/theme :accent2))
+
+
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
   (ns/color-lessen 10 (face-attribute 'mode-line :background)))

@@ -107,12 +107,16 @@
     color))
 
 (defun ns/color-is-light-p (name)
-  (> (->> name
-       (color-name-to-rgb)
-       (apply 'color-rgb-to-hsl) (third)
-       )
-    ;; ~opinions~
-    0.65)
+  (> (first (ns/color-name-to-lab name))
+    65
+    )
+
+  ;; (> (->> name
+  ;;      (color-name-to-rgb)
+  ;;      (apply 'color-rgb-to-hsl) (third))
+  ;;   ;; ~opinions~
+  ;;   0.65
+  ;;   )
 
   ;; old way:
   ;; (let*
@@ -202,9 +206,7 @@
             (second result)
             ;; clamp hue radian value
             ;; 6.28
-            ;; (mod (abs 6.4) 6.28)
-
-            (mod (abs (third result)) 6.28))))))
+            (mod (third result) 6.28))))))
 
   ;; (ns/color-lab-transform c
   ;;   (lambda (L A B)
