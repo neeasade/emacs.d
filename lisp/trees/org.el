@@ -111,6 +111,7 @@
   "Go to the currently clocked in task, or the next task under PROPERTY"
   (find-file org-default-notes-file)
 
+  ;; todo: should you org-widen here? broken on a narrowed buffer
   (if org-clock-current-task
     (progn (org-clock-goto)
       (ns/org-jump-to-element-content))

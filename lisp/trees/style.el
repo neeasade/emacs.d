@@ -84,7 +84,11 @@
              ,(ns/color-lab-darken (ht-get ns/theme :background) 4))
            (window-divider :foreground :foreground_)
            ;; match variables to functions
-           (font-lock-function-name-face :foreground :accent2)
+           ;; (font-lock-function-name-face :foreground :accent2)
+           (font-lock-variable-name-face :foreground :accent1)
+           ;; consider nulling out and using flat newlines org links
+           ;; (org-link :foreground :accent1_)
+           ;; (font-lock-type-face :foreground :accent1)
            )))
 
   ;; if we were doing this the /right/ rather than set face attributes we would
@@ -99,7 +103,7 @@
     ))
 
 ;; evil
-(let ((c (ht-get ns/theme :accent2)))
+(let ((c (ht-get ns/theme :accent1_)))
   (setq
     evil-normal-state-cursor `(,c box)
     evil-insert-state-cursor `(,c bar)

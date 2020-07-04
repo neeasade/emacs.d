@@ -466,7 +466,9 @@
     (circe network)))
 
 ;; options: nil, post-command, post-output, t (both)
+;; note: this has the potential to get laggy with many irc buffers open
 (setq lui-scroll-behavior t)
+;; (setq lui-scroll-behavior nil)
 
 (defun! connect-all-irc()
   (mapcar #'(lambda (network) (circe-maybe-connect (car network)))

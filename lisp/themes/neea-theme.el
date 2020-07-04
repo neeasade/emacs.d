@@ -165,19 +165,67 @@
       ;; (ns/color-derive-accent-right accent2 10)
       )
 
+
+    (accent-rotations
+      (let*
+        ((color-start (ns/color-lab-to-name
+                        (color-lch-to-lab
+                          50
+                          70
+                          ;; (degrees-to-radians 340)
+                          ;; (degrees-to-radians 315)
+                          (degrees-to-radians 346)
+                          )))
+
+          (color-start
+            (ns/color-lab-to-name
+              (color-lch-to-lab
+                50
+                ;; 40
+                80
+                ;; (degrees-to-radians 340)
+                ;; (degrees-to-radians 315)
+                (degrees-to-radians 346)
+                )))
+
+
+          (interval (degrees-to-radians 60)))
+        (list
+          ;; by straight up rotation:
+          ;; color-start
+          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
+          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
+          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
+
+          ;; 2 sets of complements by an initial offset:
+          color-start
+          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (degrees-to-radians 180) H))))
+          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval H))))
+          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval (degrees-to-radians 180) H))))
+          ))
+      )
+
+    (accent2 (nth 2 accent-rotations))
+    (accent2_ (nth 1 accent-rotations))
+    (accent1 (nth 0 accent-rotations))
+    (accent1_ (nth 3 accent-rotations))
+
     ;; active BG (selections)
     (background+
+
       ;; (ns/color-tint-ratio accent2 background 1.2)
 
-      (ns/color-iterate
-        accent2
-        (fn (ns/color-lab-lighten <> 0.5) )
-        (fn (< (ns/color-contrast-ratio <>
-                 background
-                 )
-              1.3
-              ;; 1.1
-              )))
+      "#ffffca0bffff"
+
+      ;; (ns/color-iterate
+      ;;   accent2
+      ;;   (fn (ns/color-lab-lighten <> 0.5) )
+      ;;   (fn (< (ns/color-contrast-ratio <>
+      ;;            background
+      ;;            )
+      ;;         1.3
+      ;;         ;; 1.1
+      ;;         )))
       )
     )
 
@@ -227,8 +275,8 @@
   ;;   (setq ns/theme))
   )
 
-(setq ns/theme ns/theme-melon)
-(setq ns/theme ns/theme-soft)
+;; (setq ns/theme ns/theme-melon)
+;; (setq ns/theme ns/theme-soft)
 
 (deftheme neea)
 (base16-theme-define 'neea
@@ -262,12 +310,14 @@
     :base09 (ht-get ns/theme :foreground) ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
 
     ;; types
-    :base0A (ht-get ns/theme :accent1) ;; Classes, Markup Bold, Search Text Background
+    ;; :base0A (ht-get ns/theme :accent1) ;; Classes, Markup Bold, Search Text Background
+    :base0A (ht-get ns/theme :accent2) ;; Classes, Markup Bold, Search Text Background
 
-    ;; font-lock-string-face
+    ;; strings
     :base0B (ht-get ns/theme :accent2_) ;; Strings, Inherited Class, Markup Code, Diff Inserted
 
-    :base0C (ht-get ns/theme :foreground_)  ;; Support, Regular Expressions, Escape Characters, Markup Quotes
+    ;; :base0C (ht-get ns/theme :foreground_)  ;; Support, Regular Expressions, Escape Characters, Markup Quotes
+    :base0C (ht-get ns/theme :accent1_)  ;; Support, Regular Expressions, Escape Characters, Markup Quotes
 
     ;; prompt, function-name, search match foreground
     :base0D (ht-get ns/theme :accent1) ;; Functions, Methods, Attribute IDs, Headings

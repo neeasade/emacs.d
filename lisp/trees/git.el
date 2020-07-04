@@ -24,7 +24,11 @@
     ;; don't show diff when committing --
     ;; means reviewing will have to be purposeful before
     (remove-hook 'server-switch-hook 'magit-commit-diff)
-    ))
+    )
+
+  ;; do the require here so our bindings below in evil-magit override correctly
+  (require 'magit)
+  )
 
 (when (not ns/enable-windows-p)
   (ns/use-package magit-todos "alphapapa/magit-todos"
@@ -39,12 +43,14 @@
 
 (use-package evil-magit
   :config
+
   (general-nmap magit-mode-map "q"
     (fn!
       (quit-window)
       (when ns/magit-before-display-layout
         (set-window-configuration ns/magit-before-display-layout))))
 
+  ;; todo: these don't bind
   (general-nmap magit-mode-map "n" 'evil-next-line)
   (general-nmap magit-mode-map "e" 'evil-previous-line)
   (general-vmap magit-mode-map "n" 'evil-next-line)

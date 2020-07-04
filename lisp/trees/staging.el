@@ -453,12 +453,13 @@
      "blog"
      "fighting fantasy"
      "bspwwm"
+     "meta"
      ))
 
 (setq ns/org-capture-project-templates
   (doct
     `(
-       ,(ns/make-project-capture "meta" nil "c")
+       ;; ,(ns/make-project-capture "meta" nil "c")
        ,@(-map 'ns/make-project-capture ns/org-capture-project-list)
 
        ;; ("Reminder" :keys "r"
@@ -474,7 +475,7 @@
 (setq ns/org-capture-region-templates
   (doct
     `(
-       ,(ns/make-project-capture "meta" nil "c")
+       ;; ,(ns/make-project-capture "meta")
        ,@(-map (fn (ns/make-project-capture <> "* %i"))
            ns/org-capture-project-list)
 
@@ -516,7 +517,7 @@
   (setq org-capture-templates ns/org-project-templates))
 
 
-(ns/bind
+(ns/bind-mode 'org
   "or" 'ns/capture-current-subtree
   ;; "org move"
   "om" 'org-refile
