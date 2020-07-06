@@ -48,6 +48,10 @@
 (defalias 'prn 'prin1-to-string)
 (defalias '-join '-interpose)
 
+(defun prn-message (sexp)
+  (message (prin1-to-string sexp))
+  sexp)
+
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
      (interactive) ,@body))

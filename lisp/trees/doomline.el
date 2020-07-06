@@ -20,7 +20,8 @@
   )
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (ns/color-lessen 3 (face-attribute 'default :background))
+  ;; (ns/color-lessen 3 (face-attribute 'default :background))
+  (ht-get ns/theme :background+)
   ;; (face-attribute 'default :background)
   )
 
@@ -41,6 +42,8 @@
 ;; :base01  ;; Lighter Background (Used for status bars)
 (set-face-attribute 'mode-line-inactive nil :background
   (ns/color-lessen 7 (ht-get ns/theme :background))
+
+  ;; (ns/color-greaten 20 (ht-get ns/theme :background+))
   ;; (ns/color-lessen 5 (face-attribute 'default :background))
   )
 

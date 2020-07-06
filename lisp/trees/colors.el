@@ -235,6 +235,23 @@
         (* L (or Vmod 1.1))
         ))))
 
+(use-package hsluv)
+
+(defun ns/color-hsluv-transform (c transform)
+  (apply 'color-rgb-to-hex
+    (-map 'color-clamp
+      (hsluv-hsluv-to-rgb
+        (let ((result (apply transform (-> c ns/color-shorten (hsluv-hex-to-hsluv)))))
+          (list
+            (mod (first result) 360.0)
+            (second result)
+            (third result)))))))
+
+;; ns/color-hsluv-transform
+;; (ns/color-hsluv-transform "#cccccc"
+;;   (lambda (H S L)
+;;     (list H S (* L .5))))
+
 ;; todo: rgb to srgb/some form of gamma correction?
 ;; maybe steal a little from https://github.com/yurikhan/yk-color/blob/master/yk-color.el
 
