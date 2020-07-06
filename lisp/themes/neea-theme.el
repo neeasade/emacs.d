@@ -51,10 +51,16 @@
         '(94 10 0) ns/theme-white-point))
 
     (background "#EEF0F3")
+    (background
+      (ns/color-lab-lighten
+        "#EEF0F3"
+        2
+        )
+      )
 
     ;; foreground and faded foreground will be contrast ratio based:
     (foreground
-      (ns/color-tint-ratio background background 3.3)
+      (ns/color-tint-ratio background background 3.4)
       ;; (ns/color-iterate background
       ;;   (fn (ns/color-lab-darken <> 0.5))
       ;;   (fn (> (ns/color-contrast-ratio <> background)
@@ -138,7 +144,7 @@
                   H
                   ;; 75
                   95
-                  50
+                  45
                   ))))
 
           ;; (interval (degrees-to-radians 60))
@@ -203,32 +209,31 @@
 
     ;; active BG (selections)
     (background+
-      (ns/color-hsluv-transform
-        (nth 4 accent-rotations)
-        ;; accent1_
-        (lambda (H S L)
-          (list H S
-            ;; (+ 40 L)
-            (-
-              (third (hsluv-hex-to-hsluv background))
-              10
-              )
-            )))
+      ;; (ns/color-hsluv-transform
+      ;;   (nth 4 accent-rotations)
+      ;;   ;; accent1_
+      ;;   (lambda (H S L)
+      ;;     (list H S
+      ;;       ;; (+ 40 L)
+      ;;       (-
+      ;;         (third (hsluv-hex-to-hsluv background))
+      ;;         10
+      ;;         )
+      ;;       )))
 
       ;; (ns/color-tint-ratio accent2 background 1.2)
 
       ;; "#ffffca0bffff"
 
-      ;; (ns/color-iterate
-      ;;   accent2
-      ;;   (fn (ns/color-lab-lighten <> 0.5) )
-      ;;   (fn (< (ns/color-contrast-ratio <>
-      ;;            background
-      ;;            )
-      ;;         1.3
-      ;;         ;; 1.1
-      ;;         )))
-      )
+      (ns/color-iterate
+        (nth 4 accent-rotations)
+        (fn (ns/color-lab-lighten <> 0.5) )
+        (fn (< (ns/color-contrast-ratio <>
+                 background
+                 )
+              1.3
+              ;; 1.1
+              ))))
     )
 
   (setq ns/theme
