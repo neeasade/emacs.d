@@ -47,11 +47,10 @@
   (ns/color-lch-transform
     (ns/color-lessen 10 (ht-get ns/theme :background))
     (lambda (L C H)
-      (prn-message
-        (list L C
-          (third (apply 'color-lab-to-lch
-                   (ns/color-name-to-lab
-                     (ht-get ns/theme :accent1_))))))))
+      (list L C
+        (third (apply 'color-lab-to-lch
+                 (ns/color-name-to-lab
+                   (ht-get ns/theme :accent1_)))))))
 
   ;; (ns/color-lch-transform
   ;;   (ht-get ns/theme :background+)
