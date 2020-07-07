@@ -44,7 +44,7 @@
 
 ;; todo: reconsider this, auto wrap large operations or something
 (setq gc-cons-threshold
-  (->> "free | awk '/^Mem/{print $2}'"
+  (->> "free -b | awk '/^Mem/{print $2}'"
     (ns/shell-exec)
     (string-to-number)
     (* 0.70)

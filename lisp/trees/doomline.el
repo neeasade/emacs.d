@@ -15,7 +15,9 @@
   "sep-edge" :group 'doom-modeline-faces)
 
 (set-face-attribute 'mode-line nil :background
-  (ns/color-lessen 3 (face-attribute 'default :background))
+  ;; (ns/color-lessen 3 (face-attribute 'default :background))
+  (ns/color-lessen 5 (ht-get ns/theme :background+))
+  ;; (ns/color-lessen 3 (face-attribute 'default :background+))
   ;; (face-attribute 'default :background)
   )
 
@@ -32,18 +34,33 @@
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
-  (ns/color-lessen 10 (face-attribute 'mode-line :background)))
+  (ns/color-lessen 20 (ht-get ns/theme :background+))
+  ;; (ns/color-lessen 10 (face-attribute 'mode-line :background))
+  )
 
 (set-face-attribute 'ns/mode-line-sep nil :background
-  (ns/color-lessen 6 (face-attribute 'mode-line :background)))
+  (ns/color-lessen 20 (ht-get ns/theme :background+))
+  ;; (ns/color-lessen 6 (face-attribute 'mode-line :background))
+  )
 
-;; darken it up a little maybe
-
-;; :base01  ;; Lighter Background (Used for status bars)
 (set-face-attribute 'mode-line-inactive nil :background
-  (ns/color-lessen 7 (ht-get ns/theme :background))
+  (ns/color-lch-transform
+    (ns/color-lessen 10 (ht-get ns/theme :background))
+    (lambda (L C H)
+      (prn-message
+        (list L C
+          (third (apply 'color-lab-to-lch
+                   (ns/color-name-to-lab
+                     (ht-get ns/theme :accent1_))))))))
+
+  ;; (ns/color-lch-transform
+  ;;   (ht-get ns/theme :background+)
+  ;;   (lambda (L C H)
+  ;;     (list (- L 4) (* 0.5 C) H)))
 
   ;; (ns/color-greaten 20 (ht-get ns/theme :background+))
+  ;; (ns/color-lessen 5 (ht-get ns/theme :background+))
+
   ;; (ns/color-lessen 5 (face-attribute 'default :background))
   )
 

@@ -101,7 +101,7 @@
   (use-package company
     :config
     (setq-ns company
-      idle-delay 0.3
+      idle-delay 0.5
       selection-wrap-around t
       tooltip-align-annotations t
       dabbrev-downcase nil
@@ -257,8 +257,7 @@
         (-remove (lambda(file) (not file))
           (mapcar 'projectile-root-bottom-up open-buffers)))))
 
-  ;; putting this in a function so it can be used
-  ;; by dmenu_switcher
+  ;; putting this in a function so it can be used by dmenu_switcher
   (defun ns/jump-file-candidates ()
     (let* ((open-buffers
              ;; remove nils
