@@ -51,6 +51,7 @@
         '(94 10 0) ns/theme-white-point))
 
     (background "#EEF0F3")
+
     (background
       (ns/color-lab-lighten
         "#EEF0F3"
@@ -115,14 +116,10 @@
 
           (color-start
             (ns/color-lab-to-name
-              (color-lch-to-lab
-                50
-                ;; 60
-                80
+              (color-lch-to-lab 50 80
                 ;; (degrees-to-radians 340)
                 ;; (degrees-to-radians 315)
-                (degrees-to-radians 346)
-                )))
+                (degrees-to-radians 346))))
 
           (color-start
             (hsluv-hsluv-to-hex
@@ -130,17 +127,15 @@
                 ;; 330
                 ;; 346
                 300
-                100
-                60
-                )))
+                100 60)))
 
           (color-start
-            (ns/color-hsluv-transform background
+            (ns/color-hsluv-transform
+              (or background (ht-get ns/theme :background))
               (lambda (H S L)
                 (list
                   ;; 330
                   ;; 346
-                  ;; 300
                   H
                   ;; 75
                   95
@@ -149,20 +144,12 @@
 
           ;; (interval (degrees-to-radians 60))
 
-          ;; (interval
-          ;;   (* (/
-          ;;        60.0
-          ;;        ;; 45
-          ;;        ;; 120
-          ;;        360.0)
-          ;;     100.0
-          ;;     ))
-
           (interval 72)
           ;; (interval 90)
           ;; (interval 120)
           ;; (interval 45)
           )
+
         (list
           ;; by straight up rotation:
           ;; color-start
@@ -187,50 +174,30 @@
           ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ 180 H) S L)))
           ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ interval H) S L)))
           ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ interval 180 H) S L)))
-
           ))
+
       )
 
-    (accent2 (nth 2 accent-rotations))
-    (accent2_ (nth 1 accent-rotations))
-    (accent1 (nth 0 accent-rotations))
-    (accent1_ (nth 3 accent-rotations))
+    ;; ("#17ff701ea8c2" "#e8191fd8d30c" "#aa7250d011f2" "#5f3171e51188" "#1381779f68a5")
 
-    (accent2 (nth 2 accent-rotations))
-    (accent2_ (nth 3 accent-rotations))
-    (accent1 (nth 1 accent-rotations))
+    ;; (accent1  (nth 0 accent-rotations))
+    ;; (accent1_ (nth 3 accent-rotations))
+    ;; (accent2  (nth 2 accent-rotations))
+    ;; (accent2_ (nth 1 accent-rotations))
+
+    (accent1  (nth 1 accent-rotations))
     (accent1_ (nth 0 accent-rotations))
-
-
-
-    ;; (accent1_ (color-lighten-name accent1_ 20))
-    ;; (accent1_ (ns/color-hsluv-transform accent1_ (lambda (H S L) (list H S (+ 20 L))) ))
-    ;; (accent1_ accent2)
+    (accent2  (nth 2 accent-rotations))
+    (accent2_ (nth 3 accent-rotations))
 
     ;; active BG (selections)
     (background+
-      ;; (ns/color-hsluv-transform
-      ;;   (nth 4 accent-rotations)
-      ;;   ;; accent1_
-      ;;   (lambda (H S L)
-      ;;     (list H S
-      ;;       ;; (+ 40 L)
-      ;;       (-
-      ;;         (third (hsluv-hex-to-hsluv background))
-      ;;         10
-      ;;         )
-      ;;       )))
-
-      ;; (ns/color-tint-ratio accent2 background 1.2)
-
       ;; "#ffffca0bffff"
 
       (ns/color-iterate
         (nth 4 accent-rotations)
         (fn (ns/color-lab-lighten <> 0.5) )
-        (fn (< (ns/color-contrast-ratio <>
-                 background
-                 )
+        (fn (< (ns/color-contrast-ratio <> background)
               1.3
               ;; 1.1
               ))))
