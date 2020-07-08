@@ -105,21 +105,6 @@
     )
   "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))))
 
-(defun my-resize-margins ()
-  (let ((margin-size (if ns/center (/ (- (frame-width) 120) 2) 0)))
-    (set-window-margins nil margin-size margin-size)))
-
-(defun! ns/toggle-margin ()
-  (if (not (bound-and-true-p ns/center))
-    (setq ns/center nil))
-
-  (if ns/center
-    (remove-hook 'window-configuration-change-hook #'my-resize-margins)
-    (add-hook 'window-configuration-change-hook #'my-resize-margins))
-
-  (setq ns/center (not ns/center))
-  (my-resize-margins))
-
 (defun! ns/kill-current-buffer()
   (kill-buffer nil))
 
@@ -169,7 +154,6 @@
   "ws" 'split-window-horizontally
   "wS" 'split-window-vertically
   "wf" 'ns/follow-mode
-  "wc" 'ns/toggle-margin
 
   "wm" 'delete-other-windows ;; window-max
   "wo" 'other-frame

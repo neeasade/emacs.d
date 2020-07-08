@@ -514,11 +514,30 @@
         (kill-line))))
 
   ;; todo: catch quit for revert as well
-  (setq org-capture-templates ns/org-project-templates))
+  (setq org-capture-templates ns/org-capture-project-templates))
 
+(defun! ns/capture-current-region ()
+  (let ((ns/region-points (list (region-beginning) (region-end))))
+    (setq org-capture-templates ns/org-capture-region-templates)
+    (when (org-capture)
+      ;; assume we succeeded
+      (apply 'kill-region ns/region-points)
+      (when (s-blank-str-p (thing-at-point 'line))
+        (kill-line))))
+
+  ;; todo: catch quit for revert as well
+  (setq org-capture-templates ns/org-capture-project-templates))
 
 (ns/bind-mode 'org
-  "or" 'ns/capture-current-subtree
+  "or" (fn! (if (use-region-p)
+              (ns/capture-current-region)
+              (ns/capture-current-subtree)))
+
+  "oc"
+  (fn! (if (use-region-p)
+         (ns/capture-current-region)
+         (org-capture)))
+  ;; 'org-capture
   ;; "org move"
   "om" 'org-refile
   )

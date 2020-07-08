@@ -192,7 +192,7 @@
   (-map (fn (set-face-attribute <> nil
               ;; :weight 'normal
               :slant 'normal
-              :underline nil
+              ;; :underline nil
               ;; :inherit nil
               ))))
 
