@@ -222,10 +222,10 @@
     (with-current-buffer buf
       (if notmodes
         (when (not (-contains-p notmodes major-mode))
-          (eval `(setq-local ,symbol ,value)))
-        (eval `(setq-local ,symbol ,value)))))
+          (setq-local symbol value))
+        (setq-local symbol value))))
 
-  (eval `(setq-default ,symbol ,value)))
+  (setq-default symbol value))
 
 ;; callback on all open frames
 (defun! ns/apply-frames (action)

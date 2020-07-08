@@ -242,20 +242,12 @@ Example:
   (ns/setq-local-all
     'mode-line-format
     ;; (doom-modeline-format--neeasade-doomline)
-    (if toggle
-      ''("%e" (:eval (doom-modeline-format--neeasade-doomline)))
-      ;; if we don't want modeline, we still might want
-      ;; padding on the bottom if we aren't using frame padding
-      (if (s-equals-p (get-resource "Emacs.padding_source") "st") nil " " ))
-    '(shell-mode))
+    (if toggle ''("%e" (:eval (doom-modeline-format--neeasade-doomline))) nil)
+    ;; '(shell-mode circe-chat-mode circe-channel-mode)
+    )
 
-  (when (and (not (s-equals-p (get-resource "Emacs.padding_source") "st"))
-          (not toggle))
-    (set-face-attribute 'mode-line          nil :background nil)
-    (set-face-attribute 'mode-line-inactive nil :background nil))
+  (ns/frame-set-parameter 'bottom-divider-width (if toggle 0 1))
 
-  (setq window-divider-default-bottom-width (if toggle 0 1))
-  (ns/apply-frames (fn (set-frame-parameter <> 'bottom-divider-width (if toggle 0 1))))
   ;; force redraw of all frames
   (ns/apply-frames (fn nil)))
 
