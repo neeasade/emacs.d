@@ -262,9 +262,6 @@ Example:
       (setq ns/modeline mode-line-format)
       (setq mode-line-format nil))
     (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
-
-  ;; (doom-modeline-format--neeasade-doomline)
-
   (redraw-frame))
 
 (ns/bind "tm" 'ns/toggle-modeline)

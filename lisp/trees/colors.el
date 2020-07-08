@@ -54,6 +54,7 @@
 
 ;; sRGB vs linear RGB
 ;; sRGB is kinda like declaring intent wrt a standard white point? (LAB makes this explicit)
+;; https://en.wikipedia.org/wiki/SRGB
 
 ;; Pastels
 ;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,

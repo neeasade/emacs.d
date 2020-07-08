@@ -6,6 +6,7 @@ evil-org-open-links: open links in the current visual selection
 unrelated here: nice guide: https://00stack.in/nixos-ressources/pbp-nixos
 
 ** capture
+
 *** saved notes <2020-06-21 Sun 17:31>
 **** TODO init.el loading in batch mode for site generation
 **** TODO org-export sceduled headings for phone orgzly -- some timer to do that when sync folder is present
@@ -22,8 +23,8 @@ conclusion on this one -- org-ql timestamp compare
 
 
 
-*** TODO find a way to get refile with a capture-like interface
 *** TODO try to get some ideas from this https://medium.com/breathe-publication/understanding-vims-jump-list-7e1bfc72cdf0
+
 *** TODO dired as a file manager
 -- try out dired copy paste operations/do they persist when you aggressively cull the dired buffers
 like you do
@@ -51,12 +52,13 @@ ivy-list would show current running thing
 *** TODO https://www.reddit.com/r/emacs/comments/9ucpg1/for_people_using_the_default_emacs_keybindings/e939fnw/
 
 *** TODO review: https://sanctum.geek.nz/arabesque/advanced-vim-registers/
+
 *** TODO latex workflow https://github.com/The-Compiler/dotfiles/blob/master/spacemacs#L497
 
 *** TODO shell-mode check running processes
 https://stackoverflow.com/questions/8291899/is-there-a-direct-elisp-way-to-check-if-a-process-is-running-in-an-emacs-term-bu
 can fix hanging auto CD on long running processes
-**** peep https://github.com/sboosali/configuration
+*** peep https://github.com/sboosali/configuration
 *** TODO shell-pop cd tramp smart
 potentially use dired logic as reference --
 find some shell-mode present on the $host without a running process or create one
@@ -90,33 +92,20 @@ name layouts
 *** TODO idea: generate org file links to marks in the current xref trail
 *** TODO proced htop-like graph
 https://gitlab.com/RobertCochran/neato-graph-bar
-*** TODO checkout debug adapter protocol
 *** TODO unpop shells not in the current frame on shell-pop call
 it's kind of annoying to see the same text when you have shell-1 open in different windows at the same time
 ** tasks
 
 *** TODO capture idea: standup for today (get refile for free as well)
+
 *** TODO improve your pager game
 - better buffer name?
 - no file association?
 - just insert stdin file contents and then delete it?
 
 *** TODO revisit color notes
-https://darksair.org/blog/p/2018/uhd-is-future/
-
-https://en.wikipedia.org/wiki/CIECAM02
-^downside to this is there's not builtin support like lab space
 
 http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
-https://en.wikipedia.org/wiki/SRGB
-
-todo: LCH hue is in radians? or degrees?
-    hue is in degrees, might be negative
-    what does a negative hue mean? tried a LCH transform to ensure positive, got differing results
-;; (if (> 0 H) (* -1 H) H)
-want: helpers for working with hue in degrees -> whatever color.el LCH expects
-    maybe: -1 is -180 and 1 is 180? doesn't appear to be... hue is weird.
-
 
 
 *** TODO persist the variable that holds visited directories on occasion

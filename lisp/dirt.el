@@ -92,7 +92,6 @@
     (if ns/enable-windows-p "\\" "/") path))
 
 ;; todo: consider conflict management/at the time of binding yell about the takeover
-
 ;; (general-unbind
 ;;   :states '(normal visual)
 ;;   :keymaps 'override
@@ -277,7 +276,10 @@
 
 (defun! ns/find-or-open (filepath)
   "Find or open FILEPATH."
+  ;; if there's a window in this frame, switch to that
+  ;; else just find-file
+  ;; (->>)
   (let ((filename (file-name-nondirectory filepath)))
     (if (get-buffer filename)
-      (counsel-switch-to-buffer-or-window filename)
+	(counsel-switch-to-buffer-or-window filename)
       (find-file filepath))))

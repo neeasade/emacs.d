@@ -23,7 +23,7 @@
   ;; all the files in our org directory
   (f-entries org-directory (fn (s-ends-with-p ".org" <>))  t)
 
-  ellipsis "_"
+  ellipsis "--"
 
   adapt-indentation nil
   startup-indented nil
@@ -265,10 +265,8 @@
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
 
-  "no" (fn!
-         (counsel-org-goto-all)
+  "no" (fn! (counsel-org-goto-all)
          (ns/org-jump-to-element-content)))
-
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
 ;; (add-hook 'org-mode-hook 'flyspell-mode)
@@ -287,8 +285,13 @@
                              org-block-end-line
                              ))
 
+  ;; smol
   (set-face-attribute 'org-block-begin-line nil :height 65)
   (set-face-attribute 'org-block-end-line nil :height 65)
+
+  (set-face-attribute 'org-link nil :underline t)
+  ;; (set-face-attribute 'org-link nil :foreground nil)
+  ;; (set-face-attribute 'underline nil :underline t)
 
   (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
     (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
@@ -297,7 +300,8 @@
     (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold))
 
   (dolist (b (ns/buffers-by-mode 'org-mode))
-    (with-current-buffer b (ns/set-buffer-face-variable))))
+    (with-current-buffer b
+      (ns/set-buffer-face-variable))))
 
 ;; putting in this file to make sure it's after org mode
 (when ns/enable-evil-p
