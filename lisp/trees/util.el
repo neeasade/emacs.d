@@ -162,11 +162,11 @@
     (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
 
 (defun! ns/set-buffer-face-variable ()
-  (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
+  (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
   (buffer-face-mode t))
 
 (defun! ns/set-buffer-face-monospace ()
-  (setq buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
+  (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
   (buffer-face-mode t))
 
 (defun ns/make-lines (list)
@@ -188,8 +188,7 @@
             (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
             "bash"))
 
-         (ivy-prescient-enable-sorting nil)
-         )
+         (ivy-prescient-enable-sorting nil))
 
     (ivy-read "history: "
       (-uniq
@@ -208,8 +207,8 @@
             (fn ;; shared history format: ': 1556747685:0;cmd'
               (if (s-starts-with-p ":" <>)
                 (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                                                      <>))
-                                   (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))))
+                <>))
+            (reverse (s-split "\n" (f-read (~ (format ".%s_history" shell-name))))))))
 
       :action (fn (when (eq major-mode 'shell-mode)
                     (goto-char (point-max)))
@@ -234,6 +233,18 @@
           (funcall action frame)
           (redraw-frame frame))
     (frame-list)))
+
+(defun! ns/frame-set-parameter (key value)
+  "set a value on all current and future frames"
+  ;; current:
+  (ns/apply-frames (fn (set-frame-parameter <> key value)))
+
+  ;; future:
+  (setq default-frame-alist
+    (assq-delete-all key default-frame-alist))
+
+  (add-to-list 'default-frame-alist `(,key . ,value))
+  )
 
 (defun! ns/kill-buffers-no-file ()
   "Kill buffers pointing to a file when that file doesn't exist"

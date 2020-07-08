@@ -4,13 +4,6 @@
 
 (add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
 
-;; todo: store a backup of the theme (ns/theme fallback)
-
-(defun! ns/font-reset ()
-  (set-face-attribute 'default nil :font (get-resource "st.font"))
-  (ns/apply-frames
-    (fn (set-frame-parameter <> 'font (get-resource "st.font")))))
-
 ;; todo later: this let* is really a step-by-step labeled flow
 ;; the -as-> macro might fit nicely
 ;; also -- this multiply thing might be a dumb idea, maybe just prompt for desired font-size instead
@@ -56,19 +49,17 @@
      "Noto Serif-14"
      "Charter-14"))
 
-(when (not (boundp 'ns/loaded-theme))
-  (setq ns/loaded-theme nil))
-
-;; (load-theme  t)
+(mapcar 'disable-theme custom-enabled-themes)
 (load-theme 'neea t)
+
+;; get the whitespace-mode faces:
+;; (our tweaks require the faces to be loaded)
+(require 'whitespace)
 
 ;; override some base16 decisions
 ;; (side note: I couldn't get this to work in the theme itself)
 ;; played with: custom-theme-set-faces and custom-theme-recalc-face and all sorts of dumb stuff
 ;; gave up and extending here:
-
-
-;; todo: this theme should also handle org outline levels colors explicitly
 (let ((base16-tweaks
         `(
            ;; face pace-part value
@@ -89,6 +80,10 @@
            ;; consider nulling out and using flat newlines org links
            ;; (org-link :foreground :accent1_)
            ;; (font-lock-type-face :foreground :accent1)
+
+           (whitespace-space :background nil)
+           (whitespace-tab :background nil)
+           ;; (whitespace-newline :background nil)
            )))
 
   ;; if we were doing this the /right/ rather than set face attributes we would
@@ -109,66 +104,24 @@
     evil-insert-state-cursor `(,c bar)
     evil-visual-state-cursor `(,c box)))
 
-;; handle 2 padding approaches
-;; use internal border on frames, or fake it with fringe mode and a header line on each buffer
-;; if we are home, use 0 padding so that xpad can get everything.
-(let ((st-padding-p (if ns/enable-home-p t (s-equals-p (get-resource "Emacs.padding_source") "st")))
-       (st-padding (if ns/enable-home-p 0 (string-to-number (get-resource "st.borderpx")))))
+;; frames:
+(ns/frame-set-parameter 'internal-border-width (if ns/enable-home-p 0 6))
+(ns/frame-set-parameter 'right-divider-width 1)
+(ns/frame-set-parameter 'bottom-divider-width 1)
+(ns/frame-set-parameter 'font (get-resource "st.font"))
 
-  (ns/setq-local-all 'header-line-format
-    (if st-padding-p nil " "))
+;; fringe
+;; (fringe-mode 8)
 
-  (when (not st-padding-p)
-    (set-face-attribute 'header-line nil :background (face-attribute 'default :background)))
-
-  ;; 8 is the default
-  (fringe-mode (if st-padding-p 8 (window-header-line-height)))
-
-  ;; current frame padding update
-  (ns/apply-frames
-    (fn (set-frame-parameter <> 'internal-border-width
-          (if st-padding-p st-padding 0))))
-
-  ;; future frames
-  ;; todo: this generically? need to handle bottom border width
-  (when (alist-get 'internal-border-width default-frame-alist)
-    (setq default-frame-alist (assq-delete-all 'internal-border-width default-frame-alist)))
-
-  (add-to-list 'default-frame-alist
-    `(internal-border-width . ,(if st-padding-p st-padding 0))))
-
-;; window divider stuff
 (setq window-divider-default-right-width 1)
-
-(ns/apply-frames (fn (set-frame-parameter <> 'right-divider-width 1)))
-(ns/apply-frames (fn (set-frame-parameter <> 'bottom-divider-width 1)))
-
 (setq window-divider-default-places t)
-
 (window-divider-mode t)
 
-;; clear fringe background
-(defun ns/set-fringe-bg (frame) (set-face-attribute 'fringe frame :background nil))
-(ns/apply-frames 'ns/set-fringe-bg)
-(add-hook 'after-make-frame-functions 'ns/set-fringe-bg)
-
-;; set font on current and future
-(ns/font-reset)
-
 (setq-default indicate-empty-lines nil)
-
-(defun color-whitespace-mode (&rest _)
-  (set-face-attribute 'whitespace-space nil :background nil)
-  (set-face-attribute 'whitespace-tab nil :background nil)
-  (set-face-attribute 'whitespace-newline nil
-    :foreground (face-attribute 'whitespace-space :foreground)))
-
-(advice-add 'whitespace-mode :after #'color-whitespace-mode)
 
 (use-package hl-todo
   :config
   (let ((highlight-color (face-attribute 'font-lock-comment-face :foreground)))
-
     (setq hl-todo-keyword-faces
       `(("TODO" . ,highlight-color)
          ("todo" . ,highlight-color)
