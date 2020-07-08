@@ -252,7 +252,7 @@ Example:
   (ns/apply-frames (fn nil)))
 
 ;; refesh all mode lines based on the value of the modeline in the current buffer
-(ns/bind "M" (fn! (ns/refresh-all-modeline (not mode-line-format))))
+(ns/bind "tM" (fn! (ns/refresh-all-modeline (not mode-line-format))))
 
 (defun! ns/toggle-modeline ()
   "toggle the modeline in the current buffer"
