@@ -60,6 +60,10 @@
 ;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
 ;; have high value and low saturation.
 
+;; goofy function idea: merge a color towards another color on some axis by some percentage
+;; candidates:
+;; (:lab-a :lab-b :lch-h :lch-c :lab-l :hsl-s :hsl-l)
+
 ;; todo: consider: longen colors before operations on names, just generally
 (require 'color)
 

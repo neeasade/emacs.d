@@ -16,8 +16,6 @@
 ;; # handle this jump kind:
 ;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/nathan/.dotfiles/bin/bin/btags, line 134, column 3]
 
-;; $HOME/.vimrc - todo: link-hint-open-link-at-point handles this
-
 ;; todo: use noctuid's link package here to take advantage of different kinds of links.
 ;; todo: if it's a dir and we are in shell-mode, cd to the dir instead in the current shell
 
@@ -33,6 +31,10 @@
 ;; (defun ns/org-link-soft-open (link)
 ;;   (not (eq 'fail (condition-case nil (org-link-open-from-string link) (error 'fail)))))
 
+
+;; give me org-open-link-from-string
+(require 'org)
+
 (defun ns/handle-potential-file-link (file)
   "Jump to a file with org if it exists - handles <filename>[:<row>][:<col>]
   return nil if FILE doesn't exist"
@@ -45,7 +47,7 @@
         (let* ((parts (s-split ":" file))
                 (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 2) (- (length parts) 1)) parts))))
           (when (f-exists-p filepath)
-            (org-link-open-from-string
+            (org-open-link-from-string
               (format "[[file:%s::%s]]" filepath (cadr (reverse parts))))
             (move-to-column (string-to-number (car (last parts))))
             t)))
@@ -54,14 +56,14 @@
         (let* ((parts (s-split ":" file))
                 (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
           (when (f-exists-p filepath)
-            (org-link-open-from-string
+            (org-open-link-from-string
               (format "[[file:%s::%s]]"
                 filepath
                 (car (last parts))))
             t)))
 
       (t (when (f-exists-p file)
-           (org-link-open-from-string
+           (org-open-link-from-string
              (format "[[file:%s]]" file))
            t)))))
 
@@ -589,22 +591,54 @@
 	          ((lambda (props) (plist-get props :begin))))))
 
     ;; standup-point
-    (with-current-buffer (get-file-buffer org-default-notes-file)
-      (->> (om-parse-element-at standup-point)
-	      (om-get-children)
-	      ;; what we want:
-	      ;; next headline that has TODO blank or TODO, with no scheduled time
-	      ((lambda (children)
-	         (append
-	           ;; TODO: can't find out how to query headlines with no todo keyword
-	           ;; idea: map headlines, set todo keyword to 'unset'
-	           ;; (om-match '((:todo-keyword "")) children)
-	           (om-match '((:todo-keyword "TODO")) children)
-	           )))
-	      first))))
+    (or
+      (with-current-buffer (get-file-buffer org-default-notes-file)
+        (->> (om-parse-element-at standup-point)
+	        (om-get-children)
+	        ;; what we want:
+	        ;; next headline that has TODO blank or TODO, with no scheduled time
+	        ((lambda (children)
+	           (append
+	             ;; TODO: can't find out how to query headlines with no todo keyword
+	             ;; idea: map headlines, set todo keyword to 'unset'
+	             ;; (om-match '((:todo-keyword "")) children)
+	             (om-match '((:todo-keyword "TODO")) children)
+	             )))
+	        first
+          )
+        parent-headline
+        ))))
+
+;; todo: timer to check if you have an active intent
+;; (named-timer-run :harass-myself
+;;   t
+;;   (* 3 60)
+;;   (fn
+;;     (when (< (second (current-idle-time)) 120)
+;;       (alert (let ((reminders
+;;                      (org-ql-select org-default-notes-file
+;;                        '(tags "reminders")
+;;                        :action '(s-clean (org-get-heading t t)))
+;;                      ))
+;;                (nth (random (length reminders)) reminders))
+;;         :severity 'normal
+;;         :title "*Reminder*"
+;;         ))))
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
 
 ;; refile the current subtree to capture targets
+
+;; has a nice url regexp
+(require 'rcirc)
+
+;; jump to url in current window text:
+(defun! ns/ivy-url-jump ()
+  (let ((window-text (s-clean (buffer-substring (window-start) (window-end)))))
+    (ivy-read "url: "
+      (->> (s-match-strings-all rcirc-url-regexp window-text) (-map 'car))
+      :action 'browse-url)))
+
+(ns/bind "nu" 'ns/ivy-url-jump)

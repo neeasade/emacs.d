@@ -103,7 +103,9 @@
     ;; todo: maybe:
     ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
     )
-  "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))))
+  ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
+  "q" 'previous-buffer
+  )
 
 (defun! ns/kill-current-buffer()
   (kill-buffer nil))
