@@ -281,5 +281,23 @@
   ;; (->>)
   (let ((filename (file-name-nondirectory filepath)))
     (if (get-buffer filename)
-	(counsel-switch-to-buffer-or-window filename)
+      (counsel-switch-to-buffer-or-window filename)
       (find-file filepath))))
+
+(defun range (one &optional two)
+  (let (;; lmao
+         (start (if two one 0))
+         (end (if two two one)))
+    (cond
+      ((= end start) (list start))
+      ((> end start)
+        (loop for i from start below end collect i))
+      ((< end start)
+        ;; how the fuck does the loop macro work
+        ;; (loop for i downfrom end downto start collect i)
+        ;; (loop for i downfrom end below start collect i)
+        ))
+    
+    ;; (list start end)
+    ))
+

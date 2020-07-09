@@ -1,28 +1,20 @@
 ;; -*- lexical-binding: t; -*-
 
-(use-package indent-guide
-  :config
-  (set-face-foreground 'indent-guide-face
-    ;; (face-attribute 'font-lock-keyword-face :foreground)
-    (face-attribute 'font-lock-comment-face :foreground))
-
-  ;; (set-face-foreground 'indent-guide-face (ns/color-tone (face-attribute 'default :background) 15 15))
-
-  (setq indent-guide-char "|")
-  (indent-guide-global-mode 0))
-
-(use-package link-hint)
+;; link-hint seems really cool, but it breaks on spaces, EG:
+;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10
+;; (use-package link-hint)
 
 ;; /home/neeasade/My_Games/Skyrim/RendererInfo.txt:10
-;; file:/home/neeasade/My Games/Skyrim/RendererInfo.txt:10
+;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10
+;; /home/neeasade/My Games/Sky rim/Rende rerInfo.txt:10
 ;; - link-hint-open-link-at-point
-;; file:/home/neeasade/.vimrc
+;; /home/neeasade/.vimrc:50
 ;; /home/neeasade/.vimrc
 ;; inline file path kind (eg in some notes) =~/.local/share/fonts/=
 
 ;; # ns/follow should be reworked to check over different candidate types, going from full line -> word at point -> word + 'stuff' at point
 ;; # handle this jump kind:
-;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
+;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/nathan/.dotfiles/bin/bin/btags, line 134, column 3]
 
 ;; $HOME/.vimrc - todo: link-hint-open-link-at-point handles this
 
@@ -38,6 +30,45 @@
 ;; idea: if you have a region selected, the link logic stuff should act on that
 ;; todo: if you are in org mode, looking at a link
 
+;; (defun ns/org-link-soft-open (link)
+;;   (not (eq 'fail (condition-case nil (org-link-open-from-string link) (error 'fail)))))
+
+(defun ns/handle-potential-file-link (file)
+  "Jump to a file with org if it exists - handles <filename>[:<row>][:<col>]
+  return nil if FILE doesn't exist"
+  ;; (message (concat "trying file: " file))
+  (let ((file (s-replace "$HOME" (getenv "HOME") file)))
+    (cond
+      ((s-blank-p file) nil)
+      ;; ((not (f-exists-p file)) nil)
+      ((s-matches-p (pcre-to-elisp ".*:[0-9]+:[0-9]+") file)
+        (let* ((parts (s-split ":" file))
+                (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 2) (- (length parts) 1)) parts))))
+          (when (f-exists-p filepath)
+            (org-link-open-from-string
+              (format "[[file:%s::%s]]" filepath (cadr (reverse parts))))
+            (move-to-column (string-to-number (car (last parts))))
+            t)))
+
+      ((s-matches-p (pcre-to-elisp ".*:[0-9]+") file)
+        (let* ((parts (s-split ":" file))
+                (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
+          (when (f-exists-p filepath)
+            (org-link-open-from-string
+              (format "[[file:%s::%s]]"
+                filepath
+                (car (last parts))))
+            t)))
+
+      (t (when (f-exists-p file)
+           (org-link-open-from-string
+             (format "[[file:%s]]" file))
+           t)))))
+
+;; (ns/handle-potential-file-link (~ ".vimrrc"))
+;; (ns/make-org-link (~ ".vimrc:50:2"))
+;; (org-link-open-from-string )
+
 (defun ns/follow-log (msg)
   (message msg))
 
@@ -50,81 +81,65 @@
   ;; (let ((candidate (ffap-string-at-point))))
 
   (or
-    ;; (when (string-empty-p )
-    ;;   (message "not looking at anything! (ffap-string-at-point)")
-    ;;   t
-    ;;   )
-
-    ;; (when (and (eq major-mode 'shell-mode)
-    ;;         (f-directory-p (ffap-string-at-point))
-    ;;         )
-    ;;   (goto-char (point-max))
-    ;;   (insert (concat "cd \"" (ffap-string-at-point) "\""))
-    ;;   (comint-send-input)
-    ;;   (ns/follow-log "ns/follow: resolved with shell-mode cd")
-    ;;   t
-    ;;   )
-
-    ;; nahh: maybe dired @ directory in current window rather than comint-send-input
-
     ;; first try to open with org handling (includes urls)
     ;; todo: see how org-open-at-point handles spacing
     (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
 
-    ;; this handles org links as well
-
     ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
-    (let* ((file-name
-             ;; this split breaks because it will be ssh in the below/tramp'd:
-             ;; /ssh:neeasade@<ip>:/home/neeasade/
-             (nth 0 (s-split ":" (f-full (ffap-string-at-point)))))
-            (file-name-optimistic
-              (if (f-exists-p file-name)
-                file-name
-                ;; peek ahead of the point a space or two and see if that's a valid path
-                ;; this is so that paths with a single space in them can be used
-                ;; hmmmmmmm
-                )
-              )
+    (let* ((candidate (ffap-string-at-point))
+            (fallback-candidates
+              ;; line to end
+              (->>
+                (buffer-substring
+                  (car ffap-string-at-point-region)
+                  (save-excursion
+                    (goto-char (car ffap-string-at-point-region))
+                    (end-of-line) (point)))
+                (s-clean)
 
-            (file-line (nth 1 (s-split ":" (ffap-string-at-point))))
-            (file-char (nth 2 (s-split ":" (ffap-string-at-point))))
+                ;; assemble potential spaced out files
+                ((lambda (line-to-end)
+                   (let ((parts (s-split " " line-to-end)))
+                     (reverse
+                       (-map
+                         (fn (s-join " "
+                               (-remove-at-indices
+                                 (-map (lambda (i) (- (length parts) i)) (range <>))
+                                 parts)))
+                         (range 1 (length parts)))))))))
 
-            (full-file-name
-              (format "file:%s%s" file-name
-                (if file-line
-                  ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
-                  (format "::%s" (string-to-number file-line)) "")
-                )
-              )
-            )
+            (candidates
+              (-concat
+                (list
+                  candidate
+                  ;; handling case: '/path/to/file:some content'
+                  ;; doesn't handle spaces
+                  (let ((parts (s-split ":" candidate)))
+                    (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
+                fallback-candidates)
+              ))
 
-      (if (f-exists-p file-name)
-        (progn
-          (org-open-link-from-string full-file-name)
+      (let ((match (-first 'ns/handle-potential-file-link candidates)))
+        (when match
+          (ns/follow-log (format "ns/follow: resolved with org link after building: %s" match))))
 
-          (when file-char
-            (move-beginning-of-line nil)
-            (move-to-column file-char))
+      ;; fun, but let's not do this for now:
+      ;; (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
+      ;;         (rg-result (if (s-contains-p "\n" rg-initial-result)
+      ;;                      (ivy-read "pickem: " (s-split "\n" rg-initial-result))
+      ;;                      rg-initial-result)))
+      ;;   (when (and (not (s-blank-p rg-result))
+      ;;           (f-exists-p (or rg-result "nil doesn't exist don't  use me")))
+      ;;     (org-open-link-from-string
+      ;;       (format "file:%s%s" rg-result
+      ;;         (if file-line
+      ;;           ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
+      ;;           (format "::%s" (string-to-number file-line)) "")))
 
-          (ns/follow-log (format "ns/follow: resolved with org link after building: %s" full-file-name))
-          t)
-
-        (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
-                (rg-result (if (s-contains-p "\n" rg-initial-result)
-                             (ivy-read "pickem: " (s-split "\n" rg-initial-result))
-                             rg-initial-result)))
-          (when (and (not (s-blank-p rg-result))
-                  (f-exists-p (or rg-result "nil doesn't exist don't  use me")))
-            (org-open-link-from-string
-              (format "file:%s%s" rg-result
-                (if file-line
-                  ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
-                  (format "::%s" (string-to-number file-line)) "")))
-
-            (ns/follow-log "ns/follow: resolved with ripgrep")
-            t
-            ))))
+      ;;     (ns/follow-log "ns/follow: resolved with ripgrep")
+      ;;     t
+      ;;     ))
+      )
 
     ;; fall back to definitions with smart jump
     (progn
