@@ -301,3 +301,7 @@
     ;; (list start end)
     ))
 
+;; clojure like let
+(defmacro llet (args body)
+  `(let* ,(-partition 2 (append args nil)) ,body))
+

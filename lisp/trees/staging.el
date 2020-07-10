@@ -493,7 +493,9 @@
   (doct
     `(
        ;; ,(ns/make-project-capture "meta")
-       ,@(-map (fn (ns/make-project-capture <> "* %i"))
+       ;; this is wrapped in a progn so the lines after the first don't get made into headings
+       ;; I hate org mode
+       ,@(-map (fn (ns/make-project-capture <> "* %(progn \"%i\")"))
            ns/org-capture-project-list)
 
        ;; ("Reminder" :keys "r"
@@ -511,6 +513,10 @@
 ;; binding idea: org move?
 ;; wait just keep org refile - don't make it dynamic
 (defun! ns/capture-current-subtree ()
+  ;; point in relation to folded org stuff is weird?
+  ;; todo: check if this is needed
+  (org-show-all)
+
   (let ((ns/org-points
           (save-excursion
             (list
@@ -520,25 +526,37 @@
 
     (set-mark (second ns/org-points))
     (goto-char (third ns/org-points))
-    ;; (activate-mark)
+    (activate-mark)
 
-    (setq org-capture-templates ns/org-capture-region-templates)
-
-    (when (org-capture)
-      ;; assume we succeeded
-      (kill-region (first ns/org-points) (third ns/org-points))
-      (when (s-blank-str-p (thing-at-point 'line))
-        (kill-line))))
-
-  ;; todo: catch quit for revert as well
-  (setq org-capture-templates ns/org-capture-project-templates))
+    (ns/capture-current-region)
+    ;; kill the leftover headline
+    (kill-whole-line)
+    (when (s-blank-str-p (thing-at-point 'line)) (kill-whole-line))
+    ))
 
 (defun! ns/capture-current-region ()
+  ;; keep the initial region
   (let ((ns/region-points (list (region-beginning) (region-end))))
     (setq org-capture-templates ns/org-capture-region-templates)
     (when (org-capture)
       ;; assume we succeeded
+
+      ;; if re captured to somewhere in the current buffer, our point might have changed
+      (when (not (= (region-beginning) (first ns/region-points)))
+        (setq ns/region-points
+          (llet
+            [start (first ns/region-points)
+              end (second ns/region-points)
+              new-start (if (> (region-beginning) start)
+                          (+ start (- (region-beginning) start))
+                          (- start (- start (region-beginning))))
+              new-end (if (> (region-beginning) start)
+                        (+ end (- (region-beginning) start))
+                        (- end (- start (region-beginning))))]
+            (list new-start new-end))))
+
       (apply 'kill-region ns/region-points)
+
       (when (s-blank-str-p (thing-at-point 'line))
         (kill-line))))
 
