@@ -1,43 +1,31 @@
 ;; -*- lexical-binding: t; -*-
 
-;; link-hint seems really cool, but it breaks on spaces, EG:
-;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10
-;; (use-package link-hint)
-
-;; /home/neeasade/My_Games/Skyrim/RendererInfo.txt:10
-;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10
-;; /home/neeasade/My Games/Sky rim/Rende rerInfo.txt:10
-;; - link-hint-open-link-at-point
+;; examples of kinds handled:
+;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10:2
 ;; /home/neeasade/.vimrc:50
-;; /home/neeasade/.vimrc
-;; inline file path kind (eg in some notes) =~/.local/share/fonts/=
+;; /home/neeasade/:10
+;; =~/.local/share/fonts/=
+;; org links (so you can use org link types here)
+;; [[file:/home/neeasade/.vimrc::50]]
 
-;; # ns/follow should be reworked to check over different candidate types, going from full line -> word at point -> word + 'stuff' at point
-;; # handle this jump kind:
-;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/nathan/.dotfiles/bin/bin/btags, line 134, column 3]
+;; todo:
+;; could add the handling for this in handle-potential-file-link
+;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
 
-;; todo: use noctuid's link package here to take advantage of different kinds of links.
-;; todo: if it's a dir and we are in shell-mode, cd to the dir instead in the current shell
-
-;; if would be cool if this were tramp aware
-;; update: just check (file-remote-p default-directory)
-;; maybe ffap-string-at-point should be let'd -- used almost everywhere
-
-;; idea: rg could search $PATH and also git repo -- idea is jump to script when reading one
-;; maybe ns/follow could have a soft/query mode where you just message the filepath/type of thing you are looking at
-;; idea: if you have a region selected, the link logic stuff should act on that
-;; todo: if you are in org mode, looking at a link
-
-;; (defun ns/org-link-soft-open (link)
-;;   (not (eq 'fail (condition-case nil (org-link-open-from-string link) (error 'fail)))))
-
+;; todo: handle the bash/shell line number format:
+;; /home/neeasade/.wm_theme: line 155:
 
 ;; give me org-open-link-from-string
 (require 'org)
 
+;; handles many kinds of links
+(use-package link-hint)
+
 (defun ns/handle-potential-file-link (file)
   "Jump to a file with org if it exists - handles <filename>[:<row>][:<col>]
   return nil if FILE doesn't exist"
+  ;; untested on tramp wrt speed
+
   ;; (message (concat "trying file: " file))
   (let ((file (s-replace "$HOME" (getenv "HOME") file)))
     (cond
@@ -57,9 +45,7 @@
                 (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
           (when (f-exists-p filepath)
             (org-open-link-from-string
-              (format "[[file:%s::%s]]"
-                filepath
-                (car (last parts))))
+              (format "[[file:%s::%s]]" filepath (car (last parts))))
             t)))
 
       (t (when (f-exists-p file)
@@ -112,6 +98,9 @@
 
             (candidates
               (-concat
+                ;; regions get priority
+                (when (region-active-p) (list (buffer-substring (region-beginning) (region-end))))
+
                 (list
                   candidate
                   ;; handling case: '/path/to/file:some content'
@@ -143,14 +132,14 @@
       ;;     ))
       )
 
+    (not (string= (link-hint-open-link-at-point) "There is no link supporting the :open action at the point."))
+
     ;; fall back to definitions with smart jump
     (progn
       (ns/follow-log "ns/follow: resolving with smart-jump-go")
       (shut-up (smart-jump-go)))))
 
 
-;; todo: handle the bash/shell line number format:
-;; /home/neeasade/.wm_theme: line 155:
 (ns/bind "nn" 'ns/follow)
 
 (defmacro ns/make-char-table (name upper lower)
@@ -225,37 +214,25 @@
     (when url-point
       (with-current-buffer
         (get-file-buffer org-default-notes-file)
-        (->> url-point
-          om-parse-subtree-at
-          )))))
+        (->> url-point om-parse-subtree-at)))))
 
 (defun ns/urlnote-jump (url)
-  (find-file org-default-notes-file)
-  (goto-char (ns/urlnote-get-point url)))
+  (let ((url-point (ns/urlnote-get-point url)))
+    (when url-point
+      (find-file org-default-notes-file)
+      (goto-char (ns/urlnote-get-point url)))))
 
 (defun ns/urlnote-make-and-jump (url)
   (find-file org-default-notes-file)
   (goto-char (ns/urlnote-get-point nil))
-  (org-insert-heading-after-current)
-  ;; todo: make url plain
+  (next-line)
+  ;; (org-insert-subheading nil)
+  ;; (org-insert-heading-after-current)
+  (if (s-contains-p "?" url)
+    (first (s-split "?" url)) url)
   (insert url)
   (org-do-demote)
   (newline))
-
-(use-package eval-in-repl
-  :config
-  (require 'eval-in-repl)
-  (require 'eval-in-repl-python)
-
-  (setq eir-jump-after-eval nil)
-  (setq eir-always-split-script-window nil)
-  (setq eir-delete-other-windows nil)
-  (setq eir-repl-placement 'left)
-
-  ;; run this first to start the repl
-  ;; (eir-run-python)
-  (ns/bind-mode 'python "e" 'eir-eval-in-python)
-  )
 
 (ns/bind
   "nt" (fn! (find-file (~ ".wm_theme")))
@@ -510,13 +487,7 @@
 
 (setq org-capture-templates ns/org-capture-project-templates)
 
-;; binding idea: org move?
-;; wait just keep org refile - don't make it dynamic
 (defun! ns/capture-current-subtree ()
-  ;; point in relation to folded org stuff is weird?
-  ;; todo: check if this is needed
-  (org-show-all)
-
   (let ((ns/org-points
           (save-excursion
             (list
@@ -531,8 +502,7 @@
     (ns/capture-current-region)
     ;; kill the leftover headline
     (kill-whole-line)
-    (when (s-blank-str-p (thing-at-point 'line)) (kill-whole-line))
-    ))
+    (when (s-blank-str-p (thing-at-point 'line)) (kill-whole-line))))
 
 (defun! ns/capture-current-region ()
   ;; keep the initial region
@@ -604,28 +574,28 @@
 (defun ns/notes-current-standup-task (parent-headline)
   "get the current standup heading as matched from notes"
   (let ((standup-point
-	        (->> parent-headline
-	          cdr car
-	          ((lambda (props) (plist-get props :begin))))))
+	      (->> parent-headline
+	        cdr car
+	        ((lambda (props) (plist-get props :begin))))))
 
     ;; standup-point
     (or
       (with-current-buffer (get-file-buffer org-default-notes-file)
         (->> (om-parse-element-at standup-point)
-	        (om-get-children)
-	        ;; what we want:
-	        ;; next headline that has TODO blank or TODO, with no scheduled time
-	        ((lambda (children)
-	           (append
-	             ;; TODO: can't find out how to query headlines with no todo keyword
-	             ;; idea: map headlines, set todo keyword to 'unset'
-	             ;; (om-match '((:todo-keyword "")) children)
-	             (om-match '((:todo-keyword "TODO")) children)
-	             )))
-	        first
-          )
-        parent-headline
-        ))))
+	      (om-get-children)
+	      ;; what we want:
+	      ;; next headline that has TODO blank or TODO, with no scheduled time
+	      ((lambda (children)
+	         (append
+	           ;; TODO: can't find out how to query headlines with no todo keyword
+	           ;; idea: map headlines, set todo keyword to 'unset'
+	           ;; (om-match '((:todo-keyword "")) children)
+	           (om-match '((:todo-keyword "TODO")) children)
+	           )))
+	      first
+          ))
+      parent-headline
+      )))
 
 ;; todo: timer to check if you have an active intent
 ;; (named-timer-run :harass-myself

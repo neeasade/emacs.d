@@ -93,6 +93,7 @@
   ;; todo: want a "jump to parent"
   "f" 'ns/org-set-unique-property
   "F" (fn! (ns/org-set-unique-property (read-string "property name: ")))
+  "s" 'org-schedule
   )
 
 (ns/bind-mode 'org "op" 'org-pomodoro)
@@ -269,7 +270,7 @@
          (ns/org-jump-to-element-content)))
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
-;; (add-hook 'org-mode-hook 'flyspell-mode)
+(add-hook 'org-mode-hook 'flyspell-mode)
 
 (defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block
