@@ -436,19 +436,18 @@
 ;;     ,(ns/make-project-capture "other")
 ;;     ))
 
-;; :template ("* %i")
-;; :immediate-finish t
-
-;; todo: this dynamic under 'projects' heading in notes/source from elsewhere
 (setq ns/org-capture-project-list
-  '(
-     "emacs"
-     "rice"
-     "blog"
-     "fighting fantasy"
-     "bspwwm"
-     "meta"
-     ))
+  (if (f-exists-p org-default-notes-file)
+    (with-current-buffer (find-file-noselect org-default-notes-file)
+      (->> (org-find-property "projects")
+        (om-parse-subtree-at)
+        ;; (om-parse-headline-at )
+	      (om-get-children)
+        cdr
+        (-map 'om-headline-get-path)
+        (-map 'last)
+        -flatten))
+    "no notes file here"))
 
 (setq ns/org-capture-project-templates
   (doct
@@ -572,28 +571,29 @@
   (with-current-buffer (find-file-noselect org-default-notes-file)
     (om-parse-headline-at (org-find-property "focus"))))
 
+
 (defun ns/notes-current-standup-task (parent-headline)
   "get the current standup heading as matched from notes"
   (let ((standup-point
-	      (->> parent-headline
-	        cdr car
-	        ((lambda (props) (plist-get props :begin))))))
+	        (->> parent-headline
+	          cdr car
+	          ((lambda (props) (plist-get props :begin))))))
 
     ;; standup-point
     (or
       (with-current-buffer (get-file-buffer org-default-notes-file)
         (->> (om-parse-element-at standup-point)
-	      (om-get-children)
-	      ;; what we want:
-	      ;; next headline that has TODO blank or TODO, with no scheduled time
-	      ((lambda (children)
-	         (append
-	           ;; TODO: can't find out how to query headlines with no todo keyword
-	           ;; idea: map headlines, set todo keyword to 'unset'
-	           ;; (om-match '((:todo-keyword "")) children)
-	           (om-match '((:todo-keyword "TODO")) children)
-	           )))
-	      first
+	        (om-get-children)
+	        ;; what we want:
+	        ;; next headline that has TODO blank or TODO, with no scheduled time
+	        ((lambda (children)
+	           (append
+	             ;; TODO: can't find out how to query headlines with no todo keyword
+	             ;; idea: map headlines, set todo keyword to 'unset'
+	             ;; (om-match '((:todo-keyword "")) children)
+	             (om-match '((:todo-keyword "TODO")) children)
+	             )))
+	        first
           ))
       parent-headline
       )))
