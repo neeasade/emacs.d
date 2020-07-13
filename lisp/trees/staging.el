@@ -638,3 +638,32 @@
 (ns/use-package linkmarks "dustinlacewell/linkmarks"
   :config
   (setq linkmarks-file (concat org-directory "/linkmarks.org")))
+
+
+;; to consider later: org drill -- noting a fix here for now
+;; something else: keybinds don's work in org-drill, even after:
+;; (add-to-list 'evil-emacs-state-modes 'org-drill-mode)
+;; (require 'org-drill)
+
+;; ;; cf https://emacs.stackexchange.com/questions/46916/org-drill-invalid-match-tag
+;; (defun org-drill-hide-subheadings-if (test)
+;;   "TEST is a function taking no arguments. TEST will be called for each
+;; of the immediate subheadings of the current drill item, with the point
+;; on the relevant subheading. TEST should return nil if the subheading is
+;; to be revealed, non-nil if it is to be hidden.
+;; Returns a list containing the position of each immediate subheading of
+;; the current topic."
+;;   (let ((drill-entry-level (org-current-level))
+;;          (drill-sections nil))
+;;     (org-show-subtree)
+;;     (save-excursion
+;;       (org-map-entries
+;;         (lambda ()
+;;           (when (and (not (org-invisible-p))
+;;                   (> (org-current-level) drill-entry-level))
+;;             (when (or (/= (org-current-level) (1+ drill-entry-level))
+;;                     (funcall test))
+;;               (hide-subtree))
+;;             (push (point) drill-sections)))
+;;         nil 'tree))
+;;     (reverse drill-sections)))
