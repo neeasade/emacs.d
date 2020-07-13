@@ -76,8 +76,8 @@
   refile-targets '((nil :maxlevel . 9)
                     (org-agenda-files :maxlevel . 9))
 
-  outline-path-complete-in-steps nil         ; Refile in a single go
-  refile-use-outline-path t                  ; Show full paths for refiling
+  outline-path-complete-in-steps nil    ; Refile in a single go
+  refile-use-outline-path t             ; Show full paths for refiling
 
   ;; this way we don't haev to create annoying outlines
   refile-allow-creating-parent-nodes 'confirm

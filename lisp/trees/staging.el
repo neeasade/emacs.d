@@ -460,6 +460,15 @@
        ;;   :template "* %?\n%U\n"
        ;;   )
 
+       ("LinkMark" :keys "l"
+         :file ,linkmarks-file
+         :template ("* %^{Title}"
+                     ":PROPERTIES:"
+                     ":Created: %U"
+                     ":END:"
+                     "[[%?]]"
+                     ))
+
        ("Journal" :keys "j"
          :template "* %?\n%U\n"
          :clock-in t :clock-resume t
@@ -475,15 +484,7 @@
        ,@(-map (fn (ns/make-project-capture <> "* %(progn \"%i\")"))
            ns/org-capture-project-list)
 
-       ;; ("Reminder" :keys "r"
-       ;;   :template "* %?\n%U\n"
-       ;;   )
-
-       ("Journal" :keys "j"
-         :template "* %?\n%U\n"
-         :clock-in t :clock-resume t
-         :datetree t :file ,org-default-diary-file
-         ))))
+       )))
 
 (setq org-capture-templates ns/org-capture-project-templates)
 
@@ -624,9 +625,16 @@
 
 ;; jump to url in current window text:
 (defun! ns/ivy-url-jump ()
-  (let ((window-text (s-clean (buffer-substring (window-start) (window-end)))))
-    (ivy-read "url: "
-      (->> (s-match-strings-all rcirc-url-regexp window-text) (-map 'car))
-      :action 'browse-url)))
+  (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
+          (urls (s-match-strings-all rcirc-url-regexp window-text)))
+    (if urls
+      (ivy-read "url: "
+        (->> urls (-map 'car))
+        :action 'browse-url)
+      (message "no urls!"))))
 
 (ns/bind "nu" 'ns/ivy-url-jump)
+
+(ns/use-package linkmarks "dustinlacewell/linkmarks"
+  :config
+  (setq linkmarks-file (concat org-directory "/linkmarks.org")))
