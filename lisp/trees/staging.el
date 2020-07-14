@@ -667,3 +667,31 @@
 ;;             (push (point) drill-sections)))
 ;;         nil 'tree))
 ;;     (reverse drill-sections)))
+
+(defun ns/org-is-scheduled (heading)
+  (let ((scheduled (plist-get (cadr (om-headline-get-planning heading)) :scheduled)))
+    (when scheduled
+      (ts<
+        (ts-now)
+        (ts-parse-org (plist-get (cadr scheduled) :raw-value))
+        ))))
+
+(ns/comment
+  (ns/org-is-scheduled
+    (with-current-buffer (find-file-noselect org-default-notes-file)
+      (->> (om-get-subtrees)
+        (first))))
+
+  )
+
+(defun ns/export-scheduled-org-headings ()
+  (with-current-buffer (find-file-noselect org-default-notes-file)
+    (->> (om-get-subtrees)
+      ;; something better than 'TODO' might be "scheduled for later than today"
+      ;; I think orgql has that /exact/ example in their readme..
+	    ;; (om-match '((:todo-keyword "TODO")))
+	    (om-match '(:many (:pred ns/org-is-scheduled)))
+      (-map 'om-to-string)
+      (s-join "\n"))))
+
+(ns/export-scheduled-org-headings)
