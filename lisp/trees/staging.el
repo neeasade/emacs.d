@@ -449,6 +449,10 @@
         -flatten))
     "no notes file here"))
 
+(ns/use-package linkmarks "dustinlacewell/linkmarks"
+  :config
+  (setq linkmarks-file (concat org-directory "/linkmarks.org")))
+
 (setq ns/org-capture-project-templates
   (doct
     `(
@@ -635,9 +639,6 @@
 
 (ns/bind "nu" 'ns/ivy-url-jump)
 
-(ns/use-package linkmarks "dustinlacewell/linkmarks"
-  :config
-  (setq linkmarks-file (concat org-directory "/linkmarks.org")))
 
 
 ;; to consider later: org drill -- noting a fix here for now
@@ -680,9 +681,7 @@
   (ns/org-is-scheduled
     (with-current-buffer (find-file-noselect org-default-notes-file)
       (->> (om-get-subtrees)
-        (first))))
-
-  )
+        (first)))))
 
 (defun ns/export-scheduled-org-headings ()
   (with-current-buffer (find-file-noselect org-default-notes-file)
