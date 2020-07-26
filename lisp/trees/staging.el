@@ -27,7 +27,9 @@
   ;; untested on tramp wrt speed
 
   ;; (message (concat "trying file: " file))
-  (let ((file (s-replace "$HOME" (getenv "HOME") file)))
+  (let ((file (->> file
+                (s-replace "$HOME" (getenv "HOME"))
+                (s-replace "~" (getenv "HOME")))))
     (cond
       ((s-blank-p file) nil)
       ;; ((not (f-exists-p file)) nil)
@@ -65,15 +67,11 @@
    Tries to integrate a few meta solutions
    org link --> our own peek where we build an org file link --> jump to definition with smart-jump"
 
-  ;; should be region if something is selected
-  ;; (let ((candidate (ffap-string-at-point))))
-
   (or
     ;; first try to open with org handling (includes urls)
-    ;; todo: see how org-open-at-point handles spacing
     (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
 
-    ;; then, see if it's a file by ffap, and handle line numbers as :<#> by converting it into an org file link.
+    ;; note: ffap-string-at-point is region if one is selected
     (let* ((candidate (ffap-string-at-point))
             (fallback-candidates
               ;; line to end
@@ -692,5 +690,3 @@
 	    (om-match '(:many (:pred ns/org-is-scheduled)))
       (-map 'om-to-string)
       (s-join "\n"))))
-
-(ns/export-scheduled-org-headings)

@@ -98,6 +98,10 @@
             input)) base16-tweaks
     ))
 
+;; this tweak has to be done on every frame creation
+(defun ns/set-fringe-bg (frame) (set-face-attribute 'fringe frame :background nil))
+(add-hook 'after-make-frame-functions 'ns/set-fringe-bg)
+
 ;; evil
 (let ((c (ht-get ns/theme :accent1_)))
   (setq

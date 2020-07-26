@@ -254,7 +254,7 @@
   (defun ns/all-project-files (open-buffers)
     (-flatten
       (mapcar 'ns/get-project-files
-        (-remove (lambda(file) (not file))
+        (-remove (lambda (file) (not file))
           (mapcar 'projectile-root-bottom-up open-buffers)))))
 
   ;; putting this in a function so it can be used by dmenu_switcher
@@ -859,9 +859,9 @@
 (defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))
 (defconfig staging    (load "~/.emacs.d/lisp/trees/staging.el"))
 (defconfig util       (load "~/.emacs.d/lisp/trees/util.el"))
-(defconfig colors       (load "~/.emacs.d/lisp/trees/colors.el"))
+(defconfig colors     (load "~/.emacs.d/lisp/trees/colors.el"))
 (defconfig blog       (load "~/.emacs.d/lisp/trees/blog.el"))
-(defconfig-base style (interactive) (load "~/.emacs.d/lisp/trees/style.el"))
+(defconfig-base style (interactive)               (load "~/.emacs.d/lisp/trees/style.el"))
 
 (provide 'forest)
 

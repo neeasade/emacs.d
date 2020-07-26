@@ -74,7 +74,7 @@
   ;; music
   pdf
   ledger
-  ;; emoji
+  emoji
   filehooks
   writing
   deadgrep
