@@ -285,7 +285,10 @@
       :base09 :foreground ;; Integers, Boolean, Constants, XML Attributes, Markup Link Url
 
       ;; types
-      ;; :base0A ;; strings
+      ;; :base0A :accent1 ;; Classes, Markup Bold, Search Text Background
+      :base0A :accent2 ;; Classes, Markup Bold, Search Text Background
+
+      ;; strings
       :base0B :accent2_ ;; Strings, Inherited Class, Markup Code, Diff Inserted
 
       ;; :base0C :foreground_  ;; Support, Regular Expressions, Escape Characters, Markup Quotes
