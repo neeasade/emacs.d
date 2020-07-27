@@ -305,3 +305,16 @@
 (defmacro llet (args body)
   `(let* ,(-partition 2 (append args nil)) ,body))
 
+;; fun extension to ht.el
+(defmacro ht-with-context (table content)
+  (-tree-map
+    (lambda (tree)
+      (-tree-map-nodes (lambda (node) t)
+        (lambda (node)
+          (if (and
+                (s-starts-with-p ":" (prin1-to-string node))
+                (-contains-p (ht-keys (eval table)) node))
+            (list 'ht-get table node)
+            node))
+        tree))
+    content))
