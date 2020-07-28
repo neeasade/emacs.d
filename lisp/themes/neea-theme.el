@@ -247,6 +247,10 @@
   ;;   ;; (fn (ns/color-tint-with-light <> ns/theme-white-point color-d50-xyz))
   ;;   (ht-transform-v ns/theme)
   ;;   (setq ns/theme))
+
+  ;; shorten all the colors, because they are also used in EG org exports
+  (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten))
+
   )
 
 ;; (setq ns/theme ns/theme-melon)

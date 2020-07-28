@@ -576,9 +576,7 @@
       (with-current-buffer b
         (ns/set-buffer-face-variable)
         ;; turn off quits and joins in high member count channels
-        (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100))
-        (setq mode-line-format nil)
-        )))
+        (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100)))))
   )
 
 (defmacro ns/circe-bind (&rest binds)

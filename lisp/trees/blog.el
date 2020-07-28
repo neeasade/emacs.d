@@ -106,7 +106,7 @@
 
                  ,@org-file-content
 
-                 "{{{hsep()}}}"
+                 "-----"
                  ,(ns/blog-make-nav-strip
                     "[[file:./index.html][Index]]"
                     "[[https://neeasade.net][Root]]"
@@ -165,6 +165,7 @@
   ;; publish with our org html export settings
   (let ((default-directory (ns/blog-path "site"))
          (org-export-with-toc nil)
+         (org-export-with-section-numbers t)
          (org-export-with-timestamps nil)
          (org-export-with-date nil)
          (org-html-html5-fancy t)

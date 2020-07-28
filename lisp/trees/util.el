@@ -90,9 +90,9 @@
       (font-lock-mode 0)
       (git-gutter-mode 0))))
 
-(defun ns/toggle-bloat-global (toggle)
+(defun! ns/toggle-bloat-global (&optional toggle)
   "toggle global bloat"
-  (if toggle
+  (if (or toggle (not global-company-mode))
     (progn
       (message "bloat-global: enabled")
       (global-company-mode)

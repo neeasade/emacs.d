@@ -40,6 +40,9 @@
 
   ;; only wrap comments in programming modes when it's enabled there
   comment-auto-fill-only-comments t
+
+  ;; cf https://www.reddit.com/r/emacs/comments/43b42y/i_just_realized_emacs_has_a_fast_infix_calculator/czh7djn/
+  calc-multiplication-has-precedence nil
   )
 
 ;; todo: reconsider this, auto wrap large operations or something

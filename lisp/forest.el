@@ -186,7 +186,6 @@
   (ns/inmap 'cider-repl-mode-map (kbd "C-e") 'cider-repl-previous-input)
   (ns/inmap 'cider-repl-mode-map (kbd "C-n") 'cider-repl-next-input)
 
-
   (ns/install-dashdoc "Clojure" 'clojure-mode-hook)
 
   (defun! ns/smart-cider-eval ()
