@@ -165,7 +165,7 @@
 
           ;; HSLuv space test
           color-start
-          (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 1 interval) H) S (+ L 10))))
+          (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 1 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 2 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 3 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 4 interval) H) S L)))

@@ -33,8 +33,8 @@
                (->> "git ls-files -m" ns/shell-exec  (s-split "\n") reverse)
                (->>  "grep -r '#+draft' . | sed -E 's/:#\\+draft.*//'"ns/shell-exec  (s-split "\n")))
           (-filter (fn (not (s-blank-p <>))))
-          (mapcar (fn (format "%s/%s" (ns/blog-path "posts") <>)))
-          (mapcar (fn (s-replace "/./" "/" <>)))
+          (-map (fn (format "%s/%s" (ns/blog-path "posts") <>)))
+          (-map (fn (s-replace "/./" "/" <>)))
           (-uniq)))
       ;; if there are no drafts, fall over to all posts:
       (reverse
@@ -46,9 +46,7 @@
 (ns/bind-soft "nQ" 'ns/jump-to-blog-post)
 
 (defun ns/blog-make-hsep ()
-  (format "#+begin_center
-%s
-#+end_center"
+  (format "#+begin_center\n%s\n#+end_center"
     (let* ((options "🍇🍉🍓🍅🍄🍈🍍")
             (index (random (length options))))
       (substring options index (+ index 1)))))
@@ -58,9 +56,7 @@
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
       (list "\n#+BEGIN_CENTER\n"
-        ;; "[ "
         (->> (-remove 'not items) (s-join " • "))
-        ;; " ]"
         "\n#+END_CENTER\n")))
 
   (let* ((is-post
