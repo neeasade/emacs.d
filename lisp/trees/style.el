@@ -81,6 +81,8 @@
            ;; (org-link :foreground :accent1_)
            ;; (font-lock-type-face :foreground :accent1)
 
+           (org-todo :background nil)
+
            (whitespace-space :background nil)
            (whitespace-tab :background nil)
            ;; (whitespace-newline :background nil)
