@@ -405,25 +405,37 @@
      ;; alternatively, just import the notes into your main ones
      :children (("task" :keys "t" :todo-state "TODO"
                   :immediate-finish t
-                  :template ,(or template-override (list "* %{todo-state} %^{Description}" "%?"))
+                  :template ,(or template-override (list "* %{todo-state} %^{Description}"
+                                                     ":PROPERTIES:" ":captured: %U" ":END:"
+                                                     "%?"))
                   :olp ("projects" ,project "tasks"))
                  ("capture" :keys "c" :todo-state "TODO"
                    :immediate-finish t
-                   :template ,(or template-override (list "* %{todo-state} %^{Description}" "%?"))
+                   :template ,(or template-override (list "* %{todo-state} %^{Description}"
+                                                      ":PROPERTIES:" ":captured: %U" ":END:"
+                                                      "%?"))
                    :olp ("projects" ,project "captures"))
                  ("note" :keys "n"
                    :immediate-finish t
-                   :template ,(or template-override (list "* %^{Description}" "%?"))
+                   :template ,(or template-override (list "* %^{Description}"
+                                                      ":PROPERTIES:" ":captured: %U" ":END:"
+                                                      "%?"))
                    :olp ("projects" ,project "notes"))
 
                  ("task" :keys "T" :todo-state "TODO"
-                   :template ,(or template-override (list "* %{todo-state} %{Description}" "%?"))
+                   :template ,(or template-override (list "* %{todo-state} %{Description}"
+                                                      ":PROPERTIES:" ":captured: %U" ":END:"
+                                                      "%?"))
                    :olp ("projects" ,project "tasks"))
                  ("capture" :keys "C" :todo-state "TODO"
-                   :template ,(or template-override (list "* %{todo-state} %{Description}" "%?"))
+                   :template ,(or template-override (list "* %{todo-state} %{Description}"
+                                                      ":PROPERTIES:" ":captured: %U" ":END:"
+                                                      "%?"))
                    :olp ("projects" ,project "captures"))
                  ("note" :keys "N"
-                   :template ,(or template-override (list "* %{Description}" "%?"))
+                   :template ,(or template-override (list "* %{Description}"
+                                                      ":PROPERTIES:" ":captured: %U" ":END:"
+                                                      "%?"))
                    :olp ("projects" ,project "notes"))
                  )))
 
@@ -465,7 +477,7 @@
          :file ,linkmarks-file
          :template ("* %^{Title}"
                      ":PROPERTIES:"
-                     ":Created: %U"
+                     ":captured: %U"
                      ":END:"
                      "[[%?]]"
                      ))
