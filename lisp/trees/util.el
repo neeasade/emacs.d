@@ -266,7 +266,7 @@
 (use-package crux)
 
 ;; Might be a little too unstable for util.el
-(ns/use-package om "ndwarshuis/om.el" :config (require 'om))
+(ns/use-package org-ml "ndwarshuis/org-ml" :config (require 'org-ml))
 
 (ns/bind
   "qf" 'ns/what-face
@@ -280,6 +280,13 @@
   "nc" 'ns/jump-config
   "tb" 'ns/toggle-bloat
 
-  "iu" 'ns/buffercurl
+  "iu" (fn!
+         (llet [url (ns/shell-exec "qb_active_url")]
+           (insert
+             (if (eq major-mode 'org-mode)
+               (format "[[%s][%s]]" url
+                 (read-string (format  "link description for %s: " url)))
+               url))))
   "ih" 'ns/insert-history
   )
+

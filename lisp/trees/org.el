@@ -117,7 +117,7 @@
     (progn (org-clock-goto)
       (ns/org-jump-to-element-content))
     (->> (org-find-property (or property "focus"))
-      (om-parse-headline-at)
+      (org-ml-parse-headline-at)
       (ns/notes-current-standup-task) cadr
       ((lambda (props)
          (or (plist-get props :contents-begin)
@@ -159,7 +159,7 @@
   ;; (org-show-subtree)
   (org-show-all)
 
-  (let* ((props (cadr (om-parse-this-headline)))
+  (let* ((props (cadr (org-ml-parse-this-headline)))
           (contents-begin (plist-get props :contents-begin))
           (begin (plist-get props :begin)))
     (goto-char (or contents-begin begin))

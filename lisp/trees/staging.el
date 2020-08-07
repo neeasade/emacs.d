@@ -212,7 +212,7 @@
     (when url-point
       (with-current-buffer
         (get-file-buffer org-default-notes-file)
-        (->> url-point om-parse-subtree-at)))))
+        (->> url-point org-ml-parse-subtree-at)))))
 
 (defun ns/urlnote-jump (url)
   (let ((url-point (ns/urlnote-get-point url)))
@@ -394,8 +394,8 @@
 ;; (use-package ts)    ; timestamps
 (ns/use-package ts "alphapapa/ts.el")    ; timestamps
 
-(ns/use-package org-super-agenda "alphapapa/org-super-agenda")
-(require 'org-super-agenda)
+;; (ns/use-package org-super-agenda "alphapapa/org-super-agenda")
+;; (require 'org-super-agenda)
 
 (defun ns/make-project-capture (project &optional template-override key)
   `(,project
@@ -438,11 +438,11 @@
   (if (f-exists-p org-default-notes-file)
     (with-current-buffer (find-file-noselect org-default-notes-file)
       (->> (org-find-property "projects")
-        (om-parse-subtree-at)
-        ;; (om-parse-headline-at )
-	      (om-get-children)
+        (org-ml-parse-subtree-at)
+        ;; (org-ml-parse-headline-at )
+	    (org-ml-get-children)
         cdr
-        (-map 'om-headline-get-path)
+        (-map 'org-ml-headline-get-path)
         (-map 'last)
         -flatten))
     "no notes file here"))
@@ -571,50 +571,50 @@
   ;; note to self: standup is the wrong word probably -- it's the heading we track all of 'today'
   ;; changing the name would make more sense for slamming it on project headings as well
   (with-current-buffer (find-file-noselect org-default-notes-file)
-    (om-parse-headline-at (org-find-property "focus"))))
+    (org-ml-parse-headline-at (org-find-property "focus"))))
 
 
 (defun ns/notes-current-standup-task (parent-headline)
   "get the current standup heading as matched from notes"
   (let ((standup-point
-	        (->> parent-headline
-	          cdr car
-	          ((lambda (props) (plist-get props :begin))))))
+	      (->> parent-headline
+	        cdr car
+	        ((lambda (props) (plist-get props :begin))))))
 
     ;; standup-point
     (or
       (with-current-buffer (get-file-buffer org-default-notes-file)
-        (->> (om-parse-element-at standup-point)
-	        (om-get-children)
-	        ;; what we want:
-	        ;; next headline that has TODO blank or TODO, with no scheduled time
-	        ((lambda (children)
-	           (append
-	             ;; TODO: can't find out how to query headlines with no todo keyword
-	             ;; idea: map headlines, set todo keyword to 'unset'
-	             ;; (om-match '((:todo-keyword "")) children)
-	             (om-match '((:todo-keyword "TODO")) children)
-	             )))
-	        first
+        (->> (org-ml-parse-element-at standup-point)
+	      (org-ml-get-children)
+	      ;; what we want:
+	      ;; next headline that has TODO blank or TODO, with no scheduled time
+	      ((lambda (children)
+	         (append
+	           ;; TODO: can't find out how to query headlines with no todo keyword
+	           ;; idea: map headlines, set todo keyword to 'unset'
+	           ;; (org-ml-match '((:todo-keyword "")) children)
+	           (org-ml-match '((:todo-keyword "TODO")) children)
+	           )))
+	      first
           ))
       parent-headline
       )))
 
 ;; todo: timer to check if you have an active intent
-;; (named-timer-run :harass-myself
-;;   t
-;;   (* 3 60)
-;;   (fn
-;;     (when (< (second (current-idle-time)) 120)
-;;       (alert (let ((reminders
-;;                      (org-ql-select org-default-notes-file
-;;                        '(tags "reminders")
-;;                        :action '(s-clean (org-get-heading t t)))
-;;                      ))
-;;                (nth (random (length reminders)) reminders))
-;;         :severity 'normal
-;;         :title "*Reminder*"
-;;         ))))
+(named-timer-run :harass-myself
+  t
+  (* 3 60)
+  (fn
+    (when (< (second (current-idle-time)) 120)
+      (alert (let ((reminders
+                     (org-ql-select org-default-notes-file
+                       '(tags "reminders")
+                       :action '(s-clean (org-get-heading t t)))
+                     ))
+               (nth (random (length reminders)) reminders))
+        :severity 'normal
+        :title "*Reminder*"
+        ))))
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
@@ -668,7 +668,7 @@
 ;;     (reverse drill-sections)))
 
 (defun ns/org-is-scheduled (heading)
-  (let ((scheduled (plist-get (cadr (om-headline-get-planning heading)) :scheduled)))
+  (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
     (when scheduled
       (ts<
         (ts-now)
@@ -678,15 +678,15 @@
 (ns/comment
   (ns/org-is-scheduled
     (with-current-buffer (find-file-noselect org-default-notes-file)
-      (->> (om-get-subtrees)
+      (->> (org-ml-get-subtrees)
         (first)))))
 
 (defun ns/export-scheduled-org-headings ()
   (with-current-buffer (find-file-noselect org-default-notes-file)
-    (->> (om-get-subtrees)
+    (->> (org-ml-get-subtrees)
       ;; something better than 'TODO' might be "scheduled for later than today"
       ;; I think orgql has that /exact/ example in their readme..
-	    ;; (om-match '((:todo-keyword "TODO")))
-	    (om-match '(:many (:pred ns/org-is-scheduled)))
-      (-map 'om-to-string)
+	  ;; (org-ml-match '((:todo-keyword "TODO")))
+	  (org-ml-match '(:many (:pred ns/org-is-scheduled)))
+      (-map 'org-ml-to-string)
       (s-join "\n"))))

@@ -93,16 +93,16 @@
           (post-org-content-lines
             (-non-nil
               `(,(format "#+SETUPFILE: %s" (ns/blog-path "site/assets/org/setup.org"))
-
                  ,(when is-post
                     (ns/blog-make-nav-strip
                       (format "[[%s][%s]]" history-link last-edited)
                       published-date
                       ))
 
-                 ,@org-file-content
-
                  "-----"
+                 ,@org-file-content
+                 "-----"
+
                  ,(ns/blog-make-nav-strip
                     "[[file:./index.html][Index]]"
                     "[[https://neeasade.net][Root]]"
@@ -167,11 +167,11 @@
          (org-html-html5-fancy t)
 
          ;; affects timestamp export format
-         (org-time-stamp-custom-formats '("%Y-%m-%d"))
+         (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
          (org-display-custom-times t)
          )
 
-    (mapcar
+    (-map
       (fn (with-temp-buffer
             (message (format "BLOG: making %s " (ht-get <> :path)))
             (insert (ht-get <> :org-content))
@@ -220,8 +220,6 @@
     )
   t
   )
-
-
 
 ;; cf https://writequit.org/articles/emacs-org-mode-generate-ids.html#the-problem
 ;; enhancing this to also turn the header into an anchor link
