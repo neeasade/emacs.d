@@ -22,7 +22,6 @@
   )
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  ;; (ns/color-lessen 3 (face-attribute 'default :background))
   (ht-get ns/theme :background+)
   ;; (face-attribute 'default :background)
   )
@@ -31,37 +30,15 @@
 (set-face-attribute 'doom-modeline-buffer-file nil :foreground (ht-get ns/theme :accent2))
 (set-face-attribute 'doom-modeline-buffer-modified nil :foreground (ht-get ns/theme :accent2))
 
-
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
-  (ns/color-lessen 20 (ht-get ns/theme :background+))
-  ;; (ns/color-lessen 10 (face-attribute 'mode-line :background))
-  )
+  (ns/color-lessen 20 (ht-get ns/theme :background+)))
 
 (set-face-attribute 'ns/mode-line-sep nil :background
-  (ns/color-lessen 20 (ht-get ns/theme :background+))
-  ;; (ns/color-lessen 6 (face-attribute 'mode-line :background))
-  )
+  (ns/color-lessen 20 (ht-get ns/theme :background+)))
 
 (set-face-attribute 'mode-line-inactive nil :background
-  (ns/color-lch-transform
-    (ns/color-lessen 10 (ht-get ns/theme :background))
-    (lambda (L C H)
-      (list L C
-        (third (apply 'color-lab-to-lch
-                 (ns/color-name-to-lab
-                   (ht-get ns/theme :accent1_)))))))
-
-  ;; (ns/color-lch-transform
-  ;;   (ht-get ns/theme :background+)
-  ;;   (lambda (L C H)
-  ;;     (list (- L 4) (* 0.5 C) H)))
-
-  ;; (ns/color-greaten 20 (ht-get ns/theme :background+))
-  ;; (ns/color-lessen 5 (ht-get ns/theme :background+))
-
-  ;; (ns/color-lessen 5 (face-attribute 'default :background))
-  )
+  (ht-get ns/theme :background__))
 
 (set-face-attribute 'mode-line nil :height 100)
 (set-face-attribute 'mode-line-inactive nil :height 100)

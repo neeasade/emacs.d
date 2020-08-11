@@ -167,7 +167,8 @@
          (org-html-html5-fancy t)
 
          ;; affects timestamp export format
-         (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
+         ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
+         (org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %I:%M %p>"))
          (org-display-custom-times t)
          )
 

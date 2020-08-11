@@ -46,18 +46,11 @@
 (let*
   (
     ;; the most important color:
-    (background
-      (ns/color-lab-to-name
-        '(94 10 0) ns/theme-white-point))
+    ;; (background (ns/color-lab-to-name '(94 10 0) ns/theme-white-point))
 
-    (background "#EEF0F3")
+    ;; (background "#EEF0F3")
 
-    (background
-      (ns/color-lab-lighten
-        "#EEF0F3"
-        2
-        )
-      )
+    (background (ns/color-lab-lighten "#EEF0F3" 2))
 
     ;; foreground and faded foreground will be contrast ratio based:
     (foreground
@@ -105,29 +98,30 @@
 
     (accent-rotations
       (let*
-        ((color-start (ns/color-lab-to-name
-                        (color-lch-to-lab
-                          50
-                          70
-                          ;; (degrees-to-radians 340)
-                          ;; (degrees-to-radians 315)
-                          (degrees-to-radians 346)
-                          )))
+        (
+          ;; (color-start (ns/color-lab-to-name
+          ;;                (color-lch-to-lab
+          ;;                  50
+          ;;                  70
+          ;;                  ;; (degrees-to-radians 340)
+          ;;                  ;; (degrees-to-radians 315)
+          ;;                  (degrees-to-radians 346)
+          ;;                  )))
 
-          (color-start
-            (ns/color-lab-to-name
-              (color-lch-to-lab 50 80
-                ;; (degrees-to-radians 340)
-                ;; (degrees-to-radians 315)
-                (degrees-to-radians 346))))
+          ;; (color-start
+          ;;   (ns/color-lab-to-name
+          ;;     (color-lch-to-lab 50 80
+          ;;       ;; (degrees-to-radians 340)
+          ;;       ;; (degrees-to-radians 315)
+          ;;       (degrees-to-radians 346))))
 
-          (color-start
-            (hsluv-hsluv-to-hex
-              (list
-                ;; 330
-                ;; 346
-                300
-                100 60)))
+          ;; (color-start
+          ;;   (hsluv-hsluv-to-hex
+          ;;     (list
+          ;;       ;; 330
+          ;;       ;; 346
+          ;;       300
+          ;;       100 60)))
 
           (color-start
             (ns/color-hsluv-transform
@@ -178,7 +172,6 @@
 
       )
 
-    ;; ("#17ff701ea8c2" "#e8191fd8d30c" "#aa7250d011f2" "#5f3171e51188" "#1381779f68a5")
 
     ;; (accent1  (nth 0 accent-rotations))
     ;; (accent1_ (nth 3 accent-rotations))
@@ -192,15 +185,34 @@
 
     ;; active BG (selections)
     (background+
-      ;; "#ffffca0bffff"
-
       (ns/color-iterate
         (nth 4 accent-rotations)
         (fn (ns/color-lab-lighten <> 0.5) )
         (fn (< (ns/color-contrast-ratio <> background)
               1.3
-              ;; 1.1
               ))))
+
+    (background_
+      (-> background
+        ;; (ns/color-lab-darken 6)
+        (ns/color-lch-transform
+          (lambda (L C H)
+            (list L C
+              ;; steal hue from accent1_ color
+              (third (apply 'color-lab-to-lch
+                       (ns/color-name-to-lab
+                         accent1_
+                         ))))))
+        (ns/color-hsluv-transform
+          (lambda (H S L) (list H S (- L 5)))))
+      )
+
+    (background__
+      (ns/color-hsluv-transform
+        background_
+        (lambda (H S L) (list H S (- L 5))))
+      )
+
     )
 
   (setq ns/theme
@@ -209,6 +221,8 @@
       (:foreground_ foreground_)
 
       (:background background)
+      (:background_ background_)        ;
+      (:background__ background__)      ; inactive modeline
       (:background+ background+)
 
       (:accent1 accent1)                ; identifiers
@@ -249,9 +263,7 @@
   ;;   (setq ns/theme))
 
   ;; shorten all the colors, because they are also used in EG org exports
-  (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten))
-
-  )
+  (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
 
 ;; (setq ns/theme ns/theme-melon)
 ;; (setq ns/theme ns/theme-soft)
@@ -269,8 +281,8 @@
       :base00 :background ;; Default Background
 
       ;; ivy-current-match background, isearch match foreground, inactive modeline background
-      ;; :base01 (color-darken-name (ht-get ns/theme :background) 7) ;; Lighter Background (Used for status bars)
-      :base01 :background+ ;; Lighter Background (Used for status bars)
+      ;; :base01 :background+ ;; Lighter Background (Used for status bars)
+      :base01 :background__ ;; Lighter Background (Used for status bars)
 
       ;; region, active modeline background
       :base02 :background+ ;; Selection Background

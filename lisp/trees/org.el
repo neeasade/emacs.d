@@ -266,6 +266,9 @@
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
 
+  ;; trash? idk
+  "ot" 'org-archive-subtree
+
   "no" (fn! (counsel-org-goto-all)
          (ns/org-jump-to-element-content)))
 

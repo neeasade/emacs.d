@@ -309,8 +309,8 @@
             (comint-send-input))
           (t (insert dir)))))))
 
+(use-package theme-magic)
 (defun ns/emacs-to-theme ()
-  (use-package theme-magic)
   (s-join "\n"
     (append (seq-map-indexed
               (fn (format "color%s=%s" (number-to-string <2>)
