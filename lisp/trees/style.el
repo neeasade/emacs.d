@@ -82,6 +82,7 @@
            ;; (font-lock-type-face :foreground :accent1)
 
            (org-todo :background nil)
+           (org-date :underline nil)
 
            (whitespace-space :background nil)
            (whitespace-tab :background nil)

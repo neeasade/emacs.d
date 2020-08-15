@@ -274,6 +274,7 @@
 
 (add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
 (add-hook 'org-mode-hook 'flyspell-mode)
+(add-hook 'org-mode-hook 'olivetti-mode)
 
 (defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block

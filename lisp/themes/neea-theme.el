@@ -194,24 +194,20 @@
 
     (background_
       (-> background
-        ;; (ns/color-lab-darken 6)
         (ns/color-lch-transform
           (lambda (L C H)
             (list L C
-              ;; steal hue from accent1_ color
+              ;; steal hue
               (third (apply 'color-lab-to-lch
-                       (ns/color-name-to-lab
-                         accent1_
-                         ))))))
+                       (ns/color-name-to-lab accent1_))))))
         (ns/color-hsluv-transform
-          (lambda (H S L) (list H S (- L 5)))))
+          (lambda (H S L) (list H S (- L 4)))))
       )
 
     (background__
       (ns/color-hsluv-transform
         background_
-        (lambda (H S L) (list H S (- L 5))))
-      )
+        (lambda (H S L) (list H S (- L 6)))))
 
     )
 
@@ -262,6 +258,8 @@
   ;;   (ht-transform-v ns/theme)
   ;;   (setq ns/theme))
 
+  ;; (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten))
+
   ;; shorten all the colors, because they are also used in EG org exports
   (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
 
@@ -281,8 +279,8 @@
       :base00 :background ;; Default Background
 
       ;; ivy-current-match background, isearch match foreground, inactive modeline background
-      ;; :base01 :background+ ;; Lighter Background (Used for status bars)
-      :base01 :background__ ;; Lighter Background (Used for status bars)
+      :base01 :background+ ;; Lighter Background (Used for status bars)
+      ;; :base01 :background__ ;; Lighter Background (Used for status bars)
 
       ;; region, active modeline background
       :base02 :background+ ;; Selection Background

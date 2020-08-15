@@ -249,18 +249,18 @@
       (eos/org-custom-id-get (point) 'create)
 
       ;; make the heading a link to itself if it's not already a link
-      (om-update-headline-at (point)
+      (org-ml-update-headline-at (point)
         (lambda (old-heading)
-          (om-set-property :title
+          (org-ml-set-property :title
             ;; get the old heading title text
-            (->> (-> old-heading om-headline-get-path last car)
+            (->> (-> old-heading org-ml-headline-get-path last car)
               ;; make it a link if it's not already one
               ((lambda (old-heading-plain)
                  (if (s-contains-p "[[" old-heading-plain)
                    old-heading-plain
                    (format "[[#%s][%s]]"
                      ;; first need to get id
-                     (org-entry-get point "CUSTOM_ID")
+                     (org-entry-get (point) "CUSTOM_ID")
                      ;; (om-get-property :custom-id old-heading)
                      ;; id
                      old-heading-plain
@@ -279,3 +279,16 @@
     (insert (format "#+title: %s\n" title))
     (insert (format "#+pubdate: <%s>\n" date))
     (insert "#+draft: t\n\n")))
+
+(defun ns/blog-make-color-preview (color)
+  ;; assumes a dark FG and light BG
+  (format
+    "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
+    color
+    (ht-get ns/theme (if (ns/color-is-light-p color) :foreground :background))
+    (if (ns/color-is-light-p color) (ht-get ns/theme :foreground) color)
+    color
+    ))
+
+;; (ns/blog-make-color-preview "#cccccc")
+
