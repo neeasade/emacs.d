@@ -38,20 +38,14 @@
   (evil-collection-init))
 
 (defun ns/zz-scroll (&rest optional)
-  (let* ((scrollcount (/ (window-total-size) 7))
-          (halfheight (/ (window-total-size) 2))
-          (scrollcheck (- halfheight scrollcount)))
-    (if (> (line-number-at-pos) scrollcheck)
-      (evil-scroll-line-down scrollcount)
-      )))
+  (when (not (-contains-p '(circe-channel-mode circe-query-mode) major-mode))
+    (let* ((scrollcount (/ (window-total-size) 7))
+            (halfheight (/ (window-total-size) 2))
+            (scrollcheck (- halfheight scrollcount)))
+      (if (> (line-number-at-pos) scrollcheck)
+        (evil-scroll-line-down scrollcount)))))
 
-(advice-add #'evil-scroll-line-to-center :after #'ns/zz-scroll)
-
-(advice-add 'evil-search-next :after
-  (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
-
-(advice-add 'evil-search-previous :after
-  (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+(advice-add #'recenter :after #'ns/zz-scroll)
 
 ;; for reference, alteratively tried:
 ;; https://github.com/noctuid/general.el#mapping-under-non-prefix-keys
@@ -200,7 +194,8 @@
 (advice-add #'previous-buffer :after #'ns/maybe-prev)
 
 (general-nmap
-  "[s" 'flyspell-goto-prev-error
+  ;; this is not a thing.
+  ;; "[s" 'flyspell-goto-prev-error
   "]s" 'flyspell-goto-next-error
   "[b" 'evil-prev-buffer
   "]b" 'evil-next-buffer
@@ -231,5 +226,5 @@
   (better-jumper-mode +1)
 
   ;; todo: consider using this:
-  ;; (add-hook 'better-jumper-post-jump-hook 'ns/focus-line)
+  ;; (add-hook 'better-jumper-post-jump-hook 'recenter)
   )

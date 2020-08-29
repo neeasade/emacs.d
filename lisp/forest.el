@@ -387,9 +387,7 @@
       "ng" 'smart-jump-go
       "nb" 'smart-jump-back
       "nr" 'smart-jump-references
-      )
-
-    (advice-add #'smart-jump-go :after #'ns/focus-line)))
+      )))
 
 
 (defconfig pdf

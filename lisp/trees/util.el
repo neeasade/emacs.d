@@ -72,7 +72,7 @@
           (ns/find-or-open (~ ".emacs.d/lisp/forest.el"))
           (goto-char (point-min))
           (re-search-forward (format "defconfig %s\n" <>))))
-      (ns/focus-line))))
+      (recenter))))
 
 (defun! ns/toggle-bloat()
   "toggle bloat in the current buffer"
@@ -123,9 +123,6 @@
       (lambda (&key data &allow-other-keys)
         (interactive)
         (insert data)))))
-
-(defun! ns/focus-line (&rest ignore)
-  (evil-scroll-line-to-center (ns/what-line)))
 
 (defun ns/get-last-message()
   (with-current-buffer (get-buffer "*Messages*")

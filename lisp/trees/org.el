@@ -189,7 +189,7 @@
           ))))
 
   ;; todo: consider ensuring drawers are collapsed after this
-  (ns/focus-line)
+  (recenter)
   )
 
 ;; insert an org link to the current location on the focused heading in notes.org
@@ -262,7 +262,7 @@
   ;; "or" 'org-refile
   "ol" 'ns/make-org-link-to-here
   ;; "om" 'ns/insert-mark-org-links
-  "ow" (fn! (widen) (ns/focus-line))
+  "ow" (fn! (widen) (recenter))
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
 

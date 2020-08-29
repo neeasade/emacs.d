@@ -135,7 +135,10 @@
     ;; fall back to definitions with smart jump
     (progn
       (ns/follow-log "ns/follow: resolving with smart-jump-go")
-      (shut-up (smart-jump-go)))))
+      (shut-up (smart-jump-go))))
+
+  (recenter)
+  )
 
 
 (ns/bind "nn" 'ns/follow)

@@ -293,13 +293,13 @@
       ((> end start)
         (loop for i from start below end collect i))
       ((< end start)
-        ;; how the fuck does the loop macro work
-        ;; (loop for i downfrom end downto start collect i)
-        ;; (loop for i downfrom end below start collect i)
-        ))
-    
-    ;; (list start end)
-    ))
+        (loop for i from start downto (+ 1 end) collect i)))))
+
+(ns/comment
+  (range 10)
+  (range 10 10)
+  (range 0 10)
+  (range 10 0))
 
 ;; clojure like let
 (defmacro llet (args body)

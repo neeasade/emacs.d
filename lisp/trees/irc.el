@@ -66,6 +66,16 @@
                      )
          )
 
+       ("tildechat"
+         :nick ,ns/irc-nick
+         :host "na.tilde.chat"
+         :port 6697
+         :tls t
+         :nickserv-password ,(pass "tilde.chat")
+         ;; https://tilde.chat/stats/
+         :channels ("#club" "#meta")
+         )
+
        ("Cyberia"
          :nick ,ns/irc-nick
          :host "irc.cyberia.is"
