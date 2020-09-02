@@ -43,7 +43,9 @@
             (halfheight (/ (window-total-size) 2))
             (scrollcheck (- halfheight scrollcount)))
       (if (> (line-number-at-pos) scrollcheck)
-        (evil-scroll-line-down scrollcount)))))
+        ;; (evil-scroll-line-down scrollcount)
+        nil
+        ))))
 
 (advice-add #'recenter :after #'ns/zz-scroll)
 

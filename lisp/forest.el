@@ -734,11 +734,6 @@
 
   )
 
-(defconfig lua
-  (use-package lua-mode)
-  ;; note: lua-mode comes with some repl stuff that might come in handy
-  )
-
 (defconfig graphiz
   (use-package graphviz-dot-mode
     :config
@@ -851,6 +846,7 @@
 (defconfig interface  (load "~/.emacs.d/lisp/trees/interface.el"))
 (defconfig irc        (ns/guard ns/enable-home-p) (load "~/.emacs.d/lisp/trees/irc.el"))
 (defconfig org        (load "~/.emacs.d/lisp/trees/org.el"))
+(defconfig org-capture (load "~/.emacs.d/lisp/trees/org-capture.el"))
 (defconfig sanity     (load "~/.emacs.d/lisp/trees/sanity.el"))
 (defconfig shell      (load "~/.emacs.d/lisp/trees/shell.el"))
 (defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))

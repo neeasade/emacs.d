@@ -191,49 +191,53 @@
 
 ;; todo: idea: org-capture for current qutebrowser url
 
-(defun ns/urlnote-get-point (url)
-  (let ((url-plain
-          (when url
-            (if (s-contains-p "?" url)
-              (first (s-split "?" url)) url))))
+(defun ns/make-urlnote-funcs ()
+  (defun ns/urlnote-get-point (url)
+    (let ((url-plain
+            (when url
+              (if (s-contains-p "?" url)
+                (first (s-split "?" url)) url))))
 
-    (catch 'error
-      (condition-case msg
-        (marker-position
-          (org-find-olp
-            (if url-plain
-              (list org-default-notes-file "url notes" url-plain)
-              (list org-default-notes-file "url notes")
-              )))
-        (error
-          ;; show what went wrong:
-          ;; (nth 1 msg)
-          nil)))))
+      (catch 'error
+        (condition-case msg
+          (marker-position
+            (org-find-olp
+              (if url-plain
+                (list org-default-notes-file "url notes" url-plain)
+                (list org-default-notes-file "url notes")
+                )))
+          (error
+            ;; show what went wrong:
+            ;; (nth 1 msg)
+            nil)))))
 
-(defun ns/urlnote-get-content (url)
-  (let ((url-point (ns/urlnote-get-point url)))
-    (when url-point
-      (with-current-buffer
-        (get-file-buffer org-default-notes-file)
-        (->> url-point org-ml-parse-subtree-at)))))
+  (defun ns/urlnote-get-content (url)
+    (let ((url-point (ns/urlnote-get-point url)))
+      (when url-point
+        (with-current-buffer
+          (get-file-buffer org-default-notes-file)
+          (->> url-point org-ml-parse-subtree-at)))))
 
-(defun ns/urlnote-jump (url)
-  (let ((url-point (ns/urlnote-get-point url)))
-    (when url-point
-      (find-file org-default-notes-file)
-      (goto-char (ns/urlnote-get-point url)))))
+  (defun ns/urlnote-jump (url)
+    (let ((url-point (ns/urlnote-get-point url)))
+      (when url-point
+        (find-file org-default-notes-file)
+        (goto-char (ns/urlnote-get-point url)))))
 
-(defun ns/urlnote-make-and-jump (url)
-  (find-file org-default-notes-file)
-  (goto-char (ns/urlnote-get-point nil))
-  (next-line)
-  ;; (org-insert-subheading nil)
-  ;; (org-insert-heading-after-current)
-  (if (s-contains-p "?" url)
-    (first (s-split "?" url)) url)
-  (insert url)
-  (org-do-demote)
-  (newline))
+  (defun ns/urlnote-make-and-jump (url)
+    (find-file org-default-notes-file)
+    (goto-char (ns/urlnote-get-point nil))
+    (next-line)
+    ;; (org-insert-subheading nil)
+    ;; (org-insert-heading-after-current)
+    (if (s-contains-p "?" url)
+      (first (s-split "?" url)) url)
+    (insert url)
+    (org-do-demote)
+    (newline))
+  )
+
+(ns/make-urlnote-funcs)
 
 (ns/bind
   "nt" (fn! (find-file (~ ".wm_theme")))
@@ -389,233 +393,11 @@
 ;;
 (use-package dtrt-indent :config (dtrt-indent-global-mode 1))
 
-;; (use-package org-doct)
-(ns/use-package org-doct "progfolio/doct"
-  :config
-  (require 'doct))
-
-;; (use-package ts)    ; timestamps
-(ns/use-package ts "alphapapa/ts.el")    ; timestamps
-
 ;; (ns/use-package org-super-agenda "alphapapa/org-super-agenda")
 ;; (require 'org-super-agenda)
 
-(defun ns/make-project-capture (project &optional template-override key)
-  `(,project
-     :keys ,(or key (-> project string-to-list first char-to-string))
-     :file ,org-default-notes-file
-     ;; todo: maybe want: a way to override the olp path and file? (eg, project level notes)
-     ;; alternatively, just import the notes into your main ones
-     :children (("task" :keys "t" :todo-state "TODO"
-                  :immediate-finish t
-                  :template ,(or template-override (list "* %{todo-state} %^{Description}"
-                                                     ":PROPERTIES:" ":captured: %U" ":END:"
-                                                     "%?"))
-                  :olp ("projects" ,project "tasks"))
-                 ("capture" :keys "c" :todo-state "TODO"
-                   :immediate-finish t
-                   :template ,(or template-override (list "* %{todo-state} %^{Description}"
-                                                      ":PROPERTIES:" ":captured: %U" ":END:"
-                                                      "%?"))
-                   :olp ("projects" ,project "captures"))
-                 ("note" :keys "n"
-                   :immediate-finish t
-                   :template ,(or template-override (list "* %^{Description}"
-                                                      ":PROPERTIES:" ":captured: %U" ":END:"
-                                                      "%?"))
-                   :olp ("projects" ,project "notes"))
-
-                 ("task" :keys "T" :todo-state "TODO"
-                   :template ,(or template-override (list "* %{todo-state} %{Description}"
-                                                      ":PROPERTIES:" ":captured: %U" ":END:"
-                                                      "%?"))
-                   :olp ("projects" ,project "tasks"))
-                 ("capture" :keys "C" :todo-state "TODO"
-                   :template ,(or template-override (list "* %{todo-state} %{Description}"
-                                                      ":PROPERTIES:" ":captured: %U" ":END:"
-                                                      "%?"))
-                   :olp ("projects" ,project "captures"))
-                 ("note" :keys "N"
-                   :template ,(or template-override (list "* %{Description}"
-                                                      ":PROPERTIES:" ":captured: %U" ":END:"
-                                                      "%?"))
-                   :olp ("projects" ,project "notes"))
-                 )))
-
-;; in the future if we want to nest projects under a heading:
-;; ("Projects" :keys "p"
-;;   :children
-;;   (;; projects:
-;;     ,(ns/make-project-capture "other")
-;;     ))
-
-(setq ns/org-capture-project-list
-  (if (f-exists-p org-default-notes-file)
-    (with-current-buffer (find-file-noselect org-default-notes-file)
-      (->> (org-find-property "projects")
-        (org-ml-parse-subtree-at)
-        ;; (org-ml-parse-headline-at )
-	    (org-ml-get-children)
-        cdr
-        (-map 'org-ml-headline-get-path)
-        (-map 'last)
-        -flatten))
-    "no notes file here"))
-
-(ns/use-package linkmarks "dustinlacewell/linkmarks"
-  :config
-  (setq linkmarks-file (concat org-directory "/linkmarks.org")))
-
-(setq ns/org-capture-project-templates
-  (doct
-    `(
-       ;; ,(ns/make-project-capture "meta" nil "c")
-       ,@(-map 'ns/make-project-capture ns/org-capture-project-list)
-
-       ;; ("Reminder" :keys "r"
-       ;;   :template "* %?\n%U\n"
-       ;;   )
-
-       ("LinkMark" :keys "l"
-         :file ,linkmarks-file
-         :template ("* %^{Title}"
-                     ":PROPERTIES:"
-                     ":captured: %U"
-                     ":END:"
-                     "[[%?]]"
-                     ))
-
-       ("Journal" :keys "j"
-         :template "* %?\n%U\n"
-         :clock-in t :clock-resume t
-         :datetree t :file ,org-default-diary-file
-         ))))
-
-(setq ns/org-capture-region-templates
-  (doct
-    `(
-       ;; ,(ns/make-project-capture "meta")
-       ;; this is wrapped in a progn so the lines after the first don't get made into headings
-       ;; I hate org mode
-       ,@(-map (fn (ns/make-project-capture <> "* %(progn \"%i\")"))
-           ns/org-capture-project-list)
-
-       )))
-
-(setq org-capture-templates ns/org-capture-project-templates)
-
-(defun! ns/capture-current-subtree ()
-  (let ((ns/org-points
-          (save-excursion
-            (list
-              (progn (org-back-to-heading) (point))
-              (progn (org-back-to-heading) (evil-forward-word-begin) (point))
-              (progn (org-end-of-subtree) (point))))))
-
-    (set-mark (second ns/org-points))
-    (goto-char (third ns/org-points))
-    (activate-mark)
-
-    (ns/capture-current-region)
-    ;; kill the leftover headline
-    (kill-whole-line)
-    (when (s-blank-str-p (thing-at-point 'line)) (kill-whole-line))))
-
-(defun! ns/capture-current-region ()
-  ;; keep the initial region
-  (let ((ns/region-points (list (region-beginning) (region-end))))
-    (setq org-capture-templates ns/org-capture-region-templates)
-    (when (org-capture)
-      ;; assume we succeeded
-
-      ;; if re captured to somewhere in the current buffer, our point might have changed
-      (when (not (= (region-beginning) (first ns/region-points)))
-        (setq ns/region-points
-          (llet
-            [start (first ns/region-points)
-              end (second ns/region-points)
-              new-start (if (> (region-beginning) start)
-                          (+ start (- (region-beginning) start))
-                          (- start (- start (region-beginning))))
-              new-end (if (> (region-beginning) start)
-                        (+ end (- (region-beginning) start))
-                        (- end (- start (region-beginning))))]
-            (list new-start new-end))))
-
-      (apply 'kill-region ns/region-points)
-
-      (when (s-blank-str-p (thing-at-point 'line))
-        (kill-line))))
-
-  ;; todo: catch quit for revert as well
-  (setq org-capture-templates ns/org-capture-project-templates))
-
-(ns/bind-mode 'org
-  "or" (fn! (if (use-region-p)
-              (ns/capture-current-region)
-              (ns/capture-current-subtree)))
-
-  "oc"
-  (fn! (if (use-region-p)
-         (ns/capture-current-region)
-         (org-capture)))
-  ;; 'org-capture
-  ;; "org move"
-  "om" 'org-refile
-  )
-
-;; allow shell blocks in org mode to be executed:
-(org-babel-do-load-languages 'org-babel-load-languages
-  '((shell . t)))
-
-;; EG, call with org-babel-execute-src-block on:
-;; the ':results output silent' means don't insert into the buffer
-;; #+begin_src sh :results output silent
-;; <code to execute>
-;; #+end_src
-(ns/bind-mode 'org "e"
-  (fn! (when (org-in-src-block-p)
-         ;; living dangerously
-         (let ((org-confirm-babel-evaluate (fn nil)))
-           (org-babel-execute-src-block)))))
-
-;; (setq org-capture-templates)
-
-(defun ns/notes-current-standup-headline ()
-  "get the current standup heading as matched from notes"
-  ;; note to self: standup is the wrong word probably -- it's the heading we track all of 'today'
-  ;; changing the name would make more sense for slamming it on project headings as well
-  (with-current-buffer (find-file-noselect org-default-notes-file)
-    (org-ml-parse-headline-at (org-find-property "focus"))))
-
-
-(defun ns/notes-current-standup-task (parent-headline)
-  "get the current standup heading as matched from notes"
-  (let ((standup-point
-	      (->> parent-headline
-	        cdr car
-	        ((lambda (props) (plist-get props :begin))))))
-
-    ;; standup-point
-    (or
-      (with-current-buffer (get-file-buffer org-default-notes-file)
-        (->> (org-ml-parse-element-at standup-point)
-	      (org-ml-get-children)
-	      ;; what we want:
-	      ;; next headline that has TODO blank or TODO, with no scheduled time
-	      ((lambda (children)
-	         (append
-	           ;; TODO: can't find out how to query headlines with no todo keyword
-	           ;; idea: map headlines, set todo keyword to 'unset'
-	           ;; (org-ml-match '((:todo-keyword "")) children)
-	           (org-ml-match '((:todo-keyword "TODO")) children)
-	           )))
-	      first
-          ))
-      parent-headline
-      )))
-
 ;; todo: timer to check if you have an active intent
+;; make sure you are clocked into /something/ to start tracking things
 (named-timer-run :harass-myself
   t
   (* 3 60)
@@ -635,8 +417,6 @@
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
 
-;; refile the current subtree to capture targets
-
 ;; has a nice url regexp
 (require 'rcirc)
 
@@ -651,8 +431,6 @@
       (message "no urls!"))))
 
 (ns/bind "nu" 'ns/ivy-url-jump)
-
-
 
 ;; to consider later: org drill -- noting a fix here for now
 ;; something else: keybinds don's work in org-drill, even after:
@@ -701,7 +479,8 @@
     (->> (org-ml-get-subtrees)
       ;; something better than 'TODO' might be "scheduled for later than today"
       ;; I think orgql has that /exact/ example in their readme..
-	  ;; (org-ml-match '((:todo-keyword "TODO")))
-	  (org-ml-match '(:many (:pred ns/org-is-scheduled)))
+	    ;; (org-ml-match '((:todo-keyword "TODO")))
+	    (org-ml-match '(:many (:pred ns/org-is-scheduled)))
       (-map 'org-ml-to-string)
       (s-join "\n"))))
+

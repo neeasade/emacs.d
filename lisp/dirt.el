@@ -29,6 +29,10 @@
 (use-package async) ; async
 (use-package ts)    ; timestamps
 
+;; sometimes the above doesn't work
+;; (ns/use-package ts "alphapapa/ts.el")    ; timestamps
+
+
 ;; other/emacs enhancers
 (use-package hydra)
 (use-package general :config (general-override-mode t)) ; enable the override keymap
@@ -45,6 +49,8 @@
 (defmacro ns/comment (&rest body) nil)
 
 ;; alias/clojure
+(defalias 'first 'car)
+
 (defalias 'prn 'prin1-to-string)
 (defalias '-join '-interpose)
 

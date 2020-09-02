@@ -7,9 +7,18 @@
 
 (require 'org-habit)
 
+;; give us easy templates/tab completion like yasnippet and the like
+;; form is '<<key><tab>', eg <s<tab> expands to src block
+;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
+(require 'org-tempo)
+
+;; nice functional org library
+(ns/use-package org-ml "ndwarshuis/org-ml" :config (require 'org-ml))
+
 (when ns/enable-evil-p
   (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
 
+;; config
 (setq-ns org
   directory (if (f-exists-p (~ "sync/main/notes"))
               (~ "sync/main/notes")
@@ -37,7 +46,6 @@
   ;; export options
   html-checkbox-type 'html
   html-postamble nil
-
   export-with-section-numbers nil
   export-with-toc nil
 
@@ -81,49 +89,61 @@
 
   ;; this way we don't haev to create annoying outlines
   refile-allow-creating-parent-nodes 'confirm
+
+  ;; save target buffer after archiving
+  archive-subtree-save-file-p t
   )
-
-(ns/bind-leader-mode
-  'org
-  "," 'org-ctrl-c-ctrl-c
-  "t" 'org-todo
-  "T" 'org-show-todo-tree
-  "v" 'org-mark-element
-  "a" 'org-agenda
-  ;; todo: want a "jump to parent"
-  "f" 'ns/org-set-unique-property
-  "F" (fn! (ns/org-set-unique-property (read-string "property name: ")))
-  "s" 'org-schedule
-  )
-
-(ns/bind-mode 'org "op" 'org-pomodoro)
-
-;; give us easy templates/tab completion like yasnippet and the like
-;; form is '<<key><tab>', eg <s<tab> expands to src block
-;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
-(require 'org-tempo)
 
 (defun! ns/org-set-unique-property (&optional property value)
   (let ((prop (or property "focus")))
     (org-delete-property-globally prop)
     (org-set-property prop (or value "t"))))
 
-(defun! ns/org-goto-active (&optional property)
-  "Go to the currently clocked in task, or the next task under PROPERTY"
+(defun ns/notes-current-standup-task (parent-headline)
+  "Get a TODO underneath a headline that is passed in."
+  (let ((standup-point
+	      (->> parent-headline
+	        cdr car
+	        ((lambda (props) (plist-get props :begin))))))
+    (or
+      (with-current-buffer (get-file-buffer org-default-notes-file)
+        (->> (org-ml-parse-element-at standup-point)
+	      (org-ml-get-children)
+	      ;; what we want:
+	      ;; next headline that has TODO blank or TODO, with no scheduled time
+	      ((lambda (children)
+	         (append
+	           ;; TODO: can't find out how to query headlines with no todo keyword
+	           ;; idea: map headlines, set todo keyword to 'unset'
+	           ;; (org-ml-match '((:todo-keyword "")) children)
+	           (org-ml-match '((:todo-keyword "TODO")) children)
+	           )))
+	      first
+          ))
+      parent-headline
+      )))
+
+(defun! ns/org-get-active-point (&optional property)
+  "Resolves to a point in my big notes files to either:
+- currently clocked in org headline
+- the first TODO under the headline with a 'focus' property
+- if no TODO is found, just go to the headline with a 'focus' property directly "
+  (save-window-excursion
+    (with-current-buffer (find-file-noselect org-default-notes-file)
+      (if org-clock-current-task
+        (org-clock-goto)
+        (->> (org-find-property (or property "focus"))
+          (org-ml-parse-headline-at)
+          (ns/notes-current-standup-task) cadr
+          ((lambda (props)
+             (or (plist-get props :contents-begin)
+               (plist-get props :begin))))
+          (goto-char)))
+      (point))))
+
+(defun! ns/org-goto-active ()
   (find-file org-default-notes-file)
-
-  ;; todo: should you org-widen here? broken on a narrowed buffer
-  (if org-clock-current-task
-    (progn (org-clock-goto)
-      (ns/org-jump-to-element-content))
-    (->> (org-find-property (or property "focus"))
-      (org-ml-parse-headline-at)
-      (ns/notes-current-standup-task) cadr
-      ((lambda (props)
-         (or (plist-get props :contents-begin)
-           (plist-get props :begin))))
-      (goto-char)))
-
+  (goto-char (ns/org-get-active-point))
   (ns/org-jump-to-element-content))
 
 (use-package org-pomodoro
@@ -148,7 +168,6 @@
   (add-hook 'org-pomodoro-started-hook 'ns/pomodoro-start-hook)
   (add-hook 'org-pomodoro-finished-hook 'ns/pomodoro-finish-hook)
   (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play))
-
 
 (defun ns/org-jump-to-element-content ()
   "Jump from a anywhere in a headline to the start of it's content"
@@ -182,18 +201,16 @@
       ;; empty headline
       (when (s-starts-with-p "*" (thing-at-point 'line))
         (evil-next-line)
-        (when
-          (s-starts-with-p "*" (thing-at-point 'line))
+        (when (s-starts-with-p "*" (thing-at-point 'line))
           (evil-open-above 1)
-          (evil-normal-state)
-          ))))
+          (evil-normal-state)))))
 
   ;; todo: consider ensuring drawers are collapsed after this
   (recenter)
   )
 
-;; insert an org link to the current location on the focused heading in notes.org
 (defun! ns/make-org-link-to-here ()
+  "Insert a link to the current cursor location in the active headline"
   (let* ((line-content (s-trim (thing-at-point 'line)))
           (line (number-to-string (line-number-at-pos)))
           (link (format "file:%s::%s" (buffer-file-name) line))
@@ -204,110 +221,16 @@
 
     (with-current-buffer (find-file-noselect org-default-notes-file)
       ;; todo: save excursion is not working here?
-      (save-excursion
-        (if org-clock-current-task
-          (org-clock-goto)
-          ;; todo: this should instead be the same logic as elisp_org_task?
-          (goto-char (org-find-property (or property "focus"))))
-
+      (save-window-excursion
+        (ns/org-goto-active)
         (ns/org-jump-to-element-content)
-        
-        ;; file link staleness concerns:
-        ;; could also store checksum of file?
-        ;; maybe note the date?
-        ;; maybe just have a validation function that checks that the link content matches/red flag
+
+        ;; todo: consider adding a date with the captured link
+        ;; todo: consider a similar function to this that just adds the current qute url under the active org heading
         (insert
-          (format "%s : ~%s~\n"
+          (format "\n%s : ~%s~\n"
             (s-pad-right 20 " " org-link)
             line-content))))))
-
-(defun! ns/evil-delete-marks ()
-  (evil-delete-marks "ABCDEFGHIJKLMNOPQRSTUPWXYZ"))
-
-;; neat idea, but I never use this
-(defun! ns/insert-mark-org-links ()
-  (setq ns/markers
-    (append (cl-remove-if (lambda (m)
-                            (or (evil-global-marker-p (car m))
-                              (not (markerp (cdr m)))))
-              evil-markers-alist)
-      (cl-remove-if (lambda (m)
-                      (or (not (evil-global-marker-p (car m)))
-                        (not (markerp (cdr m)))))
-        (default-value 'evil-markers-alist))))
-
-  ;; remove automatic marks
-  (dolist (key '(40 41 94 91 93))
-    (setq ns/markers (delq (assoc key ns/markers) ns/markers)))
-
-  (insert (s-join "\n"
-            (mapcar (lambda(mark)
-                      (let ((file (buffer-file-name (marker-buffer mark)))
-                             (linenumber
-                               (with-current-buffer (marker-buffer mark)
-                                 (line-number-at-pos (marker-position mark)))))
-                        (concat "[[file:" file "::" (number-to-string linenumber) "]]")))
-              (mapcar 'cdr ns/markers)))))
-
-(ns/bind
-  "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
-                     (project-notes (if buffer-file-name
-                                      (concat (projectile-root-bottom-up buffer-file-name) "notes.org") org-default-notes-file)))
-               ;; todo: this doesn't work if the notes file isn't already open? what?
-               (ns/find-or-open (if (and (f-exists-p project-notes)
-                                      (not (string= buffer-file-name project-notes)))
-                                  project-notes org-default-notes-file))))
-  "of" 'ns/org-goto-active
-  "oc" 'org-capture
-  ;; "or" 'org-refile
-  "ol" 'ns/make-org-link-to-here
-  ;; "om" 'ns/insert-mark-org-links
-  "ow" (fn! (widen) (recenter))
-  "on" 'org-narrow-to-subtree
-  "oa" 'org-agenda
-
-  ;; trash? idk
-  "ot" 'org-archive-subtree
-
-  "no" (fn! (counsel-org-goto-all)
-         (ns/org-jump-to-element-content)))
-
-(add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
-(add-hook 'org-mode-hook 'flyspell-mode)
-(add-hook 'org-mode-hook 'olivetti-mode)
-
-(defun! ns/style-org ()
-  (ns/set-faces-monospace '(org-block
-                             org-code
-                             org-table
-                             org-macro
-                             org-formula
-                             org-verbatim
-                             company-tooltip
-                             company-tooltip-common
-                             company-tooltip-selection
-                             org-block-begin-line
-                             org-block-end-line
-                             ))
-
-  ;; smol
-  (set-face-attribute 'org-block-begin-line nil :height 65)
-  (set-face-attribute 'org-block-end-line nil :height 65)
-
-  (set-face-attribute 'org-link nil :underline t)
-  ;; (set-face-attribute 'org-link nil :foreground nil)
-  ;; (set-face-attribute 'underline nil :underline t)
-
-  (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
-    (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
-    (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
-    (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
-    (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold))
-
-  (dolist (b (ns/buffers-by-mode 'org-mode))
-    (with-current-buffer b
-      (ns/set-buffer-face-variable))))
-
 ;; putting in this file to make sure it's after org mode
 (when ns/enable-evil-p
   (ns/use-package evil-org "Somelauw/evil-org-mode")
@@ -352,20 +275,26 @@
     :keymaps 'org-mode-map
     (kbd "E") 'org-toggle-heading))
 
+;; (unload-feature 'org-wild-notifier)
+;; (require 'org-wild-notifier)
+
 ;; notify on timestamps (this is broken)
 ;; (ns/use-package org-wild-notifier "akhramov/org-wild-notifier.el"
 ;;   :config
 ;;   ;; org-wild-notifier-en
 ;;   (setq-ns org-wild-notifier
-;;     alert-time 1 ;; min
-;;     notification-title "Reminder"
-;;     keyword-whitelist '()
-;;     keyword-blacklist '()
-;;     tags-whitelist '("testerino")
-;;     tags-blacklist nil
-;;     alert-times-property "alert_times")
+;;     alert-time '(1) ;; min
+;;     notification-title "scheduled notifier"
+;;     ;; keyword-whitelist '()
+;;     ;; keyword-blacklist '()
+;;     ;; tags-whitelist '("testerino")
+;;     ;; tags-blacklist nil
+;;     ;; alert-times-property "alert_times"
+;;     )
 
 ;;   (org-wild-notifier-mode)
+;;   (org-wild-notifier-check)
+
 ;;   )
 
 (use-package org-present
@@ -427,30 +356,110 @@
   (add-hook 'org-present-mode-hook 'ns/org-present-init)
   (add-hook 'org-present-mode-quit-hook 'ns/org-present-quit))
 
-;; standalone capture experience
-(defun! ns/org-capture-popup ()
-  (ns/shell-exec-dontcare "popup_window.sh -r")
-  (select-frame (make-frame '((name . "org-protocol-capture"))))
-  (org-capture))
+;; allow shell blocks in org mode to be executed:
+(org-babel-do-load-languages 'org-babel-load-languages
+  '((shell . t)))
 
-;; cf https://fuco1.github.io/2017-09-02-Maximize-the-org-capture-buffer.html
-(defvar ns/my-org-capture-before-config nil)
+;; EG, call with org-babel-execute-src-block on:
+;; the ':results output silent' means don't insert into the buffer
+;; #+begin_src sh :results output silent
+;; <code to execute>
+;; #+end_src
+(ns/bind-mode 'org "e"
+  (fn! (when (org-in-src-block-p)
+         ;; living dangerously
+         (let ((org-confirm-babel-evaluate (fn nil)))
+           (org-babel-execute-src-block)))))
 
-(defadvice org-capture (before save-config activate)
-  "Save the window configuration before `org-capture'."
-  (setq ns/my-org-capture-before-config (current-window-configuration)))
+;; load org-capture tweaks
+(ns/org-capture)
 
-(add-hook 'org-capture-mode-hook 'delete-other-windows)
+;; style
+(add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
+(add-hook 'org-mode-hook 'flyspell-mode)
+(add-hook 'org-mode-hook 'olivetti-mode)
 
-(defun my-org-capture-cleanup ()
-  "Clean up the frame created while capturing via org-protocol."
-  (when ns/my-org-capture-before-config
-    (set-window-configuration ns/my-org-capture-before-config))
+(defun! ns/style-org ()
+  (ns/set-faces-monospace '(org-block
+                             org-code
+                             org-table
+                             org-macro
+                             org-formula
+                             org-verbatim
+                             company-tooltip
+                             company-tooltip-common
+                             company-tooltip-selection
+                             org-block-begin-line
+                             org-block-end-line
+                             ))
 
-  (-when-let ((&alist 'name name) (frame-parameters))
-    (when (equal name "org-protocol-capture")
-      (delete-frame))))
+  ;; smol
+  (set-face-attribute 'org-block-begin-line nil :height 65)
+  (set-face-attribute 'org-block-end-line nil :height 65)
 
-(add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
+  (set-face-attribute 'org-link nil :underline t)
+  ;; (set-face-attribute 'org-link nil :foreground nil)
+  ;; (set-face-attribute 'underline nil :underline t)
 
-(setq org-archive-subtree-save-file-p t) ; save target buffer after archiving
+  (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
+    (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
+    (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
+    (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
+    (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold))
+
+  (dolist (b (ns/buffers-by-mode 'org-mode))
+    (with-current-buffer b
+      (ns/set-buffer-face-variable))))
+
+(ns/bind
+  "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
+                     (project-notes (if buffer-file-name
+                                      (concat (projectile-root-bottom-up buffer-file-name) "notes.org") org-default-notes-file)))
+               ;; todo: this doesn't work if the notes file isn't already open? what?
+               (ns/find-or-open (if (and (f-exists-p project-notes)
+                                      (not (string= buffer-file-name project-notes)))
+                                  project-notes org-default-notes-file))))
+  "of" 'ns/org-goto-active
+
+  "oc" (fn! (if (use-region-p)
+              (ns/capture-current-region)
+              (org-capture)))
+
+  ;; "or" 'org-refile
+  "ol" 'ns/make-org-link-to-here
+  ;; "om" 'ns/insert-mark-org-links
+  "ow" (fn! (widen) (recenter))
+  "on" 'org-narrow-to-subtree
+  "oa" 'org-agenda
+
+  ;; trash? idk
+  "ot" 'org-archive-subtree
+
+  "no" (fn! (counsel-org-goto-all)
+         (ns/org-jump-to-element-content)))
+
+(ns/bind-mode 'org
+  "or" (fn! (if (use-region-p)
+              (ns/capture-current-region)
+              (ns/capture-current-subtree)))
+
+  ;; "org move"
+  "om" 'org-refile
+
+  "op" 'org-pomodoro
+  )
+
+(ns/bind-leader-mode
+  'org
+  "," 'org-ctrl-c-ctrl-c
+  "t" 'org-todo
+  "T" 'org-show-todo-tree
+  "v" 'org-mark-element
+  "a" 'org-agenda
+  ;; todo: want a "jump to parent"
+  "f" 'ns/org-set-unique-property
+  "F" (fn! (ns/org-set-unique-property (read-string "property name: ")))
+  "s" 'org-schedule
+  )
+
+(add-to-list 'auto-mode-alist '("qutebrowser-editor-" . org-mode))

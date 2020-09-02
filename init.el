@@ -97,7 +97,6 @@
   ;; typescript
   markdown
   powershell
-  lua
   ;; guix
   ;; lsp
   ;; terraform

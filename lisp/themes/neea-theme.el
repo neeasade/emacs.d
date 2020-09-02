@@ -258,8 +258,6 @@
   ;;   (ht-transform-v ns/theme)
   ;;   (setq ns/theme))
 
-  ;; (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten))
-
   ;; shorten all the colors, because they are also used in EG org exports
   (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
 

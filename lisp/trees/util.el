@@ -262,9 +262,6 @@
 ;; initially went to steal but turned out to be many functions to steal
 (use-package crux)
 
-;; Might be a little too unstable for util.el
-(ns/use-package org-ml "ndwarshuis/org-ml" :config (require 'org-ml))
-
 (ns/bind
   "qf" 'ns/what-face
   "qm" 'ns/what-major-mode
