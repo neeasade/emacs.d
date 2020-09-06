@@ -77,6 +77,7 @@
 
   ;; todo: consider note option here.
   log-done 'time
+
   ;; log state into drawer instead of inserting a list under the heading
   log-into-drawer t
 
@@ -260,7 +261,6 @@
     "E" 'org-agenda-priority-up
     )
 
-  ;; todo: consider mapping: org-insert-todo-heading
   (general-define-key
     :states '(normal insert)
     :keymaps 'org-mode-map
@@ -268,7 +268,10 @@
     (kbd "C-t") 'org-shiftmetaright
     (kbd "C-d") 'org-shiftmetaleft
     (kbd "C-S-T") 'org-metaright
-    (kbd "C-S-D") 'org-metaleft)
+    (kbd "C-S-D") 'org-metaleft
+    (kbd "M-e") 'org-metaup
+    (kbd "M-n") 'org-metadown
+    )
 
   (general-define-key
     :states 'normal

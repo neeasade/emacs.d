@@ -154,6 +154,16 @@
 
 ;; (remove-hook 'proced-mode-hook 'ns/proced-init)
 
+(defun p-proced-format-args (oldformat &rest args)
+  (let ((args (mapcar (lambda (arg)
+                        (replace-regexp-in-string "/nix/store/[^/]+"
+                          "{nix}"
+                          arg))
+                args)))
+    (apply oldformat args)))
+
+(advice-add #'proced-format-args :around #'p-proced-format-args)
+
 (ns/bind
   "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
   "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))

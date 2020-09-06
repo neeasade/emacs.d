@@ -390,9 +390,6 @@
 ;; (ns/use-package org-super-agenda "alphapapa/org-super-agenda")
 ;; (require 'org-super-agenda)
 
-;; todo: timer to check if you have an active intent
-;; make sure you are clocked into /something/ to start tracking things
-
 (named-timer-run :harass-myself
   t
   (* 3 60)
