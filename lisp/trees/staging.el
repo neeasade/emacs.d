@@ -1,20 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-;; examples of kinds handled:
-;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10:2
-;; /home/neeasade/.vimrc:50
-;; /home/neeasade/:10
-;; =~/.local/share/fonts/=
-;; org links (so you can use org link types here)
-;; [[file:/home/neeasade/.vimrc::50]]
-
-;; todo:
-;; could add the handling for this in handle-potential-file-link
-;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
-
-;; todo: handle the bash/shell line number format:
-;; /home/neeasade/.wm_theme: line 155:
-
 ;; give me org-open-link-from-string
 (require 'org)
 
@@ -55,10 +40,6 @@
              (format "[[file:%s]]" file))
            t)))))
 
-;; (ns/handle-potential-file-link (~ ".vimrrc"))
-;; (ns/make-org-link (~ ".vimrc:50:2"))
-;; (org-link-open-from-string )
-
 (defun ns/follow-log (msg)
   (message msg))
 
@@ -66,6 +47,21 @@
   "This is my home rolled DWIM at point function -- maybe it could be considered to be 'bad hyperbole'
    Tries to integrate a few meta solutions
    org link --> our own peek where we build an org file link --> jump to definition with smart-jump"
+
+  ;; examples of kinds handled:
+  ;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10:2
+  ;; /home/neeasade/.vimrc:50
+  ;; /home/neeasade/:10
+  ;; =~/.local/share/fonts/=
+  ;; org links (so you can use org link types here)
+  ;; [[file:/home/neeasade/.vimrc::50]]
+
+  ;; todo:
+  ;; could add the handling for this in handle-potential-file-link
+  ;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
+
+  ;; todo: handle the bash/shell line number format:
+  ;; /home/neeasade/.wm_theme: line 155:
 
   (or
     ;; first try to open with org handling (includes urls)
@@ -137,9 +133,7 @@
       (ns/follow-log "ns/follow: resolving with smart-jump-go")
       (shut-up (smart-jump-go))))
 
-  (recenter)
-  )
-
+  (recenter))
 
 (ns/bind "nn" 'ns/follow)
 
@@ -158,7 +152,6 @@
 (ns/make-char-table ns/widechar-table ?Ａ ?ａ)
 (ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
 (ns/make-char-table ns/cursive-table ?𝓐 ?𝓪)
-
 
 ;; todo: make all these circe functions
 (defun ns/text-to-cursive (beg end) (interactive "r")
@@ -277,8 +270,7 @@
   ;; relative times are.. strings? cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Timers.html
   "30 sec"
   (* 5 60)
-  (fn (when (> ;; PUNS
-              (second (current-idle-time))
+  (fn (when (> (org-user-idle-seconds)
               (* 5 60))
         (garbage-collect)
 
@@ -314,7 +306,9 @@
                         )
                       "\""))
             (comint-send-input))
-          (t (insert dir)))))))
+          ;; (t (insert dir))
+          (t (dired dir))
+          )))))
 
 (use-package theme-magic)
 (defun ns/emacs-to-theme ()
@@ -398,20 +392,17 @@
 
 ;; todo: timer to check if you have an active intent
 ;; make sure you are clocked into /something/ to start tracking things
+
 (named-timer-run :harass-myself
   t
   (* 3 60)
   (fn
-    (when (< (second (current-idle-time)) 120)
-      (alert (let ((reminders
-                     (org-ql-select org-default-notes-file
-                       '(tags "reminders")
-                       :action '(s-clean (org-get-heading t t)))
-                     ))
-               (nth (random (length reminders)) reminders))
-        :severity 'normal
-        :title "*Reminder*"
-        ))))
+    ;; when you're not idle
+    (when (< (org-user-idle-seconds) 120)
+      ;; and not clocked into anything
+      (when (not (org-clocking-p))
+        ;; llet [current-task-text (with-current-buffer (find-file-noselect org-default-notes-file) (save-excursion (org-ml-parse-headline-at (ns/org-get-active-point))))]
+        (alert "Hey! you should be clocked into something." :severity 'normal)))))
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
