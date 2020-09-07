@@ -397,7 +397,8 @@
     ;; when you're not idle
     (when (< (org-user-idle-seconds) 120)
       ;; and not clocked into anything
-      (when (not (org-clocking-p))
+      (when (and (not (org-clocking-p))
+              (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
         ;; llet [current-task-text (with-current-buffer (find-file-noselect org-default-notes-file) (save-excursion (org-ml-parse-headline-at (ns/org-get-active-point))))]
         (alert "Hey! you should be clocked into something." :severity 'normal)))))
 

@@ -166,8 +166,10 @@
     (ns/toggle-music-pause)
     (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME"))
 
+  (add-hook 'org-pomodoro-extend-last-clock 'ns/pomodoro-start-hook)
   (add-hook 'org-pomodoro-started-hook 'ns/pomodoro-start-hook)
   (add-hook 'org-pomodoro-finished-hook 'ns/pomodoro-finish-hook)
+  (add-hook 'org-pomodoro-killed-hook 'ns/pomodoro-finish-hook)
   (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play))
 
 (defun ns/org-jump-to-element-content ()

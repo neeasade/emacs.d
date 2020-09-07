@@ -99,6 +99,12 @@
       (replace-match "" t t string 0))
     string))
 
+(defun ns/monitor-exit-sentinel (process change)
+  "delete a frame if it only has a single window with no process"
+  (when (equal change "finished\n")
+    (when (eq 1 (-> (selected-frame) (window-list) (length)))
+      (delete-frame))))
+
 (defun ns/shell-mode-init ()
   (shell-dirtrack-mode nil)
   (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t)
@@ -107,7 +113,11 @@
   (setq-local shell-font-lock-keywords
     (-remove
       (fn (s-ends-with-p "]+:.*" (car <>)))
-      shell-font-lock-keywords)))
+      shell-font-lock-keywords))
+
+  (add-function :after
+    (process-sentinel (get-buffer-process (current-buffer)))
+    #'ns/monitor-exit-sentinel))
 
 (add-hook 'shell-mode-hook 'ns/shell-mode-init)
 
