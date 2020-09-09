@@ -293,14 +293,12 @@
           )
 
         (with-current-buffer "*circe-highlight*"
-          ;; I could not get the (alert :persistent t keyword to work)
-          (let ((alert-fade-time 0))
-            (alert
-              (concat "<" poster "> " body)
-              ;; body
-              :severity 'normal
-              :title channel
-              ))
+          (alert!
+            (concat "<" poster "> " body)
+            ;; body
+            :severity 'normal
+            :title channel
+            )
 
           (save-restriction
             (widen)

@@ -117,7 +117,12 @@
 
 (use-package alert
   :config (setq alert-default-style
-            (if ns/enable-windows-p 'toaster 'libnotify)))
+            (if ns/enable-windows-p 'toaster 'libnotify))
+
+  ;; I could not get the (alert :persistent t keyword to work)
+  (defun alert! (&rest alert-args)
+    (let ((alert-fade-time 0))
+      (apply 'alert alert-args))))
 
 (use-package which-key
   :config

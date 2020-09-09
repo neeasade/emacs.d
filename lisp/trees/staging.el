@@ -400,7 +400,10 @@
       (when (and (not (org-clocking-p))
               (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
         ;; llet [current-task-text (with-current-buffer (find-file-noselect org-default-notes-file) (save-excursion (org-ml-parse-headline-at (ns/org-get-active-point))))]
-        (alert "Hey! you should be clocked into something." :severity 'normal)))))
+        (alert! "Hey! you should be clocked into something."
+          :severity 'normal
+          :title "TIME"
+          )))))
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
