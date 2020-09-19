@@ -160,11 +160,24 @@
 
   (defun ns/pomodoro-start-hook ()
     (ns/toggle-music-play)
-    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_PAUSE"))
+    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_PAUSE")
+    ;; turn off distracting websites
+    ;; list stolen from https://raw.githubusercontent.com/viccherubini/get-shit-done/master/sites.ini
+    ;; and extended a little bit
+    (->>
+      "lobste.rs, nixers.net, reddit.com, www.reddit.com, web.telegram.org, forums.somethingawful.com, somethingawful.com, digg.com, break.com, news.ycombinator.com, infoq.com, bebo.com, twitter.com, facebook.com, blip.com, youtube.com, vimeo.com, delicious.com, flickr.com, friendster.com, hi5.com, linkedin.com, livejournal.com, meetup.com, myspace.com, plurk.com, stickam.com, stumbleupon.com, yelp.com, slashdot.org, plus.google.com, hckrnews.com, kongregate.com, newgrounds.com, addictinggames.com, hulu.com"
+      (s-split ", ")
+      (-map (lambda (s) (format "0.0.0.0 %s" s)))
+      (s-join "\n")
+      ((lambda (content)
+         (f-write content 'utf-8 (~ ".config/qutebrowser/adblock.txt")))))
+    (ns/shell-exec-dontcare "qb_command :adblock-update"))
 
   (defun ns/pomodoro-finish-hook ()
     (ns/toggle-music-pause)
-    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME"))
+    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME")
+    (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
+    (ns/shell-exec-dontcare "qb_command :adblock-update"))
 
   (add-hook 'org-pomodoro-extend-last-clock 'ns/pomodoro-start-hook)
   (add-hook 'org-pomodoro-started-hook 'ns/pomodoro-start-hook)

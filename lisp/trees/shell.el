@@ -102,8 +102,9 @@
 (defun ns/monitor-exit-sentinel (process change)
   "delete a frame if it only has a single window with no process"
   (when (equal change "finished\n")
-    (when (eq 1 (-> (selected-frame) (window-list) (length)))
-      (delete-frame))))
+    (if (eq 1 (-> (selected-frame) (window-list) (length)))
+      (delete-frame)
+      (delete-window))))
 
 (defun ns/shell-mode-init ()
   (shell-dirtrack-mode nil)
