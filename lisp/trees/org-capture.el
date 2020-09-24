@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; standalone capture experience
 (defun! ns/org-capture-popup ()
   (ns/shell-exec-dontcare "popup_window.sh -r")
