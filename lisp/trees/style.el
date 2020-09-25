@@ -62,6 +62,10 @@
 ;; gave up and extending here:
 (let ((base16-tweaks
         `(
+           (avy-lead-face :background :accent1_)
+           (avy-lead-face-0 :background :accent1)
+           (avy-lead-face-2 :background :accent2)
+
            ;; face pace-part value
            ;; value may be a key from ns/theme
            (font-lock-comment-delimiter-face :foreground :foreground_)
