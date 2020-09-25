@@ -26,6 +26,46 @@
 
 (add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
 
+(defun ns/org-find-olp (&rest args)
+  "a soft version of org-find-olp which doesn't throw"
+  (condition-case msg
+    (apply 'org-find-olp args)
+    (error
+      ;; show what went wrong:
+      ;; (nth 1 msg)
+      nil)))
+
+(defun ns/make-org-tree (filename &rest headings)
+  ;; ensure the first heading exists
+  (when (not (ns/org-find-olp `(,filename ,(car headings))))
+    ;; just add it to the bottom of the file
+    (save-window-excursion
+      (find-file filename)
+      (goto-char (point-max))
+      (insert (format "\n* %s" (car headings)))))
+
+  (let ((full-path '())
+         (full-paths '()))
+    (-each headings (lambda (part)
+                      (setq full-path (-snoc full-path part))
+                      (setq full-paths (-snoc full-paths full-path))))
+    (setq full-paths (-map (lambda (path) (cons filename path)) full-paths))
+    (setq full-paths (-drop 1 full-paths))
+
+    ;; now for each potential path, go to it, and maybe create a child.
+    ;; full-paths
+    (save-window-excursion
+      (find-file filename)
+      (-each full-paths
+        (lambda (path)
+          ;; assume the parent exists, go there
+          (goto-char (marker-position (org-find-olp (-drop-last 1 path))))
+          ;; check if the current child exists, if not, make it
+          (when (not (ns/org-find-olp path))
+            (org-insert-heading-respect-content)
+            (org-demote-subtree)
+            (insert (car (last path)))))))))
+
 (ns/use-package org-doct "progfolio/doct"
   :config
   (require 'doct))
@@ -90,7 +130,16 @@
         (-map 'org-ml-headline-get-path)
         (-map 'last)
         -flatten))
-    "no notes file here"))
+    ;; "no notes file here"
+    nil
+    ))
+
+;; ensure capture hierarchy exists for capture targets
+(-map
+  (lambda (heading)
+    (-map (fn (ns/make-org-tree org-default-notes-file "projects" heading <>))
+      '("captures" "notes" "tasks")))
+  ns/org-capture-project-list)
 
 ;; todo: follow up on this idea, maybe blend qutebrowser quickmarks
 ;; (ns/use-package linkmarks "dustinlacewell/linkmarks"
