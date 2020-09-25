@@ -167,7 +167,6 @@
     (->>
       "lobste.rs, nixers.net, old.reddit.com, reddit.com, www.reddit.com, web.telegram.org, forums.somethingawful.com, somethingawful.com, digg.com, break.com, news.ycombinator.com, infoq.com, bebo.com, api.twitter.com, twitter.com, facebook.com, blip.com, youtube.com, vimeo.com, delicious.com, flickr.com, friendster.com, hi5.com, linkedin.com, livejournal.com, meetup.com, myspace.com, plurk.com, stickam.com, stumbleupon.com, yelp.com, slashdot.org, plus.google.com, hckrnews.com, kongregate.com, newgrounds.com, addictinggames.com, hulu.com"
       (s-split ", ")
-      (-map (lambda (s) (format "0.0.0.0 %s" s)))
       (s-join "\n")
       ((lambda (content)
          (f-write content 'utf-8 (~ ".config/qutebrowser/adblock.txt")))))
