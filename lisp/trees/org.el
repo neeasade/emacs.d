@@ -462,12 +462,19 @@
   "ot" 'org-archive-subtree
 
   ;; this is just a nice homerow roll on my layout
+
+  ;; clock into the current headline, clocking out of what's running
   "oi" (fn!
          (when (org-clock-is-active)
-           (org-clock-out))
+           (if (org-pomodoro-active-p)
+             (org-pomodoro)
+             (org-clock-out)))
          (org-clock-in))
 
-  "oI" 'org-clock-out
+  ;; cancel org-pomodoro or a clocked in task
+  "oI" (fn! (if (org-pomodoro-active-p)
+              (org-pomodoro)
+              (org-clock-out)))
 
   "no" (fn! (counsel-org-goto-all)
          (ns/org-jump-to-element-content)))
