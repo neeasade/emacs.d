@@ -80,6 +80,8 @@
   deadgrep
   elasticsearch
   graphiz
+
+  follow-dwim
   )
 
 (ns/compose

@@ -13,7 +13,7 @@
   circe-default-realname ns/irc-nick)
 
 
-(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "bspwm" "emacs " "clojure" " nix "))
+(setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "nessie" "bspwm" "emacs " "clojure" " nix "))
 
 (setq-ns lui
   logging-directory (~ ".ircnew")
@@ -66,15 +66,15 @@
                      )
          )
 
-       ("tildechat"
-         :nick ,ns/irc-nick
-         :host "na.tilde.chat"
-         :port 6697
-         :tls t
-         :nickserv-password ,(pass "tilde.chat")
-         ;; https://tilde.chat/stats/
-         :channels ("#club" "#meta")
-         )
+       ;; ("tildechat"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "na.tilde.chat"
+       ;;   :port 6697
+       ;;   :tls t
+       ;;   :nickserv-password ,(pass "tilde.chat")
+       ;;   ;; https://tilde.chat/stats/
+       ;;   :channels ("#club" "#meta")
+       ;;   )
 
        ("Cyberia"
          :nick ,ns/irc-nick
@@ -684,9 +684,8 @@
     (goto-char (point-max))
     (if sayer
       ;; the propertize is so the text isn't read only
-      (insert (propertize (format "> %s: %s" sayer (s-trim quote-text)) 'read-only nil))
-      (insert (propertize (format "> %s" sayer (s-trim quote-text)) 'read-only nil))
-      )))
+      (insert (propertize (format "<%s>: %s" sayer (s-trim quote-text)) 'read-only nil))
+      (insert (propertize (format "> %s" (s-trim quote-text)) 'read-only nil)))))
 
 (ns/bind-mode 'circe-channel
   "qc" 'ns/circe-count-nicks-message

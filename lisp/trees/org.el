@@ -32,6 +32,9 @@
   ;; all the files in our org directory
   (f-entries org-directory (fn (s-ends-with-p ".org" <>))  t)
 
+  ;; weeks start on mondays
+  agenda-start-on-weekday 1
+
   ellipsis "--"
 
   adapt-indentation nil
@@ -246,6 +249,7 @@
           (format "\n%s : ~%s~\n"
             (s-pad-right 20 " " org-link)
             line-content))))))
+
 ;; putting in this file to make sure it's after org mode
 (when ns/enable-evil-p
   (ns/use-package evil-org "Somelauw/evil-org-mode")
@@ -383,10 +387,15 @@
 ;; <code to execute>
 ;; #+end_src
 (ns/bind-mode 'org "e"
-  (fn! (when (org-in-src-block-p)
-         ;; living dangerously
-         (let ((org-confirm-babel-evaluate (fn nil)))
-           (org-babel-execute-src-block)))))
+  (fn!
+    (cond
+      ((org-in-clocktable-p)
+        (org-clock-report))
+      ((org-in-src-block-p)
+        ;; living dangerously
+        (let ((org-confirm-babel-evaluate (fn nil)))
+          (org-babel-execute-src-block)))
+      )))
 
 ;; load org-capture tweaks
 (ns/org-capture)
@@ -451,6 +460,14 @@
 
   ;; trash? idk
   "ot" 'org-archive-subtree
+
+  ;; this is just a nice homerow roll on my layout
+  "oi" (fn!
+         (when (org-clock-is-active)
+           (org-clock-out))
+         (org-clock-in))
+
+  "oI" 'org-clock-out
 
   "no" (fn! (counsel-org-goto-all)
          (ns/org-jump-to-element-content)))

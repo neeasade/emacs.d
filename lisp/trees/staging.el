@@ -199,7 +199,7 @@
   (require 'flyspell-correct-avy-menu)
   (setq flyspell-correct-interface #'flyspell-correct-avy-menu))
 
-(define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
+(global-set-key (kbd "C-;") #'flyspell-correct-at-point)
 
 (named-timer-run :show-periodic-reminder
   t
@@ -254,10 +254,10 @@
 
 (named-timer-run :harass-myself
   t
-  (* 3 60)
+  60
   (fn
     ;; when you're not idle
-    (when (< (org-user-idle-seconds) 120)
+    (when (< (org-user-idle-seconds) 30)
       ;; and not clocked into anything
       (when (and (not (org-clocking-p))
               (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
@@ -319,8 +319,7 @@
     (when scheduled
       (ts<
         (ts-now)
-        (ts-parse-org (plist-get (cadr scheduled) :raw-value))
-        ))))
+        (ts-parse-org (plist-get (cadr scheduled) :raw-value))))))
 
 (ns/comment
   (ns/org-is-scheduled
