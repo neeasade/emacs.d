@@ -684,7 +684,7 @@
     (goto-char (point-max))
     (if sayer
       ;; the propertize is so the text isn't read only
-      (insert (propertize (format "<%s>: %s" sayer (s-trim quote-text)) 'read-only nil))
+      (insert (propertize (format "<%s> %s" sayer (s-trim quote-text)) 'read-only nil))
       (insert (propertize (format "> %s" (s-trim quote-text)) 'read-only nil)))))
 
 (ns/bind-mode 'circe-channel

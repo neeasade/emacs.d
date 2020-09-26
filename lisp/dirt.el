@@ -48,9 +48,11 @@
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
 
-;; alias/clojure
 (defalias 'first 'car)
+(defalias 'second 'cadr)
+(defalias 'third 'caddr)
 
+;; alias/clojure
 (defalias 'prn 'prin1-to-string)
 (defalias '-join '-interpose)
 

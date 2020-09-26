@@ -168,9 +168,8 @@
     ;; list stolen from https://raw.githubusercontent.com/viccherubini/get-shit-done/master/sites.ini
     ;; and extended a little bit
     (->>
-      "lobste.rs, nixers.net, old.reddit.com, reddit.com, www.reddit.com, web.telegram.org, forums.somethingawful.com, somethingawful.com, digg.com, break.com, news.ycombinator.com, infoq.com, bebo.com, api.twitter.com, twitter.com, facebook.com, blip.com, youtube.com, vimeo.com, delicious.com, flickr.com, friendster.com, hi5.com, linkedin.com, livejournal.com, meetup.com, myspace.com, plurk.com, stickam.com, stumbleupon.com, yelp.com, slashdot.org, plus.google.com, hckrnews.com, kongregate.com, newgrounds.com, addictinggames.com, hulu.com"
-      (s-split ", ")
-      (s-join "\n")
+      "lobste.rs, nixers.net, old.reddit.com, reddit.com, www.reddit.com, web.telegram.org, forums.somethingawful.com, somethingawful.com, digg.com, break.com, news.ycombinator.com, infoq.com, bebo.com, api.twitter.com, zulipchat.com, twitter.com, facebook.com, blip.com, youtube.com, vimeo.com, delicious.com, flickr.com, friendster.com, hi5.com, linkedin.com, livejournal.com, meetup.com, myspace.com, plurk.com, stickam.com, stumbleupon.com, yelp.com, slashdot.org, plus.google.com, hckrnews.com, kongregate.com, newgrounds.com, addictinggames.com, hulu.com"
+      (s-replace ", " "\n")
       ((lambda (content)
          (f-write content 'utf-8 (~ ".config/qutebrowser/adblock.txt")))))
     (ns/shell-exec-dontcare "qb_command :adblock-update"))
@@ -187,6 +186,7 @@
   (add-hook 'org-pomodoro-killed-hook 'ns/pomodoro-finish-hook)
   (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play))
 
+;; todo: there's a bug in this -- if a heading is the last line of a file, we should insert a newline
 (defun ns/org-jump-to-element-content ()
   "Jump from a anywhere in a headline to the start of it's content"
   ;; org mode is cursed

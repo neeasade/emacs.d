@@ -262,7 +262,8 @@
       (when (and (not (org-clocking-p))
               (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
         ;; llet [current-task-text (with-current-buffer (find-file-noselect org-default-notes-file) (save-excursion (org-ml-parse-headline-at (ns/org-get-active-point))))]
-        (alert! "Hey! you should be clocked into something."
+        (alert! (format "Hey! you should be clocked into something. %s"
+                  (random))
           :severity 'normal
           :title "TIME"
           )))))
@@ -314,26 +315,77 @@
 ;;         nil 'tree))
 ;;     (reverse drill-sections)))
 
-(defun ns/org-is-scheduled (heading)
+(defun ns/org-scheduled-today (heading)
+  "get headings scheduled from <now - 2hrs> ==> end of day"
   (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
     (when scheduled
-      (ts<
-        (ts-now)
+      (let (scheduled-value )
+        (ts-in
+          (ts-adjust 'hour -2 (ts-now))
+          (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
+          (ts-parse-org (plist-get (cadr scheduled) :raw-value)))))))
+
+(defun ns/org-scheduled-future (heading)
+  (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
+    (when scheduled
+      (ts< (ts-now)
         (ts-parse-org (plist-get (cadr scheduled) :raw-value))))))
 
+;; track headlines to notification status
+(when (not (boundp 'ns/org-notify-ht))
+  (setq ns/org-notify-ht (ht)))
+
+;; <2020-09-26 Sat 13:22> this will probably not scale well.
+;; seeing ~0.5 secs on a relatively small org notes file (~2k lines, 300 headings)
+;; the dependency is all ~org-ml-get-subtrees~
+;; this is similar a manual version of the package org-wild-notifier
+;; the main difference is instead of leveraging the agenda we do it ourselves
+(defun ns/org-notify ()
+  (with-current-buffer (find-file-noselect org-default-notes-file)
+    (->> (org-ml-get-subtrees)
+	    (org-ml-match '(:any * (:pred ns/org-scheduled-today)))
+      ;; map headline text to scheduled timestamps
+      (-map (fn (list (-> <> cadr cadr)
+                  (--> <>
+                    (org-ml-headline-get-planning it)
+                    (cadr it)
+                    (plist-get it :scheduled)
+                    (cadr it)
+                    (plist-get it :raw-value)
+                    (ts-parse-org it)))))
+      ;; process notifications
+      (-map
+        (lambda (pair)
+          (destructuring-bind (headline timestamp) pair
+            ;; ensure we're tracking the headline
+            (when (not (ht-contains? ns/org-notify-ht headline))
+              (ht-set! ns/org-notify-ht headline nil))
+
+            (when (and
+                    (not (ht-get ns/org-notify-ht headline))
+                    (ts> (ts-now)
+                      (ts-adjust 'minute -3 timestamp)))
+              (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME")
+              (alert! headline
+                :severity 'normal
+                :title (ts-format "%l:%M %p" timestamp))
+              (ht-set! ns/org-notify-ht headline t))))))))
+
+(named-timer-run :org-notify-scheduled t 60 'org-notify)
+
 (ns/comment
-  (ns/org-is-scheduled
-    (with-current-buffer (find-file-noselect org-default-notes-file)
-      (->> (org-ml-get-subtrees)
-        (first)))))
+  (with-current-buffer (find-file-noselect org-default-notes-file)
+    (-map 'ns/org-is-scheduled (org-ml-get-subtrees)))
+
+  (with-current-buffer (find-file-noselect org-default-notes-file)
+    (-map 'ns/org-scheduled-today (org-ml-get-subtrees)))
+  )
 
 (defun ns/export-scheduled-org-headings ()
   (with-current-buffer (find-file-noselect org-default-notes-file)
     (->> (org-ml-get-subtrees)
-      ;; something better than 'TODO' might be "scheduled for later than today"
-      ;; I think orgql has that /exact/ example in their readme..
-	    ;; (org-ml-match '((:todo-keyword "TODO")))
-	    (org-ml-match '(:many (:pred ns/org-is-scheduled)))
+	    (org-ml-match '(:any * (:pred ns/org-scheduled-future)))
       (-map 'org-ml-to-string)
       (s-join "\n"))))
 
+;; (ns/export-scheduled-org-headings)

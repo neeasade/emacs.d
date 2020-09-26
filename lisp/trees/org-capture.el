@@ -122,10 +122,11 @@
 (setq ns/org-capture-project-list
   (if (f-exists-p org-default-notes-file)
     (with-current-buffer (find-file-noselect org-default-notes-file)
+      ;; todo: if there is no heading with a projects property, this breaks
       (->> (org-find-property "projects")
         (org-ml-parse-subtree-at)
         ;; (org-ml-parse-headline-at )
-	      (org-ml-get-children)
+	    (org-ml-get-children)
         cdr
         (-map 'org-ml-headline-get-path)
         (-map 'last)
