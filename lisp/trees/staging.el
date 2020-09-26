@@ -364,6 +364,7 @@
             (when (and
                     (not (ht-get ns/org-notify-ht headline))
                     (ts> (ts-now)
+                      ;; get notified in advance
                       (ts-adjust 'minute -3 timestamp)))
               (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME")
               (alert! headline
@@ -371,7 +372,12 @@
                 :title (ts-format "%l:%M %p" timestamp))
               (ht-set! ns/org-notify-ht headline t))))))))
 
-(named-timer-run :org-notify-scheduled t 60 'org-notify)
+(ns/comment
+  (setq ns/org-notify-ht (ht))
+  (ns/org-notify)
+  )
+
+(named-timer-run :org-notify-scheduled t 60 'ns/org-notify)
 
 (ns/comment
   (with-current-buffer (find-file-noselect org-default-notes-file)
