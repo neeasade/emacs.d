@@ -85,8 +85,27 @@
            ;; (org-link :foreground :accent1_)
            ;; (font-lock-type-face :foreground :accent1)
 
-           (org-todo :background nil)
+           (org-todo :background :background_)
+           (org-done :background :background_)
+
+           (org-todo :foreground :accent2_)
+           (org-done :foreground :accent2)
+
            (org-date :underline nil)
+           (org-date :foreground :accent1_)
+
+           (org-drawer :foreground :accent1_)
+           (org-block-begin-line :foreground :foreground_)
+           (org-block-end-line :foreground :foreground_)
+
+           (org-level-1 :foreground :foreground)
+           (org-level-2 :foreground :foreground)
+           (org-level-3 :foreground :foreground)
+           (org-level-4 :foreground :foreground)
+
+           (org-headline-done :foreground :foreground)
+           (org-headline-done :background nil)
+           (org-special-keyword :foreground :foreground_)
 
            (whitespace-space :background nil)
            (whitespace-tab :background nil)
