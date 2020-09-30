@@ -111,7 +111,7 @@
 (ns/compose
   communication
 
-  irc 
+  ;; irc
   email
   rss
   )

@@ -40,6 +40,7 @@
 (use-package shut-up)
 (require 'seq)
 (require 'cl-macs)
+(require 'cl-seq)
 (require 'man)
 
 (use-package named-timer)

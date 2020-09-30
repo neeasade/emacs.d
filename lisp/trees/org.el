@@ -446,6 +446,9 @@
                                       (not (string= buffer-file-name project-notes)))
                                   project-notes org-default-notes-file))))
   "of" 'ns/org-goto-active
+  "oF" (fn!
+         (org-clock-out)
+         (ns/org-goto-active))
 
   "oc" (fn! (if (use-region-p)
               (ns/capture-current-region)

@@ -176,7 +176,7 @@
 
 ;; todo: maybe ensure a same order here - buffer-list order can vary
 (defun ns/buffers-by-mode (&rest modes)
-  (remove-if-not
+  (cl-remove-if-not
     (fn (-contains-p modes (buffer-local-value 'major-mode <>)))
     (buffer-list)))
 
