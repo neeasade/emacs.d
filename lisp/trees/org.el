@@ -431,7 +431,9 @@
     (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
     (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
     (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
-    (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold))
+    (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
+    (set-face-attribute 'org-level-5 nil :height height :weight 'semi-bold)
+    )
 
   (dolist (b (ns/buffers-by-mode 'org-mode))
     (with-current-buffer b

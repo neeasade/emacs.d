@@ -21,21 +21,21 @@
      ("Emacs.padding_source" . "st") ;; font or st
      ("st.borderpx"          . "10")
      ;; default to whatever loads
-     ("st.font"              . ,(font-get (face-attribute 'default :font) :name))
-     ("st.font_variable"     . ,(font-get (face-attribute 'default :font) :name))
-     ))
+     ("st.font"              .
+       ,(when (not (string-equal "unspecified" (font-get (face-attribute 'default :font) :name)))
+          (font-get (face-attribute 'default :font) :name)))
+     ("st.font_variable"     .
+       ,(when (not (string-equal "unspecified" (font-get (face-attribute 'default :font) :name)))
+          (font-get (face-attribute 'default :font) :name)))))
 
 (setq load-prefer-newer t)
 (load "~/.emacs.d/lisp/dirt.el")
 (load "~/.emacs.d/lisp/forest.el")
 
-(defmacro ns/load (&rest targets)
-  `(mapc (lambda(target)
-           (funcall (intern (concat "ns/" (prin1-to-string target)))))
-     ',targets))
-
 (defmacro ns/compose (name &rest targets)
-  `(defconfig ,name (ns/load ,@targets)))
+  `(defconfig ,name
+     ,@(-map (fn (list (intern (concat "ns/" (prin1-to-string <>)))))
+         targets)))
 
 (ns/compose
   core
@@ -116,30 +116,33 @@
   rss
   )
 
-;; liftoff
-(ns/load core extra development communication staging check-for-orphans)
+(if (getenv "NS_EMACS_BATCH")
+  ;; doing a batch job, eval some lisp, message the result
+  (-> "NS_EMACS_BATCH" getenv read eval prn message)
 
-(add-hook 'after-init-hook
-  (lambda ()
-    ;; Emacs is terribly slow on windows
-    (ns/toggle-bloat-global ns/enable-linux-p)
+  ;; normal MO:
+  (ns/load core extra development communication staging check-for-orphans)
+  (add-hook 'after-init-hook
+    (lambda ()
+      ;; Emacs is terribly slow on windows
+      (ns/toggle-bloat-global ns/enable-linux-p)
 
-    (run-with-idle-timer 2 t 'garbage-collect)
+      (run-with-idle-timer 2 t 'garbage-collect)
 
-    (->> recentf-list
-      (-filter (fn
-                 (and
-                   ;; tramp slow
-                   (not (file-remote-p <>))
-                   (not (s-ends-with-p "recentf" <>))
-                   (f-exists-p <>))))
-      (-take 6)
-      (mapc 'find-file))
+      (->> recentf-list
+        (-filter (fn
+                   (and
+                     ;; tramp slow
+                     (not (file-remote-p <>))
+                     (not (s-ends-with-p "recentf" <>))
+                     (f-exists-p <>))))
+        (-take 6)
+        (mapc 'find-file))
 
-    (when (f-exists-p (~ "extend.el"))
-      (load (~ "extend.el")))
+      (when (f-exists-p (~ "extend.el"))
+        (load (~ "extend.el")))
 
-    (ns/style)))
+      (ns/style))))
 
 (provide 'init)
 ;;; init.el ends here

@@ -300,9 +300,9 @@
     (cond
       ((= end start) (list start))
       ((> end start)
-        (loop for i from start below end collect i))
+        (cl-loop for i from start below end collect i))
       ((< end start)
-        (loop for i from start downto (+ 1 end) collect i)))))
+        (cl-loop for i from start downto (+ 1 end) collect i)))))
 
 (ns/comment
   (range 10)

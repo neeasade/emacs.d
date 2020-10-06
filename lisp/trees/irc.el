@@ -352,8 +352,7 @@
     (when (not (-contains-p '(join part quit) type))
       (setq nick (ns/circe-handle-say
                    (or nick "")
-                   (or body "")
-                   )))
+                   (or body ""))))
 
     ;; (setq nick (ns/circe-handle-say (or nick "") (or body "")))
 
