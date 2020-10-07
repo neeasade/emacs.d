@@ -330,6 +330,8 @@
                      org-level-2
                      org-level-3
                      org-level-4
+                     org-level-5
+                     org-level-6
                      org-block
                      org-code
                      org-table
@@ -433,6 +435,7 @@
     (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
     (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
     (set-face-attribute 'org-level-5 nil :height height :weight 'semi-bold)
+    (set-face-attribute 'org-level-6 nil :height height :weight 'semi-bold)
     )
 
   (dolist (b (ns/buffers-by-mode 'org-mode))

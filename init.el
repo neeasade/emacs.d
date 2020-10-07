@@ -123,7 +123,13 @@
     (-> "NS_EMACS_BATCH" getenv read eval prn message))
 
   ;; normal MO:
-  (ns/load core extra development communication staging check-for-orphans)
+  (ns/core)
+  (ns/extra)
+  (ns/development)
+  (ns/communication)
+  (ns/staging)
+  (ns/check-for-orphans)
+
   (add-hook 'after-init-hook
     (lambda ()
       ;; Emacs is terribly slow on windows

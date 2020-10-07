@@ -3,11 +3,6 @@
 ;; for fontifying src blocks
 (use-package htmlize)
 
-;; todo:
-;; - jump to most recently edited file (atime should be fine)
-;; - it's really slow right now
-;; (ns/blog-generate)
-
 ;; todo: check for conflicting html-destinations?
 
 (defun ns/blog-path (ext)
@@ -59,6 +54,7 @@
         (->> (-remove 'not items) (s-join " • "))
         "\n#+END_CENTER\n")))
 
+  (message (format "BLOG: generating meta for %s" path))
   (let* ((is-post
            (-contains-p (f-entries (ns/blog-path "posts") (fn (s-ends-with-p ".org" <>))) path))
           (last-edited
@@ -131,6 +127,7 @@
       (:is-draft post-is-draft)
       (:title post-title)
       (:publish-date published-date)
+      (:flyspell-status (ns/flyspell-string (s-join "\n" org-file-content)))
 
       (:rss-title
         (->> post-org-content-lines
@@ -148,10 +145,10 @@
                            (f-base path))
                       ;; this is crack code
                       ;; build a bunch of removers, compose them, apply to path
-                      (funcall (apply '-compose (mapcar (lambda (char) (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,")))
-                      )
-
-                    ))
+                      (funcall
+                        (apply '-compose
+                          (mapcar (lambda (char)
+                                    (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,"))))))
 
       (:edited-date last-edited)
       (:history-link history-link)
@@ -174,9 +171,10 @@
 
     (-map
       (fn (with-temp-buffer
-            (message (format "BLOG: making %s " (ht-get <> :path)))
-            (insert (ht-get <> :org-content))
-            (org-export-to-file 'html (ht-get <> :html-dest))))
+            (ht-with-context <>
+              (message (format "BLOG: making %s " :path))
+              (insert :content)
+              (org-export-to-file 'html :html-dest))))
       org-metas)
     ))
 
@@ -205,6 +203,16 @@
 
           ;; don't ask about generation when exporting
           (org-confirm-babel-evaluate (fn nil)))
+
+    ;; if any of the post or page metas have spelling errors, fail.
+    (when (-any (fn (not (ht-get <> :flyspell-status)))
+            (append org-post-metas org-page-metas))
+      (-map (fn (when (not (ht-get <> :flyspell-status))
+                  (message (format "spelling errors in %s" (ht-get <> :path)))))
+        (append org-post-metas org-page-metas))
+      (error "Spelling"))
+
+    (message "BLOG: making pages!")
     (ns/blog-generate-from-metas (append org-post-metas org-page-metas))
 
     (message "BLOG: making site rss!")
@@ -217,7 +225,6 @@
     (with-temp-buffer
       (insert (org-file-contents (ns/blog-path "rss/rss_full.org")))
       (org-export-to-file 'rss (ns/blog-path "site/rss_full.xml")))
-
     )
   t
   )
@@ -240,6 +247,12 @@
           (org-entry-put pom "CUSTOM_ID" id)
           (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
           id)))))
+
+(defun ns/flyspell-string (string)
+  (with-temp-buffer
+    (insert string)
+    (org-mode)
+    (flyspell-buffer)))
 
 (defun! ns/blog-enhance-headings ()
   "make headings links to themselves -- uses om.el to do so"

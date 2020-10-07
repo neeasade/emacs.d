@@ -66,15 +66,15 @@
                      )
          )
 
-       ;; ("tildechat"
-       ;;   :nick ,ns/irc-nick
-       ;;   :host "na.tilde.chat"
-       ;;   :port 6697
-       ;;   :tls t
-       ;;   :nickserv-password ,(pass "tilde.chat")
-       ;;   ;; https://tilde.chat/stats/
-       ;;   :channels ("#club" "#meta")
-       ;;   )
+       ("tildechat"
+         :nick ,ns/irc-nick
+         :host "na.tilde.chat"
+         :port 6697
+         :tls t
+         :nickserv-password ,(pass "tilde.chat")
+         ;; https://tilde.chat/stats/
+         :channels ("#club" "#meta")
+         )
 
        ("Cyberia"
          :nick ,ns/irc-nick
@@ -431,25 +431,56 @@
 ;; (defun ns/circe-map (type) (fn (ns/circe-format-all type <rest>)))
 ;; (ns/circe-map 'notice)
 
-(setq-ns circe-format
-  server-lurker-activity (fn (ns/circe-format-all 'say <rest>))
-  server-rejoin       (fn (ns/circe-format-all 'join <rest>))
+;; (macroexpand-1
+;;   (quote (lambda (&rest rest) (ns/circe-format-all 'join rest))
 
-  notice              (fn  (ns/circe-format-all 'notice      <rest>))
-  action              (fn  (ns/circe-format-all 'action     <rest>))
-  server-message      (fn  (ns/circe-format-all 'notice     <rest>))
-  self-action         (fn  (ns/circe-format-all 'action     <rest>))
-  say                 (fn  (ns/circe-format-all 'say        <rest>))
-  self-say            (fn  (ns/circe-format-all 'self-say   <rest>))
-  server-nick-change  (fn  (ns/circe-format-all 'nick-change <rest>))
-  server-join         (fn  (ns/circe-format-all 'join       <rest>))
-  server-part         (fn  (ns/circe-format-all 'part       <rest>))
-  server-quit         (fn  (ns/circe-format-all 'quit       <rest>))
-  server-topic        (fn  (ns/circe-format-all 'topic      <rest>))
-  server-quit-channel (fn  (ns/circe-format-all 'quit       <rest>))
-  server-mode-change  (fn  (ns/circe-format-all 'mode-change <rest>))
-  server-topic-time (fn  (ns/circe-format-all 'topic-time   <rest>))
-  )
+;;     )
+
+;;   )
+
+;; (symbolp (intern "arst"))
+
+(defmacro ns/set-circe-handler (kind target)
+  `(setq
+     ,(intern (format "circe-format-%s" kind))
+     (lambda (&rest rest)
+       (ns/circe-format-all ',target rest))))
+
+(ns/set-circe-handler lurker-activity     say)
+(ns/set-circe-handler rejoin              join)
+(ns/set-circe-handler notice              notice)
+(ns/set-circe-handler action              action)
+(ns/set-circe-handler server-message      notice)
+(ns/set-circe-handler self-action         action)
+(ns/set-circe-handler say                 say)
+(ns/set-circe-handler self-say            self-say)
+(ns/set-circe-handler server-nick-change  nick-change)
+(ns/set-circe-handler server-join         join)
+(ns/set-circe-handler server-part         part)
+(ns/set-circe-handler server-quit         quit)
+(ns/set-circe-handler server-topic        topic)
+(ns/set-circe-handler server-quit-channel quit)
+(ns/set-circe-handler server-mode-change  mode-change)
+(ns/set-circe-handler server-topic-time   topic-time)
+
+;; (setq-ns circe-format
+;;   server-lurker-activity (lambda (&rest args) (ns/circe-format-all 'say args))
+;;   server-rejoin       (fn (ns/circe-format-all 'join <rest>))
+;;   notice              (fn  (ns/circe-format-all 'notice      <rest>))
+;;   action              (fn  (ns/circe-format-all 'action     <rest>))
+;;   server-message      (fn  (ns/circe-format-all 'notice     <rest>))
+;;   self-action         (fn  (ns/circe-format-all 'action     <rest>))
+;;   say                 (fn  (ns/circe-format-all 'say        <rest>))
+;;   self-say            (fn  (ns/circe-format-all 'self-say   <rest>))
+;;   server-nick-change  (fn  (ns/circe-format-all 'nick-change <rest>))
+;;   server-join         (fn  (ns/circe-format-all 'join       <rest>))
+;;   server-part         (fn  (ns/circe-format-all 'part       <rest>))
+;;   server-quit         (fn  (ns/circe-format-all 'quit       <rest>))
+;;   server-topic        (fn  (ns/circe-format-all 'topic      <rest>))
+;;   server-quit-channel (fn  (ns/circe-format-all 'quit       <rest>))
+;;   server-mode-change  (fn  (ns/circe-format-all 'mode-change <rest>))
+;;   server-topic-time (fn  (ns/circe-format-all 'topic-time   <rest>))
+;;   )
 
 ;; cf: https://github.com/jorgenschaefer/circe/issues/298#issuecomment-262912703
 ;; Don't show names list upon joining a channel.
@@ -517,6 +548,11 @@
   (-intersection
     tracking-buffers
     (mapcar 'buffer-name (ns/buffers-by-mode 'circe-query-mode))))
+
+(mapcar 'buffer-name
+  (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)
+
+  )
 
 (defun! ns/jump-irc ()
   (let* ((irc-channels

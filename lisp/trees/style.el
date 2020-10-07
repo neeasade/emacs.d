@@ -102,6 +102,8 @@
            (org-level-2 :foreground :foreground)
            (org-level-3 :foreground :foreground)
            (org-level-4 :foreground :foreground)
+           (org-level-5 :foreground :foreground)
+           (org-level-6 :foreground :foreground)
 
            (org-headline-done :foreground :foreground)
            (org-headline-done :background nil)
@@ -111,6 +113,7 @@
            (whitespace-tab :background nil)
            ;; (whitespace-newline :background nil)
            (flycheck-warning :underline nil)
+           (flycheck-info :underline nil)
            )))
 
   ;; if we were doing this the /right/ rather than set face attributes we would
