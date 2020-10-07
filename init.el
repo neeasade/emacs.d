@@ -118,7 +118,9 @@
 
 (if (getenv "NS_EMACS_BATCH")
   ;; doing a batch job, eval some lisp, message the result
-  (-> "NS_EMACS_BATCH" getenv read eval prn message)
+  (progn
+    (ns/scripting)
+    (-> "NS_EMACS_BATCH" getenv read eval prn message))
 
   ;; normal MO:
   (ns/load core extra development communication staging check-for-orphans)

@@ -1,6 +1,4 @@
 ;; -*- lexical-binding: t; -*-
-(use-package pcre2el)
-
 (defun! ns/what-line ()
   (save-restriction
     (widen)

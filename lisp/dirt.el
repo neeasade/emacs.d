@@ -20,14 +20,15 @@
 (setq straight-cache-autoloads t)
 
 ;; elisp enhancers
-(use-package fn)    ; function
-(use-package s)     ; string
-(use-package f)     ; file
-(use-package ht)    ; hash table
-(use-package dash)  ; list
-(use-package a)     ; assoc lists
-(use-package async) ; async
-(use-package ts)    ; timestamps
+(use-package fn)      ; function
+(use-package s)       ; string
+(use-package f)       ; file
+(use-package ht)      ; hash table
+(use-package dash)    ; list
+(use-package a)       ; assoc lists
+(use-package async)   ; async
+(use-package ts)      ; timestamps
+(use-package pcre2el) ; sane regex
 
 ;; sometimes the above doesn't work
 ;; (ns/use-package ts "alphapapa/ts.el")    ; timestamps
