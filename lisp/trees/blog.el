@@ -165,7 +165,7 @@
 
          ;; affects timestamp export format
          ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
-         (org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %I:%M %p>"))
+         (org-time-stamp-custom-formats '("[%Y-%m-%d]" . "[%Y-%m-%d %I:%M %p]"))
          (org-display-custom-times t)
          )
 
@@ -252,7 +252,43 @@
   (with-temp-buffer
     (insert string)
     (org-mode)
-    (flyspell-buffer)))
+    (org-show-all)
+    (goto-char (point-min))
+    (flyspell-buffer)
+    ;; note: flyspell-buffer is weird. it only returns nil if the last word is misspelled.
+    (let ((result (flyspell-goto-next-error)))
+      (string-equal result "No more miss-spelled word!")
+      ;; (point)
+      )))
+
+(ns/comment
+  (ns/flyspell-string "\nsome valid words")
+
+  (ns/flyspell-string "\nsome invalidd words")
+
+  (ns/flyspell-string "\nsome invalid wordsss ")
+
+  ;; the case that is broken is if the last word is misspelled, that is it.
+  (ns/flyspell-string "\nsome invalid wordsss")
+
+  (insert (org-file-contents "/home/neeasade/git/neeasade.github.io/pages/test.org"))
+
+  (ns/flyspell-string
+    (org-file-contents "/home/neeasade/git/neeasade.github.io/pages/test.org")
+    )
+
+  (ns/flyspell-string
+    (s-join "\n"
+      (-map
+        ;; call our custom hsep macro for delimiters
+        ;; (fn (if (string= <> "-----") "{{{hsep()}}}" <>))
+        (fn <>)
+        (s-split "\n" (org-file-contents
+                        "/home/neeasade/git/neeasade.github.io/pages/test.org"
+                        )))))
+
+  )
+
 
 (defun! ns/blog-enhance-headings ()
   "make headings links to themselves -- uses om.el to do so"

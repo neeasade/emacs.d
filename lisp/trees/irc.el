@@ -84,12 +84,12 @@
          :channels ("#cyberia" "#2f30")
          )
 
-       ("Nixers"
-         :nick ,ns/irc-nick
-         :host "irc.unix.chat"
-         :port (6667 . 6697)
-         :tls t
-         :channels ("#unix"))
+       ;; ("Nixers"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "irc.unix.chat"
+       ;;   :port (6667 . 6697)
+       ;;   :tls t
+       ;;   :channels ("#unix"))
 
        ;; ("OFTC"
        ;;   :nick ,ns/irc-nick

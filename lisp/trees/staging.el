@@ -193,47 +193,32 @@
   :config
   (setq git-link-open-in-browser t))
 
+;; this seems to be a little nicer:
+;; (use-package browse-at-remote)
+
 ;; spelling
 (use-package flyspell-correct-avy-menu
   :config
   (require 'flyspell-correct-avy-menu)
-  (setq flyspell-correct-interface #'flyspell-correct-avy-menu))
+  (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
 
-(global-set-key (kbd "C-;") #'flyspell-correct-at-point)
+  (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
+  (global-set-key (kbd "C-;") #'flyspell-correct-at-point))
 
-(named-timer-run :show-periodic-reminder
-  t
-  (* 60 60 2)
-  (fn
-    (when (< (second (current-idle-time)) 120)
-      (alert (let ((reminders
-                     (org-ql-select org-default-notes-file
-                       '(tags "reminders")
-                       :action '(s-clean (org-get-heading t t)))
-                     ))
-               (nth (random (length reminders)) reminders))
-        :severity 'normal
-        :title "*Reminder*"
-        ))))
-
-
-;; todo: a timer that checks that you are not in pomodoro mode and alerts every once in awhile
-
-;; (named-timer-run :org-alert-scheduled
-;;   ;; ugghhh
+;; (named-timer-run :show-periodic-reminder
 ;;   t
-;;   20
+;;   (* 60 60 2)
 ;;   (fn
-;;     (when (not (get-file-buffer org-default-notes-file))
-;;       (find-file org-default-notes-file))
-
-;;     (with-current-buffer (get-file-buffer org-default-notes-file)
-;;       (->> (om-get-headlines)
-;;         ;; parse scheduled time, see if any are ahead of NOW,
-;;         ;; alert if we haven't for this heading
-;;         ;; org-ql is probably a good candidate here
+;;     (when (< (second (current-idle-time)) 120)
+;;       (alert (let ((reminders
+;;                      (org-ql-select org-default-notes-file
+;;                        '(tags "reminders")
+;;                        :action '(s-clean (org-get-heading t t)))
+;;                      ))
+;;                (nth (random (length reminders)) reminders))
+;;         :severity 'normal
+;;         :title "*Reminder*"
 ;;         ))))
-
 
 ;; takes awhile -- doesn't handle noto color emoji?
 ;; (use-package unicode-fonts
@@ -374,8 +359,7 @@
 
 (ns/comment
   (setq ns/org-notify-ht (ht))
-  (ns/org-notify)
-  )
+  (ns/org-notify))
 
 (named-timer-run :org-notify-scheduled t 60 'ns/org-notify)
 

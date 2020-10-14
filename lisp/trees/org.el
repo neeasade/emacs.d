@@ -161,7 +161,7 @@
   (defun ns/toggle-music-play () (ns/toggle-music "play"))
   (defun ns/toggle-music-pause () (ns/toggle-music "pause"))
 
-  (defun ns/pomodoro-start-hook ()
+  (defun! ns/focus-mode-enter ()
     (ns/toggle-music-play)
     (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_PAUSE")
     ;; turn off distracting websites
@@ -174,16 +174,17 @@
          (f-write content 'utf-8 (~ ".config/qutebrowser/adblock.txt")))))
     (ns/shell-exec-dontcare "qb_command :adblock-update"))
 
-  (defun ns/pomodoro-finish-hook ()
+  (defun! ns/focus-mode-quit ()
     (ns/toggle-music-pause)
     (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME")
     (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
     (ns/shell-exec-dontcare "qb_command :adblock-update"))
 
-  (add-hook 'org-pomodoro-extend-last-clock 'ns/pomodoro-start-hook)
-  (add-hook 'org-pomodoro-started-hook 'ns/pomodoro-start-hook)
-  (add-hook 'org-pomodoro-finished-hook 'ns/pomodoro-finish-hook)
-  (add-hook 'org-pomodoro-killed-hook 'ns/pomodoro-finish-hook)
+  (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-start)
+  (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-start)
+  (add-hook 'org-pomodoro-finished-hook 'ns/focus-mode-quit)
+  (add-hook 'org-pomodoro-killed-hook 'ns/focus-mode-quit)
+
   (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play))
 
 ;; todo: there's a bug in this -- if a heading is the last line of a file, we should insert a newline
@@ -402,10 +403,32 @@
 ;; load org-capture tweaks
 (ns/org-capture)
 
-;; style
-(add-hook 'org-mode-hook 'ns/set-buffer-face-variable)
-(add-hook 'org-mode-hook 'flyspell-mode)
-(add-hook 'org-mode-hook 'olivetti-mode)
+(defun ns/org-mode-hook ()
+  ;; (olivetti-mode)
+  (ns/set-buffer-face-variable)
+
+  (flyspell-mode)
+
+  ;; (defun ns/org-flyspell-skip-links (b e _ignored)
+  ;;   "exclude spelling mistakes if they happen in an org link.
+  ;; this is because flyspell tries to correct the link destination as well as the label text.
+  ;; adapted from: https://emacs.stackexchange.com/questions/54619/skip-flyspell-checking-of-code-and-verbatim-regions-in-org-mode "
+  ;;   (and (eq 'org-link (get-char-property b 'face))
+  ;;     (eq 'org-link (get-char-property e 'face))))
+
+  (setq-local flyspell-generic-check-word-predicate
+    (lambda ()
+      ;; are we in an org link? don't check it.
+      (if (-contains-p (let ((face (get-char-property (point) 'face)))
+                         (if (listp face) face (list face)))
+            'org-link)
+        nil
+        ;; not in an org link, do the usual thing:
+        (org-mode-flyspell-verify)
+        )))
+  )
+
+(add-hook 'org-mode-hook 'ns/org-mode-hook)
 
 (defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block

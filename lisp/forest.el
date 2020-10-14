@@ -646,10 +646,6 @@
   ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
 
   (use-package olivetti)
-
-  ;; (use-package writeroom-mode)
-  ;; (add-hook 'writeroom-mode-hook 'flyspell-mode)
-
   (setq-default fill-column 100)
   ;; (add-hook 'olivetti-mode auto-fill-mode)
 

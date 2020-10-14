@@ -22,10 +22,10 @@
      ("st.borderpx"          . "10")
      ;; default to whatever loads
      ("st.font"              .
-       ,(when (not (string-equal "unspecified" (face-attribute 'default :font)))
+       ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
      ("st.font_variable"     .
-       ,(when (not (string-equal "unspecified" (face-attribute 'default :font)))
+       ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))))
 
 (setq load-prefer-newer t)
@@ -111,7 +111,7 @@
 (ns/compose
   communication
 
-  ;; irc
+  irc
   email
   rss
   )

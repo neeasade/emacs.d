@@ -214,11 +214,9 @@
 
 (defun! reload-init ()
   "Reload init.el with straight.el."
-  (straight-transaction
-    (straight-mark-transaction-as-init)
-    (message "Reloading init.el...")
-    (load user-init-file nil 'nomessage)
-    (message "Reloading init.el... done.")))
+  (message "Reloading init.el...")
+  (load user-init-file nil 'nomessage)
+  (message "Reloading init.el... done."))
 
 ;; a macro for when something is not on melpa yet (assumes github)
 (use-package el-patch)
