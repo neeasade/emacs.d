@@ -273,7 +273,7 @@
      (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
      (defconfig-base ,label
        (let ((config-name ,(prin1-to-string label)))
-         (message (concat "loading " config-name "..."))
+         (message (concat "Loading ns/" config-name "..."))
          (catch 'config-catch
            ,@body
            (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t))))))

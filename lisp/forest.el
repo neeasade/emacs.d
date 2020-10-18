@@ -640,27 +640,6 @@
       "ie" 'emojify-insert-emoji
       "te" 'emojify-mode)))
 
-(defconfig writing
-  ;; (ns/guard ns/enable-home-p)
-  ;; todo
-  ;; https://www.reddit.com/r/emacs/comments/8rxm7h/tip_how_to_better_manage_your_spelling_mistakes/
-
-  (use-package olivetti)
-  (setq-default fill-column 100)
-  ;; (add-hook 'olivetti-mode auto-fill-mode)
-
-  ;; todo: revisit this
-  ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
-  ;; There is no need for "^" as the regexp is matched at the beginning of line.
-  (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
-
-  ;; toggle focus?
-  (ns/bind "tf" 'olivetti-mode)
-
-  (use-package mw-thesaurus)
-  ;; (ns/bind-leader-mode 'org "q" 'mw-thesaurus--lookup-at-point)
-  )
-
 (defconfig rss
   (ns/guard ns/enable-home-p)
 

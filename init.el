@@ -47,7 +47,7 @@
   interface
   editing
   shell
-  org
+  org org-capture
   git
   util
   server
@@ -76,7 +76,6 @@
   ledger
   emoji
   filehooks
-  writing
   deadgrep
   elasticsearch
   graphiz

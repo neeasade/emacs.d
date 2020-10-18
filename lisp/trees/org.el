@@ -106,32 +106,38 @@
 (defun ns/notes-current-standup-task (parent-headline)
   "Get a TODO underneath a headline that is passed in."
   (let ((standup-point
-	      (->> parent-headline
-	        cdr car
-	        ((lambda (props) (plist-get props :begin))))))
+	        (->> parent-headline
+	          cdr car
+	          ((lambda (props) (plist-get props :begin))))))
     (or
       (with-current-buffer (get-file-buffer org-default-notes-file)
         (->> (org-ml-parse-element-at standup-point)
-	      (org-ml-get-children)
-	      ;; what we want:
-	      ;; next headline that has TODO blank or TODO, with no scheduled time
-	      ((lambda (children)
-	         (append
-	           ;; TODO: can't find out how to query headlines with no todo keyword
-	           ;; idea: map headlines, set todo keyword to 'unset'
-	           ;; (org-ml-match '((:todo-keyword "")) children)
-	           (org-ml-match '((:todo-keyword "TODO")) children)
-	           )))
-	      first
-          ))
-      parent-headline
-      )))
+	        (org-ml-get-children)
+	        ;; what we want:
+	        ;; next headline that has TODO blank or TODO, with no scheduled time
+	        ((lambda (children)
+	           (append
+	             ;; TODO: can't find out how to query headlines with no todo keyword
+	             ;; idea: map headlines, set todo keyword to 'unset'
+	             ;; (org-ml-match '((:todo-keyword "")) children)
+	             (org-ml-match '((:todo-keyword "TODO")) children)
+	             )))
+	        first))
+      parent-headline)))
+
+(defun! ns/org-get-next-review-point (&optional property)
+  "Return the next captured thing to review"
+  ;; something to consider: organize by date, since we mark that with capture targets
+  ;; then just treat dateless as priority above dated
+  )
 
 (defun! ns/org-get-active-point (&optional property)
   "Resolves to a point in my big notes files to either:
 - currently clocked in org headline
 - the first TODO under the headline with a 'focus' property
-- if no TODO is found, just go to the headline with a 'focus' property directly "
+- if no TODO is found, just go to the headline with a 'focus' property directly
+(nb: the 'focus' property target may be overridden with an argument)
+"
   (save-window-excursion
     (with-current-buffer (find-file-noselect org-default-notes-file)
       (if org-clock-current-task
@@ -180,8 +186,8 @@
     (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
     (ns/shell-exec-dontcare "qb_command :adblock-update"))
 
-  (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-start)
-  (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-start)
+  (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-enter)
+  (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-enter)
   (add-hook 'org-pomodoro-finished-hook 'ns/focus-mode-quit)
   (add-hook 'org-pomodoro-killed-hook 'ns/focus-mode-quit)
 
@@ -400,25 +406,34 @@
           (org-babel-execute-src-block)))
       )))
 
-;; load org-capture tweaks
-(ns/org-capture)
+;; writing niceties:
+(use-package olivetti-mode
+  :config
+  (ns/bind "tf" 'olivetti-mode)
+  (setq-default fill-column 100)
+
+  ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
+  ;; There is no need for "^" as the regexp is matched at the beginning of line.
+  (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
+
+  ;; todo: consider:
+  (use-package mw-thesaurus)
+  )
+
+
 
 (defun ns/org-mode-hook ()
-  ;; (olivetti-mode)
+  (olivetti-mode)
+  (git-gutter-mode 0)
   (ns/set-buffer-face-variable)
 
   (flyspell-mode)
 
-  ;; (defun ns/org-flyspell-skip-links (b e _ignored)
-  ;;   "exclude spelling mistakes if they happen in an org link.
-  ;; this is because flyspell tries to correct the link destination as well as the label text.
-  ;; adapted from: https://emacs.stackexchange.com/questions/54619/skip-flyspell-checking-of-code-and-verbatim-regions-in-org-mode "
-  ;;   (and (eq 'org-link (get-char-property b 'face))
-  ;;     (eq 'org-link (get-char-property e 'face))))
-
+  (message "ns/org-mode-hook is getting hit")
   (setq-local flyspell-generic-check-word-predicate
     (lambda ()
       ;; are we in an org link? don't check it.
+      ;; (message "checking!")
       (if (-contains-p (let ((face (get-char-property (point) 'face)))
                          (if (listp face) face (list face)))
             'org-link)
