@@ -11,16 +11,11 @@
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
   `(
-     ;; ("*.background"         . ,(face-attribute 'default :background))
-     ("*.background"         . nil)
-     ("Emacs.powerlinescale" . "1.1")
-     ("Emacs.doomlineheight" . "1")
-     ("Emacs.theme"          . "lab-theme")
-     ;; ("Emacs.theme"          . "apropospriate-light")
+     ("Emacs.doomlineheight" . "24")
      ("Emacs.powerline"      . "bar")
-     ("Emacs.padding_source" . "st") ;; font or st
-     ("st.borderpx"          . "10")
-     ;; default to whatever loads
+     ("Emacs.padding_source" . "st") ;; (font or st)
+
+     ;; default to whatever loads, use nil if there is no default
      ("st.font"              .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
@@ -62,8 +57,7 @@
   jump
   dashdocs
 
-  ;; zoom
-  ;; dimmer
+  zoom
   projectile
   restclient
   latex

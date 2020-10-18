@@ -196,8 +196,7 @@
           (junk-buffer (get-buffer-create bufname)))
     (shut-up
       (shell-command command junk-buffer)
-      (kill-buffer junk-buffer)
-      )))
+      (kill-buffer junk-buffer))))
 
 ;; wrap passwordstore
 (defun pass (key)

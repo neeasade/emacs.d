@@ -275,8 +275,6 @@
 
       (append recentf-list project-files open-buffers)))
 
-  ;; todo: piper emacs from emacsconf 2019 would be a nice thing to have here
-
   ;; maybe consider also a jump-qutebrowser-history-candidates -- something like urls from the past month? idk
   (defun ns/jump-qutebrowser-candidates ()
     (s-split "\n"
