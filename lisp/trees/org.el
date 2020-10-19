@@ -407,7 +407,7 @@
       )))
 
 ;; writing niceties:
-(use-package olivetti-mode
+(use-package olivetti
   :config
   (ns/bind "tf" 'olivetti-mode)
   (setq-default fill-column 100)
@@ -420,8 +420,6 @@
   (use-package mw-thesaurus)
   )
 
-
-
 (defun ns/org-mode-hook ()
   (olivetti-mode)
   (git-gutter-mode 0)
@@ -429,11 +427,9 @@
 
   (flyspell-mode)
 
-  (message "ns/org-mode-hook is getting hit")
-  (setq-local flyspell-generic-check-word-predicate
+  (setq flyspell-generic-check-word-predicate
     (lambda ()
       ;; are we in an org link? don't check it.
-      ;; (message "checking!")
       (if (-contains-p (let ((face (get-char-property (point) 'face)))
                          (if (listp face) face (list face)))
             'org-link)
@@ -441,6 +437,7 @@
         ;; not in an org link, do the usual thing:
         (org-mode-flyspell-verify)
         )))
+
   )
 
 (add-hook 'org-mode-hook 'ns/org-mode-hook)

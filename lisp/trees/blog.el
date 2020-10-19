@@ -249,17 +249,26 @@
           id)))))
 
 (defun ns/flyspell-string (string)
+  ;; really it's like flyspell org-mode string
+  ;; save-window-excursion
+  ;; (find-file string)
   (with-temp-buffer
+    (buffer-enable-undo)
     (insert string)
     (org-mode)
     (org-show-all)
     (goto-char (point-min))
     (flyspell-buffer)
-    ;; note: flyspell-buffer is weird. it only returns nil if the last word is misspelled.
-    (let ((result (flyspell-goto-next-error)))
-      (string-equal result "No more miss-spelled word!")
-      ;; (point)
-      )))
+
+    (= (point)
+      (progn
+        ;; (evil-next-flyspell-error 1)
+        (flyspell-goto-next-error)
+        (message "result: ")
+        (message (prn (flyspell-word)))
+        (message (prn (point)))
+        (point)
+        ))))
 
 (ns/comment
   (ns/flyspell-string "\nsome valid words")
@@ -269,10 +278,11 @@
   (ns/flyspell-string "\nsome invalid wordsss ")
 
   ;; the case that is broken is if the last word is misspelled, that is it.
-  (ns/flyspell-string "\nsome invalid wordsss")
+  (ns/flyspell-string "\nsome invalid wordsss\n")
 
-  (insert (org-file-contents "/home/neeasade/git/neeasade.github.io/pages/test.org"))
+  ;; (insert (org-file-contents "/home/neeasade/git/neeasade.github.io/pages/test.org"))
 
+  ;; okay
   (ns/flyspell-string
     (org-file-contents "/home/neeasade/git/neeasade.github.io/pages/test.org")
     )
@@ -281,14 +291,12 @@
     (s-join "\n"
       (-map
         ;; call our custom hsep macro for delimiters
-        ;; (fn (if (string= <> "-----") "{{{hsep()}}}" <>))
-        (fn <>)
+        (fn (if (string= <> "-----") "{{{hsep()}}}" <>))
         (s-split "\n" (org-file-contents
                         "/home/neeasade/git/neeasade.github.io/pages/test.org"
                         )))))
 
   )
-
 
 (defun! ns/blog-enhance-headings ()
   "make headings links to themselves -- uses om.el to do so"

@@ -784,21 +784,6 @@
   ;; common-lisp-mode -> lisp-mode
   (ns/bind-mode 'lisp "e" 'ns/smart-slime-eval))
 
-(defconfig alda
-  (use-package alda-mode)
-
-  (defun! ns/smart-alda-eval ()
-    (if (use-region-p)
-      (alda-play-region (region-beginning) (region-end))
-      (progn
-        ;; why does this not restore the mark..
-        (alda-play-block)
-        (evil-force-normal-state)
-        )))
-
-  (ns/bind-mode 'alda "e" 'ns/smart-alda-eval)
-  )
-
 (defconfig scripting
   (add-to-list 'interpreter-mode-alist '("elisp" . emacs-lisp-mode))
 
