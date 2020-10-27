@@ -127,7 +127,6 @@
       (:is-draft post-is-draft)
       (:title post-title)
       (:publish-date published-date)
-      (:flyspell-status (ns/flyspell-string (s-join "\n" org-file-content)))
 
       (:rss-title
         (->> post-org-content-lines
@@ -204,14 +203,6 @@
           ;; don't ask about generation when exporting
           (org-confirm-babel-evaluate (fn nil)))
 
-    ;; if any of the post or page metas have spelling errors, fail.
-    (when (-any (fn (not (ht-get <> :flyspell-status)))
-            (append org-post-metas org-page-metas))
-      (-map (fn (when (not (ht-get <> :flyspell-status))
-                  (message (format "spelling errors in %s" (ht-get <> :path)))))
-        (append org-post-metas org-page-metas))
-      (error "Spelling"))
-
     (message "BLOG: making pages!")
     (ns/blog-generate-from-metas (append org-post-metas org-page-metas))
 
@@ -247,56 +238,6 @@
           (org-entry-put pom "CUSTOM_ID" id)
           (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
           id)))))
-
-(defun ns/flyspell-string (string)
-  ;; really it's like flyspell org-mode string
-  ;; save-window-excursion
-  ;; (find-file string)
-  (with-temp-buffer
-    (buffer-enable-undo)
-    (insert string)
-    (org-mode)
-    (org-show-all)
-    (goto-char (point-min))
-    (flyspell-buffer)
-
-    (= (point)
-      (progn
-        ;; (evil-next-flyspell-error 1)
-        (flyspell-goto-next-error)
-        (message "result: ")
-        (message (prn (flyspell-word)))
-        (message (prn (point)))
-        (point)
-        ))))
-
-(ns/comment
-  (ns/flyspell-string "\nsome valid words")
-
-  (ns/flyspell-string "\nsome invalidd words")
-
-  (ns/flyspell-string "\nsome invalid wordsss ")
-
-  ;; the case that is broken is if the last word is misspelled, that is it.
-  (ns/flyspell-string "\nsome invalid wordsss\n")
-
-  ;; (insert (org-file-contents "/home/neeasade/git/neeasade.github.io/pages/test.org"))
-
-  ;; okay
-  (ns/flyspell-string
-    (org-file-contents "/home/neeasade/git/neeasade.github.io/pages/test.org")
-    )
-
-  (ns/flyspell-string
-    (s-join "\n"
-      (-map
-        ;; call our custom hsep macro for delimiters
-        (fn (if (string= <> "-----") "{{{hsep()}}}" <>))
-        (s-split "\n" (org-file-contents
-                        "/home/neeasade/git/neeasade.github.io/pages/test.org"
-                        )))))
-
-  )
 
 (defun! ns/blog-enhance-headings ()
   "make headings links to themselves -- uses om.el to do so"
