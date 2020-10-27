@@ -16,29 +16,29 @@
 
 (set-face-attribute 'mode-line nil :background
   ;; (ns/color-lessen 3 (face-attribute 'default :background))
-  (ns/color-lessen 5 (ht-get ns/theme :background+))
+  (ns/color-lessen 5 (ht-get ns/theme :background_))
   ;; (ns/color-lessen 3 (face-attribute 'default :background+))
   ;; (face-attribute 'default :background)
   )
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (ht-get ns/theme :background+)
+  (ht-get ns/theme :background_)
   ;; (face-attribute 'default :background)
   )
 
 ;; (face-attribute 'mode-line :foreground)
-(set-face-attribute 'doom-modeline-buffer-file nil :foreground (ht-get ns/theme :accent2))
-(set-face-attribute 'doom-modeline-buffer-modified nil :foreground (ht-get ns/theme :accent2))
+(set-face-attribute 'doom-modeline-buffer-file nil :foreground (ht-get ns/theme :foreground))
+(set-face-attribute 'doom-modeline-buffer-modified nil :foreground (ht-get ns/theme :foreground))
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
-  (ns/color-lessen 20 (ht-get ns/theme :background+)))
+  (ns/color-lessen 20 (ht-get ns/theme :background_)))
 
 (set-face-attribute 'ns/mode-line-sep nil :background
-  (ns/color-lessen 20 (ht-get ns/theme :background+)))
+  (ns/color-lessen 20 (ht-get ns/theme :background_)))
 
 (set-face-attribute 'mode-line-inactive nil :background
-  (ht-get ns/theme :background__))
+  (ht-get ns/theme :background_))
 
 (set-face-attribute 'mode-line nil :height 100)
 (set-face-attribute 'mode-line-inactive nil :height 100)
