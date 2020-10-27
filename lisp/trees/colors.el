@@ -1,31 +1,36 @@
 ;; -*- lexical-binding: t; -*-
 ;; color utilities
+;; the main thing this file provides are color transformation functions
+;; these accept lambdas for operating on hex colors in different color spaces
 
-;; cf:
+;; for information, cf:
 ;; https://en.wikipedia.org/wiki/CIELAB_color_space
 ;; LAB only: https://en.wikipedia.org/wiki/Standard_illuminant#White_points_of_standard_illuminants
 ;; https://peteroupc.github.io/colorgen.html
 ;; http://colorizer.org/
 ;; https://github.com/yurikhan/yk-color/blob/master/yk-color.el
-;; https://www.htmlcsscolor.com/hex/9ABCDD
 ;; https://www.w3.org/TR/WCAG20/#relativeluminancedef
 ;; emacs shipped color.el
 
-;; todo: consider cieCAM02
-;; https://en.wikipedia.org/wiki/CIECAM02
-;; HSL - Hue Saturation Luminance -- all 0.0 -> 1.0
-;; HSV - Hue Saturation Value Hue in radians, SV is 0.0 -> 1.0
 
 ;; notes for hue:
 ;; Hue is an angle from red at 0 to yellow to green to cyan to blue to magenta to red
 ;; angle mapping in hue in degrees: (HSL space)
 ;; note: for HUE in color.el these are all within the 1.0 range/collapsed
 
-;; lch H:
+;; LCH space hue is different:
 ;; 0 red
 ;; 90 yellow
 ;; 180 green
 ;; 270 blue
+
+(ns/comment
+  ;; play with LCh hue:
+  (ns/color-lch-transform "#cccccc"
+    (lambda (L C H)
+      (list 50 90 180)
+      (list 70 90 90)))
+  )
 
 ;; NOTE: hue is different in LCH and HSL
 ;; in lch going from 4 primary colors red yellow green blue, along 90 degrees
@@ -55,20 +60,10 @@
 ;; sRGB vs linear RGB
 ;; sRGB is kinda like declaring intent wrt a standard white point? (LAB makes this explicit)
 ;; https://en.wikipedia.org/wiki/SRGB
+;; note: the rgb conversion functions in HSLuv lib handle linear transformation of rgb colors
 
-;; Pastels
-;; pastel colors belong to a pale family of colors, which, when described in the HSV color space,
-;; have high value and low saturation.
-
-;; goofy function idea: merge a color towards another color on some axis by some percentage
-;; candidates:
-;; (:lab-a :lab-b :lch-h :lch-c :lab-l :hsl-s :hsl-l)
-
-;; todo: consider: longen colors before operations on names, just generally
 (require 'color)
-
-(defun ns/color-format (color)
-  (format "#%s" (substring color -6 nil)))
+(use-package hsluv)
 
 (defun ns/color-greaten (percent color)
   (ns/color-shorten
@@ -84,16 +79,31 @@
 
 (defun ns/color-tint-ratio (c against ratio)
   (ns/color-iterate c
-    (if (ns/color-is-light-p c)
+    (if (ns/color-is-light-p against)
       (fn (ns/color-lab-darken <> 0.2))
       (fn (ns/color-lab-lighten <> 0.2)))
 
     (fn (> (ns/color-contrast-ratio <> against)
-          (- ratio 0.1)))))
+          ratio
+          ;; (- ratio 0.1)
+          ))))
 
-;; optionally transform #<12> to #<6>
+(ns/comment
+  ;; testing
+  (ns/color-tint-ratio "#eeeeee" "#ffffff" 20.0)
+
+  (ns/color-contrast-ratio "#222222" "#000000")
+
+  (ns/color-contrast-ratio "#000000" "#111111" )
+
+  (ns/color-tint-ratio "#000000" "#111111" 3.0)
+
+  (ns/color-tint-ratio "#222222" "#000000" 21.0)
+
+  )
+
 (defun ns/color-shorten (color)
-  "COLOR #HHHHHHHHHHHH to #HHHHHH"
+  "optionally transform COLOR #HHHHHHHHHHHH to #HHHHHH"
   (if (= (length color) 7)
     color
     (-as-> color C
@@ -101,25 +111,12 @@
       `(color-rgb-to-hex ,@C 2)
       (eval C))))
 
-(defun ns/color-longen (color)
-  "COLOR #HHHHHH to #HHHHHHHHHHHH"
-  (if (= (length color) 7)
-    (let* ((convert (lambda (p1 p2) (/ (string-to-number (substring color p1 p2) 16) 255.0)))
-            (red (funcall convert 1 3))
-            (green (funcall convert 3 5))
-            (blue (funcall convert 5 7)))
-      (color-rgb-to-hex red green blue))
-    color))
-
 (defun ns/color-is-light-p (name)
   (> (first (ns/color-name-to-lab name))
-    65
+    65                                 
     )
 
-  ;; (> (->> name
-  ;;      (color-name-to-rgb)
-  ;;      (apply 'color-rgb-to-hsl) (third))
-  ;;   ;; ~opinions~
+  ;; (> (->> name (color-name-to-rgb) (apply 'color-rgb-to-hsl) (third))
   ;;   0.65
   ;;   )
 
@@ -135,6 +132,7 @@
   )
 
 (defun ns/color-contrast-ratio (c1 c2)
+  ;; cf https://peteroupc.github.io/colorgen.html#Contrast_Between_Two_Colors
   (let ((rl1 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c1))))
          (rl2 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c2)))))
     (/ (+ 0.05 (max rl1 rl2))
@@ -150,32 +148,23 @@
       (setq iterations (+ iterations 1))
       (setq color (funcall op color))) color))
 
-;; TODO:
-(defun ns/color-iterate-collection (start op condition)
-  "Do OP on START color until CONDITION is met or op has no effect (return all steps)."
-  (let ((color start))
-    (while (and (not (funcall condition color))
-             (not (string= (funcall op color) color)))
-      (setq color (funcall op color)))
-    color))
-
 (defun ns/color-name-to-lab (name &optional white-point)
   "Transform NAME into LAB colorspace with some lighting assumption."
   (-as-> name <>
     (color-name-to-rgb <>)
     (apply 'color-srgb-to-xyz <>)
-    (append <> (list white-point))
+    (append <> (list (or white-point color-d65-xyz)))
     (apply 'color-xyz-to-lab <>)))
 
 (defun ns/color-lab-to-name (lab &optional white-point)
-  (->> (append lab (list white-point))
+  (->> (append lab (list (or white-point color-d65-xyz)))
     (apply 'color-lab-to-xyz)
     (apply 'color-xyz-to-srgb)
     ;; when pulling it out we might die
     (-map 'color-clamp)
     (apply 'color-rgb-to-hex)))
 
-(defun ns/color-tint-with-light (name w1 w2)
+(defun ns/color-lab-change-whitepoint (name w1 w2)
   "convert a color wrt white points W1 and W2 through the lab colorspace"
   (ns/color-lab-to-name (ns/color-name-to-lab name w1) w2))
 
@@ -189,10 +178,10 @@
 
 (defun ns/color-lab-transform (color transform)
   "Generate an accent color from COLOR using TRANSFORM, a LAB colorspace function."
-  (-as-> color <>
-    (ns/color-name-to-lab <> ns/theme-white-point)
-    (apply transform <>)
-    (ns/color-lab-to-name <> ns/theme-white-point)))
+  (->> color
+    (ns/color-name-to-lab)
+    (apply transform)
+    (ns/color-lab-to-name)))
 
 (defun ns/color-lab-lighten (c value)
   (ns/color-lab-transform c
@@ -203,15 +192,19 @@
     (lambda (L A B) (list (- L value) A B))))
 
 (defun ns/color-lch-transform (c transform)
+  "Perform a transformation in the LAB LCH space. LCH values are {0-100, 0-100, 0-360}"
+  ;; color-lab-to-lch returns a form with H in radians.
+  ;; we do some hamfisted handling here for a consistent expectation.
   (ns/color-lab-transform c
     (lambda (L A B)
       (apply 'color-lch-to-lab
-        (let ((result (apply transform (color-lab-to-lch L A B))))
-          (list (first result)
-            (second result)
-            ;; clamp hue radian value
-            ;; 6.28
-            (mod (third result) 6.28))))))
+        (let ((result (apply transform
+                        (append
+                          (-take 2 (color-lab-to-lch L A B))
+                          (list (radians-to-degrees (third (color-lab-to-lch L A B))))))))
+          (append
+            (-take 2 result)
+            (list (degrees-to-radians (mod (third result) 360.0))))))))
 
   ;; (ns/color-lab-transform c
   ;;   (lambda (L A B)
@@ -220,12 +213,45 @@
   )
 
 (defun ns/color-hsl-transform (c transform)
+  "Tweak C in the HSL colorspace. Transform gets HSL in values {0-360,0-100,0-100}"
   (->> (color-name-to-rgb c)
+    ;; all ranges 0-1
     (apply 'color-rgb-to-hsl)
-    (apply transform)
-    (apply 'color-hsl-to-rgb)
+    ((lambda (hsl)
+       (apply transform
+         (list
+           (* 360.0 (first hsl))
+           (* 100.0 (second hsl))
+           (* 100.0 (third hsl))))))
+    ;; from transformed to what color.el expects
+    ((lambda (hsl)
+       (list
+         (/ (first hsl) 360.0)
+         (/ (second hsl) 100.0)
+         (/ (third hsl) 100.0))))
     (-map 'color-clamp)
+    (apply 'color-hsl-to-rgb)
     (apply 'color-rgb-to-hex)))
+
+(ns/comment
+  (ns/color-hsl-transform "#ccddcc"
+    (lambda (H S L)
+      (message (format "got: %s %s %s" H S L))
+      ;; (list H S L)
+      ;; (list H 100 L)
+      (list H 40 40)
+      )))
+
+(defun ns/color-hsluv-transform (c transform)
+  "Tweak a color in the HSLuv space. HSL rangeis {}"
+  (apply 'color-rgb-to-hex
+    (-map 'color-clamp
+      (hsluv-hsluv-to-rgb
+        (let ((result (apply transform (-> c ns/color-shorten (hsluv-hex-to-hsluv)))))
+          (list
+            (mod (first result) 360.0)
+            (second result)
+            (third result)))))))
 
 (defun ns/color-pastel (c &optional Smod Vmod)
   "Make a color more pastel in the hsl space"
@@ -239,56 +265,3 @@
         (* S (or Smod 0.9))
         (* L (or Vmod 1.1))
         ))))
-
-(use-package hsluv)
-
-(defun ns/color-hsluv-transform (c transform)
-  (apply 'color-rgb-to-hex
-    (-map 'color-clamp
-      (hsluv-hsluv-to-rgb
-        (let ((result (apply transform (-> c ns/color-shorten (hsluv-hex-to-hsluv)))))
-          (list
-            (mod (first result) 360.0)
-            (second result)
-            (third result)))))))
-
-;; ns/color-hsluv-transform
-;; (ns/color-hsluv-transform "#cccccc"
-;;   (lambda (H S L)
-;;     (list H S (* L .5))))
-
-;; todo: rgb to srgb/some form of gamma correction?
-;; maybe steal a little from https://github.com/yurikhan/yk-color/blob/master/yk-color.el
-
-;; ;; noting some experiments
-;; (let
-;;   ((color-start
-;;      (ns/color-lab-to-name
-;;        (color-lch-to-lab
-;;          ;; 40
-;;          50
-;;          70
-;;          ;; (degrees-to-radians 300)
-;;          (degrees-to-radians 315)
-;;          ;; (degrees-to-radians 346)
-;;          )))
-
-;;     (interval (degrees-to-radians 120)))
-;;   (list
-;;     ;; by straight up rotation:
-;;     ;; color-start
-;;     ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
-;;     ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
-;;     ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
-
-;;     ;; 2 sets of complements by an initial offset:
-;;     color-start
-;;     (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (degrees-to-radians 180) H))))
-;;     (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval H))))
-;;     (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval (degrees-to-radians 180) H))))
-;;     ))
-
-;; (accent2 (nth 3 accent-rotations))
-;; (accent1 (nth 2 accent-rotations))
-;; (accent1_ (nth 0 accent-rotations))
-;; (accent2_ (nth 1 accent-rotations))
