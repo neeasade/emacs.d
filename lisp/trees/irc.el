@@ -294,7 +294,7 @@
 
         (with-current-buffer "*circe-highlight*"
           (alert!
-            (concat "<" poster "> " body)
+            (concat poster ": " body)
             ;; body
             :severity 'normal
             :title channel
