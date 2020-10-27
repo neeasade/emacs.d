@@ -37,8 +37,11 @@
           (fn (s-ends-with-p ".org" <>)))))
     :action 'find-file))
 
-(ns/bind-soft "nq" 'ns/jump-to-blog-post-draft)
-(ns/bind-soft "nQ" 'ns/jump-to-blog-post)
+(ns/bind-soft
+  "nq" 'ns/jump-to-blog-post-draft
+  "nQ" 'ns/jump-to-blog-post
+  )
+
 
 (defun ns/blog-make-hsep ()
   (format "#+begin_center\n%s\n#+end_center"

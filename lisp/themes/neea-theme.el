@@ -92,13 +92,18 @@
                   ;; 315
                   ;; 330
                   ;; 340
-                  ;; 346
+                  ;; (- 346 90)
+                  ;; 256
+
                   ;; 0
+                  270
                   ;; 40
                   ;; (+ 253.642696368751 120)
-                  253.642696368751
+                  ;; 253.642696368751
 
-                  95
+
+
+                  75
 
                   L
                   ;; (third (hsluv-hex-to-hsluv (ht-get ns/theme :foreground_)))
@@ -109,11 +114,10 @@
           ;; (interval 72)
           ;; (interval 90)
           ;; (interval 120)
-          ;; (interval 45)
+          (interval -45)
 
-          ;; good:
           ;; (interval 60)
-          (interval 90)
+          ;; (interval 90)
           ;; (interval 30)
           )
 
@@ -139,6 +143,7 @@
           (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
           (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
           (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
+          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 4 interval) H))))
 
           ;; HSLuv space test
 
@@ -160,10 +165,10 @@
     ;; (accent2  (nth 2 accent-rotations))
     ;; (accent2_ (nth 1 accent-rotations))
 
-    (accent1  (nth 1 accent-rotations))
-    (accent1_ (nth 0 accent-rotations))
+    (accent1  (nth 0 accent-rotations))
+    (accent1_ (nth 1 accent-rotations))
     (accent2  (nth 2 accent-rotations))
-    (accent2_ (nth 3 accent-rotations))
+    (accent2_ (nth 4 accent-rotations))
 
     ;; active BG (selections)
     (background+
