@@ -80,8 +80,8 @@
 (defun ns/color-tint-ratio (c against ratio)
   (ns/color-iterate c
     (if (ns/color-is-light-p against)
-      (fn (ns/color-lab-darken <> 0.2))
-      (fn (ns/color-lab-lighten <> 0.2)))
+      (fn (ns/color-lab-darken <> 0.1))
+      (fn (ns/color-lab-lighten <> 0.1)))
 
     (fn (> (ns/color-contrast-ratio <> against)
           ratio

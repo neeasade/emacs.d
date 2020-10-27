@@ -37,7 +37,6 @@
   #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:accent2_ "#0000920353b9" :accent2 "#d703439f0ec0" :accent1_ "#00009222d97b" :accent1 "#de5817ca9a61" :background+ "#ffffca0bffff" :background "#fffff98bffff" :foreground_ "#92728c539259" :foreground "#586652b35849"))
   )
 
-
 ;; LAB definition for color.el:
 ;; L: Luminance 0-100
 ;; A: Green -100 <--> 100 Red
@@ -48,133 +47,116 @@
     ;; the most important color:
     ;; (background (ns/color-lab-to-name '(94 10 0) ns/theme-white-point))
 
-    ;; (background "#EEF0F3")
+    (background "#EEF0F3")
 
-    (background (ns/color-lab-lighten "#EEF0F3" 2))
+    ;; (background (ns/color-lab-lighten "#EEF0F3" 2))
 
     ;; foreground and faded foreground will be contrast ratio based:
     (foreground
       (ns/color-tint-ratio background background 3.4)
-      ;; (ns/color-iterate background
-      ;;   (fn (ns/color-lab-darken <> 0.5))
-      ;;   (fn (> (ns/color-contrast-ratio <> background)
-      ;;         3.9
-      ;;         )))
       )
 
     (foreground_
-      (ns/color-tint-ratio background background 1.8)
+      (ns/color-tint-ratio background background 2.1)
+
       ;; (ns/color-iterate background
-      ;;   (fn (ns/color-lab-darken <> 0.5))
+      ;;   (fn (ns/color-lab-darken <> 0.1))
       ;;   (fn (> (ns/color-contrast-ratio <> background)
-      ;;         2
+      ;;         2.1
       ;;         )))
+
       )
-
-    (accent1
-      (ns/color-lch-transform foreground
-        (lambda (L C H)
-          (list
-            ;; (first (ns/color-name-to-lab foreground_))
-            40
-            ;; L
-            ;; (* 2 C)
-            C
-            (degrees-to-radians 270)
-            ))))
-
-    (accent2
-      (-> foreground
-        (ns/color-lch-transform
-          (lambda (L C H)
-            (list
-              ;; L
-              40
-              ;; (first (ns/color-name-to-lab foreground_))
-              ;; (* 2 C)
-              C
-              (degrees-to-radians 90)
-              )))))
 
     (accent-rotations
       (let*
         (
-          ;; (color-start (ns/color-lab-to-name
-          ;;                (color-lch-to-lab
-          ;;                  50
-          ;;                  70
-          ;;                  ;; (degrees-to-radians 340)
-          ;;                  ;; (degrees-to-radians 315)
-          ;;                  (degrees-to-radians 346)
-          ;;                  )))
-
           ;; (color-start
-          ;;   (ns/color-lab-to-name
-          ;;     (color-lch-to-lab 50 80
-          ;;       ;; (degrees-to-radians 340)
-          ;;       ;; (degrees-to-radians 315)
-          ;;       (degrees-to-radians 346))))
-
-          ;; (color-start
-          ;;   (hsluv-hsluv-to-hex
-          ;;     (list
-          ;;       ;; 330
-          ;;       ;; 346
-          ;;       300
-          ;;       100 60)))
+          ;;   (ns/color-lch-transform
+          ;;     foreground_
+          ;;     (lambda (L C H)
+          ;;       (list
+          ;;         L
+          ;;         ;; C
+          ;;         ;; 55
+          ;;         C
+          ;;         ;; H
+          ;;         (degrees-to-radians 253.642696368751)
+          ;;         ))))
 
           (color-start
             (ns/color-hsluv-transform
-              (or background (ht-get ns/theme :background))
+              foreground_
               (lambda (H S L)
                 (list
+                  ;; 300
+                  ;; 315
                   ;; 330
+                  ;; 340
                   ;; 346
-                  H
-                  ;; 75
+                  ;; 0
+                  ;; 40
+                  ;; (+ 253.642696368751 120)
+                  253.642696368751
+
                   95
-                  45
+
+                  L
+                  ;; (third (hsluv-hex-to-hsluv (ht-get ns/theme :foreground_)))
                   ))))
 
           ;; (interval (degrees-to-radians 60))
 
-          (interval 72)
+          ;; (interval 72)
           ;; (interval 90)
           ;; (interval 120)
           ;; (interval 45)
+
+          ;; good:
+          ;; (interval 60)
+          (interval 90)
+          ;; (interval 30)
           )
 
-        (list
-          ;; by straight up rotation:
-          ;; color-start
-          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
-          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
-          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
+        ;; (->> (range 6)
+        ;;   (-map
+        ;;     (fn
+        ;;       (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 1 interval) H) S L)))
+        ;;       )
+        ;;     )
+        ;;   )
 
+        ;; (-map-indexed)
+
+        (list
           ;; 2 sets of complements by an initial offset:
+
           ;; color-start
           ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (degrees-to-radians 180) H))))
           ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval H))))
           ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval (degrees-to-radians 180) H))))
 
+          color-start
+          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
+          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
+          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
+
           ;; HSLuv space test
+
           color-start
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 1 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 2 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 3 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 4 interval) H) S L)))
+          (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 5 interval) H) S L)))
 
           ;; color-start
           ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ 180 H) S L)))
           ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ interval H) S L)))
           ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ interval 180 H) S L)))
-          ))
-
-      )
-
+          )))
 
     ;; (accent1  (nth 0 accent-rotations))
-    ;; (accent1_ (nth 3 accent-rotations))
+    ;; (accent1_ (nth 2 accent-rotations))
     ;; (accent2  (nth 2 accent-rotations))
     ;; (accent2_ (nth 1 accent-rotations))
 
@@ -186,11 +168,16 @@
     ;; active BG (selections)
     (background+
       (ns/color-iterate
-        (nth 4 accent-rotations)
-        (fn (ns/color-lab-lighten <> 0.5) )
+        accent1_
+        (fn (ns/color-lab-lighten <> 0.3) )
         (fn (< (ns/color-contrast-ratio <> background)
-              1.3
+              ;; 1.3
+
+              1.2
+              ;; 1.03
+              ;; 1.15
               ))))
+
 
     (background_
       (-> background
@@ -209,17 +196,20 @@
         background_
         (lambda (H S L) (list H S (- L 6)))))
 
+    (background+ background__)
     )
 
   (setq ns/theme
     (ht
-      (:foreground foreground)
-      (:foreground_ foreground_)
+      (:foreground foreground)          ; regular text
+      (:foreground_ foreground_)        ; comments
+      (:foreground+ background)         ; foreground of a focused/highlighted thing
 
-      (:background background)
-      (:background_ background_)        ;
+      (:background background)          ; regular canvas
+      (:background_ background_)        ; emphasis?
       (:background__ background__)      ; inactive modeline
-      (:background+ background+)
+      (:background+ background+)        ; background of a focused/highlighted thing (also active modeline)
+
 
       (:accent1 accent1)                ; identifiers
       (:accent1_ accent1_)              ; builtins
@@ -233,10 +223,18 @@
       (lambda (k v)
         (cond
           ((s-starts-with-p ":accent" (prin1-to-string k))
-            ;; (ns/theme-enforce-contrast v background foreground)
-            ;; (color-desaturate-name v 30)
-            ;; (ns/color-lch-transform v (lambda (L C H) (list L (* C 0.7) H)))
-            v
+            ;; messing around:
+            ;; (ns/color-lch-transform v (lambda (L C H) (list L (* C 1.5) H)))
+            ;; (ns/color-hsluv-transform v (lambda (H S L) (list H (* S 1.0) (* L 0.95))))
+
+            ;; ensure all colors have some minimum contrast ratio
+            (ns/color-tint-ratio v background 2.0)
+
+            ;; don't tweak anything
+            ;; v
+
+            ;; conform
+            ;; foreground
             )
           (t v)))))
 
@@ -314,6 +312,27 @@
 
       :base0F :foreground_ ;; Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
       )))
+
+(ns/comment
+  ;; dump contrast ratios of all colors against background
+  (ht-to-plist
+    (ht-transform-kv
+      ns/theme
+      ;; ns/theme-melon
+      (lambda (k v)
+        (message
+          (format "%s: %s"
+            (prn k)
+            (prn
+              (ns/color-contrast-ratio
+                (ht-get ns/theme :background)
+                ;; (ht-get ns/theme-melon :background)
+                v
+                )))))))
+
+  )
+
+
 
 (provide-theme 'neea)
 (provide 'neea-theme)
