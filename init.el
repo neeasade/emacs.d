@@ -106,7 +106,7 @@
 
   irc
   email
-  rss
+  ;; elfeed
   )
 
 (if (getenv "NS_EMACS_BATCH")

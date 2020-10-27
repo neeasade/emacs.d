@@ -365,7 +365,7 @@
 
 ;; lazy
 (defun ns/org-notify-reset () (setq ns/org-notify-ht (ht)))
-(named-timer-run :org-notify-scheduled t (* 60 60 24) 'ns/org-notify-reset)
+(named-timer-run :org-notify-scheduled-reset t (* 60 60 24) 'ns/org-notify-reset)
 
 (ns/comment
   (with-current-buffer (find-file-noselect org-default-notes-file)

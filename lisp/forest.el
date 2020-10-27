@@ -638,8 +638,10 @@
       "ie" 'emojify-insert-emoji
       "te" 'emojify-mode)))
 
-(defconfig rss
+(defconfig elfeed
   (ns/guard ns/enable-home-p)
+  ;; checking out miniflux+wallabag
+  (ns/guard nil)
 
   (use-package elfeed)
   (use-package elfeed-protocol)
