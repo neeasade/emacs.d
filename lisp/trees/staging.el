@@ -328,7 +328,7 @@
 (defun ns/org-notify ()
   (with-current-buffer (find-file-noselect org-default-notes-file)
     (->> (org-ml-get-subtrees)
-	    (org-ml-match '(:any * (:pred ns/org-scheduled-today)))
+	  (org-ml-match '(:any * (:pred ns/org-scheduled-today)))
       ;; map headline text to scheduled timestamps
       (-map (fn (list (-> <> cadr cadr)
                   (--> <>
@@ -341,7 +341,7 @@
       ;; process notifications
       (-map
         (lambda (pair)
-          (destructuring-bind (headline timestamp) pair
+          (cl-destructuring-bind (headline timestamp) pair
             ;; ensure we're tracking the headline
             (when (not (ht-contains? ns/org-notify-ht headline))
               (ht-set! ns/org-notify-ht headline nil))

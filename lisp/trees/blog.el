@@ -172,13 +172,12 @@
          )
 
     (-map
-      (fn (with-temp-buffer
-            (ht-with-context <>
-              (message (format "BLOG: making %s " :path))
-              (insert :content)
-              (org-export-to-file 'html :html-dest))))
-      org-metas)
-    ))
+      (lambda (post) (with-temp-buffer
+                       (ht-with-context post
+                         (message (format "BLOG: making %s " :path))
+                         (insert :org-content)
+                         (org-export-to-file 'html :html-dest))))
+      org-metas)))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()

@@ -194,9 +194,6 @@
   ;; shorten all the colors, because they are also used in EG org exports
   (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
 
-;; (setq ns/theme ns/theme-melon)
-;; (setq ns/theme ns/theme-soft)
-
 (deftheme neea)
 (base16-theme-define 'neea
   (ht-with-context ns/theme

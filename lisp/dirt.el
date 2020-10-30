@@ -320,7 +320,10 @@
         (lambda (node)
           (if (and
                 (s-starts-with-p ":" (prin1-to-string node))
-                (-contains-p (ht-keys (eval table)) node))
+                ;; if the table doesn't exist, don't sanity check the key
+                (if (boundp table)
+                  (-contains-p (ht-keys (eval table)) node)
+                  t))
             (list 'ht-get table node)
             node))
         tree))

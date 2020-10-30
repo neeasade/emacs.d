@@ -122,7 +122,13 @@
 
 (named-timer-run :sync-recentf-list
   t (* 5 60)
-  (fn (shut-up (recentf-save-list))))
+  (fn (when
+        ;; don't interrupt me.
+        ;; recentf-list normally syncs on a graceful exit, but we don't always have that luxury
+        ;; having this on an idle timer got really annoying
+        ;; so giving recentf the chance to maybe save every 5 min, if idle.
+        (> (org-user-idle-seconds) 10)
+        (shut-up (recentf-save-list)))))
 
 (setq whitespace-line-column 120)
 
