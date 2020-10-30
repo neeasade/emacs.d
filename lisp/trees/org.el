@@ -201,6 +201,7 @@
   ;; (org-show-context)
   ;; (org-show-siblings)
   ;; (org-show-subtree)
+
   (org-show-all)
 
   (let* ((props (cadr (org-ml-parse-this-headline)))
@@ -423,6 +424,7 @@
 (defun ns/org-mode-hook ()
   (olivetti-mode)
   (git-gutter-mode 0)
+  (smartparens-mode 0)
   (ns/set-buffer-face-variable)
 
   (flyspell-mode)

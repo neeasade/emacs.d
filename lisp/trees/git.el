@@ -62,7 +62,9 @@
   (general-nmap magit-status-mode-map "n" 'evil-next-line))
 
 (use-package git-gutter-fringe
-  :config (setq git-gutter-fr:side 'right-fringe))
+  :config
+  (setq git-gutter-fr:side 'right-fringe)
+  )
 
 ;; todo: make this colemak
 (defhydra git-smerge-menu ()

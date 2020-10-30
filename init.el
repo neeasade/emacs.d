@@ -143,7 +143,9 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      (ns/style))))
+      ;; theme
+      (ns/style)
+      )))
 
 (provide 'init)
 ;;; init.el ends here

@@ -7,7 +7,7 @@
 
 (use-package evil
   ;; evil-collection
-  :init (setq evil-want-integration nil)
+  :init (setq evil-want-integration t)
   :config (evil-mode 1)
   (general-nmap "N" 'evil-join))
 

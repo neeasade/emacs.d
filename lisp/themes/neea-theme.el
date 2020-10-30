@@ -45,11 +45,12 @@
 (let*
   (
     ;; the most important color:
-    ;; (background (ns/color-lab-to-name '(94 10 0) ns/theme-white-point))
+
+    ;; (background (ns/color-lab-to-name '(94 10 0)))
 
     (background "#EEF0F3")
 
-    ;; (background (ns/color-lab-lighten "#EEF0F3" 2))
+    (background (ns/color-lab-darken "#EEF0F3" 2))
 
     ;; foreground and faded foreground will be contrast ratio based:
     (foreground
@@ -69,45 +70,26 @@
 
     (accent-rotations
       (let*
-        (
-          ;; (color-start
-          ;;   (ns/color-lch-transform
-          ;;     foreground_
-          ;;     (lambda (L C H)
-          ;;       (list
-          ;;         L
-          ;;         ;; C
-          ;;         ;; 55
-          ;;         C
-          ;;         ;; H
-          ;;         (degrees-to-radians 253.642696368751)
-          ;;         ))))
+        ((color-start
+           (ns/color-hsluv-transform
+             foreground_
+             (lambda (H S L)
+               (list
+                 ;; 346
+                 ;; (- 346 90)
+                 ;; 256
 
-          (color-start
-            (ns/color-hsluv-transform
-              foreground_
-              (lambda (H S L)
-                (list
-                  ;; 300
-                  ;; 315
-                  ;; 330
-                  ;; 340
-                  ;; (- 346 90)
-                  ;; 256
-
-                  ;; 0
-                  270
-                  ;; 40
-                  ;; (+ 253.642696368751 120)
-                  ;; 253.642696368751
+                 ;; 0
+                 270
+                 ;; 40
+                 ;; (+ 253.642696368751 120)
+                 ;; 253.642696368751
 
 
+                 75
 
-                  75
-
-                  L
-                  ;; (third (hsluv-hex-to-hsluv (ht-get ns/theme :foreground_)))
-                  ))))
+                 L
+                 ))))
 
           ;; (interval (degrees-to-radians 60))
 
@@ -120,14 +102,6 @@
           ;; (interval 90)
           ;; (interval 30)
           )
-
-        ;; (->> (range 6)
-        ;;   (-map
-        ;;     (fn
-        ;;       (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 1 interval) H) S L)))
-        ;;       )
-        ;;     )
-        ;;   )
 
         ;; (-map-indexed)
 
@@ -153,11 +127,6 @@
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 3 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 4 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 5 interval) H) S L)))
-
-          ;; color-start
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ 180 H) S L)))
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ interval H) S L)))
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ interval 180 H) S L)))
           )))
 
     ;; (accent1  (nth 0 accent-rotations))
@@ -233,7 +202,7 @@
             ;; (ns/color-hsluv-transform v (lambda (H S L) (list H (* S 1.0) (* L 0.95))))
 
             ;; ensure all colors have some minimum contrast ratio
-            (ns/color-tint-ratio v background 2.0)
+            (ns/color-tint-ratio v background 2.2)
 
             ;; don't tweak anything
             ;; v
