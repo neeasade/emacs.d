@@ -447,6 +447,7 @@
 (defun! ns/style-org ()
   (ns/set-faces-monospace '(org-block
                              org-code
+                             org-checkbox
                              org-table
                              org-macro
                              org-formula

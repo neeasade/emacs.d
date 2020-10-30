@@ -17,26 +17,6 @@
   ;; color-d75-xyz ;; | North sky Daylight
   )
 
-;; (face-attribute 'default :foreground)
-;; "#6af87bbf6957"
-
-
-;; save themes
-(setq ns/theme-melon
-  #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-	    (:accent2_ "#44048cdd4404"
-        :accent2 "#28ef740328ef"
-        :accent1_ "#eb7e614e9cdc"
-        :accent1 "#edad125370dc"
-        :background+ "#876ad14982d3"
-        :background "#e989fcb0e774"
-        :foreground_ "#6af87bbf6957"
-        :foreground "#2cc03bc32bad")))
-
-(setq ns/theme-soft
-  #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (:accent2_ "#0000920353b9" :accent2 "#d703439f0ec0" :accent1_ "#00009222d97b" :accent1 "#de5817ca9a61" :background+ "#ffffca0bffff" :background "#fffff98bffff" :foreground_ "#92728c539259" :foreground "#586652b35849"))
-  )
-
 ;; LAB definition for color.el:
 ;; L: Luminance 0-100
 ;; A: Green -100 <--> 100 Red
@@ -45,28 +25,13 @@
 (let*
   (
     ;; the most important color:
-
     ;; (background (ns/color-lab-to-name '(94 10 0)))
-
     (background "#EEF0F3")
-
     (background (ns/color-lab-darken "#EEF0F3" 2))
 
     ;; foreground and faded foreground will be contrast ratio based:
-    (foreground
-      (ns/color-tint-ratio background background 3.4)
-      )
-
-    (foreground_
-      (ns/color-tint-ratio background background 2.1)
-
-      ;; (ns/color-iterate background
-      ;;   (fn (ns/color-lab-darken <> 0.1))
-      ;;   (fn (> (ns/color-contrast-ratio <> background)
-      ;;         2.1
-      ;;         )))
-
-      )
+    (foreground (ns/color-tint-ratio background background 3.4))
+    (foreground_ (ns/color-tint-ratio background background 2.1))
 
     (accent-rotations
       (let*
@@ -103,25 +68,21 @@
           ;; (interval 30)
           )
 
-        ;; (-map-indexed)
-
         (list
-          ;; 2 sets of complements by an initial offset:
+          color-start
 
-          ;; color-start
+          ;; 2 sets of complements by an initial offset:
           ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (degrees-to-radians 180) H))))
           ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval H))))
           ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval (degrees-to-radians 180) H))))
 
-          color-start
+          ;; LCH space (hue is at 90 degree offsets here rather than 60)
           (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
           (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
           (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
           (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 4 interval) H))))
 
           ;; HSLuv space test
-
-          color-start
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 1 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 2 interval) H) S L)))
           (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 3 interval) H) S L)))
@@ -130,8 +91,8 @@
           )))
 
     ;; (accent1  (nth 0 accent-rotations))
-    ;; (accent1_ (nth 2 accent-rotations))
-    ;; (accent2  (nth 2 accent-rotations))
+    ;; (accent1_ (nth 1 accent-rotations))
+    ;; (accent2  (nth 0 accent-rotations))
     ;; (accent2_ (nth 1 accent-rotations))
 
     (accent1  (nth 0 accent-rotations))
@@ -143,7 +104,7 @@
     (background+
       (ns/color-iterate
         accent1_
-        (fn (ns/color-lab-lighten <> 0.3) )
+        (fn (ns/color-lab-lighten <> 0.1) )
         (fn (< (ns/color-contrast-ratio <> background)
               ;; 1.3
 
@@ -152,23 +113,24 @@
               ;; 1.15
               ))))
 
-
     (background_
       (-> background
         (ns/color-lch-transform
           (lambda (L C H)
             (list L C
-              ;; steal hue
+              ;; steal hue from accent1_
               (third (apply 'color-lab-to-lch
                        (ns/color-name-to-lab accent1_))))))
         (ns/color-hsluv-transform
-          (lambda (H S L) (list H S (- L 4)))))
-      )
+          (lambda (H S L) (list H S (- L 4))))))
 
     (background__
       (ns/color-hsluv-transform
         background_
         (lambda (H S L) (list H S (- L 6)))))
+
+    ;; (background_ (ns/color-tint-ratio-reverse background background 1.05))
+    ;; (background__ (ns/color-tint-ratio-reverse accent1_ background 1.12))
 
     (background+ background__)
     )
@@ -183,7 +145,6 @@
       (:background_ background_)        ; emphasis?
       (:background__ background__)      ; inactive modeline
       (:background+ background+)        ; background of a focused/highlighted thing (also active modeline)
-
 
       (:accent1 accent1)                ; identifiers
       (:accent1_ accent1_)              ; builtins

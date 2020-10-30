@@ -83,10 +83,7 @@
       (fn (ns/color-lab-darken <> 0.1))
       (fn (ns/color-lab-lighten <> 0.1)))
 
-    (fn (> (ns/color-contrast-ratio <> against)
-          ratio
-          ;; (- ratio 0.1)
-          ))))
+    (fn (> (ns/color-contrast-ratio <> against) ratio))))
 
 (ns/comment
   ;; testing

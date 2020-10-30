@@ -351,7 +351,7 @@
                     (ts> (ts-now)
                       ;; get notified in advance
                       (ts-adjust 'minute -3 timestamp)))
-              (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME")
+              (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
               (alert! headline
                 :severity 'normal
                 :title (ts-format "%l:%M %p" timestamp))
