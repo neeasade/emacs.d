@@ -313,7 +313,7 @@
   `(let* ,(-partition 2 (append args nil)) ,body))
 
 ;; fun extension to ht.el
-(defmacro ht-with-context (table content)
+(defmacro ht-with-context (table &rest content)
   (-tree-map
     (lambda (tree)
       (-tree-map-nodes (lambda (node) t)
@@ -324,4 +324,4 @@
             (list 'ht-get table node)
             node))
         tree))
-    content))
+    (cons 'progn content)))
