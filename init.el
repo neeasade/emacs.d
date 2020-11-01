@@ -123,32 +123,32 @@
   (ns/staging)
   (ns/check-for-orphans)
 
-  (add-hook 'after-init-hook
-    (lambda ()
-      (when (not (boundp 'ns/after-init-hook))
-        (setq ns/after-init-hook t)
+  (defun ns/initial-startup-hook ()
+    (when (not (boundp 'ns/after-init-hook))
+      (setq ns/after-init-hook t)
 
-        ;; Emacs is terribly slow on windows
-        (ns/toggle-bloat-global ns/enable-linux-p)
+      ;; Emacs is terribly slow on windows
+      (ns/toggle-bloat-global ns/enable-linux-p)
 
-        (run-with-idle-timer 2 t 'garbage-collect)
+      (run-with-idle-timer 2 t 'garbage-collect)
 
-        (->> recentf-list
-          (-filter (fn
-                     (and
-                       ;; tramp slow
-                       (not (file-remote-p <>))
-                       (not (s-ends-with-p "recentf" <>))
-                       (f-exists-p <>))))
-          (-take 6)
-          (mapc 'find-file))
+      (->> recentf-list
+        (-filter (fn
+                   (and
+                     ;; tramp slow
+                     (not (file-remote-p <>))
+                     (not (s-ends-with-p "recentf" <>))
+                     (f-exists-p <>))))
+        (-take 6)
+        (mapc 'find-file))
 
-        (when (f-exists-p (~ "extend.el"))
-          (load (~ "extend.el")))
+      (when (f-exists-p (~ "extend.el"))
+        (load (~ "extend.el")))
 
-        ;; theme
-        (ns/style)
-        ))))
+      ;; theme
+      (ns/style)))
+
+  (add-hook 'emacs-startup-hook 'ns/initial-startup-hook))
 
 (provide 'init)
 ;;; init.el ends here

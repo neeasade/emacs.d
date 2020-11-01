@@ -10,6 +10,7 @@
 ;; http://colorizer.org/
 ;; https://github.com/yurikhan/yk-color/blob/master/yk-color.el
 ;; https://www.w3.org/TR/WCAG20/#relativeluminancedef
+;; https://www.24a11y.com/2019/color-theory-and-contrast-ratios/
 ;; emacs shipped color.el
 
 

@@ -424,10 +424,9 @@
 (defun ns/org-mode-hook ()
   (olivetti-mode)
   (git-gutter-mode 0)
-  (smartparens-mode 0)
   (ns/set-buffer-face-variable)
 
-  (flyspell-mode)
+  (flyspell-mode 0)
 
   (setq flyspell-generic-check-word-predicate
     (lambda ()
@@ -440,6 +439,7 @@
         (org-mode-flyspell-verify)
         )))
 
+  (setq mode-line-format nil)
   )
 
 (add-hook 'org-mode-hook 'ns/org-mode-hook)

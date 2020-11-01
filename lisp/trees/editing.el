@@ -8,6 +8,7 @@
   :init
   :config
   (add-to-list 'sp-ignore-modes-list 'circe-channel-mode)
+  (add-to-list 'sp-ignore-modes-list 'org-mode)
   (smartparens-global-mode))
 
 ;; todo: steal from doom on this one
