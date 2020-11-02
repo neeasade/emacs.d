@@ -103,6 +103,11 @@
     (org-delete-property-globally prop)
     (org-set-property prop (or value "t"))))
 
+
+(defun ns/org-ml-not-done (node)
+  (and (eq (org-ml-get-type node) 'headline)
+    (not (org-ml-headline-is-done node))))
+
 (defun ns/notes-current-standup-task (parent-headline)
   "Get a TODO underneath a headline that is passed in."
   (let ((standup-point
@@ -113,16 +118,9 @@
       (with-current-buffer (get-file-buffer org-default-notes-file)
         (->> (org-ml-parse-element-at standup-point)
 	        (org-ml-get-children)
-	        ;; what we want:
-	        ;; next headline that has TODO blank or TODO, with no scheduled time
-	        ((lambda (children)
-	           (append
-	             ;; TODO: can't find out how to query headlines with no todo keyword
-	             ;; idea: map headlines, set todo keyword to 'unset'
-	             ;; (org-ml-match '((:todo-keyword "")) children)
-	             (org-ml-match '((:todo-keyword "TODO")) children)
-	             )))
-	        first))
+	        (org-ml-match '(:any * (:pred ns/org-ml-not-done)))
+          first))
+
       parent-headline)))
 
 (defun! ns/org-get-next-review-point (&optional property)
@@ -144,16 +142,17 @@
         (org-clock-goto)
         (->> (org-find-property (or property "focus"))
           (org-ml-parse-headline-at)
-          (ns/notes-current-standup-task) cadr
+          (ns/notes-current-standup-task)
+          cadr
           ((lambda (props)
              (or (plist-get props :contents-begin)
                (plist-get props :begin))))
           (goto-char)))
       (point))))
 
-(defun! ns/org-goto-active ()
+(defun! ns/org-goto-active (&optional property)
   (find-file org-default-notes-file)
-  (goto-char (ns/org-get-active-point))
+  (goto-char (ns/org-get-active-point property))
   (ns/org-jump-to-element-content))
 
 (use-package org-pomodoro
@@ -488,6 +487,8 @@
                (ns/find-or-open (if (and (f-exists-p project-notes)
                                       (not (string= buffer-file-name project-notes)))
                                   project-notes org-default-notes-file))))
+
+  "os" (fn! (ns/org-goto-active "standups"))
   "of" 'ns/org-goto-active
   "oF" (fn!
          (org-clock-out)

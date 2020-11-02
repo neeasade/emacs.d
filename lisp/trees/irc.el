@@ -73,7 +73,7 @@
          :tls t
          :nickserv-password ,(pass "tilde.chat")
          ;; https://tilde.chat/stats/
-         :channels ("#club" "#meta")
+         :channels (:after-auth "#club" "#meta")
          )
 
        ("Cyberia"

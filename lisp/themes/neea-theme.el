@@ -22,12 +22,20 @@
 ;; A: Green -100 <--> 100 Red
 ;; B: Blue  -100 <--> 100 Yellow
 
+;; (ns/color-name-to-lab (ht-get ns/theme :background))
+
+;; (92.62570047039625 -0.12394223018169503 -1.6903128567083314)
+
 (let*
   (
     ;; the most important color:
     ;; (background (ns/color-lab-to-name '(94 10 0)))
-    (background "#EEF0F3")
-    (background (ns/color-lab-darken "#EEF0F3" 2))
+    ;; (background (ns/color-lab-darken "#EEF0F3" 2))
+    ;; (background (ns/color-lab-darken "#EEF0F3" 5))
+    (background (ns/color-lab-darken "#EEF0F3" 4))
+
+    ;; (ns/color-name-to-lab "#e0dad7")
+    ;; (background "#e0dad7")
 
     ;; foreground and faded foreground will be contrast ratio based:
     (foreground (ns/color-tint-ratio background background 3.4))
@@ -142,29 +150,29 @@
     (background__
       (ns/color-hsluv-transform
         background_
-        (lambda (H S L) (list H S (- L 6)))))
+        (lambda (H S L) (list H S (- L 6))))))
 
-    ;; (background_ (ns/color-tint-ratio-reverse background background 1.05))
-    ;; (background__ (ns/color-tint-ratio-reverse accent1_ background 1.12))
+  ;; (background_ (ns/color-tint-ratio-reverse background background 1.05))
+  ;; (background__ (ns/color-tint-ratio-reverse accent1_ background 1.12))
 
-    ;; (background+ background__)
-    )
+  ;; (background+ background__)
+
 
   (setq ns/theme
     (ht
-      (:foreground foreground)          ; regular text
-      (:foreground_ foreground_)        ; comments
-      (:foreground+ foreground)         ; foreground of a focused/highlighted thing
+      (:foreground foreground)        ; regular text
+      (:foreground_ foreground_)      ; comments
+      (:foreground+ foreground)       ; foreground of a focused/highlighted thing
 
-      (:background background)          ; regular canvas
-      (:background_ background_)        ; emphasis?
-      (:background__ background__)      ; inactive modeline
-      (:background+ background+)        ; background of a focused/highlighted thing (also active modeline)
+      (:background background)        ; regular canvas
+      (:background_ background_)      ; emphasis?
+      (:background__ background__)    ; inactive modeline
+      (:background+ background+) ; background of a focused/highlighted thing (also active modeline)
 
-      (:accent1 accent1)                ; identifiers
-      (:accent1_ accent1_)              ; builtins
-      (:accent2 accent2)                ; types
-      (:accent2_ accent2_)              ; strings
+      (:accent1 accent1)              ; identifiers
+      (:accent1_ accent1_)            ; builtins
+      (:accent2 accent2)              ; types
+      (:accent2_ accent2_)            ; strings
       ))
 
   ;; perform transforms to accent colors:

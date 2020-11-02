@@ -310,6 +310,15 @@
           (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
           (ts-parse-org (plist-get (cadr scheduled) :raw-value)))))))
 
+(defun ns/org-scheduled-past-todo (heading)
+  "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
+  (llet [scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)
+          todo-state (org-ml--get-property-nocheck :todo-keyword heading)]
+    (when (string= todo-state "TODO")
+      (when scheduled
+        (ts> (ts-now)
+          (ts-parse-org (plist-get (cadr scheduled) :raw-value)))))))
+
 (defun ns/org-scheduled-future (heading)
   (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
     (when scheduled
@@ -374,6 +383,32 @@
   (with-current-buffer (find-file-noselect org-default-notes-file)
     (-map 'ns/org-scheduled-today (org-ml-get-subtrees)))
   )
+
+(defun ns/export-scheduled-org-headings-past ()
+  (let ((count
+          (with-current-buffer (find-file-noselect org-default-notes-file)
+            (->> (org-ml-get-subtrees)
+	          (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
+              (length)))))
+    (if (> count 0)
+      (format "outdated: %s" count)
+      "")))
+
+(defun! ns/org-jump-to-old-org-heading ()
+  (find-file org-default-notes-file)
+  (->> (org-ml-get-subtrees)
+	  (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
+    (first)
+    (org-ml-get-property :begin)
+    (goto-char))
+
+  (ns/org-jump-to-element-content))
+
+(ns/bind
+  ;; idk
+  "oq" 'ns/org-jump-to-old-org-heading
+  )
+
 
 (defun ns/export-scheduled-org-headings ()
   (with-current-buffer (find-file-noselect org-default-notes-file)
