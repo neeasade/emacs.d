@@ -156,6 +156,16 @@
        ;;   :template "* %?\n%U\n"
        ;;   )
 
+       ("standup" :keys "s"
+         :file ,org-default-notes-file
+         :olp ("standups")
+         :template ("* standup %U"
+                     "" "** What did you do yesterday?"
+                     "%?"
+                     "" "** What do you want to do today?"
+                     ;; "[[%?]]"
+                     ))
+
        ;; ("LinkMark" :keys "l"
        ;;   :file ,linkmarks-file
        ;;   :template ("* %^{Title}"

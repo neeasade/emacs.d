@@ -113,6 +113,10 @@
                     "[[https://notes.neeasade.net/sitemap.html][Sitemap]]"
                     (when (not is-post) (format "[[%s][History]]" history-link))
                     )
+                 "#+begin_center "
+                 "@@html:<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a> @@"
+                 "@@html:<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>@@"
+                 "#+end_center"
                  )))
 
           (post-title
