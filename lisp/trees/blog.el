@@ -42,7 +42,6 @@
   "nQ" 'ns/jump-to-blog-post
   )
 
-
 (defun ns/blog-make-hsep ()
   (format "#+begin_center\n%s\n#+end_center"
     (let* ((options "🍇🍉🍓🍅🍄🍈🍍")
