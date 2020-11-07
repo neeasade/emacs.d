@@ -479,6 +479,28 @@
     (with-current-buffer b
       (ns/set-buffer-face-variable))))
 
+(defun! ns/jump-to-notes-heading ()
+  "jump to org headlines only within selected files"
+  (let* ((buffer-list
+           `(
+              ;; two different MO's
+              ,(find-file-noselect org-default-notes-file)
+              ;; ,@(ns/buffers-by-mode 'org-mode)
+              ))
+          (entries))
+    (dolist (b buffer-list)
+      (with-current-buffer b
+        (when (derived-mode-p 'org-mode)
+          (setq entries
+            (nconc entries
+              (counsel-outline-candidates
+                (cdr (assq 'org-mode counsel-outline-settings))
+                (counsel-org-goto-all--outline-path-prefix)))))))
+    (ivy-read "Goto: " entries
+      :history 'counsel-org-goto-history
+      :action #'counsel-org-goto-action
+      :caller 'counsel-org-goto-all)))
+
 (ns/bind
   "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
                      (project-notes (if buffer-file-name
@@ -523,8 +545,11 @@
               (org-pomodoro)
               (org-clock-out)))
 
-  "no" (fn! (counsel-org-goto-all)
+  "no" (fn!
+         (ns/jump-to-notes-heading)
+         ;; (counsel-org-goto-all)
          (ns/org-jump-to-element-content)))
+
 
 (ns/bind-mode 'org
   "or" (fn! (if (use-region-p)
