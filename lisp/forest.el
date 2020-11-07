@@ -448,8 +448,21 @@
   (use-package xahk-mode))
 
 (defconfig markdown
-  ;; (use-package markdownmode)
-  )
+  (use-package markdown-mode
+    :mode (("README\\.md\\'" . gfm-mode)
+            ("\\.md\\'" . markdown-mode)
+            ("\\.markdown\\'" . markdown-mode)))
+
+  (general-define-key
+    :states '(normal)
+    :keymaps 'markdown-mode-map
+    (kbd "<tab>") 'markdown-cycle)
+
+  (defun ns/markdown-mode-hook ()
+    (ns/set-buffer-face-variable))
+  (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook)
+
+  (ns/set-faces-monospace '(markdown-code-face)))
 
 (defconfig restclient
   (use-package restclient
