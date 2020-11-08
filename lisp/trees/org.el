@@ -483,7 +483,11 @@
   "jump to org headlines only within selected files"
   (let* ((buffer-list
            `(
-              ,(when (eq major-mode 'org-mode) (current-buffer))
+              ,(when (and
+                       (eq major-mode 'org-mode)
+                       (not (string= org-default-notes-file (buffer-file-name))))
+                 (current-buffer))
+
               ;; two different MO's
               ,(find-file-noselect org-default-notes-file)
               ;; ,@(ns/buffers-by-mode 'org-mode)
