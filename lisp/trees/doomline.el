@@ -197,6 +197,7 @@ Example:
      ;; next-buffers
      ;; vcs ;; somehow this one makes the spacing off
      misc-info
+     matches
      ;; input-method
      ;; buffer-encoding
      ;; major-mode

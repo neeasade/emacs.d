@@ -205,6 +205,9 @@
 
   (when (executable-find "joker")
     (use-package flycheck-joker :config (require 'flycheck-joker)))
+
+  (use-package 4clojure)
+
   )
 
 (defconfig nix

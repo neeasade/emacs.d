@@ -184,7 +184,6 @@
 (setq ns/org-capture-region-templates
   (doct
     `(
-       ;; ,(ns/make-project-capture "meta")
        ;; this is wrapped in a progn so the lines after the first don't get made into headings
        ;; I hate org mode
        ,@(-map (fn (ns/make-project-capture <> "* %(progn \"%i\")"))

@@ -513,7 +513,7 @@
   "os" (fn! (ns/org-goto-active "standups"))
   "of" 'ns/org-goto-active
   "oF" (fn!
-         (org-clock-out)
+         (org-clock-out nil t)
          (ns/org-goto-active))
 
   "oc" (fn! (if (use-region-p)

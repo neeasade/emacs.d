@@ -388,7 +388,7 @@
   (let ((count
           (with-current-buffer (find-file-noselect org-default-notes-file)
             (->> (org-ml-get-subtrees)
-	          (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
+	            (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
               (length)))))
     (if (> count 0)
       (format "outdated: %s" count)

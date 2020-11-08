@@ -54,13 +54,17 @@
 (defalias 'second 'cadr)
 (defalias 'third 'caddr)
 
-;; alias/clojure
-(defalias 'prn 'prin1-to-string)
-(defalias '-join '-interpose)
 
-(defun prn-message (sexp)
-  (message (prin1-to-string sexp))
-  sexp)
+;; note to self: you're doing this wrong
+;; prn should be pr-string
+;; pr-message should be what prn is now
+
+;; alias/clojure
+(defalias 'pr-string 'prin1-to-string)
+(defalias '-join '-interpose)
+(defun prn (sexp)
+  (message (pr-string sexp))
+  nil)
 
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
