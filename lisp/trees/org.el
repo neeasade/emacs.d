@@ -483,19 +483,21 @@
   "jump to org headlines only within selected files"
   (let* ((buffer-list
            `(
+              ,(when (eq major-mode 'org-mode) (current-buffer))
               ;; two different MO's
               ,(find-file-noselect org-default-notes-file)
               ;; ,@(ns/buffers-by-mode 'org-mode)
               ))
           (entries))
     (dolist (b buffer-list)
-      (with-current-buffer b
-        (when (derived-mode-p 'org-mode)
-          (setq entries
-            (nconc entries
-              (counsel-outline-candidates
-                (cdr (assq 'org-mode counsel-outline-settings))
-                (counsel-org-goto-all--outline-path-prefix)))))))
+      (when b
+        (with-current-buffer b
+          (when (derived-mode-p 'org-mode)
+            (setq entries
+              (nconc entries
+                (counsel-outline-candidates
+                  (cdr (assq 'org-mode counsel-outline-settings))
+                  (counsel-org-goto-all--outline-path-prefix))))))))
     (ivy-read "Goto: " entries
       :history 'counsel-org-goto-history
       :action #'counsel-org-goto-action

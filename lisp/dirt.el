@@ -61,10 +61,11 @@
 
 ;; alias/clojure
 (defalias 'pr-string 'prin1-to-string)
+
 (defalias '-join '-interpose)
-(defun prn (sexp)
-  (message (pr-string sexp))
-  nil)
+
+(defun prn (&rest sexp)
+  (message (s-join " " (-map 'pr-string sexp))) nil)
 
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args

@@ -465,7 +465,9 @@
     (ns/set-buffer-face-variable))
   (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook)
 
-  (ns/set-faces-monospace '(markdown-code-face)))
+  (require 'markdown-mode)
+  (ns/set-faces-monospace '(markdown-code-face))
+  )
 
 (defconfig restclient
   (use-package restclient

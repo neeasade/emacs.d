@@ -289,14 +289,13 @@
   (ht-transform-kv
     ns/theme
     (lambda (k v)
-      (message (format "%s: %s"
-                 (prn k)
-                 (prn
-                   (ns/color-contrast-ratio
-                     (ht-get ns/theme :background)
-                     ;; (ht-get ns/theme :background+)
-                     v
-                     ))))))
+      (message
+        (prn k
+          (ns/color-contrast-ratio
+            (ht-get ns/theme :background)
+            ;; (ht-get ns/theme :background+)
+            v
+            )))))
 
   ;; (hsluv-hex-to-hsluv
   ;;   (ht-get ns/theme :accent2))
