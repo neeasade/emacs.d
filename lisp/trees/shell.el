@@ -158,11 +158,11 @@
   (rename-buffer
     (format "*spawn-shell-%s*"
       ;; get the pid of the running bash process
-      (car (mapcar 'process-id
-             (-filter
-               (fn (eq (process-buffer <>)
-                     (current-buffer)))
-               (process-list))))))
+      (first (-map 'process-id
+               (-filter
+                 (fn (eq (process-buffer <>)
+                       (current-buffer)))
+                 (process-list))))))
 
   (when terminal
     (when (string= (get-resource "Emacs.padding_source") "st")
