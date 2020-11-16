@@ -177,13 +177,15 @@
       (s-replace ", " "\n")
       ((lambda (content)
          (f-write content 'utf-8 (~ ".config/qutebrowser/adblock.txt")))))
-    (ns/shell-exec-dontcare "qb_command :adblock-update"))
+    (ns/shell-exec-dontcare "qb_command :adblock-update")
+    (ns/shell-exec-dontcare "panelt false"))
 
   (defun! ns/focus-mode-quit ()
     (ns/toggle-music-pause)
     (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME")
     (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
-    (ns/shell-exec-dontcare "qb_command :adblock-update"))
+    (ns/shell-exec-dontcare "qb_command :adblock-update")
+    (ns/shell-exec-dontcare "panelt true"))
 
   (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-enter)
   (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-enter)

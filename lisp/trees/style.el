@@ -185,8 +185,6 @@
 
 (set-face-attribute 'italic nil :slant 'italic)
 
-;; todo: allow underlines in default face in org mode buffers -- see buffer-face-mode
-
 (when (fboundp 'ns/style-circe) (ns/style-circe))
 (when (fboundp 'ns/style-org) (ns/style-org))
 
