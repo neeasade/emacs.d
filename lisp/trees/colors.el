@@ -146,6 +146,18 @@
       (setq iterations (+ iterations 1))
       (setq color (funcall op color))) color))
 
+(defun ns/color-iterations (start op condition)
+  "Do OP on START color until CONDITION is met or op has no effect - return all intermediate steps."
+  (let ((colors (list start))
+         (iterations 0))
+    (while (and (not (funcall condition (-last-item colors)))
+             (not (string= (funcall op (-last-item colors)) (-last-item colors)))
+             (< iterations 10000))
+      (setq iterations (+ iterations 1))
+      (setq colors (-snoc colors (funcall op (-last-item colors)))))
+    colors))
+
+
 (defun ns/color-name-to-lab (name &optional white-point)
   "Transform NAME into LAB colorspace with some lighting assumption."
   (-as-> name <>
@@ -213,7 +225,6 @@
 (defun ns/color-hsl-transform (c transform)
   "Tweak C in the HSL colorspace. Transform gets HSL in values {0-360,0-100,0-100}"
   (->> (color-name-to-rgb c)
-    ;; all ranges 0-1
     (apply 'color-rgb-to-hsl)
     ((lambda (hsl)
        (apply transform
@@ -263,3 +274,21 @@
         (* S (or Smod 0.9))
         (* L (or Vmod 1.1))
         ))))
+
+(defun ns/color-gradient (step start end &optional with-ends)
+  "create a gradient from"
+  (if with-ends
+    `(,start
+       ,@(-map
+           (fn (eval `(color-rgb-to-hex ,@<> 2)))
+           (color-gradient
+	           (color-name-to-rgb start)
+	           (color-name-to-rgb end)
+	           (- step 2)))
+       ,end)
+    (-map
+      (fn (eval `(color-rgb-to-hex ,@<> 2)))
+      (color-gradient
+	      (color-name-to-rgb start)
+	      (color-name-to-rgb end)
+	      step))))

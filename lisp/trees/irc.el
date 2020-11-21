@@ -66,6 +66,13 @@
                      )
          )
 
+       ("brettgilio"
+         :nick ,ns/irc-nick
+         :host "irc.brettgilio.com"
+         :port 7097
+         :tls t
+         )
+
        ("tildechat"
          :nick ,ns/irc-nick
          :host "na.tilde.chat"
@@ -199,6 +206,7 @@
           "Roses are red, violets are blue, %s joined this server with you"
           "%s has joined the party."
           "%s is back from meatspace."
+          "%s left to go think about HURD."
           )))
     (format
       (nth (random (- (length options) 1)) options)
@@ -520,7 +528,6 @@
   (lui-set-prompt (ns/make-message (buffer-name) "")))
 
 (add-hook 'circe-chat-mode-hook 'ns/set-circe-prompt)
-(add-hook 'circe-chat-mode-hook 'flyspell-mode)
 
 ;; (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
 ;; (add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
