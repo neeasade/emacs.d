@@ -114,6 +114,7 @@
                     )
                  "#+begin_center "
                  "@@html:<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a> @@"
+                 "@@html:<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a> @@"
                  "@@html:<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>@@"
                  "#+end_center"
                  )))
@@ -172,6 +173,9 @@
          ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
          (org-time-stamp-custom-formats '("[%Y-%m-%d]" . "[%Y-%m-%d %I:%M %p]"))
          (org-display-custom-times t)
+
+         ;; don't ask about generation when exporting
+         (org-confirm-babel-evaluate (fn nil))
          )
 
     (-map
@@ -283,15 +287,63 @@
     (insert (format "#+pubdate: <%s>\n" date))
     (insert "#+draft: t\n\n")))
 
-(defun ns/blog-make-color-preview (color)
+(defun ns/blog-make-color-preview (color &optional text)
   ;; assumes a dark FG and light BG
+  ;; (message (format "arst %s %s" color text))
+  ;; (message (format "arst %s" (stringp text)))
   (format
     "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
     color
     (ht-get ns/theme (if (ns/color-is-light-p color) :foreground :background))
     (if (ns/color-is-light-p color) (ht-get ns/theme :foreground) color)
+    (if (not (s-equals? "" (or text "")))
+      text color)))
+
+
+;; # #+MACRO:  detail @@html: <div class="detail"> $1 </div> @@
+(defun ns/blog-make-detail (&rest parts)
+  (format "@@html: <div class=\"detail\"> %s </div> @@"
+    (s-join ","
+      (-filter (fn (not (string-empty-p <>)))
+        parts))))
+
+(defun ns/blog-make-color-block (width color &optional text foreground)
+  ;; assumes a dark FG and light BG
+  (format
+    ;; "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
+    "@@html:<div class=\"colorblock\" style=\"background: %s;color: %s; width: %s%%;\">%s</div>@@"
     color
-    ))
+    (if foreground foreground
+      (ht-get ns/theme (if (ns/color-is-light-p color) :foreground :background)))
+    width (or text "")))
 
-;; (ns/blog-make-color-preview "#cccccc")
+(defun ns/blog-make-color-strip (colors &optional labels)
+  (s-join "\n"
+    `(
+       "@@html: <div style='display: flex; flex-wrap: wrap; justify-content: center;'>  @@"
+       ,@(-map
+           (lambda (c)
+             (ns/blog-make-color-block
+               (/ 100.0 (length colors))
+               ;; (length '(0 2 3 4 5 6))
 
+               (if (listp c)
+                 )
+               (first c)
+
+               (cdr c)
+
+               ))
+
+           (-zip
+             (-map (lambda (c)
+                     (if (listp c)
+                       (-map 'ns/color-shorten c)
+                       (ns/color-shorten c))
+                     ) colors)
+             (or labels (-map (lambda (_) "") (range (length colors))))))
+
+       "@@html: </div> @@"
+       )))
+
+;; (ns/blog-make-color-preview #cccccc")

@@ -88,8 +88,8 @@
   ;; csharp
   elisp
   nix
-  ;; javascript
-  ;; typescript
+  javascript
+  typescript
   markdown
   powershell
   ;; guix

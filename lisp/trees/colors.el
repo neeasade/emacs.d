@@ -252,11 +252,11 @@
       )))
 
 (defun ns/color-hsluv-transform (c transform)
-  "Tweak a color in the HSLuv space. HSL rangeis {}"
+  "Tweak a color in the HSLuv space. S,L range is {0-100}"
   (apply 'color-rgb-to-hex
     (-map 'color-clamp
       (hsluv-hsluv-to-rgb
-        (let ((result (apply transform (-> c ns/color-shorten (hsluv-hex-to-hsluv)))))
+        (let ((result (apply transform (-> c ns/color-shorten hsluv-hex-to-hsluv))))
           (list
             (mod (first result) 360.0)
             (second result)
@@ -292,3 +292,21 @@
 	      (color-name-to-rgb start)
 	      (color-name-to-rgb end)
 	      step))))
+
+;; make colors within our normalized transform functions:
+(defun ns/color-make-color-meta (transform properties)
+  (apply transform
+    (list "#cccccc"
+      (lambda (&rest _) properties))))
+
+(defun ns/color-make-hsl (H S L)
+  (ns/color-make-color-meta 'ns/color-hsl-transform (list H S L)))
+
+(defun ns/color-make-hsluv (H S L)
+  (ns/color-make-color-meta 'ns/color-hsluv-transform (list H S L)))
+
+(defun ns/color-make-lab (L A B)
+  (ns/color-make-color-meta 'ns/color-lab-transform (list L A B)))
+
+(defun ns/color-make-lch (L C H)
+  (ns/color-make-color-meta 'ns/color-lch-transform (list L C H)))
