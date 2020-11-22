@@ -22,8 +22,9 @@
     (set-face-attribute 'default nil :font new-font)
     (set-frame-font (get-resource new-font) nil t)))
 
-(defun ns/update-xrdb-font (font &optional variable)
-  (let ((key (if variable "st.font_variable" "st.font")))
+(defun ns/update-xrdb-font (font &optional toggle)
+  "Update the fallback font for xrdb value"
+  (let ((key (if toggle "st.font_variable" "st.font")))
     (setq ns/xrdb-fallback-values
       (delq (assoc key ns/xrdb-fallback-values) ns/xrdb-fallback-values))
 
