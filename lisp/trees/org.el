@@ -418,8 +418,21 @@
   ;; There is no need for "^" as the regexp is matched at the beginning of line.
   (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
 
-  ;; todo: consider:
-  (use-package mw-thesaurus)
+
+  ;; words are hard (meaning)
+  (use-package mw-thesaurus
+    :config
+    ;; this binding doesn't work -- org has some cycle agenda files meaning
+    ;; (global-set-key (kbd "C-'") #'mw-thesaurus-lookup-at-point)
+    )
+
+  ;; words are hard (spelling)
+  (use-package flyspell-correct-avy-menu
+    :config
+    (require 'flyspell-correct-avy-menu)
+    (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
+    ;; (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
+    (global-set-key (kbd "C-;") #'flyspell-correct-at-point))
   )
 
 (defun ns/org-mode-hook ()
