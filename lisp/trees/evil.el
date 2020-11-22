@@ -82,7 +82,9 @@
     (kbd "g L") 'evil-lion-right))
 
 (use-package evil-commentary :config (evil-commentary-mode))
-(use-package evil-anzu :config (setq anzu-cons-mode-line-p nil) (global anzu-mode 1))
+(use-package evil-anzu :config
+  (setq anzu-cons-mode-line-p nil) (global-anzu-mode 1))
+
 (use-package evil-matchit :config (global-evil-matchit-mode 1))
 
 (ns/use-package evil-numbers "janpath/evil-numbers"

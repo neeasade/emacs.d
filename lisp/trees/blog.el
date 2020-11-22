@@ -208,9 +208,7 @@
   (let* ((get-org-files (fn (f-entries <> (fn (s-ends-with-p ".org" <>)))))
           (org-post-metas (->> ns/blog-posts-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
           (org-page-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
-
-          ;; don't ask about generation when exporting
-          (org-confirm-babel-evaluate (fn nil)))
+          )
 
     (message "BLOG: making pages!")
     (ns/blog-generate-from-metas (append org-post-metas org-page-metas))

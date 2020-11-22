@@ -23,7 +23,6 @@
 ;; B: Blue  -100 <--> 100 Yellow
 
 ;; (ns/color-name-to-lab (ht-get ns/theme :background))
-
 ;; (92.62570047039625 -0.12394223018169503 -1.6903128567083314)
 
 (let*
@@ -32,7 +31,9 @@
     ;; (background (ns/color-lab-to-name '(94 10 0)))
     ;; (background (ns/color-lab-darken "#EEF0F3" 2))
     ;; (background (ns/color-lab-darken "#EEF0F3" 5))
-    (background (ns/color-lab-darken "#EEF0F3" 4))
+    ;; "#EEF0F3"
+    ;; (background (ns/color-lab-darken "#EEF0F3" 2))
+    (background (ns/color-lab-darken "#EEF0F3" 3))
 
     ;; (ns/color-name-to-lab "#e0dad7")
     ;; (background "#e0dad7")
@@ -297,11 +298,7 @@
             v
             )))))
 
-  ;; (hsluv-hex-to-hsluv
-  ;;   (ht-get ns/theme :accent2))
-
-  ;; (234.22962052531318 99.99999999999189 49.68516010851768)
-  ;; (234.05233473165106 99.99999999999187 50.04276207218237)
+  ;; (hsluv-hex-to-hsluv (ht-get ns/theme :accent2))
 
   )
 

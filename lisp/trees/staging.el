@@ -33,6 +33,7 @@
 ;; or matrix.el commands
 ;; also: add a clap👏text function (lol)
 
+;; novelty, but not really all that useful
 ;; (use-package string-inflection
 ;;   (defun! ns/string-inflection-auto
 ;;     "switching by major-mode"
@@ -196,14 +197,6 @@
 ;; this seems to be a little nicer:
 ;; (use-package browse-at-remote)
 
-;; spelling
-(use-package flyspell-correct-avy-menu
-  :config
-  (require 'flyspell-correct-avy-menu)
-  (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
-
-  (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
-  (global-set-key (kbd "C-;") #'flyspell-correct-at-point))
 
 ;; (named-timer-run :show-periodic-reminder
 ;;   t
@@ -400,12 +393,23 @@
 	  (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
     (first)
     (org-ml-get-property :begin)
-    (goto-char))
+    (goto-char)
+    )
+
+  (ns/org-jump-to-element-content))
+
+(defun! ns/org-jump-to-old-org-heading ()
+  (find-file org-default-notes-file)
+  (->> (org-ml-get-subtrees)
+	  (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
+    (first)
+    (org-ml-get-property :begin)
+    (goto-char)
+    )
 
   (ns/org-jump-to-element-content))
 
 (ns/bind
-  ;; idk
   "oq" 'ns/org-jump-to-old-org-heading
   )
 

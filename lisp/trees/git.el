@@ -7,7 +7,8 @@
     repository-directories (list (~ "git"))
     )
 
-  (magit-file-mode 0)
+  ;; todo: this got deleted?
+  ;; (magit-file-mode 0)
 
   ;; https://magit.vc/manual/magit/Performance.html
   (when ns/enable-windows-p
