@@ -91,6 +91,14 @@
           (post-org-content-lines
             (-non-nil
               `(,(format "#+SETUPFILE: %s" (ns/blog-path "site/assets/org/setup.org"))
+                 ,@(-map
+	                   (fn (let* ((file-path (ns/blog-path (format "site/assets/css/%s.css" <>)))
+		                             (include-path (format "/assets/css/%s.css" <>))
+		                             (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
+	                         (concat
+		                         (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
+		                         (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
+	                   '("org" "colors" "notes" "new"))
                  ,(when is-post
                     (ns/blog-make-nav-strip
                       (format "[[%s][%s]]" history-link last-edited)
@@ -291,7 +299,7 @@
   ;; (message (format "arst %s" (stringp text)))
   (format
     "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
-    color
+    (ns/color-shorten color)
     (ht-get ns/theme (if (ns/color-is-light-p color) :foreground :background))
     (if (ns/color-is-light-p color) (ht-get ns/theme :foreground) color)
     (if (not (s-equals? "" (or text "")))
@@ -305,11 +313,12 @@
       (-filter (fn (not (string-empty-p <>)))
         parts))))
 
-(defun ns/blog-make-color-block (width color &optional text foreground)
+(defun ns/blog-make-color-block (width color &optional text foreground class)
   ;; assumes a dark FG and light BG
   (format
     ;; "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
-    "@@html:<div class=\"colorblock\" style=\"background: %s;color: %s; width: %s%%;\">%s</div>@@"
+    "@@html:<div class=\"%s\" style=\"background: %s;color: %s; width: %s%%;\">%s</div>@@"
+    (or class "colorblock colorcenter")
     color
     (if foreground foreground
       (ht-get ns/theme (if (ns/color-is-light-p color) :foreground :background)))
@@ -323,15 +332,8 @@
            (lambda (c)
              (ns/blog-make-color-block
                (/ 100.0 (length colors))
-               ;; (length '(0 2 3 4 5 6))
-
-               (if (listp c)
-                 )
                (first c)
-
-               (cdr c)
-
-               ))
+               (cdr c)))
 
            (-zip
              (-map (lambda (c)
