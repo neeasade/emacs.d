@@ -72,10 +72,23 @@
       (fn (ns/color-lab-lighten <> 0.1)))
     (fn (> (ns/color-contrast-ratio <> against) ratio))))
 
+(defun ns/color-luminance-srgb (color)
+  ;; cf https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+  (let ((rgb (-map
+               (lambda (part)
+                 (if (<= part 0.03928)
+                   (/ part 12.92)
+                   (expt (/ (+ 0.055 part) 1.055) 2.4)))
+               (color-name-to-rgb color))))
+    (+
+      (* (nth 0 rgb) 0.2126)
+      (* (nth 1 rgb) 0.7152)
+      (* (nth 2 rgb) 0.0722))))
+
 (defun ns/color-contrast-ratio (c1 c2)
   ;; cf https://peteroupc.github.io/colorgen.html#Contrast_Between_Two_Colors
-  (let ((rl1 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c1))))
-         (rl2 (third (apply 'color-rgb-to-hsl (color-name-to-rgb c2)))))
+  (let ((rl1 (ns/color-luminance-srgb c1))
+         (rl2 (ns/color-luminance-srgb c2)))
     (/ (+ 0.05 (max rl1 rl2))
       (+ 0.05 (min rl1 rl2)))))
 
@@ -173,8 +186,7 @@
       (list c
         (lambda (&rest _)
           (setq return (funcall getter _))
-          _
-          )))
+          _)))
     return))
 
 (defun ns/color-get-lab-l (c) (ns/color-getter c 'ns/color-transform-lab 'first))
