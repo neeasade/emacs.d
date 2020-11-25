@@ -111,7 +111,7 @@
 
 (defun ns/color-is-light-p (name)
   (> (first (ns/color-name-to-lab name))
-    65                                 
+    65
     )
 
   ;; (> (->> name (color-name-to-rgb) (apply 'color-rgb-to-hsl) (third))
@@ -156,7 +156,6 @@
       (setq iterations (+ iterations 1))
       (setq colors (-snoc colors (funcall op (-last-item colors)))))
     colors))
-
 
 (defun ns/color-name-to-lab (name &optional white-point)
   "Transform NAME into LAB colorspace with some lighting assumption."
@@ -310,3 +309,43 @@
 
 (defun ns/color-make-lch (L C H)
   (ns/color-make-color-meta 'ns/color-lch-transform (list L C H)))
+
+;; better names, probably:
+(defalias 'ns/color-transform-hsl 'ns/color-hsl-transform)
+(defalias 'ns/color-transform-hsluv 'ns/color-hsluv-transform)
+(defalias 'ns/color-transform-lch 'ns/color-lch-transform)
+(defalias 'ns/color-transform-lab 'ns/color-lab-transform)
+
+
+;; individual property tweaks:
+(defun ns/color-transform-hsl-h (c func)
+  (ns/color-transform-hsl c (lambda (H S L) (list (funcall func H) S  L))))
+
+(defun ns/color-transform-hsl-s (c func)
+  (ns/color-transform-hsl c (lambda (H S L) (list H (funcall func S) L))))
+
+(defun ns/color-transform-hsl-l (c func)
+  (ns/color-transform-hsl c (lambda (H S L) (list H S (funcall func L)))))
+
+(defun ns/color-transform-hsluv-h (c func)
+  (ns/color-transform-hsluv c (lambda (H S L) (list (funcall func H) S  L))))
+
+(defun ns/color-transform-hsluv-s (c func)
+  (ns/color-transform-hsluv c (lambda (H S L) (list H (funcall func S) L))))
+
+(defun ns/color-transform-hsluv-l (c func)
+  (ns/color-transform-hsluv c (lambda (L C H) (list L C (funcall func H)))))
+
+(defun ns/color-transform-lch-l (c func)
+  (ns/color-transform-lch c (lambda (L C H) (list (funcall func L) C  H))))
+
+(defun ns/color-transform-lch-c (c func)
+  (ns/color-transform-lch c (lambda (L C H) (list L (funcall func C) H))))
+
+(defun ns/color-transform-lch-h (c func)
+  (ns/color-transform-lch c (lambda (L C H) (list L C (funcall func H)))))
+
+
+
+;; (ns/color-transform-hsl-l "#cccccc" (-partial '* 0))
+(ns/color-transform-hsl-l "#cccccc" (fn (* <> 0.5)))
