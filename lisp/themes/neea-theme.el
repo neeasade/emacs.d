@@ -126,7 +126,7 @@
                             (* .5 C)
                             H)))
 
-        (fn (ns/color-lab-lighten <> 0.1) )
+        (fn (ns/color-transform-lab-l <> (-partial '+ 0.1)))
         (fn (< (ns/color-contrast-ratio <> background)
               ;; 1.3
 
