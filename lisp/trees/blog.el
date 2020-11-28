@@ -88,6 +88,11 @@
                   (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
                   (substring (f-base path) 0 10)))))
 
+          (post-title
+            (->> org-file-content
+              (-first (fn (s-starts-with-p "#+title:" <>)))
+              (s-replace "#+title: " "")))
+
           (post-org-content-lines
             (-non-nil
               `(,(format "#+SETUPFILE: %s" (ns/blog-path "site/assets/org/setup.org"))
@@ -99,6 +104,9 @@
 		                         (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
 		                         (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
 	                   '("org" "colors" "notes" "new"))
+
+                 ,(format "@@html:<h1 class=title><a href=\"%s\">%s</a> </h1>@@" "/index.html" post-title)
+
                  ,(when is-post
                     (ns/blog-make-nav-strip
                       (format "[[%s][%s]]" history-link last-edited)
@@ -120,17 +128,15 @@
                     "[[https://notes.neeasade.net/sitemap.html][Sitemap]]"
                     (when (not is-post) (format "[[%s][History]]" history-link))
                     )
-                 "#+begin_center "
-                 "@@html:<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a> @@"
-                 "@@html:<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a> @@"
-                 "@@html:<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>@@"
-                 "#+end_center"
-                 )))
+                 "#+begin_center"
+                 "#+BEGIN_EXPORT html"
+                 "<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a>"
+                 "<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a>"
+                 "<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>"
+                 "#+END_EXPORT "
+                 "#+end_center")))
 
-          (post-title
-            (->> org-file-content
-              (-first (fn (s-starts-with-p "#+title:" <>)))
-              (s-replace "#+title: " "")))
+
           (post-is-draft
             (-first (fn (s-contains-p "#+draft: t" <>)) post-org-content-lines))
           )
@@ -176,6 +182,7 @@
          (org-export-with-timestamps nil)
          (org-export-with-date nil)
          (org-html-html5-fancy t)
+         (org-export-with-title nil)
 
          ;; affects timestamp export format
          ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))

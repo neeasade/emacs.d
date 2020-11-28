@@ -297,7 +297,7 @@
   "get headings scheduled from <now - 2hrs> ==> end of day"
   (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
     (when scheduled
-      (let (scheduled-value )
+      (let (scheduled-value)
         (ts-in
           (ts-adjust 'hour -2 (ts-now))
           (ts-apply :hour 23 :minute 59 :second 59 (ts-now))

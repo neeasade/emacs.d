@@ -183,7 +183,7 @@ Example:
 (ns/doom-modeline-def-modeline 'neeasade-doomline
   '(
      ;; sep
-     remote-host
+     ;; remote-host
      buffer-info-neeasade
      sep
      checker
