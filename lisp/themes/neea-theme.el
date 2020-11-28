@@ -33,75 +33,28 @@
     ;; (background (ns/color-lab-darken "#EEF0F3" 5))
     ;; "#EEF0F3"
     ;; (background (ns/color-lab-darken "#EEF0F3" 2))
+
     (background (ns/color-lab-darken "#EEF0F3" 3))
 
     ;; (ns/color-name-to-lab "#e0dad7")
     ;; (background "#e0dad7")
 
     ;; foreground and faded foreground will be contrast ratio based:
-    (foreground (ns/color-tint-ratio background background 3.4))
-    (foreground_ (ns/color-tint-ratio background background 2.1))
+    (foreground (ns/color-tint-ratio background background 8))
+    (foreground_ (ns/color-tint-ratio background background 6))
 
     (accent-rotations
-      (let*
-        ((color-start
-           (ns/color-hsluv-transform
-             foreground_
-             (lambda (H S L)
-               (list
-                 ;; 346
-                 ;; (- 346 90)
-                 ;; 256
-
-                 ;; 0
-                 270
-                 ;; 40
-                 ;; (+ 253.642696368751 120)
-                 ;; 253.642696368751
-
-
-                 75
-
-                 L
-                 ))))
-
-          ;; (interval (degrees-to-radians 60))
-
-          ;; (interval 72)
-          ;; (interval 90)
-          ;; (interval 120)
-          (interval -45)
-
-          ;; (interval 60)
-          ;; (interval 90)
-          ;; (interval 30)
-          )
-
-        (list
-          color-start
-
-          ;; 2 sets of complements by an initial offset:
-          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (degrees-to-radians 180) H))))
-          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval H))))
-          ;; (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ interval (degrees-to-radians 180) H))))
-
-          ;; LCH space (hue is at 90 degree offsets here rather than 60)
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 1 interval) H))))
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 2 interval) H))))
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 3 interval) H))))
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 4 interval) H))))
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 5 interval) H))))
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 6 interval) H))))
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 7 interval) H))))
-          (ns/color-lch-transform color-start (lambda (L C H) (list L C (+ (* 8 interval) H))))
-
-          ;; HSLuv space test
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 1 interval) H) S L)))
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 2 interval) H) S L)))
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 3 interval) H) S L)))
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 4 interval) H) S L)))
-          ;; (ns/color-hsluv-transform color-start (lambda (H S L) (list (+ (* 5 interval) H) S L)))
-          )))
+      (let ((color-start
+              (ns/color-hsluv-transform
+                foreground_
+                (lambda (H S L)
+                  (list 270 75 L))))
+             (interval -45))
+        (-map
+          (lambda (step)
+            (ns/color-transform-lch-h color-start
+              (fn (+ <> (* step interval)))))
+          (range 18))))
 
     ;; (accent1  (nth 0 accent-rotations))
     ;; (accent1_ (nth 1 accent-rotations))
@@ -129,10 +82,12 @@
         (fn (ns/color-transform-lab-l <> (-partial '+ 0.1)))
         (fn (< (ns/color-contrast-ratio <> background)
               ;; 1.3
+              1.2
 
               ;; 1.01
               ;; 1.03
-              1.15
+              ;; 1.15
+              ;; 2.0
               ))))
 
     (background_
@@ -152,12 +107,6 @@
       (ns/color-hsluv-transform
         background_
         (lambda (H S L) (list H S (- L 6))))))
-
-  ;; (background_ (ns/color-tint-ratio-reverse background background 1.05))
-  ;; (background__ (ns/color-tint-ratio-reverse accent1_ background 1.12))
-
-  ;; (background+ background__)
-
 
   (setq ns/theme
     (ht
@@ -189,18 +138,22 @@
             ;; ensure all colors have some minimum contrast ratio
             (ns/color-tint-ratio
 
-              ;; v
+              v
 
-              (ns/color-hsluv-transform v
-                (lambda (H S L)
-                  (list H S
-                    ;; (-last-item (hsluv-hex-to-hsluv (ht-get ns/theme :accent2_)))
-                    43.596286905797186
+              ;; (ns/color-hsluv-transform v
+              ;;   (lambda (H S L)
+              ;;     (list H S
+              ;;       ;; (-last-item (hsluv-hex-to-hsluv (ht-get ns/theme :accent2_)))
+              ;;       43.596286905797186
 
-                    ;; 50.1
-                    )))
+              ;;       ;; 50.1
+              ;;       )))
 
-              background 2.2)
+              background
+              ;; 6
+              4
+              ;; 4.5
+              )
 
 
             ;; IDEA: conform all the lightness in HSLuv space before tint ratio ensure
