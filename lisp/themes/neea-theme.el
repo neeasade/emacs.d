@@ -28,7 +28,7 @@
           (lambda (step)
             (ns/color-transform-lch-h color-start
               (fn (+ <> (* step interval)))))
-          (range 18))))
+          (range (/ 360 interval)))))
 
     (accent1  (nth 0 accent-rotations))
     (accent1_ (nth 1 accent-rotations))
