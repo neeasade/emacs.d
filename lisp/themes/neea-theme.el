@@ -5,44 +5,18 @@
 (require 'base16-theme)
 (ns/colors)
 
-;; the definition of 'white' as displayed on the screen your viewing it on
-;; picture you are a photographer, taking pictured in different lighting conditions -- sunlight and
-;; incandescent lighting conditions are very different, for example.
-;; well here, your monitor is like the photograph, and this point represents "white" on your screen.
-(setq ns/theme-white-point
-  ;; note: ICC is https://en.wikipedia.org/wiki/ICC_profile
-  ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
-  ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
-  color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
-  ;; color-d75-xyz ;; | North sky Daylight
-  )
-
-;; LAB definition for color.el:
-;; L: Luminance 0-100
-;; A: Green -100 <--> 100 Red
-;; B: Blue  -100 <--> 100 Yellow
-
-;; (ns/color-name-to-lab (ht-get ns/theme :background))
-;; (92.62570047039625 -0.12394223018169503 -1.6903128567083314)
-
 (let*
   (
     ;; the most important color:
-    ;; (background (ns/color-lab-to-name '(94 10 0)))
-    ;; (background (ns/color-lab-darken "#EEF0F3" 2))
-    ;; (background (ns/color-lab-darken "#EEF0F3" 5))
-    ;; "#EEF0F3"
-    ;; (background (ns/color-lab-darken "#EEF0F3" 2))
+    ;; (background (ns/color-make-lab '(94 10 0)))
+    ;; (background "#EEF0F3")
 
-    (background (ns/color-lab-darken "#EEF0F3" 3))
+    (background (ns/color-lab-darken "#EEF0F3" 2))
 
-    ;; (ns/color-name-to-lab "#e0dad7")
-    ;; (background "#e0dad7")
-
-    ;; foreground and faded foreground will be contrast ratio based:
-    (foreground (ns/color-tint-ratio background background 8))
+    (foreground (ns/color-tint-ratio background background 10))
     (foreground_ (ns/color-tint-ratio background background 6))
 
+    ;; LCH rotate -45 from blue (hue 270)
     (accent-rotations
       (let ((color-start
               (ns/color-hsluv-transform
@@ -56,38 +30,20 @@
               (fn (+ <> (* step interval)))))
           (range 18))))
 
-    ;; (accent1  (nth 0 accent-rotations))
-    ;; (accent1_ (nth 1 accent-rotations))
-    ;; (accent2  (nth 0 accent-rotations))
-    ;; (accent2_ (nth 1 accent-rotations))
-
     (accent1  (nth 0 accent-rotations))
     (accent1_ (nth 1 accent-rotations))
-
-    (accent2 (nth 2 accent-rotations))
-    ;; (accent2 (nth 3 accent-rotations))
-    ;; (accent2 (nth 7 accent-rotations))
-
+    (accent2  (nth 2 accent-rotations))
     (accent2_ (nth 4 accent-rotations))
 
     ;; active BG (selections)
+    ;; take an accent color, fade it until you reach a minimum contrast against foreground_
     (background+
       (ns/color-iterate
-        (ns/color-lch-transform
-          accent2
-          (lambda (L C H) (list L
-                            (* .5 C)
-                            H)))
-
-        (fn (ns/color-transform-lab-l <> (-partial '+ 0.1)))
-        (fn (< (ns/color-contrast-ratio <> background)
-              ;; 1.3
-              1.2
-
-              ;; 1.01
-              ;; 1.03
-              ;; 1.15
-              ;; 2.0
+        (ns/color-transform-lch-c accent2 (-partial '* 0.5))
+        ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
+        (fn (ns/color-lab-lighten <> 0.1))
+        (fn (> (ns/color-contrast-ratio <> foreground_)
+              5
               ))))
 
     (background_
@@ -110,19 +66,19 @@
 
   (setq ns/theme
     (ht
-      (:foreground foreground)        ; regular text
-      (:foreground_ foreground_)      ; comments
-      (:foreground+ foreground)       ; foreground of a focused/highlighted thing
+      (:foreground foreground)          ; regular text
+      (:foreground_ foreground_)        ; comments
+      (:foreground+ foreground)         ; foreground of a focused/highlighted thing
 
-      (:background background)        ; regular canvas
-      (:background_ background_)      ; emphasis?
-      (:background__ background__)    ; inactive modeline
-      (:background+ background+) ; background of a focused/highlighted thing (also active modeline)
+      (:background background)          ; regular canvas
+      (:background_ background_)        ; emphasis?
+      (:background__ background__)      ; inactive modeline
+      (:background+ background+)  ; background of a focused/highlighted thing (also active modeline)
 
-      (:accent1 accent1)              ; identifiers
-      (:accent1_ accent1_)            ; builtins
-      (:accent2 accent2)              ; types
-      (:accent2_ accent2_)            ; strings
+      (:accent1 accent1)                ; identifiers
+      (:accent1_ accent1_)              ; builtins
+      (:accent2 accent2)                ; types
+      (:accent2_ accent2_)              ; strings
       ))
 
   ;; perform transforms to accent colors:
@@ -132,52 +88,48 @@
         (cond
           ((s-starts-with-p ":accent" (prin1-to-string k))
             ;; messing around:
-            ;; (ns/color-lch-transform v (lambda (L C H) (list L (* C 1.5) H)))
-            ;; (ns/color-hsluv-transform v (lambda (H S L) (list H (* S 1.0) (* L 0.95))))
-
-            ;; ensure all colors have some minimum contrast ratio
-            (ns/color-tint-ratio
-
-              v
-
-              ;; (ns/color-hsluv-transform v
-              ;;   (lambda (H S L)
-              ;;     (list H S
-              ;;       ;; (-last-item (hsluv-hex-to-hsluv (ht-get ns/theme :accent2_)))
-              ;;       43.596286905797186
-
-              ;;       ;; 50.1
-              ;;       )))
-
-              background
-              ;; 6
-              4
-              ;; 4.5
-              )
-
-
-            ;; IDEA: conform all the lightness in HSLuv space before tint ratio ensure
 
             ;; don't tweak anything
             ;; v
 
-            ;; conform
-            ;; foreground
-            )
+            ;; ensure all colors have some minimum contrast ratio
+            (ns/color-tint-ratio
+              ;; conform lightness -- this lightness was just from a green for strings I liked
+              (ns/color-transform-hsluv-l v 43.596)
+              ;; v
+
+              ;; against, ratio
+              background 4.5))
           (t v)))))
 
-  ;; correlate this with screen brightness -- the lower you turn it you will want to turn this down
-  ;; todo: for this to be accurate you must be sure of the initial color adjustments in sRBG
-  ;; that implies gamma correction/measure in an enviroment controlled or similar to the one described at
-  ;; https://en.wikipedia.org/wiki/SRGB
+  ;; do this transform AFTER messing with accent colors above.
+  (ht-set ns/theme :background+
+    (ns/color-iterate
+      (ns/color-transform-lch-c
+        (ht-get ns/theme :accent2)
+        (-partial '* 0.5))
+      ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
+      (fn (ns/color-lab-lighten <> 0.1))
+      (fn (> (ns/color-contrast-ratio <> foreground_)
+            5
+            ))))
 
   ;; white point const meanings
   ;; color-d65-xyz ;; | Noon Daylight: Television, sRGB color space (standard assumption)
   ;; color-d50-xyz ;; | Horizon Light. ICC profile PCS
   ;; color-d55-xyz ;; | Mid-morning / Mid-afternoon Daylight
   ;; color-d75-xyz ;; | North sky Daylight
+  ;; -------------------------------------
+  ;; the definition of 'white' as displayed on the screen your viewing it on
+  ;; picture you are a photographer, taking pictured in different lighting conditions -- sunlight and
+  ;; incandescent lighting conditions are very different, for example.
+  ;; well here, your monitor is like the photograph, and this point represents "white" on your screen.
 
-  ;; when outside, or with really low brightness, try out these transforms:
+  ;; some lighting ideas to try these out in:
+  ;; - outside
+  ;; - a dark room
+  ;; - low screen brightness
+  ;; - high screen brightness
   ;; (->>
   ;;   (fn (ns/color-tint-with-light <> ns/theme-white-point color-d55-xyz))
   ;;   ;; (fn (ns/color-tint-with-light <> ns/theme-white-point color-d50-xyz))

@@ -28,6 +28,7 @@
     (apply 'color-xyz-to-lab <>)))
 
 (defun ns/color-lab-to-name (lab &optional white-point)
+  "Convert LAB color to name"
   (->> (append lab (list (or white-point color-d65-xyz)))
     (apply 'color-lab-to-xyz)
     (apply 'color-xyz-to-srgb)
@@ -39,12 +40,14 @@
   (> (first (ns/color-name-to-lab name)) 65))
 
 (defun ns/color-greaten (percent color)
+  "Make a light color lighter, a dark color darker"
   (ns/color-shorten
     (if (ns/color-is-light-p color)
       (color-lighten-name color percent)
       (color-darken-name color percent))))
 
 (defun ns/color-lessen (percent color)
+  "Make a light color darker, a dark color lighter"
   (ns/color-shorten
     (if (ns/color-is-light-p color)
       (color-darken-name color percent)
@@ -104,7 +107,7 @@
 
 ;; transformers
 (defun ns/color-lab-transform (color transform)
-  "Generate an accent color from COLOR using TRANSFORM, a LAB colorspace function."
+  "Work with a color in the LAB space. Ranges for LAB are 0-100, -100 -> 100, -100 -> 100"
   (->> color
     (ns/color-name-to-lab)
     (apply transform)
@@ -164,21 +167,30 @@
 (defalias 'ns/color-transform-lab 'ns/color-lab-transform)
 
 ;; individual property tweaks:
-(defun ns/color-transform-hsl-h (c func) (ns/color-transform-hsl c (lambda (H S L) (list (funcall func H) S  L))))
-(defun ns/color-transform-hsl-s (c func) (ns/color-transform-hsl c (lambda (H S L) (list H (funcall func S) L))))
-(defun ns/color-transform-hsl-l (c func) (ns/color-transform-hsl c (lambda (H S L) (list H S (funcall func L)))))
+(defmacro ns/transform-prop (transform index)
+  `(,transform c
+     (lambda (&rest args)
+       (-replace-at ,index
+         (if (functionp func)
+           (funcall func (nth ,index args))
+           func)
+         args))))
 
-(defun ns/color-transform-hsluv-h (c func) (ns/color-transform-hsluv c (lambda (H S L) (list (funcall func H) S  L))))
-(defun ns/color-transform-hsluv-s (c func) (ns/color-transform-hsluv c (lambda (H S L) (list H (funcall func S) L))))
-(defun ns/color-transform-hsluv-l (c func) (ns/color-transform-hsluv c (lambda (L C H) (list L C (funcall func H)))))
+(defun ns/color-transform-hsl-h (c func) (ns/transform-prop ns/color-transform-hsl 0))
+(defun ns/color-transform-hsl-s (c func) (ns/transform-prop ns/color-transform-hsl 1))
+(defun ns/color-transform-hsl-l (c func) (ns/transform-prop ns/color-transform-hsl 2))
 
-(defun ns/color-transform-lch-l (c func) (ns/color-transform-lch c (lambda (L C H) (list (funcall func L) C  H))))
-(defun ns/color-transform-lch-c (c func) (ns/color-transform-lch c (lambda (L C H) (list L (funcall func C) H))))
-(defun ns/color-transform-lch-h (c func) (ns/color-transform-lch c (lambda (L C H) (list L C (funcall func H)))))
+(defun ns/color-transform-hsluv-h (c func) (ns/transform-prop ns/color-transform-hsluv 0))
+(defun ns/color-transform-hsluv-s (c func) (ns/transform-prop ns/color-transform-hsluv 1))
+(defun ns/color-transform-hsluv-l (c func) (ns/transform-prop ns/color-transform-hsluv 2))
 
-(defun ns/color-transform-lab-l (c func) (ns/color-transform-lab c (lambda (L A B) (list (funcall func L) A  B))))
-(defun ns/color-transform-lab-c (c func) (ns/color-transform-lab c (lambda (L A B) (list L (funcall func A) B))))
-(defun ns/color-transform-lab-h (c func) (ns/color-transform-lab c (lambda (L A B) (list L A (funcall func B)))))
+(defun ns/color-transform-lch-l (c func) (ns/transform-prop ns/color-transform-lch 0))
+(defun ns/color-transform-lch-c (c func) (ns/transform-prop ns/color-transform-lch 1))
+(defun ns/color-transform-lch-h (c func) (ns/transform-prop ns/color-transform-lch 2))
+
+(defun ns/color-transform-lab-l (c func) (ns/transform-prop ns/color-transform-lab 0))
+(defun ns/color-transform-lab-a (c func) (ns/transform-prop ns/color-transform-lab 1))
+(defun ns/color-transform-lab-b (c func) (ns/transform-prop ns/color-transform-lab 2))
 
 (defun ns/color-getter (c transform getter)
   (let ((return))
@@ -189,18 +201,22 @@
           _)))
     return))
 
+(defun ns/color-get-lab (c) (ns/color-getter c 'ns/color-transform-lab 'identity))
 (defun ns/color-get-lab-l (c) (ns/color-getter c 'ns/color-transform-lab 'first))
 (defun ns/color-get-lab-a (c) (ns/color-getter c 'ns/color-transform-lab 'second))
 (defun ns/color-get-lab-b (c) (ns/color-getter c 'ns/color-transform-lab 'third))
 
+(defun ns/color-get-hsl (c) (ns/color-getter c 'ns/color-transform-hsl 'identity))
 (defun ns/color-get-hsl-h (c) (ns/color-getter c 'ns/color-transform-hsl 'first))
 (defun ns/color-get-hsl-s (c) (ns/color-getter c 'ns/color-transform-hsl 'second))
 (defun ns/color-get-hsl-l (c) (ns/color-getter c 'ns/color-transform-hsl 'third))
 
+(defun ns/color-get-hsluv (c) (ns/color-getter c 'ns/color-transform-hsluv 'identity))
 (defun ns/color-get-hsluv-h (c) (ns/color-getter c 'ns/color-transform-hsluv 'first))
 (defun ns/color-get-hsluv-s (c) (ns/color-getter c 'ns/color-transform-hsluv 'second))
 (defun ns/color-get-hsluv-l (c) (ns/color-getter c 'ns/color-transform-hsluv 'third))
 
+(defun ns/color-get-lch (c) (ns/color-getter c 'ns/color-transform-lch 'identity))
 (defun ns/color-get-lch-l (c) (ns/color-getter c 'ns/color-transform-lch 'first))
 (defun ns/color-get-lch-c (c) (ns/color-getter c 'ns/color-transform-lch 'second))
 (defun ns/color-get-lch-h (c) (ns/color-getter c 'ns/color-transform-lch 'third))
