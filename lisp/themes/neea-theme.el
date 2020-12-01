@@ -8,10 +8,14 @@
 (let*
   (
     ;; the most important color:
+    ;; (background (ns/color-lab-darken "#EEF0F3" 2))
     ;; (background (ns/color-make-lab '(94 10 0)))
-    ;; (background "#EEF0F3")
 
-    (background (ns/color-lab-darken "#EEF0F3" 2))
+    ;; /slightly/ cool
+    (background (ns/color-make-lab 93 -0.5 -1))
+
+    ;; (ns/color-get-lab (ht-get ns/theme :background))
+    ;; (92.62570047039625 -0.12394223018169503 -1.6903128567083314)
 
     (foreground (ns/color-tint-ratio background background 10))
     (foreground_ (ns/color-tint-ratio background background 6))
@@ -51,21 +55,14 @@
 
     (background_
       (-> background
-        (ns/color-lch-transform
-          (lambda (L C H)
-            (list L C
-              ;; steal hue from accent1_
-              (third (apply 'color-lab-to-lch
-                       (ns/color-name-to-lab background+)
-                       ;; (ns/color-name-to-lab accent1_)
-                       )))))
-        (ns/color-hsluv-transform
-          (lambda (H S L) (list H S (- L 4))))))
+        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
+        (ns/color-transform-hsluv-l (-rpartial '- 4))
+        ))
 
     (background__
-      (ns/color-hsluv-transform
-        background_
-        (lambda (H S L) (list H S (- L 6))))))
+      (-> background_
+        (ns/color-transform-hsluv-l (-rpartial '- 6))
+        )))
 
   (setq ns/theme
     (ht
@@ -89,7 +86,10 @@
     (ht-transform-kv ns/theme
       (lambda (k v)
         (cond
-          ((s-starts-with-p ":accent" (prin1-to-string k))
+          ((or
+             (s-starts-with-p ":accent" (prin1-to-string k))
+             (s-starts-with-p ":foreground_" (prin1-to-string k))
+             )
             ;; messing around:
 
             ;; don't tweak anything
@@ -99,6 +99,7 @@
             (ns/color-tint-ratio
               ;; conform lightness -- this lightness was just from a green for strings I liked
               (ns/color-transform-hsluv-l v 43.596)
+              ;; (ns/color-transform-hsluv-l v 50)
               ;; v
 
               ;; against, ratio
@@ -110,6 +111,7 @@
     (ns/color-iterate
       (ns/color-transform-lch-c
         (ht-get ns/theme :accent2)
+        ;; (ht-get ns/theme :foreground_)
         (-partial '* 0.5))
       ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
       (fn (ns/color-lab-lighten <> 0.1))
