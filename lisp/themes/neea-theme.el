@@ -23,17 +23,20 @@
                 foreground_
                 (lambda (H S L)
                   (list 270 75 L))))
-             (interval -45))
+             (interval -45)
+             ;; (interval 45)
+             ;; (interval -30)
+             )
         (-map
           (lambda (step)
             (ns/color-transform-lch-h color-start
               (fn (+ <> (* step interval)))))
-          (range (/ 360 interval)))))
+          (range (/ 360 (abs interval))))))
 
-    (accent1  (nth 0 accent-rotations))
-    (accent1_ (nth 1 accent-rotations))
-    (accent2  (nth 2 accent-rotations))
-    (accent2_ (nth 4 accent-rotations))
+    (accent1  (ns/nth -1 accent-rotations))
+    (accent1_ (ns/nth 1 accent-rotations))
+    (accent2  (ns/nth 2 accent-rotations))
+    (accent2_ (ns/nth 4 accent-rotations))
 
     ;; active BG (selections)
     ;; take an accent color, fade it until you reach a minimum contrast against foreground_
