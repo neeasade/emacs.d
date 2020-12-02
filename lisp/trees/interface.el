@@ -71,6 +71,8 @@
 (general-define-key
   :states '(normal)
   :keymaps 'dired-mode-map
+  ;; the default 'r' only refreshes marked files. this gets everything
+  "r" 'revert-buffer
   "h" 'dired-up-directory
   "l" 'dired-find-file
   (kbd "<C-return>") (fn!
