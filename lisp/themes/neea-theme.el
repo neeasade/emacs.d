@@ -53,16 +53,21 @@
               5
               ))))
 
+    ;; new idea: these could be contrast based as well in relation to foreground
     (background_
       (-> background
         (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
-        (ns/color-transform-hsluv-l (-rpartial '- 4))
-        ))
+        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
+        ((lambda (c) (ns/color-tint-ratio foreground c 9)))))
 
     (background__
-      (-> background_
-        (ns/color-transform-hsluv-l (-rpartial '- 6))
-        )))
+      (-> background
+        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
+        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
+        ((lambda (c) (ns/color-tint-ratio foreground c 8)))))
+
+    ;; (background__ (-> background_ (ns/color-transform-hsluv-l (-rpartial '- 6))))
+    )
 
   (setq ns/theme
     (ht

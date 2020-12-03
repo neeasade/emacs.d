@@ -104,8 +104,9 @@
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs
 ;; testing out [Fri Dec 20 15:13:58 2019]
-(use-package bash-completion)
-(bash-completion-setup)
+;; todo: this is broken, just freezes the shell
+;; (use-package bash-completion)
+;; (bash-completion-setup)
 
 ;; colors!
 ;; ideas:
@@ -232,7 +233,7 @@
 
 (named-timer-run :harass-myself
   t
-  60
+  20
   (fn
     ;; when you're not idle
     (when (< (org-user-idle-seconds) 30)
