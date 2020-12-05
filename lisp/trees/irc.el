@@ -105,12 +105,13 @@
        ;;   :tls t
        ;;   :channels ("#bitlbee"))
 
-       ("eigenstate"
-         :nick ,ns/irc-nick
-         :host "irc.eigenstate.org"
-         :port (6667 . 6697)
-         :tls t
-         :channels ("#myrddin"))
+       ;; dead?
+       ;; ("eigenstate"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "irc.eigenstate.org"
+       ;;   :port (6667 . 6697)
+       ;;   :tls t
+       ;;   :channels ("#myrddin"))
 
        ;; ("Bitlbee"
        ;;   :nick ,ns/irc-nick

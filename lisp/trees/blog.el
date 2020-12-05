@@ -219,11 +219,12 @@
     (f-entries ns/blog-site-dir
       (fn (s-ends-with-p ".html" <>))))
 
-  ;; need to define these here for index listings
-  (let* ((get-org-files (fn (f-entries <> (fn (s-ends-with-p ".org" <>)))))
-          (org-post-metas (->> ns/blog-posts-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
-          (org-page-metas (->> ns/blog-pages-dir (funcall get-org-files) (mapcar 'ns/blog-file-to-meta)))
+  ;; need to define these here for index listings and rss:
+  (setq
+    org-post-metas (-map 'ns/blog-file-to-meta (f-entries ns/blog-posts-dir (fn (s-ends-with-p ".org" <>))))
+    org-page-metas (-map 'ns/blog-file-to-meta (f-entries ns/blog-pages-dir (fn (s-ends-with-p ".org" <>)))))
 
+  (let* (
           ;; don't ask about generation when exporting
           (org-confirm-babel-evaluate (fn nil)))
 

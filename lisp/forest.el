@@ -276,7 +276,12 @@
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files))
               ))
 
-      (append recentf-list project-files open-buffers)))
+      ;; if a file is not remote, ensure it exists
+      (-filter
+        (lambda (f)
+          (if (file-remote-p f) t
+            (f-exists-p f)))
+        (append recentf-list project-files open-buffers))))
 
   ;; maybe consider also a jump-qutebrowser-history-candidates -- something like urls from the past month? idk
   (defun ns/jump-qutebrowser-candidates ()
