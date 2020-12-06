@@ -270,3 +270,27 @@
 (defun ns/color-make-lab (L A B) (ns/color-make-color-meta 'ns/color-lab-transform (list L A B)))
 (defun ns/color-make-lch (L C H) (ns/color-make-color-meta 'ns/color-lch-transform (list L C H)))
 
+
+(defun ns/color-rotation-hsluv (start-hue interval saturation lightness)
+  (-map
+    (lambda (offset)
+      (ns/color-make-hsluv (+ start-hue offset) saturation lightness))
+    (-map
+      (fn (* <> interval))
+      (range (/ 360 (abs interval))))))
+
+(defun ns/color-rotation-hsl (start-hue interval saturation lightness)
+  (-map
+    (lambda (offset)
+      (ns/color-make-hsl (+ start-hue offset) saturation lightness))
+    (-map
+      (fn (* <> interval))
+      (range (/ 360 (abs interval))))))
+
+(defun ns/color-rotation-lch (start-hue interval chroma lightness)
+  (-map
+    (lambda (offset)
+      (ns/color-make-lch lightness chroma (+ start-hue offset)))
+    (-map
+      (fn (* <> interval))
+      (range (/ 360 (abs interval))))))
