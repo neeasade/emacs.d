@@ -222,11 +222,11 @@
 (defun ns/color-get-lch-h (c) (ns/color-getter c 'ns/color-transform-lch 'third))
 
 ;; other color functions:
-(defun ns/color-lab-lighten (c value)
-  (ns/color-transform-lab-l c (-partial '+ value)))
+(defun ns/color-lab-lighten (c &optional value)
+  (ns/color-transform-lab-l c (-partial '+ (or value 0.1))))
 
-(defun ns/color-lab-darken (c value)
-  (ns/color-transform-lab-l c (-rpartial '- value)))
+(defun ns/color-lab-darken (c &optional value)
+  (ns/color-transform-lab-l c (-rpartial '- (or value 0.1))))
 
 (defun ns/color-pastel (c &optional Smod Vmod)
   "Make a color more pastel in the hsl space"
