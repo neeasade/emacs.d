@@ -270,20 +270,19 @@
 (defun ns/color-make-lab (L A B) (ns/color-make-color-meta 'ns/color-lab-transform (list L A B)))
 (defun ns/color-make-lch (L C H) (ns/color-make-color-meta 'ns/color-lch-transform (list L C H)))
 
+(defun ns/color-360 (interval)
+  (if (> interval 0)
+    (range 0 360 interval)
+    (range 360 0 interval)))
+
 (defun ns/color-rotation-hsluv (c interval)
   (-map (lambda (offset) (ns/color-transform-hsluv-h c (-partial '+ offset)))
-    (if (> interval 0)
-      (range 0 360 interval)
-      (range 360 0 interval))))
+    (ns/color-360 interval)))
 
 (defun ns/color-rotation-hsl (c interval)
   (-map (lambda (offset) (ns/color-transform-hsl-h c (-partial '+ offset)))
-    (if (> interval 0)
-      (range 0 360 interval)
-      (range 360 0 interval))))
+    (ns/color-360 interval)))
 
 (defun ns/color-rotation-lch (c interval)
   (-map (lambda (offset) (ns/color-transform-lch-h c (-partial '+ offset)))
-    (if (> interval 0)
-      (range 0 360 interval)
-      (range 360 0 interval))))
+    (ns/color-360 interval)))
