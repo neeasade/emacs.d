@@ -232,3 +232,9 @@
   ;; todo: consider using this:
   ;; (add-hook 'better-jumper-post-jump-hook 'recenter)
   )
+
+(use-package undo-tree
+  :config
+  (require 'undo-tree)
+  (global-undo-tree-mode)
+  (evil-set-undo-system 'undo-tree))
