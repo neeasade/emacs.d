@@ -8,14 +8,15 @@
 (defun ns/neeo-get-accents (background foreground foreground_)
   ;; return a list accent1, accent1_, accent2, accent2_
   (-->
-    (ns/color-rotation-hsluv 270 60 60 40)
+    (ns/color-rotation-hsluv
+      (ns/color-make-hsluv 265 60 40)
+      60)
 
     (-map (fn (ns/nth <> it))
       '(1 -1 2 3))
     (-map
       (fn (ns/color-tint-ratio <> background 4.5 ))
-      it)
-    ))
+      it)))
 
 (let*
   (
@@ -34,8 +35,13 @@
     ;; active BG (selections)
     ;; take an accent color, fade it until you reach a minimum contrast against foreground_
     (background+
-      ;; placeholder -- we set this after tweaking accent colors
-      "#cccccc"
+      (ns/color-iterate
+        (ns/color-transform-lch-c accent2 (-partial '* 0.5))
+        ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
+        'ns/color-lab-lighten
+        (fn (> (ns/color-contrast-ratio <> foreground_) 4.0))
+        ;; (fn (> (ns/color-contrast-ratio <> foreground_) 3.5))
+        )
       )
 
     ;; new idea: these could be contrast based as well in relation to foreground
@@ -49,9 +55,7 @@
       (-> background
         (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
         (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 6)))))
-
-    )
+        ((lambda (c) (ns/color-tint-ratio foreground c 6))))))
 
   (setq ns/theme
     (ht
@@ -70,39 +74,21 @@
       (:accent2_ accent2_)              ; strings
       ))
 
-  ;; do this transform AFTER messing with accent colors above.
-  (ht-set ns/theme :background+
-    (ns/color-iterate
-      ;; accent1_
-      ;; accent2
-      (ns/color-transform-lch-c accent2 (-partial '* 0.5))
-      ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
-      'ns/color-lab-lighten
-      (fn (> (ns/color-contrast-ratio <> foreground_) 4.0))
-      ;; (fn (> (ns/color-contrast-ratio <> foreground_) 3.5))
-      )
-    )
-
   (ht-set ns/theme :foreground_
     (ns/color-tint-ratio
       (ns/color-transform-hsl accent2 (lambda (h s l) (list h 80 70)))
       background
       4.5
-      )
-    ;; (ns/color-transform-hsluv-s 50)
-    )
+      ))
 
-
-  (ht-set ns/theme :accent2_
-    ;; accent2_
-
-    (ns/color-transform-lch-c accent2_ 100)
-    )
+  ;; let's play MAX, THAT, CHROMA!
+  (ht-set ns/theme :accent2_ (ns/color-transform-lch-c accent2_ 100))
 
   ;; shorten all the colors, because they are also used in EG org exports
   (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
 
 (deftheme neeo)
+
 (base16-theme-define 'neeo
   (ht-with-context ns/theme
     (list

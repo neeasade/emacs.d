@@ -245,3 +245,4 @@ Example:
 (ns/bind "tm" 'ns/toggle-modeline)
 
 (ns/refresh-all-modeline t)
+(ns/frame-set-parameter 'bottom-divider-width 0)

@@ -51,7 +51,8 @@
      "Charter-14"))
 
 (mapcar 'disable-theme custom-enabled-themes)
-(load-theme 'neea t)
+;; (load-theme 'neea t)
+(load-theme 'neeo t)
 
 ;; get the whitespace-mode faces:
 ;; (our tweaks require the faces to be loaded)
