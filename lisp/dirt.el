@@ -296,22 +296,22 @@
       (counsel-switch-to-buffer-or-window filename)
       (find-file filepath))))
 
-(defun range (one &optional two)
-  (let (;; lmao
-         (start (if two one 0))
-         (end (if two two one)))
+(defun range (one &optional two step)
+  (let* ((start (if two one 0))
+          (end (if two two one))
+          (step (or step (if (> end start) 1 -1))))
     (cond
       ((= end start) (list start))
       ((> end start)
-        (cl-loop for i from start below end collect i))
+        (number-sequence start (- end 1) step))
       ((< end start)
-        (cl-loop for i from start downto (+ 1 end) collect i)))))
+        (number-sequence start (+ 1 end) step)))))
 
 (ns/comment
   (range 10)
   (range 10 10)
   (range 0 10)
-  (range 10 0))
+  (range 0 360 90))
 
 ;; clojure like let
 (defmacro llet (args body)
