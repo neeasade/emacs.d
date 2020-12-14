@@ -336,6 +336,11 @@
   "oq" 'ns/org-jump-to-old-org-heading
   )
 
+(defun ns/org-get-current-clock-time ()
+  "return minutes on the current clock"
+  (floor (org-time-convert-to-integer
+		   (org-time-since org-clock-start-time)
+           ) 60))
 
 (defun ns/export-scheduled-org-headings ()
   (ns/with-notes
@@ -356,19 +361,23 @@
 ;; this is measured in minutes
 (setq ns/org-casual-timelimit (* 60 4))
 
-;; TODO: add current clock item here
 (defun ns/org-check-casual-time-today ()
-  (ns/with-notes
-    (org-find-property "casual")
-    (let ((time-clocked (org-clock-sum-today)))
-      (if (> time-clocked ns/org-casual-timelimit)
-        (progn
-          (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
-          (alert! (format "You are out of casual time for today." (random))
-            :severity 'normal
-            :title "TIME"))
-        time-clocked
-        ))))
+  ;; this function assumes you are clocked into a casual setting already, and
+  ;; executing within the notes file
+  (org-find-property "casual")
+  (let ((time-clocked
+          (+ (ns/org-get-current-clock-time)
+            (org-clock-sum-today))))
+    (if (> time-clocked ns/org-casual-timelimit)
+      (progn
+        (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
+        (alert! (format "You are out of casual time for today."
+                  ;; (/ time-clocked (float ns/org-casual-timelimit))
+                  )
+          :severity 'normal
+          :title "TIME"))
+      time-clocked
+      )))
 
 (named-timer-run :harass-myself
   t

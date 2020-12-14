@@ -255,7 +255,8 @@
       (insert
         (format "\n%s > ~%s~\n"
           (s-pad-right 20 " " org-link)
-          line-content)))))
+          line-content)))
+    (message "added link!")))
 
 ;; putting in this file to make sure it's after org mode
 (when ns/enable-evil-p
