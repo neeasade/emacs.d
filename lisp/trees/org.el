@@ -206,11 +206,14 @@
   "Jump from a anywhere in a headline to the start of it's content"
   ;; org mode is cursed
 
-  ;; (org-show-context)
   ;; (org-show-siblings)
-  ;; (org-show-subtree)
+  ;; (org-show-all)
+  ;; (org-reveal)
 
-  (org-show-all)
+  (org-show-set-visibility 'canonical)
+  ;; (org-show-context)
+  ;; (org-show-subtree)
+  (org-show-entry)
 
   (let* ((props (cadr (org-ml-parse-this-headline)))
           (contents-begin (plist-get props :contents-begin))

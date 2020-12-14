@@ -379,6 +379,11 @@
       time-clocked
       )))
 
+(ns/comment
+  (ns/with-notes (ns/org-check-casual-time-today))
+
+  )
+
 (named-timer-run :harass-myself
   t
   20
@@ -398,5 +403,5 @@
       (ns/with-notes
         (goto-char (ns/org-get-active-point))
         (when (string= (first (org-get-outline-path)) "casual")
-          ;; (ns/org-check-casual-time-today)
+          (ns/org-check-casual-time-today)
           )))))
