@@ -37,6 +37,9 @@
     (setq magit-todos-nice ns/enable-linux-p)
     (evil-define-key nil magit-todos-section-map "j" nil)
     (evil-define-key nil magit-todos-section-map "e" nil)
+    (setq magit-todos-keywords-list
+      '("todo" "HOLD" "TODO" "NEXT" "THEM" "PROG" "OKAY" "DONT" "FAIL" "KLUDGE" "HACK" "TEMP" "FIXME" "XXX+"))
+
     (magit-todos-mode)))
 
 (use-package magit-svn :config

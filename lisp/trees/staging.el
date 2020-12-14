@@ -16,7 +16,6 @@
 (ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
 (ns/make-char-table ns/cursive-table ?𝓐 ?𝓪)
 
-;; todo: make all these circe functions
 (defun ns/text-to-cursive (beg end) (interactive "r")
   (translate-region beg end ns/cursive-table))
 
@@ -30,21 +29,7 @@
   (translate-region beg end ns/widechar-table))
 
 ;; todo: idea: turn all the above into circe commands
-;; or matrix.el commands
 ;; also: add a clap👏text function (lol)
-
-;; novelty, but not really all that useful
-;; (use-package string-inflection
-;;   (defun! ns/string-inflection-auto
-;;     "switching by major-mode"
-;;     (cond
-;;       ((eq major-mode 'emacs-lisp-mode)
-;;         (string-inflection-all-cycle))
-;;       ((eq major-mode 'python-mode)
-;;         (string-inflection-python-style-cycle))
-;;       ((eq major-mode 'java-mode)
-;;         (string-inflection-java-style-cycle))
-;;       (t (string-inflection-ruby-style-cycle)))))
 
 (defun ns/make-urlnote-funcs ()
   (defun ns/urlnote-get-point (url)
@@ -391,8 +376,7 @@
           :severity 'normal
           :title "TIME"
           ))
-      ;; we are clocked into something, check if it's casual,
-      ;; and check limit
+      ;; we are clocked into something, check if it's casual and check limit
       (ns/with-notes
         (goto-char (ns/org-get-active-point))
         (when (string= (first (org-get-outline-path)) "casual")
