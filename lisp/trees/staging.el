@@ -46,8 +46,6 @@
 ;;         (string-inflection-java-style-cycle))
 ;;       (t (string-inflection-ruby-style-cycle)))))
 
-;; todo: idea: org-capture for current qutebrowser url
-
 (defun ns/make-urlnote-funcs ()
   (defun ns/urlnote-get-point (url)
     (let ((url-plain
@@ -121,15 +119,13 @@
 
 ;; M-x direnv-update-environment
 ;; sync from the pov of the current file
-;; using in combination with lorri
 (use-package direnv)
 
-
-;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
-;; this means you won't have to garbage collect for literal minutes when we leave emacs running
-;; all night long
-
 (named-timer-run :maybe-garbage-collect
+  ;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
+  ;; this means you won't have to garbage collect for literal minutes when we leave emacs running
+  ;; all night long
+
   ;; run the first time in 30 seconds
   ;; relative times are.. strings? cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Timers.html
   "30 sec"
@@ -142,10 +138,7 @@
         (auto-revert-buffers)
 
         ;; save everyone
-        (save-some-buffers t)
-
-        ;; todo here: if on pinebook, suspend
-        )))
+        (save-some-buffers t))))
 
 (ns/bind
   "nd"
@@ -214,38 +207,11 @@
 ;;         :title "*Reminder*"
 ;;         ))))
 
-;; takes awhile -- doesn't handle noto color emoji?
-;; (use-package unicode-fonts
-;;   :config
-;;   (require 'unicode-fonts)
-;;   (unicode-fonts-setup))
-
-;; (use-package persist)
-
 ;; automatic detection of indent settings (vim-sleuth)
 ;; todo: doom does a thing where they blend the major mode w/ editor config
 ;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
-;;
 (use-package dtrt-indent :config (dtrt-indent-global-mode 1))
 
-;; (ns/use-package org-super-agenda "alphapapa/org-super-agenda")
-;; (require 'org-super-agenda)
-
-(named-timer-run :harass-myself
-  t
-  20
-  (fn
-    ;; when you're not idle
-    (when (< (org-user-idle-seconds) 30)
-      ;; and not clocked into anything
-      (when (and (not (org-clocking-p))
-              (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
-        ;; llet [current-task-text (with-current-buffer (find-file-noselect org-default-notes-file) (save-excursion (org-ml-parse-headline-at (ns/org-get-active-point))))]
-        (alert! (format "Hey! you should be clocked into something. %s"
-                  (random))
-          :severity 'normal
-          :title "TIME"
-          )))))
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
@@ -266,36 +232,8 @@
 
 (ns/bind "nu" 'ns/ivy-url-jump)
 
-;; to consider later: org drill -- noting a fix here for now
-;; something else: keybinds don's work in org-drill, even after:
-;; (add-to-list 'evil-emacs-state-modes 'org-drill-mode)
-;; (require 'org-drill)
-
-;; ;; cf https://emacs.stackexchange.com/questions/46916/org-drill-invalid-match-tag
-;; (defun org-drill-hide-subheadings-if (test)
-;;   "TEST is a function taking no arguments. TEST will be called for each
-;; of the immediate subheadings of the current drill item, with the point
-;; on the relevant subheading. TEST should return nil if the subheading is
-;; to be revealed, non-nil if it is to be hidden.
-;; Returns a list containing the position of each immediate subheading of
-;; the current topic."
-;;   (let ((drill-entry-level (org-current-level))
-;;          (drill-sections nil))
-;;     (org-show-subtree)
-;;     (save-excursion
-;;       (org-map-entries
-;;         (lambda ()
-;;           (when (and (not (org-invisible-p))
-;;                   (> (org-current-level) drill-entry-level))
-;;             (when (or (/= (org-current-level) (1+ drill-entry-level))
-;;                     (funcall test))
-;;               (hide-subtree))
-;;             (push (point) drill-sections)))
-;;         nil 'tree))
-;;     (reverse drill-sections)))
-
 (defun ns/org-scheduled-today (heading)
-  "get headings scheduled from <now - 2hrs> ==> end of day"
+  "Get headings scheduled from <now - 2hrs> ==> end of day"
   (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
     (when scheduled
       (let (scheduled-value)
@@ -329,9 +267,9 @@
 ;; this is similar a manual version of the package org-wild-notifier
 ;; the main difference is instead of leveraging the agenda we do it ourselves
 (defun ns/org-notify ()
-  (with-current-buffer (find-file-noselect org-default-notes-file)
+  (ns/with-notes
     (->> (org-ml-get-subtrees)
-	  (org-ml-match '(:any * (:pred ns/org-scheduled-today)))
+	    (org-ml-match '(:any * (:pred ns/org-scheduled-today)))
       ;; map headline text to scheduled timestamps
       (-map (fn (list (-> <> cadr cadr)
                   (--> <>
@@ -380,7 +318,7 @@
 
 (defun ns/export-scheduled-org-headings-past ()
   (let ((count
-          (with-current-buffer (find-file-noselect org-default-notes-file)
+          (ns/with-notes
             (->> (org-ml-get-subtrees)
 	            (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
               (length)))))
@@ -394,8 +332,7 @@
 	  (org-ml-match '(:any * (:pred ns/org-scheduled-past-todo)))
     (first)
     (org-ml-get-property :begin)
-    (goto-char)
-    )
+    (goto-char))
 
   (ns/org-jump-to-element-content))
 
@@ -416,10 +353,48 @@
 
 
 (defun ns/export-scheduled-org-headings ()
-  (with-current-buffer (find-file-noselect org-default-notes-file)
+  (ns/with-notes
     (->> (org-ml-get-subtrees)
 	    (org-ml-match '(:any * (:pred ns/org-scheduled-future)))
       (-map 'org-ml-to-string)
       (s-join "\n"))))
 
-;; (ns/export-scheduled-org-headings)
+;; this is measured in minutes
+(setq ns/org-casual-timelimit (* 60 4))
+
+;; TODO: add current clock item here
+(defun ns/org-check-casual-time-today ()
+  (ns/with-notes
+    (org-find-property "casual")
+    (let ((time-clocked (org-clock-sum-today)))
+      (if (> time-clocked ns/org-casual-timelimit)
+        (progn
+          (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
+          (alert! (format "You are out of casual time for today." (random))
+            :severity 'normal
+            :title "TIME"))
+        time-clocked
+        ))))
+
+(named-timer-run :harass-myself
+  t
+  20
+  (fn
+    ;; when you're not idle
+    (when (< (org-user-idle-seconds) 30)
+      ;; not clocked into anything or on a break
+      (if (and (not (org-clocking-p))
+            (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
+        ;; llet [current-task-text (with-current-buffer (find-file-noselect org-default-notes-file) (save-excursion (org-ml-parse-headline-at (ns/org-get-active-point))))]
+        (alert! (format "Hey! you should be clocked into something. %s"
+                  (random))
+          :severity 'normal
+          :title "TIME"
+          ))
+      ;; we are clocked into something, check if it's casual,
+      ;; and check limit
+      (ns/with-notes
+        (goto-char (ns/org-get-active-point))
+        (when (string= (first (org-get-outline-path)) "casual")
+          ;; (ns/org-check-casual-time-today)
+          )))))

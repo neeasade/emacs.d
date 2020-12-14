@@ -24,7 +24,6 @@
     (when (equal name "org-protocol-capture")
       (delete-frame))))
 
-
 (add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
 
 (defun ns/org-olp-marker (olp &optional unique)
@@ -162,12 +161,11 @@ This works like `org-find-olp', but much faster."
 
 (setq ns/org-capture-project-list
   (if (f-exists-p org-default-notes-file)
-    (with-current-buffer (find-file-noselect org-default-notes-file)
-      ;; todo: if there is no heading with a projects property, this breaks
-      (->> (org-find-property "projects")
+    (ns/with-notes
+      (-some->> (org-find-property "projects")
         (org-ml-parse-subtree-at)
         ;; (org-ml-parse-headline-at )
-	    (org-ml-get-children)
+	      (org-ml-get-children)
         cdr
         (-map 'org-ml-headline-get-path)
         (-map 'last)

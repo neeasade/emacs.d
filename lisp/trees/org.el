@@ -98,6 +98,11 @@
   archive-subtree-save-file-p t
   )
 
+(defmacro ns/with-notes (&rest body)
+  `(with-current-buffer (find-file-noselect org-default-notes-file)
+	   (save-window-excursion
+       ,@body)))
+
 (defun! ns/org-set-unique-property (&optional property value)
   (let ((prop (or property "focus")))
     (org-delete-property-globally prop)
@@ -136,19 +141,18 @@
 - if no TODO is found, just go to the headline with a 'focus' property directly
 (nb: the 'focus' property target may be overridden with an argument)
 "
-  (save-window-excursion
-    (with-current-buffer (find-file-noselect org-default-notes-file)
-      (if org-clock-current-task
-        (org-clock-goto)
-        (->> (org-find-property (or property "focus"))
-          (org-ml-parse-headline-at)
-          (ns/notes-current-standup-task)
-          cadr
-          ((lambda (props)
-             (or (plist-get props :contents-begin)
-               (plist-get props :begin))))
-          (goto-char)))
-      (point))))
+  (ns/with-notes
+    (if org-clock-current-task
+      (org-clock-goto)
+      (->> (org-find-property (or property "focus"))
+        (org-ml-parse-headline-at)
+        (ns/notes-current-standup-task)
+        cadr
+        ((lambda (props)
+           (or (plist-get props :contents-begin)
+             (plist-get props :begin))))
+        (goto-char)))
+    (point)))
 
 (defun! ns/org-goto-active (&optional property)
   (find-file org-default-notes-file)
@@ -246,18 +250,12 @@
           (label (format "%s:%s" filepath line))
           (org-link (format "[[%s][%s]]" link label)))
 
-    (with-current-buffer (find-file-noselect org-default-notes-file)
-      ;; todo: save excursion is not working here?
-      (save-window-excursion
-        (ns/org-goto-active)
-        (ns/org-jump-to-element-content)
-
-        ;; todo: consider adding a date with the captured link
-        ;; todo: consider a similar function to this that just adds the current qute url under the active org heading
-        (insert
-          (format "\n%s : ~%s~\n"
-            (s-pad-right 20 " " org-link)
-            line-content))))))
+    (ns/with-notes
+      (ns/org-goto-active)
+      (insert
+        (format "\n%s > ~%s~\n"
+          (s-pad-right 20 " " org-link)
+          line-content)))))
 
 ;; putting in this file to make sure it's after org mode
 (when ns/enable-evil-p
@@ -432,7 +430,10 @@
     (require 'flyspell-correct-avy-menu)
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
     ;; (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
-    (global-set-key (kbd "C-;") #'flyspell-correct-at-point))
+    ;; (global-set-key (kbd "C-;") #'flyspell-correct-at-point)
+    (global-set-key (kbd "C-;") #'flyspell-correct-wrapper)
+
+    )
   )
 
 (defun ns/org-mode-hook ()
