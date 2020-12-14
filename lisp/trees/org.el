@@ -100,7 +100,7 @@
 
 (defmacro ns/with-notes (&rest body)
   `(with-current-buffer (find-file-noselect org-default-notes-file)
-	   (save-window-excursion
+	 (save-excursion
        ,@body)))
 
 (defun! ns/org-set-unique-property (&optional property value)
@@ -142,22 +142,25 @@
 (nb: the 'focus' property target may be overridden with an argument)
 "
   (ns/with-notes
-    (if org-clock-current-task
-      (org-clock-goto)
-      (->> (org-find-property (or property "focus"))
-        (org-ml-parse-headline-at)
-        (ns/notes-current-standup-task)
-        cadr
-        ((lambda (props)
-           (or (plist-get props :contents-begin)
-             (plist-get props :begin))))
-        (goto-char)))
-    (point)))
+    (save-window-excursion
+      (if org-clock-current-task
+        ;; org clock goto does handle some niceties for us
+        (org-clock-goto)
+        (->> (org-find-property (or property "focus"))
+          (org-ml-parse-headline-at)
+          (ns/notes-current-standup-task)
+          cadr
+          ((lambda (props)
+             (or (plist-get props :contents-begin)
+               (plist-get props :begin))))
+          (goto-char)))
+      (point))))
 
 (defun! ns/org-goto-active (&optional property)
   (find-file org-default-notes-file)
   (goto-char (ns/org-get-active-point property))
-  (ns/org-jump-to-element-content))
+  (ns/org-jump-to-element-content)
+  )
 
 (use-package org-pomodoro
   ;; pomodoro, tied to music playing status

@@ -349,7 +349,7 @@
       (-map 'org-ml-to-string)
       (s-join "\n"))))
 
-(defun ns/org-clock-sum-week
+(defun ns/org-clock-sum-week ()
   (let* ((start-of-week
            (let ((now (ts-now)))
              (->> now
