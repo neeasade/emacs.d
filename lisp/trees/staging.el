@@ -119,6 +119,9 @@
               (* 5 60))
         (garbage-collect)
 
+        ;; additionally, clock out in these situations:
+        (ns/org-clock-out)
+
         ;; auto revert any who have changed on disk
         (auto-revert-buffers)
 

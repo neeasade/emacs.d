@@ -530,6 +530,13 @@
       :action #'counsel-org-goto-action
       :caller 'counsel-org-goto-all)))
 
+(defun! ns/org-clock-out ()
+  "Clock out of pomodoro, or active clock"
+  (when (org-clock-is-active)
+    (if (org-pomodoro-active-p)
+      (org-pomodoro)
+      (org-clock-out))))
+
 (ns/bind
   "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
                      (project-notes (if buffer-file-name
@@ -542,7 +549,7 @@
   "os" (fn! (ns/org-goto-active "standups"))
   "of" 'ns/org-goto-active
   "oF" (fn!
-         (org-clock-out nil t)
+         (ns/org-clock-out)
          (ns/org-goto-active))
 
   "oc" (fn! (if (use-region-p)
@@ -563,16 +570,11 @@
 
   ;; clock into the current headline, clocking out of what's running
   "oi" (fn!
-         (when (org-clock-is-active)
-           (if (org-pomodoro-active-p)
-             (org-pomodoro)
-             (org-clock-out)))
+         (ns/org-clock-out)
          (org-clock-in))
 
   ;; cancel org-pomodoro or a clocked in task
-  "oI" (fn! (if (org-pomodoro-active-p)
-              (org-pomodoro)
-              (org-clock-out)))
+  "oI" 'ns/org-clock-out
 
   "no" (fn!
          (ns/jump-to-notes-heading)
