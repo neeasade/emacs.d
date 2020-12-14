@@ -340,9 +340,18 @@
 (defun ns/export-scheduled-org-headings ()
   (ns/with-notes
     (->> (org-ml-get-subtrees)
-	    (org-ml-match '(:any * (:pred ns/org-scheduled-future)))
+	  (org-ml-match '(:any * (:pred ns/org-scheduled-future)))
       (-map 'org-ml-to-string)
       (s-join "\n"))))
+
+(defun ns/org-clock-sum-week
+  (let* ((start-of-week
+           (let ((now (ts-now)))
+             (->> now
+               (ts-adjust 'day (- (ts-dow now)))
+               (ts-apply :hour 0 :minute 0 :second 0)
+               (ts-unix)))))
+    (org-clock-sum-current-entry-only start-of-week)))
 
 ;; this is measured in minutes
 (setq ns/org-casual-timelimit (* 60 4))
