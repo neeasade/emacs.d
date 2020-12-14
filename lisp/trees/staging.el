@@ -128,6 +128,14 @@
         ;; save everyone
         (save-some-buffers t))))
 
+(named-timer-run :auto-clock-out
+  ;; when idle for more than 10 min, clock out.
+  "30 sec"
+  30
+  (fn (when (> (org-user-idle-seconds)
+              (* 3 60))
+        (ns/org-clock-out))))
+
 (ns/bind
   "nd"
   (fn!
@@ -408,3 +416,6 @@
         (when (string= (first (org-get-outline-path)) "casual")
           (ns/org-check-casual-time-today)
           )))))
+
+;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
+(setq org-clock-idle-time nil)
