@@ -1,5 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 
+;; TODO make a toggle for this
+;; evil-ex-visual-char-range
+
 ;; evil-collection
 (setq evil-want-keybinding nil)
 

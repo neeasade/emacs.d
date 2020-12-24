@@ -100,7 +100,7 @@
 
 (defmacro ns/with-notes (&rest body)
   `(with-current-buffer (find-file-noselect org-default-notes-file)
-	 (save-excursion
+     (save-excursion
        ,@body)))
 
 (defun! ns/org-set-unique-property (&optional property value)
@@ -134,6 +134,17 @@
   ;; then just treat dateless as priority above dated
   )
 
+(defun ns/org-get-clock-marker ()
+  ;; sniped from org-clock-goto
+  (cond
+    ((org-clocking-p) org-clock-marker)
+    ((and org-clock-goto-may-find-recent-task
+	   (car org-clock-history)
+	   (marker-buffer (car org-clock-history)))
+	  (setq recent t)
+	  (car org-clock-history))
+    (t (user-error "No active or recent clock task"))))
+
 (defun! ns/org-get-active-point (&optional property)
   "Resolves to a point in my big notes files to either:
 - currently clocked in org headline
@@ -145,7 +156,9 @@
     (save-window-excursion
       (if org-clock-current-task
         ;; org clock goto does handle some niceties for us
-        (org-clock-goto)
+        (let ((m (ns/org-get-clock-marker)))
+          (with-current-buffer (marker-buffer m)
+            (goto-char (marker-position m))))
         (->> (org-find-property (or property "focus"))
           (org-ml-parse-headline-at)
           (ns/notes-current-standup-task)
@@ -159,8 +172,7 @@
 (defun! ns/org-goto-active (&optional property)
   (find-file org-default-notes-file)
   (goto-char (ns/org-get-active-point property))
-  (ns/org-jump-to-element-content)
-  )
+  (ns/org-jump-to-element-content))
 
 (use-package org-pomodoro
   ;; pomodoro, tied to music playing status
@@ -309,28 +321,6 @@
     :states 'normal
     :keymaps 'org-mode-map
     (kbd "E") 'org-toggle-heading))
-
-;; (unload-feature 'org-wild-notifier)
-;; (require 'org-wild-notifier)
-
-;; notify on timestamps (this is broken)
-;; (ns/use-package org-wild-notifier "akhramov/org-wild-notifier.el"
-;;   :config
-;;   ;; org-wild-notifier-en
-;;   (setq-ns org-wild-notifier
-;;     alert-time '(1) ;; min
-;;     notification-title "scheduled notifier"
-;;     ;; keyword-whitelist '()
-;;     ;; keyword-blacklist '()
-;;     ;; tags-whitelist '("testerino")
-;;     ;; tags-blacklist nil
-;;     ;; alert-times-property "alert_times"
-;;     )
-
-;;   (org-wild-notifier-mode)
-;;   (org-wild-notifier-check)
-
-;;   )
 
 (use-package org-present
   :config

@@ -53,6 +53,7 @@
 (mapcar 'disable-theme custom-enabled-themes)
 ;; (load-theme 'neea t)
 (load-theme 'neeo t)
+;; (load-theme 'neeb t)
 
 ;; get the whitespace-mode faces:
 ;; (our tweaks require the faces to be loaded)

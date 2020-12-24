@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 ;; color utilities
+;; prefix for here: ct-, for [c]olor [t]ools
 ;; cf: https://notes.neeasade.net/color-spaces.html
 
 ;; sRGB vs linear RGB
@@ -36,8 +37,8 @@
     (-map 'color-clamp)
     (apply 'color-rgb-to-hex)))
 
-(defun ns/color-is-light-p (name)
-  (> (first (ns/color-name-to-lab name)) 65))
+(defun ns/color-is-light-p (name &optional scale )
+  (> (first (ns/color-name-to-lab name)) (or scale 65)))
 
 (defun ns/color-greaten (percent color)
   "Make a light color lighter, a dark color darker"

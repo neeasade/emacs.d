@@ -120,6 +120,8 @@
         (garbage-collect)
 
         ;; additionally, clock out in these situations:
+        ;; TODO: don't clock out if playing like, netflix or something.
+        ;; (s-empty-p "")
         (ns/org-clock-out)
 
         ;; auto revert any who have changed on disk
@@ -129,12 +131,24 @@
         (save-some-buffers t))))
 
 (named-timer-run :auto-clock-out
-  ;; when idle for more than 10 min, clock out.
   "30 sec"
   30
   (fn (when (> (org-user-idle-seconds)
               (* 3 60))
-        (ns/org-clock-out))))
+
+        (when
+          (not
+            (or
+              ;; is netflix playing?
+              (-every-p
+                (fn (-> <> ns/shell-exec s-blank-p))
+                '("playerctl status | grep -i playing"
+                   "playerctl metadata | grep -i netflix"))
+              ;; is mpv up
+              (-> "pgrep mpv" ns/shell-exec s-blank-p)
+              ))
+          (ns/org-clock-out)
+          ))))
 
 (ns/bind
   "nd"
@@ -370,16 +384,21 @@
     (org-clock-sum-current-entry-only start-of-week)))
 
 ;; this is measured in minutes
-(setq ns/org-casual-timelimit (* 60 4))
+(setq ns/org-casual-timelimit (* 60 5))
 
 (defun ns/org-check-casual-time-today ()
   ;; this function assumes you are clocked into a casual setting already, and
   ;; executing within the notes file
   (org-find-property "casual")
   (let ((time-clocked
-          (+ (ns/org-get-current-clock-time)
-            (org-clock-sum-today))))
-    (if (> time-clocked ns/org-casual-timelimit)
+          (+
+            (org-clock-sum-today)
+            ;; todo: only add current clock if it's under casual time
+            (ns/org-get-current-clock-time)
+
+            )
+          ))
+    (when (> time-clocked ns/org-casual-timelimit)
       (progn
         (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
         (alert! (format "You are out of casual time for today."
@@ -387,11 +406,19 @@
                   )
           :severity 'normal
           :title "TIME"))
-      time-clocked
-      )))
+      )
+
+    time-clocked
+    ))
 
 (ns/comment
-  (ns/with-notes (ns/org-check-casual-time-today))
+
+  (float (ns/with-notes (ns/org-check-casual-time-today)))
+
+  (/ (float (ns/with-notes (ns/org-check-casual-time-today)))
+    ns/org-casual-timelimit)
+
+  (- ns/org-casual-timelimit (float (ns/with-notes (ns/org-check-casual-time-today))))
 
   )
 
@@ -400,7 +427,7 @@
   20
   (fn
     ;; when you're not idle
-    (when (< (org-user-idle-seconds) 30)
+    (when (< (org-user-idle-seconds) 20)
       ;; not clocked into anything or on a break
       (if (and (not (org-clocking-p))
             (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
@@ -410,12 +437,14 @@
           :severity 'normal
           :title "TIME"
           ))
+
       ;; we are clocked into something, check if it's casual and check limit
       (ns/with-notes
         (goto-char (ns/org-get-active-point))
         (when (string= (first (org-get-outline-path)) "casual")
-          (ns/org-check-casual-time-today)
-          )))))
+          (ns/org-check-casual-time-today))))))
+
+;; (ns/with-notes nil)
 
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
 (setq org-clock-idle-time nil)
