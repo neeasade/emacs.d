@@ -775,6 +775,14 @@
   (use-package es-mode))
 
 (defconfig server
+  ;; cf https://tychoish.com/post/running-multiple-emacs-daemons-on-a-single-system/
+  ; (setq server-use-tcp t)
+
+  ;; https://stackoverflow.com/questions/885793/emacs-error-when-calling-server-start
+  ;; this is the wrong way to do this.
+  ;; TODO: auto chmod?
+  ; (defun server-ensure-safe-dir (dir) "Noop" t)
+
   (require 'server)
   (unless (server-running-p)
     (when ns/enable-windows-p
@@ -782,8 +790,6 @@
         auth-dir (~ ".emacs.d/server")
         name "emacs-server-file"))
     (server-start)))
-
-
 
 (defconfig common-lisp
   (use-package slime)

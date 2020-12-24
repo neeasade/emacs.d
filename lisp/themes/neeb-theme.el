@@ -5,28 +5,79 @@
 (require 'base16-theme)
 (ns/colors)
 
-(defun ns/neeo-get-accents (background foreground foreground_)
+(defun ns/neeb-get-accents (background foreground foreground_)
   ;; return a list accent1, accent1_, accent2, accent2_
+
+  ;; "#34D3EC"
+  ;; "#3BB570"
+  ;; "#9A71AD"
+  ;; "#1BEBD1"
+  ;; "#00F4B7"
+  ;; "#FE0D51"
+
   (-->
     (ns/color-rotation-hsluv
-      (ns/color-make-hsluv 265 60 40)
-      60)
+      (->
+        ;; (ns/color-make-hsluv 265 60 40)
+        ;; "#5AAF00"
+        ;; "#0F9908"
+        "#FE0D51"
+
+        (ns/color-transform-hsluv-l
+          ;; (ns/color-get-hsluv-l foreground_)
+          (ns/color-get-hsluv-l
+            foreground_
+            ;; (ht-get ns/theme :foreground_)
+            )
+          )
+        )
+
+      ;; "#009404"
+
+      ;; (ns/color-make-lab 55 50 50)
+      ;; 60
+      (/ 360 5)
+      ;; (/ 360 6)
+      ;; (/ 360 3)
+      ;; (/ 360 10)
+      )
+
+    ;; ("#fefd47476766" "#9b828f57096b" "#0a41a12a7048" "#0c3b9a14baa5" "#d6cc4c1dfe7d")
+
+    ;; ("#fefd9999a4a3" "#c819b8c41378" "#14adcf3491b4" "#177cc645ef3d" "#e2e79aeefeca")
+
 
     (-map (fn (ns/nth <> it))
-      '(1 -1 2 3))
+      '(
+         -1
+         0
+         -2
+         2
+         )
+      )
+
     (-map
       (fn (ns/color-tint-ratio <> background 4.5 ))
-      it)))
+      it)
+    ))
 
 (let*
   (
-    (background (ns/color-make-lab 93 2 4))
+    (background
+      ;; (ns/color-make-lab 98 70 80)
+      ;; (ns/color-make-lab 88 -10 -10)
+      ;; (ns/color-make-lab 88 -5 5)
+      ;; (ns/color-make-lab 88 5 -5)
+      ;; (ns/color-make-lab 20 -10 0)
+      ;; (ns/color-make-lab 30 -5 0)
+      (ns/color-make-lab 25 40 10)
+
+      )
 
     (foreground (ns/color-tint-ratio background background 8.5))
     (foreground_ (ns/color-tint-ratio background background 5.5))
 
-    (accents (ns/neeo-get-accents background foreground foreground_))
-
+    (accents (ns/neeb-get-accents background foreground foreground_))
     (accent1  (nth 0 accents))
     (accent1_ (nth 1 accents))
     (accent2  (nth 2 accents))
@@ -34,16 +85,7 @@
 
     ;; active BG (selections)
     ;; take an accent color, fade it until you reach a minimum contrast against foreground_
-    (background+
-      (ns/color-iterate
-        ;; accent2
-        ;; (ns/color-transform-lch-c accent2 (-partial '* 0.5))
-        (ns/color-transform-lch-c accent2 (lambda (_) 33))
-        'ns/color-lab-lighten
-        (fn (> (ns/color-contrast-ratio <> foreground_) 4.0))
-        ;; (fn (> (ns/color-contrast-ratio <> foreground_) 3.5))
-        )
-      )
+    (background+ "#cccccc")
 
     ;; new idea: these could be contrast based as well in relation to foreground
     (background_
@@ -56,13 +98,16 @@
       (-> background
         (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
         (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 6))))))
+        ((lambda (c) (ns/color-tint-ratio foreground c 6)))))
+
+    )
 
   (setq ns/theme
     (ht
       (:foreground foreground)          ; regular text
       (:foreground_ foreground_)        ; comments
       (:foreground+ foreground)         ; foreground of a focused/highlighted thing
+      ;; (:foreground+ background)         ; foreground of a focused/highlighted thing
 
       (:background background)          ; regular canvas
       (:background_ background_)        ; emphasis?
@@ -75,22 +120,37 @@
       (:accent2_ accent2_)              ; strings
       ))
 
-  (ht-set ns/theme :foreground_
-    (ns/color-tint-ratio
-      (ns/color-transform-hsl accent2 (lambda (h s l) (list h 80 70)))
-      background
-      4.5
-      ))
+  (ht-set ns/theme :background+
+    (ns/color-iterate
+      ;; accent1_
+      accent2_
+      ;; (ns/color-transform-lch-c accent1_ (-partial '* 0.5))
+      ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
+      'ns/color-lab-darken
+      (fn (> (ns/color-contrast-ratio <> foreground_) 4.0))
+      ;; (fn (> (ns/color-contrast-ratio <> foreground_) 3.5))
+      )
+    )
 
-  ;; let's play MAX, THAT, CHROMA!
-  (ht-set ns/theme :accent2_ (ns/color-transform-lch-c accent2_ 100))
+  ;; (ht-set ns/theme :background+ accent1)
+
+  ;; (ht-set ns/theme :foreground_
+  ;;   (ns/color-tint-ratio
+  ;;     (ns/color-transform-hsl accent2 (lambda (h s l) (list h 80 70)))
+  ;;     background
+  ;;     4.5
+  ;;     )
+  ;;   ;; (ns/color-transform-hsluv-s 50)
+  ;;   )
+
+
+  (ht-set ns/theme :foreground_ (ns/color-transform-lch-c foreground_ 80))
 
   ;; shorten all the colors, because they are also used in EG org exports
   (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
 
-(deftheme neeo)
-
-(base16-theme-define 'neeo
+(deftheme neeb)
+(base16-theme-define 'neeb
   (ht-with-context ns/theme
     (list
       ;; The comments on the sections here are from the base16 styling guidelines, not necessarily
@@ -140,6 +200,6 @@
       :base0F :foreground_ ;; Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
       )))
 
-(provide-theme 'neeo)
-(provide 'neeo-theme)
-;;; neeo-theme.el ends here
+(provide-theme 'neeb)
+(provide 'neeb-theme)
+;;; neeb-theme.el ends here
