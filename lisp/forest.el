@@ -21,7 +21,6 @@
     ;; todo: make this work, figure out what goes to helpful-callable in interactive arg
     (defun! ns/helpful-or-dashdoc ()
       (if (eq 'emacs-lisp-mode major-mode)
-        ;; todo: this
         (helpful-callable "")
         (if ns/enable-dashdocs-p
           (ns/counsel-dash-word)
@@ -467,11 +466,13 @@
     (kbd "<tab>") 'markdown-cycle)
 
   (defun ns/markdown-mode-hook ()
-    (ns/set-buffer-face-variable))
+    (ns/set-buffer-face-variable)
+
+    (require 'markdown-mode)
+    (ns/set-faces-monospace '(markdown-code-face)))
+
   (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook)
 
-  (require 'markdown-mode)
-  (ns/set-faces-monospace '(markdown-code-face))
   )
 
 (defconfig restclient
@@ -756,7 +757,8 @@
     (org-toggle-inline-images))
 
   ;; todo: CcCc is pretty generic, ideally we only do this after eval'ing a dot source block.
-  (advice-add #'org-ctrl-c-ctrl-c :after #'ns/refresh-images-org)
+  ;; <2020-12-24 Thu 20:08> cancelling this for now
+  ;; (advice-add #'org-ctrl-c-ctrl-c :after #'ns/refresh-images-org)
   )
 
 (defconfig deadgrep

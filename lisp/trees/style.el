@@ -34,21 +34,26 @@
 (mapc
   (fn (when (find-font (font-spec :name <>))
         (ns/update-xrdb-font <>)))
-  '("Dejavu Sans Mono-14"
-     "DejaVu Sans Mono-14"
-     "Lucida Console-14"
-     "Noto Sans Mono-14"
-     "Source Code Pro-14"
-     "Go Mono-14"))
+  (list
+    (font-get (face-attribute 'default :font) :name)
+    "Dejavu Sans Mono-14"
+    "DejaVu Sans Mono-14"
+    "Lucida Console-14"
+    "Noto Sans Mono-14"
+    "Source Code Pro-14"
+    "Go Mono-14"
+    ))
 
 (mapc
   (fn (when (find-font (font-spec :name <>))
         (ns/update-xrdb-font <> t)))
-  '("Dejavu Sans-14"
-     "DejaVu Sans-14"
-     "Lucida Console-14"
-     "Noto Serif-14"
-     "Charter-14"))
+  (list
+    (font-get (face-attribute 'default :font) :name)
+    "Dejavu Sans-14"
+    "DejaVu Sans-14"
+    "Lucida Console-14"
+    "Noto Serif-14"
+    "Charter-14"))
 
 (mapcar 'disable-theme custom-enabled-themes)
 ;; (load-theme 'neea t)

@@ -7,9 +7,6 @@
     repository-directories (list (~ "git"))
     )
 
-  ;; todo: this got deleted?
-  ;; (magit-file-mode 0)
-
   ;; https://magit.vc/manual/magit/Performance.html
   (when ns/enable-windows-p
     (setq-ns magit
