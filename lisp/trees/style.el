@@ -42,6 +42,7 @@
     "Noto Sans Mono-14"
     "Source Code Pro-14"
     "Go Mono-14"
+    "Menlo-14"
     ))
 
 (mapc
@@ -53,7 +54,9 @@
     "DejaVu Sans-14"
     "Lucida Console-14"
     "Noto Serif-14"
-    "Charter-14"))
+    "Charter-14"
+    "Menlo-14"
+    ))
 
 (mapcar 'disable-theme custom-enabled-themes)
 ;; (load-theme 'neea t)
