@@ -1,5 +1,2 @@
-* neeasade's emacs configuration
+Emacs is /blursed/ do to it's global state. Since Emacs packages are just a way to pin targeted ~eval~'s, and everything can touch everything, the world is both within reach, and out of grasp. You can do much if you cut at the joints, and you may seek understanding by inspecting the editor to see what is going on underneath. As with most tools, you get back what you put into it. This repository reflects a playground of ideas concerning prose, code, aesthetics, and time management -- an ever evolving mess.
 
-Screenshot: https://0x0.st/iipa.png
-
-Highlights: I use straight.el, my own sections akin to spacemacs layers, I'm a colemak-dh user, bigger package configs get their own files.
