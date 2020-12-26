@@ -106,6 +106,19 @@
 ;; sync from the pov of the current file
 (use-package direnv)
 
+(defun ns/org-media-playing ()
+  (defun ns/sh-has-content-p (cmd)
+    (-> cmd ns/shell-exec s-blank-p not))
+
+  (or
+    (ns/sh-has-content-p "playerctl metadata 2>/dev/null | grep -i netflix")
+    (ns/sh-has-content-p "pgrep mpv")
+    (ns/sh-has-content-p "pgrep vlc")
+
+    ;; adhoc hack (uncomment this when viewing something in an unaccounted for medium)
+    ;; t
+    ))
+
 (named-timer-run :maybe-garbage-collect
   ;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
   ;; this means you won't have to garbage collect for literal minutes when we leave emacs running
@@ -119,10 +132,8 @@
               (* 5 60))
         (garbage-collect)
 
-        ;; additionally, clock out in these situations:
-        ;; TODO: don't clock out if playing like, netflix or something.
-        ;; (s-empty-p "")
-        (ns/org-clock-out)
+        (when (not (ns/org-media-playing))
+          (ns/org-clock-out))
 
         ;; auto revert any who have changed on disk
         (auto-revert-buffers)
@@ -136,19 +147,8 @@
   (fn (when (> (org-user-idle-seconds)
               (* 3 60))
 
-        (when
-          (not
-            (or
-              ;; is netflix playing?
-              (-every-p
-                (fn (-> <> ns/shell-exec s-blank-p))
-                '("playerctl status | grep -i playing"
-                   "playerctl metadata | grep -i netflix"))
-              ;; is mpv up
-              (-> "pgrep mpv" ns/shell-exec s-blank-p)
-              ))
-          (ns/org-clock-out)
-          ))))
+        (when (not (ns/org-media-playing))
+          (ns/org-clock-out)))))
 
 (ns/bind
   "nd"
