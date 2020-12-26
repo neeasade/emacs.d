@@ -363,9 +363,11 @@
 
 (defun ns/org-get-current-clock-time ()
   "return minutes on the current clock"
-  (floor (org-time-convert-to-integer
-		   (org-time-since org-clock-start-time)
-           ) 60))
+  (if (org-clocking-p)
+    (floor (org-time-convert-to-integer
+		         (org-time-since org-clock-start-time)) 60)
+    0
+    ))
 
 (defun ns/export-scheduled-org-headings ()
   (ns/with-notes

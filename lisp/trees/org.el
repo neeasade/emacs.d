@@ -224,8 +224,9 @@
 
   (org-show-set-visibility 'canonical)
   ;; (org-show-context)
-  ;; (org-show-subtree)
   (org-show-entry)
+  (org-show-children)
+  ;; (org-show-subtree)
 
   (let* ((props (cadr (org-ml-parse-this-headline)))
           (contents-begin (plist-get props :contents-begin))
