@@ -377,13 +377,20 @@
       (s-join "\n"))))
 
 (defun ns/org-clock-sum-week ()
-  (let* ((start-of-week
-           (let ((now (ts-now)))
-             (->> now
-               (ts-adjust 'day (- (ts-dow now)))
-               (ts-apply :hour 0 :minute 0 :second 0)
-               (ts-unix)))))
-    (org-clock-sum-current-entry-only start-of-week)))
+  ;; get time clocked under an item and it's children for this week
+  (org-clock-sum-current-item
+    (let ((now (ts-now)))
+      (->> now
+        (ts-adjust 'day (- (ts-dow now)))
+        (ts-apply :hour 0 :minute 0 :second 0)
+        (ts-unix)))))
+
+(defun ns/org-clock-sum-day ()
+  ;; get time clocked under an item and it's children for today
+  (org-clock-sum-current-item
+    (->> (ts-now)
+      (ts-apply :hour 0 :minute 0 :second 0)
+      (ts-unix))))
 
 ;; this is measured in minutes
 (setq ns/org-casual-timelimit (* 60 5))
@@ -394,22 +401,29 @@
   ;; accounts for current clock if it is under a casual heading
   (ns/with-notes
     (goto-char (ns/org-get-active-point))
-    (let ((current-clock-time
-            (if (string= (first (org-get-outline-path)) "casual")
-              (ns/org-check-casual-time-today) 0)))
+    (let* (
+            (clocked-casual-p (string= (first (org-get-outline-path)) "casual"))
+            (current-clock-time
+              (if clocked-casual-p (ns/org-get-current-clock-time) 0))
+            (casual-clocked-time
+              (progn
+                (goto-char (org-find-property "casual"))
+                (ns/org-clock-sum-day))))
 
-      (org-find-property "casual")
-      (when
-        (and
-          (> (+ (org-clock-sum-today) current-clock-time)
-            ns/org-casual-timelimit)
-          (or notify nil)
-          )
+      (when (and
+              (or notify nil)
+              clocked-casual-p
+              (> (+ casual-clocked-time current-clock-time)
+                ns/org-casual-timelimit))
         (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
         (alert! (format "You are out of casual time for today.")
           :severity 'normal
           :title "TIME"))
-      (- ns/org-casual-timelimit (+ (org-clock-sum-today) current-clock-time)))))
+      (- ns/org-casual-timelimit
+        (+ casual-clocked-time current-clock-time))
+      )))
+
+(ns/org-check-casual-time-today)
 
 (ns/comment
   (float (ns/with-notes (ns/org-check-casual-time-today)))

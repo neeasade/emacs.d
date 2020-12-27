@@ -98,6 +98,7 @@
   archive-subtree-save-file-p t
   )
 
+;; todo: maybe don't be redundant with nested with-notes calls -- check current buffer at outset, maybe set a variable or something
 (defmacro ns/with-notes (&rest body)
   `(with-current-buffer (find-file-noselect org-default-notes-file)
      (save-excursion
