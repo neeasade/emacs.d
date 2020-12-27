@@ -388,33 +388,30 @@
 ;; this is measured in minutes
 (setq ns/org-casual-timelimit (* 60 5))
 
-(defun ns/org-check-casual-time-today ()
-  ;; this function assumes you are clocked into a casual setting already, and
-  ;; executing within the notes file
-  (org-find-property "casual")
-  (let ((time-clocked
-          (+
-            (org-clock-sum-today)
-            ;; todo: only add current clock if it's under casual time
-            (ns/org-get-current-clock-time)
+(defun ns/org-check-casual-time-today (&optional notify)
+  ;; returns remaining casual minutes
+  ;; optionally notifies if you are out of them
+  ;; accounts for current clock if it is under a casual heading
+  (ns/with-notes
+    (goto-char (ns/org-get-active-point))
+    (let ((current-clock-time
+            (if (string= (first (org-get-outline-path)) "casual")
+              (ns/org-check-casual-time-today) 0)))
 
-            )
-          ))
-    (when (> time-clocked ns/org-casual-timelimit)
-      (progn
+      (org-find-property "casual")
+      (when
+        (and
+          (> (+ (org-clock-sum-today) current-clock-time)
+            ns/org-casual-timelimit)
+          (or notify nil)
+          )
         (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
-        (alert! (format "You are out of casual time for today."
-                  ;; (/ time-clocked (float ns/org-casual-timelimit))
-                  )
+        (alert! (format "You are out of casual time for today.")
           :severity 'normal
           :title "TIME"))
-      )
-
-    time-clocked
-    ))
+      (- ns/org-casual-timelimit (+ (org-clock-sum-today) current-clock-time)))))
 
 (ns/comment
-
   (float (ns/with-notes (ns/org-check-casual-time-today)))
 
   (/ (float (ns/with-notes (ns/org-check-casual-time-today)))
@@ -440,13 +437,8 @@
           :title "TIME"
           ))
 
-      ;; we are clocked into something, check if it's casual and check limit
-      (ns/with-notes
-        (goto-char (ns/org-get-active-point))
-        (when (string= (first (org-get-outline-path)) "casual")
-          (ns/org-check-casual-time-today))))))
-
-;; (ns/with-notes nil)
+      (ns/org-check-casual-time-today t)
+      )))
 
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
 (setq org-clock-idle-time nil)
