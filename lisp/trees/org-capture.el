@@ -159,6 +159,8 @@ This works like `org-find-olp', but much faster."
 
                  )))
 
+;; want: creating a new project should be easy
+;; regen captures on save of notes file is ns/org-capture-project-list has updated
 (setq ns/org-capture-project-list
   (if (f-exists-p org-default-notes-file)
     (ns/with-notes
@@ -205,6 +207,8 @@ This works like `org-find-olp', but much faster."
                      ;; "[[%?]]"
                      ))
 
+       ;; todo: linkmarks
+       ;; todo: consider "offline tweets"
        ;; ("LinkMark" :keys "l"
        ;;   :file ,linkmarks-file
        ;;   :template ("* %^{Title}"

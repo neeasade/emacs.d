@@ -309,9 +309,9 @@
   ;; (message (format "arst %s" (stringp text)))
   (format
     "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
-    (ns/color-shorten color)
-    (ht-get ns/theme (if (ns/color-is-light-p color) :foreground :background))
-    (if (ns/color-is-light-p color) (ht-get ns/theme :foreground) color)
+    (ct/shorten color)
+    (ht-get ns/theme (if (ct/is-light-p color) :foreground :background))
+    (if (ct/is-light-p color) (ht-get ns/theme :foreground) color)
     (if (not (s-equals? "" (or text "")))
       text color)))
 
@@ -331,7 +331,7 @@
     (or class "colorblock colorcenter")
     color
     (if foreground foreground
-      (ht-get ns/theme (if (ns/color-is-light-p color) :foreground :background)))
+      (ht-get ns/theme (if (ct/is-light-p color) :foreground :background)))
     width (or text "")))
 
 (defun ns/blog-make-color-strip (colors &optional labels)
@@ -348,8 +348,8 @@
            (-zip
              (-map (lambda (c)
                      (if (listp c)
-                       (-map 'ns/color-shorten c)
-                       (ns/color-shorten c))
+                       (-map 'ct/shorten c)
+                       (ct/shorten c))
                      ) colors)
              (or labels (-map (lambda (_) "") (range (length colors))))))
 

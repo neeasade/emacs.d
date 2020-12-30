@@ -3,7 +3,7 @@
 ;; big thanks to belak for https://github.com/belak/base16-emacs
 
 (require 'base16-theme)
-(ns/colors)
+(require 'color-tools)
 
 (defun ns/neeb-get-accents (background foreground foreground_)
   ;; return a list accent1, accent1_, accent2, accent2_
@@ -16,16 +16,16 @@
   ;; "#FE0D51"
 
   (-->
-    (ns/color-rotation-hsluv
+    (ct/rotation-hsluv
       (->
-        ;; (ns/color-make-hsluv 265 60 40)
+        ;; (ct/make-hsluv 265 60 40)
         ;; "#5AAF00"
         ;; "#0F9908"
         "#FE0D51"
 
-        (ns/color-transform-hsluv-l
-          ;; (ns/color-get-hsluv-l foreground_)
-          (ns/color-get-hsluv-l
+        (ct/transform-hsluv-l
+          ;; (ct/get-hsluv-l foreground_)
+          (ct/get-hsluv-l
             foreground_
             ;; (ht-get ns/theme :foreground_)
             )
@@ -34,7 +34,7 @@
 
       ;; "#009404"
 
-      ;; (ns/color-make-lab 55 50 50)
+      ;; (ct/make-lab 55 50 50)
       ;; 60
       (/ 360 5)
       ;; (/ 360 6)
@@ -57,25 +57,25 @@
       )
 
     (-map
-      (fn (ns/color-tint-ratio <> background 4.5 ))
+      (fn (ct/tint-ratio <> background 4.5 ))
       it)
     ))
 
 (let*
   (
     (background
-      ;; (ns/color-make-lab 98 70 80)
-      ;; (ns/color-make-lab 88 -10 -10)
-      ;; (ns/color-make-lab 88 -5 5)
-      ;; (ns/color-make-lab 88 5 -5)
-      ;; (ns/color-make-lab 20 -10 0)
-      ;; (ns/color-make-lab 30 -5 0)
-      (ns/color-make-lab 25 40 10)
+      ;; (ct/make-lab 98 70 80)
+      ;; (ct/make-lab 88 -10 -10)
+      ;; (ct/make-lab 88 -5 5)
+      ;; (ct/make-lab 88 5 -5)
+      ;; (ct/make-lab 20 -10 0)
+      ;; (ct/make-lab 30 -5 0)
+      (ct/make-lab 25 40 10)
 
       )
 
-    (foreground (ns/color-tint-ratio background background 8.5))
-    (foreground_ (ns/color-tint-ratio background background 5.5))
+    (foreground (ct/tint-ratio background background 8.5))
+    (foreground_ (ct/tint-ratio background background 5.5))
 
     (accents (ns/neeb-get-accents background foreground foreground_))
     (accent1  (nth 0 accents))
@@ -90,15 +90,15 @@
     ;; new idea: these could be contrast based as well in relation to foreground
     (background_
       (-> background
-        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
-        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 7)))))
+        (ct/transform-lch-h (ct/get-lch-h accent2))
+        (ct/transform-lch-l (ct/get-lch-l foreground))
+        ((lambda (c) (ct/tint-ratio foreground c 7)))))
 
     (background__
       (-> background
-        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
-        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 6)))))
+        (ct/transform-lch-h (ct/get-lch-h accent2))
+        (ct/transform-lch-l (ct/get-lch-l foreground))
+        ((lambda (c) (ct/tint-ratio foreground c 6)))))
 
     )
 
@@ -121,33 +121,33 @@
       ))
 
   (ht-set ns/theme :background+
-    (ns/color-iterate
+    (ct/iterate
       ;; accent1_
       accent2_
-      ;; (ns/color-transform-lch-c accent1_ (-partial '* 0.5))
-      ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
-      'ns/color-lab-darken
-      (fn (> (ns/color-contrast-ratio <> foreground_) 4.0))
-      ;; (fn (> (ns/color-contrast-ratio <> foreground_) 3.5))
+      ;; (ct/transform-lch-c accent1_ (-partial '* 0.5))
+      ;; (ct/transform-lch-c accent2 (lambda (_) 33))
+      'ct/lab-darken
+      (fn (> (ct/contrast-ratio <> foreground_) 4.0))
+      ;; (fn (> (ct/contrast-ratio <> foreground_) 3.5))
       )
     )
 
   ;; (ht-set ns/theme :background+ accent1)
 
   ;; (ht-set ns/theme :foreground_
-  ;;   (ns/color-tint-ratio
-  ;;     (ns/color-transform-hsl accent2 (lambda (h s l) (list h 80 70)))
+  ;;   (ct/tint-ratio
+  ;;     (ct/transform-hsl accent2 (lambda (h s l) (list h 80 70)))
   ;;     background
   ;;     4.5
   ;;     )
-  ;;   ;; (ns/color-transform-hsluv-s 50)
+  ;;   ;; (ct/transform-hsluv-s 50)
   ;;   )
 
 
-  (ht-set ns/theme :foreground_ (ns/color-transform-lch-c foreground_ 80))
+  (ht-set ns/theme :foreground_ (ct/transform-lch-c foreground_ 80))
 
   ;; shorten all the colors, because they are also used in EG org exports
-  (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
+  (setq ns/theme (ht-transform-v ns/theme 'ct/shorten)))
 
 (deftheme neeb)
 (base16-theme-define 'neeb

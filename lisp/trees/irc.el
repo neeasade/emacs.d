@@ -598,8 +598,7 @@
     ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
       (default-fg (face-attribute 'default :foreground))
       (default-bg (face-attribute 'default :background))
-      (highlight-fg (ns/color-lessen 20 default-fg))
-      ;; (fade-fg (ns/color-lessen 35 default-fg))
+      (highlight-fg (ct/lessen 20 default-fg))
       (fade-fg (face-attribute 'font-lock-comment-face :foreground))
       )
 

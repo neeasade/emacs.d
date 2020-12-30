@@ -843,7 +843,7 @@
 (defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))
 (defconfig staging    (load "~/.emacs.d/lisp/trees/staging.el"))
 (defconfig util       (load "~/.emacs.d/lisp/trees/util.el"))
-(defconfig colors     (load "~/.emacs.d/lisp/trees/colors.el"))
+
 (defconfig blog       (load "~/.emacs.d/lisp/trees/blog.el"))
 (defconfig follow-dwim       (load "~/.emacs.d/lisp/trees/follow.el"))
 (defconfig-base style (interactive)               (load "~/.emacs.d/lisp/trees/style.el"))

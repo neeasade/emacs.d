@@ -187,7 +187,7 @@
 
       (-map
         (fn (format "%s=%s" (car <>)
-              (s-replace "#" "" (ns/color-shorten (cadr <>)))))
+              (s-replace "#" "" (ct/shorten (cadr <>)))))
         (-partition 2
           (list
             "foreground" (face-attribute 'default :foreground)
@@ -444,7 +444,6 @@
       ;; not clocked into anything or on a break
       (if (and (not (org-clocking-p))
             (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
-        ;; llet [current-task-text (with-current-buffer (find-file-noselect org-default-notes-file) (save-excursion (org-ml-parse-headline-at (ns/org-get-active-point))))]
         (alert! (format "Hey! you should be clocked into something. %s"
                   (random))
           :severity 'normal

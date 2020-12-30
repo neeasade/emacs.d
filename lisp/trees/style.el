@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
+(use-package hsluv)
+(ns/use-package color-tools "neeasade/color-tools.el")
 (use-package base16-theme)
 
 (add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
@@ -87,7 +89,7 @@
            ;; (mode-line :background nil)
            (font-lock-comment-face :background nil)
            (magit-diff-context-highlight :background
-             ,(ns/color-lab-darken (ht-get ns/theme :background) 4))
+             ,(ct/lab-darken (ht-get ns/theme :background) 4))
            (window-divider :foreground :foreground_)
            ;; match variables to functions
            ;; (font-lock-function-name-face :foreground :accent2)

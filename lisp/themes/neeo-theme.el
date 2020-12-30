@@ -3,27 +3,27 @@
 ;; big thanks to belak for https://github.com/belak/base16-emacs
 
 (require 'base16-theme)
-(ns/colors)
+(require 'color-tools)
 
 (defun ns/neeo-get-accents (background foreground foreground_)
   ;; return a list accent1, accent1_, accent2, accent2_
   (-->
-    (ns/color-rotation-hsluv
-      (ns/color-make-hsluv 265 60 40)
+    (ct/rotation-hsluv
+      (ct/make-hsluv 265 60 40)
       60)
 
     (-map (fn (ns/nth <> it))
       '(1 -1 2 3))
     (-map
-      (fn (ns/color-tint-ratio <> background 4.5 ))
+      (fn (ct/tint-ratio <> background 4.5 ))
       it)))
 
 (let*
   (
-    (background (ns/color-make-lab 93 2 4))
+    (background (ct/make-lab 93 2 4))
 
-    (foreground (ns/color-tint-ratio background background 8.5))
-    (foreground_ (ns/color-tint-ratio background background 5.5))
+    (foreground (ct/tint-ratio background background 8.5))
+    (foreground_ (ct/tint-ratio background background 5.5))
 
     (accents (ns/neeo-get-accents background foreground foreground_))
 
@@ -35,28 +35,28 @@
     ;; active BG (selections)
     ;; take an accent color, fade it until you reach a minimum contrast against foreground_
     (background+
-      (ns/color-iterate
+      (ct/iterate
         ;; accent2
-        ;; (ns/color-transform-lch-c accent2 (-partial '* 0.5))
-        (ns/color-transform-lch-c accent2 (lambda (_) 33))
-        'ns/color-lab-lighten
-        (fn (> (ns/color-contrast-ratio <> foreground_) 4.0))
-        ;; (fn (> (ns/color-contrast-ratio <> foreground_) 3.5))
+        ;; (ct/transform-lch-c accent2 (-partial '* 0.5))
+        (ct/transform-lch-c accent2 (lambda (_) 33))
+        'ct/lab-lighten
+        (fn (> (ct/contrast-ratio <> foreground_) 4.0))
+        ;; (fn (> (ct/contrast-ratio <> foreground_) 3.5))
         )
       )
 
     ;; new idea: these could be contrast based as well in relation to foreground
     (background_
       (-> background
-        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
-        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 7)))))
+        (ct/transform-lch-h (ct/get-lch-h accent2))
+        (ct/transform-lch-l (ct/get-lch-l foreground))
+        ((lambda (c) (ct/tint-ratio foreground c 7)))))
 
     (background__
       (-> background
-        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
-        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 6))))))
+        (ct/transform-lch-h (ct/get-lch-h accent2))
+        (ct/transform-lch-l (ct/get-lch-l foreground))
+        ((lambda (c) (ct/tint-ratio foreground c 6))))))
 
   (setq ns/theme
     (ht
@@ -76,17 +76,17 @@
       ))
 
   (ht-set ns/theme :foreground_
-    (ns/color-tint-ratio
-      (ns/color-transform-hsl accent2 (lambda (h s l) (list h 80 70)))
+    (ct/tint-ratio
+      (ct/transform-hsl accent2 (lambda (h s l) (list h 80 70)))
       background
       4.5
       ))
 
   ;; let's play MAX, THAT, CHROMA!
-  (ht-set ns/theme :accent2_ (ns/color-transform-lch-c accent2_ 100))
+  (ht-set ns/theme :accent2_ (ct/transform-lch-c accent2_ 100))
 
   ;; shorten all the colors, because they are also used in EG org exports
-  (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
+  (setq ns/theme (ht-transform-v ns/theme 'ct/shorten)))
 
 (deftheme neeo)
 

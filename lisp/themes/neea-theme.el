@@ -3,27 +3,27 @@
 ;; big thanks to belak for https://github.com/belak/base16-emacs
 
 (require 'base16-theme)
-(ns/colors)
+(require 'color-tools)
 
 (let*
   (
     ;; the most important color:
-    ;; (background (ns/color-lab-darken "#EEF0F3" 2))
-    ;; (background (ns/color-make-lab '(94 10 0)))
+    ;; (background (ct/lab-darken "#EEF0F3" 2))
+    ;; (background (ct/make-lab '(94 10 0)))
 
     ;; /slightly/ cool
-    (background (ns/color-make-lab 93 -0.5 -1))
+    (background (ct/make-lab 93 -0.5 -1))
 
-    ;; (ns/color-get-lab (ht-get ns/theme :background))
+    ;; (ct/get-lab (ht-get ns/theme :background))
     ;; (92.62570047039625 -0.12394223018169503 -1.6903128567083314)
 
-    (foreground (ns/color-tint-ratio background background 10))
-    (foreground_ (ns/color-tint-ratio background background 6))
+    (foreground (ct/tint-ratio background background 10))
+    (foreground_ (ct/tint-ratio background background 6))
 
     ;; LCH rotate -45 from blue (hue 270)
     (accent-rotations
       (let ((color-start
-              (ns/color-hsluv-transform
+              (ct/hsluv-transform
                 foreground_
                 (lambda (H S L)
                   (list 270 75 L))))
@@ -33,7 +33,7 @@
              )
         (-map
           (lambda (step)
-            (ns/color-transform-lch-h color-start
+            (ct/transform-lch-h color-start
               (fn (+ <> (* step interval)))))
           (range (/ 360 (abs interval))))))
 
@@ -45,28 +45,28 @@
     ;; active BG (selections)
     ;; take an accent color, fade it until you reach a minimum contrast against foreground_
     (background+
-      (ns/color-iterate
-        (ns/color-transform-lch-c accent2 (-partial '* 0.5))
-        ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
-        (fn (ns/color-lab-lighten <> 0.1))
-        (fn (> (ns/color-contrast-ratio <> foreground_)
+      (ct/iterate
+        (ct/transform-lch-c accent2 (-partial '* 0.5))
+        ;; (ct/transform-lch-c accent2 (lambda (_) 33))
+        (fn (ct/lab-lighten <> 0.1))
+        (fn (> (ct/contrast-ratio <> foreground_)
               5
               ))))
 
     ;; new idea: these could be contrast based as well in relation to foreground
     (background_
       (-> background
-        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
-        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 9)))))
+        (ct/transform-lch-h (ct/get-lch-h accent2))
+        (ct/transform-lch-l (ct/get-lch-l foreground))
+        ((lambda (c) (ct/tint-ratio foreground c 9)))))
 
     (background__
       (-> background
-        (ns/color-transform-lch-h (ns/color-get-lch-h accent2))
-        (ns/color-transform-lch-l (ns/color-get-lch-l foreground))
-        ((lambda (c) (ns/color-tint-ratio foreground c 8)))))
+        (ct/transform-lch-h (ct/get-lch-h accent2))
+        (ct/transform-lch-l (ct/get-lch-l foreground))
+        ((lambda (c) (ct/tint-ratio foreground c 8)))))
 
-    ;; (background__ (-> background_ (ns/color-transform-hsluv-l (-rpartial '- 6))))
+    ;; (background__ (-> background_ (ct/transform-hsluv-l (-rpartial '- 6))))
     )
 
   (setq ns/theme
@@ -101,10 +101,10 @@
             ;; v
 
             ;; ensure all colors have some minimum contrast ratio
-            (ns/color-tint-ratio
+            (ct/tint-ratio
               ;; conform lightness -- this lightness was just from a green for strings I liked
-              (ns/color-transform-hsluv-l v 43.596)
-              ;; (ns/color-transform-hsluv-l v 50)
+              (ct/transform-hsluv-l v 43.596)
+              ;; (ct/transform-hsluv-l v 50)
               ;; v
 
               ;; against, ratio
@@ -113,14 +113,14 @@
 
   ;; do this transform AFTER messing with accent colors above.
   (ht-set ns/theme :background+
-    (ns/color-iterate
-      (ns/color-transform-lch-c
+    (ct/iterate
+      (ct/transform-lch-c
         (ht-get ns/theme :accent2)
         ;; (ht-get ns/theme :foreground_)
         (-partial '* 0.5))
-      ;; (ns/color-transform-lch-c accent2 (lambda (_) 33))
-      (fn (ns/color-lab-lighten <> 0.1))
-      (fn (> (ns/color-contrast-ratio <> foreground_)
+      ;; (ct/transform-lch-c accent2 (lambda (_) 33))
+      (fn (ct/lab-lighten <> 0.1))
+      (fn (> (ct/contrast-ratio <> foreground_)
             5
             ))))
 
@@ -141,13 +141,13 @@
   ;; - low screen brightness
   ;; - high screen brightness
   ;; (->>
-  ;;   (fn (ns/color-tint-with-light <> ns/theme-white-point color-d55-xyz))
-  ;;   ;; (fn (ns/color-tint-with-light <> ns/theme-white-point color-d50-xyz))
+  ;;   (fn (ct/tint-with-light <> ns/theme-white-point color-d55-xyz))
+  ;;   ;; (fn (ct/tint-with-light <> ns/theme-white-point color-d50-xyz))
   ;;   (ht-transform-v ns/theme)
   ;;   (setq ns/theme))
 
   ;; shorten all the colors, because they are also used in EG org exports
-  (setq ns/theme (ht-transform-v ns/theme 'ns/color-shorten)))
+  (setq ns/theme (ht-transform-v ns/theme 'ct/shorten)))
 
 (deftheme neea)
 (base16-theme-define 'neea
@@ -207,7 +207,7 @@
     (lambda (k v)
       (message
         (prn k
-          (ns/color-contrast-ratio
+          (ct/contrast-ratio
             (ht-get ns/theme :background)
             ;; (ht-get ns/theme :background+)
             v
