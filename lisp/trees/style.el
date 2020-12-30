@@ -1,8 +1,13 @@
 ;; -*- lexical-binding: t; -*-
 
+
 (use-package hsluv)
-(ns/use-package color-tools "neeasade/color-tools.el")
 (use-package base16-theme)
+(ns/use-package color-tools "neeasade/color-tools.el")
+(ns/use-package tarps "neeasade/tarps"
+  :config
+  ;; todo: why isn't this happening automatically
+  (require 'tarps))
 
 (add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
 
@@ -61,84 +66,10 @@
     ))
 
 (mapcar 'disable-theme custom-enabled-themes)
-;; (load-theme 'neea t)
-(load-theme 'neeo t)
-;; (load-theme 'neeb t)
 
-;; get the whitespace-mode faces:
-;; (our tweaks require the faces to be loaded)
-(require 'whitespace)
-
-;; override some base16 decisions
-;; (side note: I couldn't get this to work in the theme itself)
-;; played with: custom-theme-set-faces and custom-theme-recalc-face and all sorts of dumb stuff
-;; gave up and extending here:
-(let ((base16-tweaks
-        `(
-           (avy-lead-face :background :accent1_)
-           (avy-lead-face-0 :background :accent1)
-           (avy-lead-face-2 :background :accent2)
-
-           ;; face pace-part value
-           ;; value may be a key from ns/theme
-           (font-lock-comment-delimiter-face :foreground :foreground_)
-           (isearch :foreground :background+)
-           (isearch :background :foreground)
-           (comint-highlight-prompt :foreground :foreground)
-           (fringe :background nil)
-           ;; (mode-line :background nil)
-           (font-lock-comment-face :background nil)
-           (magit-diff-context-highlight :background
-             ,(ct/lab-darken (ht-get ns/theme :background) 4))
-           (window-divider :foreground :foreground_)
-           ;; match variables to functions
-           ;; (font-lock-function-name-face :foreground :accent2)
-           (font-lock-variable-name-face :foreground :accent1)
-           ;; consider nulling out and using flat newlines org links
-           ;; (org-link :foreground :accent1_)
-           ;; (font-lock-type-face :foreground :accent1)
-
-           (org-todo :background :background_)
-           (org-done :background :background_)
-
-           (org-todo :foreground :accent2_)
-           (org-done :foreground :accent2)
-
-           (org-date :underline nil)
-           (org-date :foreground :accent1_)
-
-           (org-drawer :foreground :accent1_)
-           (org-block-begin-line :foreground :foreground_)
-           (org-block-end-line :foreground :foreground_)
-
-           (org-level-1 :foreground :foreground)
-           (org-level-2 :foreground :foreground)
-           (org-level-3 :foreground :foreground)
-           (org-level-4 :foreground :foreground)
-           (org-level-5 :foreground :foreground)
-           (org-level-6 :foreground :foreground)
-
-           (org-headline-done :foreground :foreground)
-           (org-headline-done :background nil)
-           (org-special-keyword :foreground :foreground_)
-
-           (whitespace-space :background nil)
-           (whitespace-tab :background nil)
-           ;; (whitespace-newline :background nil)
-           (flycheck-warning :underline nil)
-           (flycheck-info :underline nil)
-           )))
-
-  ;; if we were doing this the /right/ rather than set face attributes we would
-  ;; update theme faces and recalc them -- but then we'd have to know all properties we want to change
-  ;; easier to shove one off's in the above list as I encounter them
-  (-map (lambda (input)
-          (apply (lambda (face part key)
-                   (set-face-attribute face nil part
-                     (if (-contains-p (ht-keys ns/theme) key)
-                       (ht-get ns/theme key) key)))
-            input)) base16-tweaks
-    ))
+;; (load-theme 'tarp-struan t)
+(load-theme 'tarp-mcfay t)
+(setq ns/theme tarp/theme)
 
 ;; this tweak has to be done on every frame creation
 (defun ns/set-fringe-bg (frame) (set-face-attribute 'fringe frame :background nil))
