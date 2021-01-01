@@ -141,6 +141,24 @@
     (delq (current-buffer)
       (remove-if-not 'buffer-file-name (buffer-list)))))
 
+;; todo later: this let* is really a step-by-step labeled flow
+;; the -as-> macro might fit nicely
+;; also -- this multiply thing might be a dumb idea, maybe just prompt for desired font-size instead
+(defun! ns/font-multiply ()
+  (let* ((font (get-resource "st.font"))
+          (multiplier (string-to-number
+                        (read-string
+                          (format "font multiplier (apply to '%s'): " font))))
+          (old-num (string-to-number (second (s-split "-" font))))
+          (new-num (round (* multiplier old-num)))
+          (new-font (format "%s-%s"
+                      (first (s-split "-" font))
+                      (number-to-string new-num))))
+
+    (message "new font: %s" new-font)
+    (set-face-attribute 'default nil :font new-font)
+    (set-frame-font (get-resource new-font) nil t)))
+
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 

@@ -1,33 +1,12 @@
 ;; -*- lexical-binding: t; -*-
 
-
-(use-package hsluv)
-(use-package base16-theme)
 (ns/use-package color-tools "neeasade/color-tools.el")
+
 (ns/use-package tarps "neeasade/tarps"
   :config
   ;; todo: why isn't this happening automatically
-  (require 'tarps))
-
-(add-to-list 'custom-theme-load-path (~ ".emacs.d/lisp/themes"))
-
-;; todo later: this let* is really a step-by-step labeled flow
-;; the -as-> macro might fit nicely
-;; also -- this multiply thing might be a dumb idea, maybe just prompt for desired font-size instead
-(defun! ns/font-multiply ()
-  (let* ((font (get-resource "st.font"))
-          (multiplier (string-to-number
-                        (read-string
-                          (format "font multiplier (apply to '%s'): " font))))
-          (old-num (string-to-number (second (s-split "-" font))))
-          (new-num (round (* multiplier old-num)))
-          (new-font (format "%s-%s"
-                      (first (s-split "-" font))
-                      (number-to-string new-num))))
-
-    (message "new font: %s" new-font)
-    (set-face-attribute 'default nil :font new-font)
-    (set-frame-font (get-resource new-font) nil t)))
+  (require 'tarps)
+  )
 
 (defun ns/update-xrdb-font (font &optional toggle)
   "Update the fallback font for xrdb value"
@@ -65,10 +44,13 @@
     "Menlo-14"
     ))
 
+;; unload anything currently loaded
 (mapcar 'disable-theme custom-enabled-themes)
 
 ;; (load-theme 'tarp-struan t)
 (load-theme 'tarp-mcfay t)
+;; (load-theme 'tarp-marlowe t)
+
 (setq ns/theme tarp/theme)
 
 ;; this tweak has to be done on every frame creation
@@ -99,17 +81,9 @@
 
 (use-package hl-todo
   :config
-  (let ((highlight-color (face-attribute 'font-lock-comment-face :foreground)))
-    (setq hl-todo-keyword-faces
-      `(("TODO" . ,highlight-color)
-         ("todo" . ,highlight-color)
-         ;; ("NOTE" . ,highlight-color)
-         ;; ("note" . ,highlight-color)
-         ))
-
-    ;; todo: this doesn't seem to update magit-todos? - not seeing 'todo' show up
-    (setq magit-todos-keywords hl-todo-keyword-faces)
-    )
+  (setq hl-todo-keyword-faces
+    `(("TODO" . ,(ht-get tarp/theme :foreground_))
+       ("todo" . ,(ht-get tarp/theme :foreground_))))
 
   (general-nmap
     "]t" 'hl-todo-next

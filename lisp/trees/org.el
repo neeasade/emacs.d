@@ -565,7 +565,8 @@
   ;; clock into the current headline, clocking out of what's running
   "oi" (fn!
          (ns/org-clock-out)
-         (org-clock-in))
+         (org-clock-in)
+         (save-buffer))
 
   ;; cancel org-pomodoro or a clocked in task
   "oI" 'ns/org-clock-out

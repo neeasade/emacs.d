@@ -317,7 +317,7 @@
 (defmacro llet (args body)
   `(let* ,(-partition 2 (append args nil)) ,body))
 
-;; fun extension to ht.el
+;; extension to ht.el
 (defmacro ht-with-context (table &rest content)
   (-tree-map
     (lambda (tree)
