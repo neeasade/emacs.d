@@ -423,10 +423,8 @@
         (+ casual-clocked-time current-clock-time))
       )))
 
-(ns/org-check-casual-time-today)
-
 (ns/comment
-  (float (ns/with-notes (ns/org-check-casual-time-today)))
+  (ns/org-check-casual-time-today)
 
   (/ (float (ns/with-notes (ns/org-check-casual-time-today)))
     ns/org-casual-timelimit)

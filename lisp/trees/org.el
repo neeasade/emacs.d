@@ -529,7 +529,8 @@
       (org-pomodoro)
       ;; todo: subtract idle time (right not the loss is small, like 3 min)
       ;; something like org-clockout nil t (- (org-current-time) idle-time)
-      (org-clock-out))))
+      (org-clock-out))
+    (ns/with-notes (save-buffer))))
 
 (ns/bind
   "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
