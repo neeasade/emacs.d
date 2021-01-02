@@ -1,12 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 
-(ns/use-package color-tools "neeasade/color-tools.el")
-
-(ns/use-package tarps "neeasade/tarps"
-  :config
-  ;; todo: why isn't this happening automatically
-  (require 'tarps)
-  )
+(when (not (-contains-p features 'tarps))
+  (ns/use-package color-tools "neeasade/color-tools.el")
+  (ns/use-package tarps "neeasade/tarps" :config (require 'tarps)))
 
 (defun ns/update-xrdb-font (font &optional toggle)
   "Update the fallback font for xrdb value"
