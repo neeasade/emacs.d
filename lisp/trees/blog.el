@@ -53,7 +53,7 @@
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
       (list "\n#+BEGIN_CENTER\n"
-        (->> (-remove 'not items) (s-join " • "))
+        (->> (-remove 'not items) (s-join " "))
         "\n#+END_CENTER\n")))
 
   (message (format "BLOG: generating meta for %s" path))
@@ -78,7 +78,7 @@
           (org-file-content
             (-map
               ;; call our custom hsep macro for delimiters
-              (fn (if (string= <> "-----") "{{{hsep()}}}" <>))
+              (fn (if (string= <> "-----") "{{{hsep}}}" <>))
               (s-split "\n" (org-file-contents path))))
 
           (published-date
@@ -92,6 +92,13 @@
             (->> org-file-content
               (-first (fn (s-starts-with-p "#+title:" <>)))
               (s-replace "#+title: " "")))
+
+          (post-subtitle
+            (->> org-file-content
+              (-first (fn (s-starts-with-p "#+title_extra:" <>)))
+              ((lambda (found)
+                 (when found
+                   (s-replace "#+title_extra: " "" found))))))
 
           (post-org-content-lines
             (-non-nil
@@ -109,9 +116,31 @@
 
                  ,(when is-post
                     (ns/blog-make-nav-strip
-                      (format "[[%s][%s]]" history-link last-edited)
-                      published-date
+                      (if (s-equals-p published-date last-edited)
+                        (format "%s" published-date)
+                        (format
+                          "%s (edited [[%s][%s]])"
+                          published-date
+                          history-link
+                          last-edited
+                          ))
+
+                      ;; (format
+                      ;;   "%s (edited [[%s][%s]])"
+                      ;;   published-date
+                      ;;   history-link
+                      ;;   last-edited
+                      ;;   )
+
+                      ;; (format "[[%s][%s]]" history-link last-edited)
                       ))
+
+                 ,@(when (not (s-blank-p post-subtitle))
+                     (list
+                       ;; "#+begin_center"
+                       post-subtitle
+                       ;; "#+end_center"
+                       ))
 
                  "-----"
                  ,@org-file-content
@@ -184,6 +213,7 @@
          (org-html-html5-fancy t)
          (org-export-with-title nil)
 
+
          ;; affects timestamp export format
          ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
          (org-time-stamp-custom-formats '("[%Y-%m-%d]" . "[%Y-%m-%d %I:%M %p]"))
@@ -203,6 +233,7 @@
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
+  (save-buffer)
   (let* ((file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta))
           (post-html-file (ht-get file-meta :html-dest)))
 
