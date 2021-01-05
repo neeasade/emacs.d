@@ -43,7 +43,7 @@
   )
 
 (defun ns/blog-make-hsep ()
-  (format "#+begin_center\n%s\n#+end_center"
+  (format "\n#+begin_center\n%s\n#+end_center\n"
     (let* ((options "🍇🍉🍓🍅🍄🍈🍍")
             (index (random (length options))))
       (substring options index (+ index 1)))))

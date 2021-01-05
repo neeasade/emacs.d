@@ -121,6 +121,7 @@
   (ns/communication)
   (ns/staging)
   (ns/check-for-orphans)
+  (ns/style)
 
   (defun ns/initial-startup-hook ()
     (when (not (boundp 'ns/after-init-hook))
@@ -144,8 +145,7 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      ;; theme
-      (ns/style)))
+      (ns/load-theme 'tarp-struan)))
 
   (add-hook 'emacs-startup-hook 'ns/initial-startup-hook))
 
