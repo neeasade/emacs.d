@@ -187,7 +187,7 @@
 
       (-map
         (fn (format "%s=%s" (car <>)
-              (s-replace "#" "" (ct/shorten (cadr <>)))))
+              (s-replace "#" "" (ct-shorten (cadr <>)))))
         (-partition 2
           (list
             "foreground" (face-attribute 'default :foreground)

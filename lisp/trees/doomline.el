@@ -15,9 +15,9 @@
   "sep-edge" :group 'doom-modeline-faces)
 
 (set-face-attribute 'mode-line nil :background
-  ;; (ct/lessen 3 (face-attribute 'default :background))
-  (ct/lessen (ht-get ns/theme :background_) 5)
-  ;; (ct/lessen 3 (face-attribute 'default :background+))
+  ;; (ct-lessen 3 (face-attribute 'default :background))
+  (ct-lessen (ht-get ns/theme :background_) 5)
+  ;; (ct-lessen 3 (face-attribute 'default :background+))
   ;; (face-attribute 'default :background)
   )
 
@@ -32,10 +32,10 @@
 
 (set-face-attribute 'ns/mode-line-sep-edge nil :background
   ;; (face-attribute 'default :background)
-  (ct/lessen (ht-get ns/theme :background_) 20))
+  (ct-lessen (ht-get ns/theme :background_) 20))
 
 (set-face-attribute 'ns/mode-line-sep nil :background
-  (ct/lessen (ht-get ns/theme :background_) 20))
+  (ct-lessen (ht-get ns/theme :background_) 20))
 
 (set-face-attribute 'mode-line-inactive nil :background
   (ht-get ns/theme :background_))

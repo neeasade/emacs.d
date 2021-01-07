@@ -1,7 +1,10 @@
 ;; -*- lexical-binding: t; -*-
-
 (when (not (-contains-p features 'tarps))
-  (ns/use-package color-tools "neeasade/color-tools.el")
+  (ns/use-package color-tools "neeasade/color-tools.el"
+    :config
+    (require 'ct "color-tools.el")
+    )
+
   (ns/use-package tarps "neeasade/tarps" :config (require 'tarps)))
 
 (defun ns/update-xrdb-font (font &optional toggle)
@@ -35,11 +38,6 @@
     "Noto Serif-14"
     "Charter-14"
     "Menlo-14"))
-
-
-;; this tweak has to be done on every frame creation
-(defun ns/set-fringe-bg (frame) (set-face-attribute 'fringe frame :background nil))
-(add-hook 'after-make-frame-functions 'ns/set-fringe-bg)
 
 ;; frames:
 (ns/frame-set-parameter 'internal-border-width (if ns/enable-home-p 0 6))
@@ -76,13 +74,17 @@
 (set-face-attribute 'italic nil :slant 'italic)
 
 (defun! ns/load-theme (&optional theme)
-  ;; unload anything currently loaded
-  (mapcar 'disable-theme custom-enabled-themes)
-  (if theme
-    (load-theme theme t)
-    (counsel-load-theme))
-  (setq ns/theme tarp/theme)
+  (let ((theme
+          (or theme
+            (intern
+              (ivy-read "Load custom theme: "
+                ;; (mapcar 'symbol-name (custom-available-themes))
+                '(tarp-mcfay tarp-marlowe tarp-struan)
+                :action 'identity)))))
+    (mapcar 'disable-theme custom-enabled-themes)
+    (load-theme theme t))
 
+  (setq ns/theme tarp/theme)
   (setq hl-todo-keyword-faces
     `(("TODO" . ,(ht-get tarp/theme :foreground_))
        ("todo" . ,(ht-get tarp/theme :foreground_))))
