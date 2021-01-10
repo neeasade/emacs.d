@@ -2,8 +2,13 @@
 (when (not (-contains-p features 'tarps))
   (ns/use-package color-tools "neeasade/color-tools.el"
     :config
-    (require 'ct "color-tools.el")
-    )
+    (require 'ct "color-tools.el"))
+
+  (macroexpand-1
+    '(ns/use-package color-tools "neeasade/color-tools.el"
+       :config
+       (require 'ct "color-tools.el")
+       ))
 
   (ns/use-package tarps "neeasade/tarps" :config (require 'tarps)))
 

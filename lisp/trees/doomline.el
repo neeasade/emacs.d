@@ -10,35 +10,27 @@
   '((t (:inherit (mode-line))))
   "sep" :group 'doom-modeline-faces)
 
-(defface ns/mode-line-sep-edge
-  '((t (:inherit (mode-line))))
-  "sep-edge" :group 'doom-modeline-faces)
+(set-face-attribute 'mode-line nil
+  :background (tarp/get :background :weak))
 
-(set-face-attribute 'mode-line nil :background
-  ;; (ct-lessen 3 (face-attribute 'default :background))
-  (ct-lessen (ht-get ns/theme :background_) 5)
-  ;; (ct-lessen 3 (face-attribute 'default :background+))
-  ;; (face-attribute 'default :background)
-  )
+(set-face-attribute 'mode-line nil
+  :foreground (tarp/get :foreground))
+
+(set-face-attribute 'mode-line nil
+  :foreground (tarp/get :foreground :weak))
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (ht-get ns/theme :background_)
-  ;; (face-attribute 'default :background)
-  )
+  (tarp/get :background :strong))
 
 ;; (face-attribute 'mode-line :foreground)
 (set-face-attribute 'doom-modeline-buffer-file nil :foreground (ht-get ns/theme :foreground))
 (set-face-attribute 'doom-modeline-buffer-modified nil :foreground (ht-get ns/theme :foreground))
 
-(set-face-attribute 'ns/mode-line-sep-edge nil :background
-  ;; (face-attribute 'default :background)
-  (ct-lessen (ht-get ns/theme :background_) 20))
-
 (set-face-attribute 'ns/mode-line-sep nil :background
-  (ct-lessen (ht-get ns/theme :background_) 20))
+  (tarp/get :background :strong))
 
 (set-face-attribute 'mode-line-inactive nil :background
-  (ht-get ns/theme :background_))
+  (tarp/get :background :weak))
 
 (set-face-attribute 'mode-line nil :height 100)
 (set-face-attribute 'mode-line-inactive nil :height 100)

@@ -340,8 +340,8 @@
   ;; (message (format "arst %s" (stringp text)))
   (format
     "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
-    (ht-get ns/theme (if (ct-is-light-p color) :foreground :background))
-    (if (ct-is-light-p color) (ht-get ns/theme :foreground) color)
+    (tarp/get (if (ct-is-light-p color) :foreground :background))
+    (if (ct-is-light-p color) (tarp/get :foreground) color)
     (if (not (s-equals? "" (or text "")))
       text color)))
 
@@ -361,7 +361,7 @@
     (or class "colorblock colorcenter")
     color
     (if foreground foreground
-      (ht-get ns/theme (if (ct-is-light-p color) :foreground :background)))
+      (tarp/get (if (ct-is-light-p color) :foreground :background)))
     width (or text "")))
 
 (defun ns/blog-make-color-strip (colors &optional labels)

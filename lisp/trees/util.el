@@ -261,6 +261,7 @@
 
 (ns/bind
   "qf" 'ns/what-face
+  "qc" 'describe-char
   "qm" 'ns/what-major-mode
   "qi" 'ns/what-minor-modes
   "qq" 'ns/look-at-last-message
