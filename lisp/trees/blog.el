@@ -3,6 +3,30 @@
 ;; for fontifying src blocks
 (use-package htmlize)
 
+
+
+;; (setq htmlize-face-overrides
+;;   nil
+;;   )
+
+;; (let ((theme-colors (append
+;;                       (tarp/map-to-base16 :weak)
+;;                       (ht-to-plist (ht-get tarp/theme* :weak)))))
+;;   (setq htmlize-face-overrides
+;;     (-mapcat
+;;       (lambda (definition)
+;;         (list
+;;           (car definition)
+;;           (cdr definition)))
+;;       (tarp/theme-make-faces
+;;         theme-colors
+;;         ))
+;;     ))
+
+
+
+
+
 ;; todo: check for conflicting html-destinations?
 
 (defun ns/blog-path (ext)

@@ -430,7 +430,13 @@
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
     ;; (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper)
     ;; (global-set-key (kbd "C-;") #'flyspell-correct-at-point)
-    (global-set-key (kbd "C-;") #'flyspell-correct-wrapper)
+    (global-set-key (kbd "C-;")
+      (lambda ()
+        (when
+          (not (and (boundp 'flyspell-mode)
+                 flyspell-mode))
+          (flyspell-mode))
+        (flyspell-correct-wrapper)))
 
     )
   )
@@ -476,10 +482,6 @@
   ;; smol
   (set-face-attribute 'org-block-begin-line nil :height 65)
   (set-face-attribute 'org-block-end-line nil :height 65)
-
-  (set-face-attribute 'org-link nil :underline t)
-  ;; (set-face-attribute 'org-link nil :foreground nil)
-  ;; (set-face-attribute 'underline nil :underline t)
 
   (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
     (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
