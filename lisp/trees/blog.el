@@ -89,16 +89,9 @@
         (->> (-remove 'not items) (s-join " "))
         "\n#+END_CENTER\n")))
 
-  ;; (s-match
-  ;;   ;; "^#+title:.*$"
-  ;;   (pcre-to-elisp "\#\+title:.*")
-
-  ;;   "\n#+title: ararst"
-  ;;   "\n#+title: ararst"
-  ;;   )
-
   (defun ns/blog-get-prop (propname text)
-    (-some--> (format "^#+%s:.*$" propname)
+    (-some--> (format "#\\+%s:.*$" propname)
+      (pcre-to-elisp it)
       (s-match it text)
       (first it)
       (s-replace (format "#+%s:" propname) "" it)
@@ -143,7 +136,7 @@
               )
             )
 
-          (post-subtitle (ns/blog-get-prop "title" org-file-content))
+          (post-subtitle (ns/blog-get-prop "title_extra" org-file-content))
 
           (post-org-content
             (ns/blog-mustache
@@ -162,6 +155,13 @@
 
                 ("title" post-title)
 
+                ("up"
+                  (if (s-starts-with-p "index" (f-filename path))
+                    "<a href='https://neeasade.net'>Up: Splash</a>"
+                    "<a href='/index.html'>Up: ＧＲＯＶＥ</a>"
+                    )
+                  )
+
                 ("last-edited" last-edited)
                 ("subtitle" post-subtitle)
                 ("content" org-file-content)
@@ -175,23 +175,24 @@
 
                 ("footer-left"
                   (if (s-starts-with-p "index" (f-filename path))
-                    "<a href='https://neeasade.net'>Splash</a><a href='/sitemap.html'>Sitemap</a>"
+                    "<a href='/sitemap.html'>Sitemap</a>"
                     "<div class='footer-left'><a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a></div>"))
 
                 ("footer-center"
                   (when (s-starts-with-p "index" (f-filename path))
                     ;; todo: don't hotlink
-                    "#+begin_center
-#+BEGIN_EXPORT html
-<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a>
-<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a>
-<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>
+                    "#+BEGIN_EXPORT html
+<div class=footer-center>
+<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
+<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
+<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
+</div>
 #+end_export
-#+end_center"))
+"))
 
                 ("flair"
                   (when (string= post-type "post")
-                    "@@html:<div class='title flair'> <img src='https://notes.neeasade.net/assets/posts/ca_dump/mpv-shot0025.jpg' /> </div>@@"))))))
+                    "@@html:<div class='title flair'><img class='flair-border' src='./assets/img/backgrounds/bark.jpg' /> </div>@@"))))))
 
     (ht
       (:path path)
@@ -216,7 +217,7 @@
                       (funcall
                         (apply '-compose
                           (mapcar (lambda (char)
-                                    (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,"))))))
+                                    (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))))
 
       (:edited-date last-edited)
       )))
