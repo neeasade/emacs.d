@@ -112,6 +112,7 @@
 
   (or
     (ns/sh-has-content-p "playerctl metadata 2>/dev/null | grep -i netflix")
+    (ns/sh-has-content-p "playerctl metadata 2>/dev/null | grep -i 'prime video'")
     (ns/sh-has-content-p "pgrep mpv")
     (ns/sh-has-content-p "pgrep vlc")
 

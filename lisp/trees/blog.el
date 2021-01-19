@@ -3,8 +3,18 @@
 ;; for fontifying src blocks
 (use-package htmlize)
 
+;; todo: check for conflicting html-destinations?
 
+(defun ns/blog-mustache (text table)
+  (-reduce-from
+    (lambda (text key)
+      (s-replace
+        (format "{{%s}}" key)
+        (ht-get table key)
+        text))
+    text (ht-keys table)))
 
+;; later: set weak version of theme export
 ;; (setq htmlize-face-overrides
 ;;   nil
 ;;   )
@@ -23,11 +33,6 @@
 ;;         ))
 ;;     ))
 
-
-
-
-
-;; todo: check for conflicting html-destinations?
 
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
@@ -62,158 +67,150 @@
     :action 'find-file))
 
 (ns/bind-soft
-  "nq" 'ns/jump-to-blog-post-draft
-  "nQ" 'ns/jump-to-blog-post
+  "nq" 'ns/jump-to-blog-post
+  ;; "nq" 'ns/jump-to-blog-post-draft
   )
 
 (defun ns/blog-make-hsep ()
   (format "\n#+begin_center\n%s\n#+end_center\n"
-    (let* ((options "🍇🍉🍓🍅🍄🍈🍍")
-            (index (random (length options))))
-      (substring options index (+ index 1)))))
+    (let* (
+            (options "🍇🍉🍓🍅🍄🍈🍍")
+            (options "🍂🌿🌱🍁🍀")
+            (index (random (length options)))
+            (char (substring options index (+ index 1))))
+      (format "%s %s %s" char char char)
+      )))
 
 (defun ns/blog-file-to-meta (path)
-  ;; a helper
+
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
       (list "\n#+BEGIN_CENTER\n"
         (->> (-remove 'not items) (s-join " "))
         "\n#+END_CENTER\n")))
 
+  ;; (s-match
+  ;;   ;; "^#+title:.*$"
+  ;;   (pcre-to-elisp "\#\+title:.*")
+
+  ;;   "\n#+title: ararst"
+  ;;   "\n#+title: ararst"
+  ;;   )
+
+  (defun ns/blog-get-prop (propname text)
+    (-some--> (format "^#+%s:.*$" propname)
+      (s-match it text)
+      (first it)
+      (s-replace (format "#+%s:" propname) "" it)
+      (s-trim it)))
+
   (message (format "BLOG: generating meta for %s" path))
-  (let* ((is-post
-           (-contains-p (f-entries (ns/blog-path "posts") (fn (s-ends-with-p ".org" <>))) path))
+  (let* (
+          (org-file-content (s-replace-regexp "^-----$" "{{{hsep}}}" (f-read path)))
+
+          (post-type
+            ;; XXXXX -- no content here for type
+            (or (ns/blog-get-prop "post_type" org-file-content)
+              ;; this could maybe just be changed to the parent folder name
+              (if (-contains-p
+                    (f-entries (ns/blog-path "posts")
+                      (fn (s-ends-with-p ".org" <>)))
+                    path)
+                "post"
+                "page")))
+
           (last-edited
             (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log -1 --format=%%cI '%s'"
                                                      ;; appease the shell.
                                                      (s-replace "'" "'\\''" (f-dirname path))
-                                                     (s-replace "'" "'\\''" path))
-                                      )))
+                                                     (s-replace "'" "'\\''" path)))))
 
               (if (s-blank-p git-query-result)
                 nil (substring git-query-result 0 10))))
 
-          (history-link
-            (format "https://github.com/neeasade/neeasade.github.io/commits/source/%s/%s"
-              (if is-post "posts" "pages")
-              (f-filename path)
-              ))
-
-          (org-file-content
-            (-map
-              ;; call our custom hsep macro for delimiters
-              (fn (if (string= <> "-----") "{{{hsep}}}" <>))
-              (s-split "\n" (org-file-contents path))))
-
           (published-date
-            (when is-post
-              (let ((internal-pubdate (-first (fn (s-starts-with-p "#+pubdate:" <>)) org-file-content)))
+            (when (string= post-type "post")
+              (let ((internal-pubdate (ns/blog-get-prop "pubdate" org-file-content)))
                 (if internal-pubdate
                   (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
                   (substring (f-base path) 0 10)))))
 
           (post-title
-            (->> org-file-content
-              (-first (fn (s-starts-with-p "#+title:" <>)))
-              (s-replace "#+title: " "")))
+            ;; todo: consider untitled name/maybe filename
+            (or
+              (ns/blog-get-prop "title" org-file-content)
+              "untitled"
+              )
+            )
 
-          (post-subtitle
-            (->> org-file-content
-              (-first (fn (s-starts-with-p "#+title_extra:" <>)))
-              ((lambda (found)
-                 (when found
-                   (s-replace "#+title_extra: " "" found))))))
+          (post-subtitle (ns/blog-get-prop "title" org-file-content))
 
-          (post-org-content-lines
-            (-non-nil
-              `(,(format "#+SETUPFILE: %s" (ns/blog-path "site/assets/org/setup.org"))
-                 ,@(-map
-	                   (fn (let* ((file-path (ns/blog-path (format "site/assets/css/%s.css" <>)))
-		                             (include-path (format "/assets/css/%s.css" <>))
-		                             (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
-	                         (concat
-		                         (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
-		                         (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-	                   '("org" "colors" "notes" "new"))
+          (post-org-content
+            (ns/blog-mustache
+              (f-read (~ ".emacs.d/org/blog_template.org"))
+              (ht
+                ("csslinks"
+                  (s-join "\n"
+                    (-map
+	                    (fn (let* ((file-path (ns/blog-path (format "site/assets/css/%s.css" <>)))
+		                              (include-path (format "/assets/css/%s.css" <>))
+		                              (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
+	                          (concat
+		                          (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
+		                          (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
+	                    '("org" "colors" "notes" "new"))))
 
-                 ,(format "@@html:<h1 class=title><a href=\"%s\">%s</a> </h1>@@" "/index.html" post-title)
+                ("title" post-title)
 
-                 ,(when is-post
+                ("subtitle"
+                  ;; todo -- account for post-subtitle + edit date stuff case
+                  (if
+                    (or (string= post-type "post")
+                      (string= post-type "note"))
                     (ns/blog-make-nav-strip
+                      ;; todo -- do we want to include link here? or just note it,
+                      ;; and then have the user click at the bottom
                       (if (s-equals-p published-date last-edited)
                         (format "%s" published-date)
-                        (format
-                          "%s (edited [[%s][%s]])"
+                        (format "%s (edited [[%s][%s]])"
                           published-date
-                          history-link
-                          last-edited
-                          ))
+                          "https://placeholder.com"
+                          ;; history-link
+                          last-edited)))
+                    (or post-subtitle "")))
 
-                      ;; (format
-                      ;;   "%s (edited [[%s][%s]])"
-                      ;;   published-date
-                      ;;   history-link
-                      ;;   last-edited
-                      ;;   )
+                ("content" org-file-content)
+                ("page-markup-link" (concat
+                                      "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/"
+                                      (format "%ss/" post-type)
+                                      (f-filename path)))
 
-                      ;; (format "[[%s][%s]]" history-link last-edited)
-                      ))
+                ("page-history-link"
+                  (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
+                    post-type (f-filename path)))
+                ))
+            )
 
-                 ,@(when (not (s-blank-p post-subtitle))
-                     (list
-                       ;; "#+begin_center"
-                       post-subtitle
-                       ;; "#+end_center"
-                       ))
-
-                 "-----"
-                 ,@org-file-content
-                 "-----"
-
-                 ,(ns/blog-make-nav-strip
-                    "[[file:./index.html][Index]]"
-                    "[[https://neeasade.net][Root]]"
-                    (format "[[%s][Source]]"
-                      (concat
-                        "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/"
-                        (if is-post "posts/" "pages/")
-                        (f-filename path)))
-                    "[[https://notes.neeasade.net/sitemap.html][Sitemap]]"
-                    (when (not is-post) (format "[[%s][History]]" history-link))
-                    )
-                 "#+begin_center"
-                 "#+BEGIN_EXPORT html"
-                 "<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a>"
-                 "<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a>"
-                 "<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>"
-                 "#+END_EXPORT "
-                 "#+end_center")))
-
-
-          (post-is-draft
-            (-first (fn (s-contains-p "#+draft: t" <>)) post-org-content-lines))
           )
 
-    ;; idea: make this one big nested hash table instead of many little ones
+    (message "arst")
+
     (ht
       (:path path)
-      (:org-content (s-join "\n" post-org-content-lines))
-      (:is-draft post-is-draft)
+      (:org-content post-org-content)
+      (:is-draft (not (s-blank-p (ns/blog-get-prop "draft" post-org-content))))
       (:title post-title)
       (:publish-date published-date)
 
-      (:rss-title
-        (->> post-org-content-lines
-          (-first (fn (s-starts-with-p "#+rss_title:" <>)))
-          ((lambda (found)
-             (when found
-               (s-replace "#+rss_title: " "" found))))
-          ))
+      (:rss-title (ns/blog-get-prop "rss_title" post-org-content))
 
       (:html-dest (format "%s/%s.html"
                     (ns/blog-path "site")
                     ;; (f-base path)
-                    (->> (if is-post
+                    (->> (if
+                           ;; is-post
+                           (string= post-type "post")
+
                            (substring (f-base path) 11) ;; remove the date
                            (f-base path))
                       ;; this is crack code
@@ -224,7 +221,6 @@
                                     (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,"))))))
 
       (:edited-date last-edited)
-      (:history-link history-link)
       )))
 
 (defun! ns/blog-generate-from-metas (org-metas)
@@ -248,11 +244,12 @@
          )
 
     (-map
-      (lambda (post) (with-temp-buffer
-                       (ht-with-context post
-                         (message (format "BLOG: making %s " :path))
-                         (insert :org-content)
-                         (org-export-to-file 'html :html-dest))))
+      (lambda (post)
+        (with-temp-buffer
+          (ht-with-context post
+            (message (format "BLOG: making %s " :path))
+            (insert :org-content)
+            (org-export-to-file 'html :html-dest))))
       org-metas)))
 
 ;; idea: auto refresh on save or on change might be nice

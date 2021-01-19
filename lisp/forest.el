@@ -282,12 +282,6 @@
             (f-exists-p f)))
         (append recentf-list project-files open-buffers))))
 
-  ;; maybe consider also a jump-qutebrowser-history-candidates -- something like urls from the past month? idk
-  (defun ns/jump-qutebrowser-candidates ()
-    (s-split "\n"
-      (ns/shell-exec (format "grep -A 6 '    \\- active: true' %s | grep title | sed 's/.*title: //'"
-                       (~ ".local/share/qutebrowser/sessions/default.yml")))))
-
   (defun! ns/jump-file ()
     (ivy-read "file: "
       (ns/jump-file-candidates)

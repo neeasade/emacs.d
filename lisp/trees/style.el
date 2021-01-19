@@ -84,7 +84,7 @@
             (intern
               (ivy-read "Load custom theme: "
                 ;; (mapcar 'symbol-name (custom-available-themes))
-                '(tarp-mcfay tarp-marlowe tarp-struan)
+                '(tarp-mcfay tarp-struan)
                 :action 'identity)))))
     (mapcar 'disable-theme custom-enabled-themes)
     (load-theme theme t))

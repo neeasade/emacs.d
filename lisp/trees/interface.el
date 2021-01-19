@@ -178,8 +178,12 @@
   "wl" 'evil-window-right
   "wd" 'evil-window-delete
   "ww" 'other-window
-  "ws" 'split-window-horizontally
-  "wS" 'split-window-vertically
+  "ws" (fn! (split-window-horizontally)
+         (evil-window-right 1))
+  "wS" (fn!
+         (split-window-vertically)
+         (evil-window-down 1))
+
   "wf" 'ns/follow-mode
 
   "wm" 'delete-other-windows ;; window-max
