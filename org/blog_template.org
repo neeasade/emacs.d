@@ -6,11 +6,11 @@
 </div>
 #+end_export
 
-# #+BEGIN_EXPORT html
-# <div class="home-link">
-#     {{date}}
-# </div>
-# #+end_export
+#+BEGIN_EXPORT html
+<div class="date-link">
+    <a href="{{page-history-link}}">Last edit: {{last-edited}}</a>
+</div>
+#+end_export
 
 #+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -43,44 +43,21 @@
 {{csslinks}}
 
 @@html:<h1 class=title>{{title}}</h1>@@
-# * {{title}}
 {{subtitle}}
 
 -----
 
 {{content}}
 
-@@html:<div class="title flair"> <img src="https://notes.neeasade.net/assets/posts/ca_dump/mpv-shot0025.jpg" /> </div>@@
+{{flair}}
 
-# #+begin_center
-
-# #+end_center
-
-# regular page!
 #+BEGIN_EXPORT html
-<div class="footer-left">
-    <a href="/index.html">🍃🌳ＧＲＯＶＥ🍃🌳</a>
+<div class='footer-left'>
+    {{footer-left}}
 </div>
 #+end_export
 
-# index page!
-# #+BEGIN_EXPORT html
-# <div class="footer-left">
-#     <a href="https://neeasade.net">Splash</a>
-#     <a href="/sitemap.html">Sitemap</a>
-# </div>
-# #+end_export
-
-# todo: don't hotlink
-# #+begin_center
-# #+BEGIN_EXPORT html
-# <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a>
-# <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a>
-# <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>
-# #+END_EXPORT
-# #+end_center
-
-
+{{footer-center}}
 
 #+BEGIN_EXPORT html
 <div class="footer-right">

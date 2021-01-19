@@ -10,7 +10,7 @@
     (lambda (text key)
       (s-replace
         (format "{{%s}}" key)
-        (ht-get table key)
+        (or (ht-get table key) "")
         text))
     text (ht-keys table)))
 
@@ -162,38 +162,36 @@
 
                 ("title" post-title)
 
-                ("subtitle"
-                  ;; todo -- account for post-subtitle + edit date stuff case
-                  (if
-                    (or (string= post-type "post")
-                      (string= post-type "note"))
-                    (ns/blog-make-nav-strip
-                      ;; todo -- do we want to include link here? or just note it,
-                      ;; and then have the user click at the bottom
-                      (if (s-equals-p published-date last-edited)
-                        (format "%s" published-date)
-                        (format "%s (edited [[%s][%s]])"
-                          published-date
-                          "https://placeholder.com"
-                          ;; history-link
-                          last-edited)))
-                    (or post-subtitle "")))
-
+                ("last-edited" last-edited)
+                ("subtitle" post-subtitle)
                 ("content" org-file-content)
-                ("page-markup-link" (concat
-                                      "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/"
-                                      (format "%ss/" post-type)
-                                      (f-filename path)))
+                ("page-markup-link"
+                  (format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
+                    post-type (f-filename path)))
 
                 ("page-history-link"
                   (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
                     post-type (f-filename path)))
-                ))
-            )
 
-          )
+                ("footer-left"
+                  (if (s-starts-with-p "index" (f-filename path))
+                    "<a href='https://neeasade.net'>Splash</a><a href='/sitemap.html'>Sitemap</a>"
+                    "<div class='footer-left'><a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a></div>"))
 
-    (message "arst")
+                ("footer-center"
+                  (when (s-starts-with-p "index" (f-filename path))
+                    ;; todo: don't hotlink
+                    "#+begin_center
+#+BEGIN_EXPORT html
+<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a>
+<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a>
+<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>
+#+end_export
+#+end_center"))
+
+                ("flair"
+                  (when (string= post-type "post")
+                    "@@html:<div class='title flair'> <img src='https://notes.neeasade.net/assets/posts/ca_dump/mpv-shot0025.jpg' /> </div>@@"))))))
 
     (ht
       (:path path)
