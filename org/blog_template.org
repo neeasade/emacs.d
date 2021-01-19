@@ -1,0 +1,90 @@
+#+OPTIONS: html-style:nil
+
+#+BEGIN_EXPORT html
+<div class="home-link">
+    <a href="/index.html">🍃🌳ＧＲＯＶＥ🍃🌳</a>
+</div>
+#+end_export
+
+# #+BEGIN_EXPORT html
+# <div class="home-link">
+#     {{date}}
+# </div>
+# #+end_export
+
+#+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+# when local:
+# #+HTML_HEAD: <script src="./assets/js/linktext.js" defer></script>
+#+HTML_HEAD: <script src="/assets/js/linktext.js" defer></script>
+
+#+HTML_HEAD: <script data-goatcounter="https://neeasade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+#+HTML_HEAD: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
+
+# cf https://orgmode.org/manual/Macro-Replacement.html
+
+# link images from the post assets folder for the site:
+#+MACRO:  image [[file:./assets/posts/$1][file:./assets/posts/$1]]
+
+#+MACRO:  hsep (eval (ns/blog-make-hsep))
+#+MACRO:  detail (eval (ns/blog-make-detail $1 $2 $3 $4 $5 $6 $7 $8 $9))
+#+MACRO:  nav-strip (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
+#+MACRO: newline @@latex:\newline@@@@html:<br/>@@
+
+#+MACRO:  color (eval (ns/blog-make-color-preview $1 $2))
+#+MACRO:  colorblock (eval (ns/blog-make-color-block $1 $2 $3 $4 $5))
+
+# cf: https://emacs.stackexchange.com/questions/7792/can-i-make-links-in-org-mode-that-contain-brackets-or/7793#7793
+# Square Bracket Open [
+#+MACRO: BO @@latex:\char91@@@@html:&#91;@@
+# Square Bracket Close ]
+#+MACRO: BC @@latex:\char93@@@@html:&#93;@@
+
+{{csslinks}}
+
+@@html:<h1 class=title>{{title}}</h1>@@
+# * {{title}}
+{{subtitle}}
+
+-----
+
+{{content}}
+
+@@html:<div class="title flair"> <img src="https://notes.neeasade.net/assets/posts/ca_dump/mpv-shot0025.jpg" /> </div>@@
+
+# #+begin_center
+
+# #+end_center
+
+# regular page!
+#+BEGIN_EXPORT html
+<div class="footer-left">
+    <a href="/index.html">🍃🌳ＧＲＯＶＥ🍃🌳</a>
+</div>
+#+end_export
+
+# index page!
+# #+BEGIN_EXPORT html
+# <div class="footer-left">
+#     <a href="https://neeasade.net">Splash</a>
+#     <a href="/sitemap.html">Sitemap</a>
+# </div>
+# #+end_export
+
+# todo: don't hotlink
+# #+begin_center
+# #+BEGIN_EXPORT html
+# <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='https://webring.xxiivv.com/icon.black.svg'/></a>
+# <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='https://i.imgur.com/cttKKiq.png'/></a>
+# <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='https://resevoir.net/webring/icon.png' style='height:40px;width:40px;'></a>
+# #+END_EXPORT
+# #+end_center
+
+
+
+#+BEGIN_EXPORT html
+<div class="footer-right">
+    <a href="{{page-markup-link}}">Page Markup</a>
+    <a href="{{page-history-link}}">Page History</a>
+</div>
+#+end_export
