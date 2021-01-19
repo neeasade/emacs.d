@@ -1,15 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 (when (not (-contains-p features 'tarps))
-  (ns/use-package color-tools "neeasade/color-tools.el"
-    :config
-    (require 'ct "color-tools.el"))
-
-  (macroexpand-1
-    '(ns/use-package color-tools "neeasade/color-tools.el"
-       :config
-       (require 'ct "color-tools.el")
-       ))
-
+  (ns/use-package ct "neeasade/ct")
   (ns/use-package tarps "neeasade/tarps" :config (require 'tarps)))
 
 (defun ns/update-xrdb-font (font &optional toggle)
@@ -24,7 +15,7 @@
 (mapc (fn (when (find-font (font-spec :name <>))
             (ns/update-xrdb-font <>)))
   (list
-    (font-get (face-attribute 'default :font) :name)
+    (or (font-get (face-attribute 'default :font) :name) "")
     "Dejavu Sans Mono-14"
     "DejaVu Sans Mono-14"
     "Lucida Console-14"
@@ -36,7 +27,7 @@
 (mapc (fn (when (find-font (font-spec :name <>))
             (ns/update-xrdb-font <> t)))
   (list
-    (font-get (face-attribute 'default :font) :name)
+    (or (font-get (face-attribute 'default :font) :name) "")
     "Dejavu Sans-14"
     "DejaVu Sans-14"
     "Lucida Console-14"

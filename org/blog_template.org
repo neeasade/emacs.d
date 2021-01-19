@@ -1,14 +1,14 @@
 #+OPTIONS: html-style:nil
 
 #+BEGIN_EXPORT html
-<div class="home-link">
-    <a href="/index.html">🍃🌳ＧＲＯＶＥ🍃🌳</a>
+<div style="float: left">
+    {{up}}
 </div>
 #+end_export
 
 #+BEGIN_EXPORT html
-<div class="date-link">
-    <a href="{{page-history-link}}">Last edit: {{last-edited}}</a>
+<div style="float: right">
+    <a href="{{page-history-link}}">Last edit: <{{last-edited}}></a>
 </div>
 #+end_export
 
@@ -62,6 +62,5 @@
 #+BEGIN_EXPORT html
 <div class="footer-right">
     <a href="{{page-markup-link}}">Page Markup</a>
-    <a href="{{page-history-link}}">Page History</a>
 </div>
 #+end_export
