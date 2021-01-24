@@ -3,9 +3,23 @@
 ;; for fontifying src blocks
 (use-package htmlize)
 
-;; todo: check for conflicting html-destinations?
+;; set src font blocks to use the weak emphasis colorset from the tarp theme:
+;; (let ((theme-colors (append
+;;                       ;; here -- wrong emphasis --- would want to add or pass
+;;                       (tarp/map-to-base16 :weak)
+;;                       (ht-to-plist (ht-get tarp/theme* :weak)))))
+;;   (setq htmlize-face-overrides
+;;     (-mapcat
+;;       (lambda (definition)
+;;         (list
+;;           (car definition)
+;;           (base16-transform-spec
+;;             (cdr definition)
+;;             theme-colors)))
+;;       (tarp/theme-make-faces theme-colors))))
 
-(defun ns/blog-mustache (text table)
+(defun ns/mustache (text table)
+  "Basic mustache templating."
   (-reduce-from
     (lambda (text key)
       (s-replace
@@ -14,75 +28,19 @@
         text))
     text (ht-keys table)))
 
-;; later: set weak version of theme export
-;; (setq htmlize-face-overrides
-;;   nil
-;;   )
-
-;; (let ((theme-colors (append
-;;                       (tarp/map-to-base16 :weak)
-;;                       (ht-to-plist (ht-get tarp/theme* :weak)))))
-;;   (setq htmlize-face-overrides
-;;     (-mapcat
-;;       (lambda (definition)
-;;         (list
-;;           (car definition)
-;;           (cdr definition)))
-;;       (tarp/theme-make-faces
-;;         theme-colors
-;;         ))
-;;     ))
-
-
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
 
-(setq ns/blog-posts-dir (ns/blog-path "posts"))
-(setq ns/blog-pages-dir (ns/blog-path "pages"))
-(setq ns/blog-site-dir (ns/blog-path "site"))
-
-;; todo: make this jump by title, not file name
-(defun! ns/jump-to-blog-post ()
-  (ivy-read "post: "
-    (reverse
-      (f-entries (ns/blog-path "posts")
-        (fn (s-ends-with-p ".org" <>))))
-    :action 'find-file))
-
-(defun! ns/jump-to-blog-post-draft ()
-  (ivy-read "drafted post: "
-    (or
-      (let ((default-directory (ns/blog-path "posts")))
-        (->> (append
-               (->> "git ls-files -m" ns/shell-exec  (s-split "\n") reverse)
-               (->>  "grep -r '#+draft' . | sed -E 's/:#\\+draft.*//'"ns/shell-exec  (s-split "\n")))
-          (-filter (fn (not (s-blank-p <>))))
-          (-map (fn (format "%s/%s" (ns/blog-path "posts") <>)))
-          (-map (fn (s-replace "/./" "/" <>)))
-          (-uniq)))
-      ;; if there are no drafts, fall over to all posts:
-      (reverse
-        (f-entries (ns/blog-path "posts")
-          (fn (s-ends-with-p ".org" <>)))))
-    :action 'find-file))
-
 (ns/bind-soft
-  "nq" 'ns/jump-to-blog-post
-  ;; "nq" 'ns/jump-to-blog-post-draft
-  )
-
-(defun ns/blog-make-hsep ()
-  (format "\n#+begin_center\n%s\n#+end_center\n"
-    (let* (
-            (options "🍇🍉🍓🍅🍄🍈🍍")
-            (options "🍂🌿🌱🍁🍀")
-            (index (random (length options)))
-            (char (substring options index (+ index 1))))
-      (format "%s %s %s" char char char)
-      )))
+  ;; todo: jump by site title
+  "nq" (fn!
+         (ivy-read "post: "
+           (reverse
+             (f-entries (ns/blog-path "posts")
+               (fn (s-ends-with-p ".org" <>))))
+           :action 'find-file)))
 
 (defun ns/blog-file-to-meta (path)
-
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
       (list "\n#+BEGIN_CENTER\n"
@@ -102,7 +60,6 @@
           (org-file-content (s-replace-regexp "^-----$" "{{{hsep}}}" (f-read path)))
 
           (post-type
-            ;; XXXXX -- no content here for type
             (or (ns/blog-get-prop "post_type" org-file-content)
               ;; this could maybe just be changed to the parent folder name
               (if (-contains-p
@@ -139,10 +96,11 @@
           (post-subtitle (ns/blog-get-prop "title_extra" org-file-content))
 
           (post-org-content
-            (ns/blog-mustache
+            (ns/mustache
               (f-read (~ ".emacs.d/org/blog_template.org"))
               (ht
                 ("csslinks"
+                  ;; cache invalidation
                   (s-join "\n"
                     (-map
 	                    (fn (let* ((file-path (ns/blog-path (format "site/assets/css/%s.css" <>)))
@@ -158,9 +116,7 @@
                 ("up"
                   (if (s-starts-with-p "index" (f-filename path))
                     "<a href='https://neeasade.net'>Up: Splash</a>"
-                    "<a href='/index.html'>Up: ＧＲＯＶＥ</a>"
-                    )
-                  )
+                    "<a href='/index.html'>Up: ＧＲＯＶＥ</a>"))
 
                 ("last-edited" last-edited)
                 ("subtitle" post-subtitle)
@@ -176,11 +132,10 @@
                 ("footer-left"
                   (if (s-starts-with-p "index" (f-filename path))
                     "<a href='/sitemap.html'>Sitemap</a>"
-                    "<div class='footer-left'><a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a></div>"))
+                    "<a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a>"))
 
                 ("footer-center"
                   (when (s-starts-with-p "index" (f-filename path))
-                    ;; todo: don't hotlink
                     "#+BEGIN_EXPORT html
 <div class=footer-center>
 <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
@@ -191,7 +146,8 @@
 "))
 
                 ("flair"
-                  (when (string= post-type "post")
+                  (when (or (string= post-type "post")
+                          (string= post-type "note"))
                     "@@html:<div class='title flair'><img class='flair-border' src='./assets/img/backgrounds/bark.jpg' /> </div>@@"))))))
 
     (ht
@@ -205,15 +161,13 @@
 
       (:html-dest (format "%s/%s.html"
                     (ns/blog-path "site")
-                    ;; (f-base path)
-                    (->> (if
-                           ;; is-post
-                           (string= post-type "post")
 
-                           (substring (f-base path) 11) ;; remove the date
-                           (f-base path))
-                      ;; this is crack code
-                      ;; build a bunch of removers, compose them, apply to path
+                    (->>
+                      (f-base path)
+                      (s-replace-regexp
+                        (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
+
+                      ;; remove forbidden characters from url
                       (funcall
                         (apply '-compose
                           (mapcar (lambda (char)
@@ -222,8 +176,7 @@
       (:edited-date last-edited)
       )))
 
-(defun! ns/blog-generate-from-metas (org-metas)
-  ;; publish with our org html export settings
+(defun! ns/blog-publish-meta (org-meta)
   (let ((default-directory (ns/blog-path "site"))
          (org-export-with-toc nil)
          (org-export-with-section-numbers t)
@@ -231,7 +184,8 @@
          (org-export-with-date nil)
          (org-html-html5-fancy t)
          (org-export-with-title nil)
-
+         (org-export-with-smart-quotes t)
+         (org-html-doctype "html5")
 
          ;; affects timestamp export format
          ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
@@ -239,17 +193,13 @@
          (org-display-custom-times t)
 
          ;; don't ask about generation when exporting
-         (org-confirm-babel-evaluate (fn nil))
-         )
+         (org-confirm-babel-evaluate (fn nil)))
 
-    (-map
-      (lambda (post)
-        (with-temp-buffer
-          (ht-with-context post
-            (message (format "BLOG: making %s " :path))
-            (insert :org-content)
-            (org-export-to-file 'html :html-dest))))
-      org-metas)))
+    (with-temp-buffer
+      (ht-with-context org-meta
+        (message (format "BLOG: making %s " :path))
+        (insert :org-content)
+        (org-export-to-file 'html :html-dest)))))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
@@ -257,7 +207,7 @@
   (let* ((file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta))
           (post-html-file (ht-get file-meta :html-dest)))
 
-    (ns/blog-generate-from-metas (list file-meta))
+    (ns/blog-publish-meta file-meta)
 
     (message post-html-file)
     (if (string= (concat "file://" post-html-file) (ns/shell-exec "qb_active_url"))
@@ -266,21 +216,27 @@
 
 (defun! ns/blog-generate ()
   ;; cleanup
-  (mapcar 'f-delete
-    (f-entries ns/blog-site-dir
-      (fn (s-ends-with-p ".html" <>))))
+  ;; (mapcar 'f-delete
+  ;;   (f-entries ns/blog-site-dir
+  ;;     (fn (s-ends-with-p ".html" <>))))
+  (defun ns/blog-get-org (path)
+    "get org files in PATH relative to blog repo"
+    (f-entries (ns/blog-path path) (fn (s-ends-with-p ".org" <>)))
+    )
 
   ;; need to define these here for index listings and rss:
   (setq
-    org-post-metas (-map 'ns/blog-file-to-meta (f-entries ns/blog-posts-dir (fn (s-ends-with-p ".org" <>))))
-    org-page-metas (-map 'ns/blog-file-to-meta (f-entries ns/blog-pages-dir (fn (s-ends-with-p ".org" <>)))))
+    org-post-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "posts"))
+    org-page-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "pages"))
+    org-note-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "notes"))
+    )
 
   (let* (
           ;; don't ask about generation when exporting
           (org-confirm-babel-evaluate (fn nil)))
 
     (message "BLOG: making pages!")
-    (ns/blog-generate-from-metas (append org-post-metas org-page-metas))
+    (-map 'ns/blog-publish-meta (append org-post-metas org-page-metas org-note-metas))
 
     (message "BLOG: making site rss!")
     (require 'ox-rss)
@@ -315,6 +271,7 @@
           (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
           id)))))
 
+;; todo: this should be an inline thing -- append anchor links
 (defun! ns/blog-enhance-headings ()
   "make headings links to themselves -- uses om.el to do so"
   (org-map-entries
@@ -347,28 +304,32 @@
 (defun! ns/blog-new-post ()
   (let* ((title (read-from-minibuffer "new blog post title: "))
           (date (ns/shell-exec "date +%Y-%m-%d"))
-          (file (format (~ "git/neeasade.github.io/posts/%s-%s.org") date
+          (file (format (~ "git/neeasade.github.io/posts/%s.org")
                   (s-replace " " "-" title))))
     (find-file file)
     (insert (format "#+title: %s\n" title))
     (insert (format "#+pubdate: <%s>\n" date))
+    (insert "#+post_type: post\n")
     (insert "#+draft: t\n\n")))
+
+;;;
+;;; here down are content helpers -- many of these have correlating macros in the template
+;;;
 
 (defun ns/blog-make-color-preview (color &optional text)
   ;; assumes a dark FG and light BG
-  ;; (message (format "arst %s %s" color text))
-  ;; (message (format "arst %s" (stringp text)))
   (format
     "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
+    color
     (tarp/get (if (ct-is-light-p color) :foreground :background))
     (if (ct-is-light-p color) (tarp/get :foreground) color)
+    ;; (tarp/get :background :strong)
     (if (not (s-equals? "" (or text "")))
       text color)))
 
-
-;; # #+MACRO:  detail @@html: <div class="detail"> $1 </div> @@
 (defun ns/blog-make-detail (&rest parts)
-  (format "@@html: <div class=\"detail\"> %s </div> @@"
+  ;; this is done so I don't have to escape commas in details
+  (format "@@html:<detail>%s</detail>@@"
     (s-join ","
       (-filter (fn (not (string-empty-p <>)))
         parts))))
@@ -376,7 +337,6 @@
 (defun ns/blog-make-color-block (width color &optional text foreground class)
   ;; assumes a dark FG and light BG
   (format
-    ;; "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
     "@@html:<div class=\"%s\" style=\"background: %s;color: %s; width: %s%%;\">%s</div>@@"
     (or class "colorblock colorcenter")
     color
@@ -402,7 +362,13 @@
                        (ct-shorten c))) colors)
              (or labels (-map (lambda (_) "") (range (length colors))))))
 
-       "@@html: </div> @@"
+       "@@html: </div>@@"
        )))
 
-;; (ns/blog-make-color-preview #cccccc")
+(defun ns/blog-make-hsep ()
+  (format "\n#+begin_center\n%s\n#+end_center\n"
+    (let* ((options "🍇🍉🍓🍅🍄🍈🍍")
+            (options "🍂🌿🌱🍁🍀")
+            (index (random (length options)))
+            (char (substring options index (+ index 1))))
+      (format "%s %s %s" char char char))))

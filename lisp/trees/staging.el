@@ -28,8 +28,6 @@
 (defun ns/text-to-widechar (beg end) (interactive "r")
   (translate-region beg end ns/widechar-table))
 
-;; todo: idea: turn all the above into circe commands
-;; also: add a clap👏text function (lol)
 
 (defun ns/make-urlnote-funcs ()
   (defun ns/urlnote-get-point (url)
@@ -373,9 +371,26 @@
 (defun ns/export-scheduled-org-headings ()
   (ns/with-notes
     (->> (org-ml-get-subtrees)
-	  (org-ml-match '(:any * (:pred ns/org-scheduled-future)))
+      (org-ml-match '(:any * (:pred ns/org-scheduled-future)))
       (-map 'org-ml-to-string)
       (s-join "\n"))))
+
+(defun ns/org-blog-note (heading)
+  (org-ml-headline-has-tag "share" heading))
+
+(defun ns/export-blog-note-targets ()
+  (ns/with-notes
+    (->> (org-ml-get-subtrees)
+	    (org-ml-match '(:any * (:pred ns/org-blog-note)))
+      (-map (lambda (node)
+              (let ((difference (- 1 (org-ml-get-property :level node))))
+                (->>
+                  node
+                  (org-ml-map-children* (--map (org-ml-shift-property :level difference it) it))
+                  (org-ml-set-property :level 1))))))
+    ))
+
+(ns/export-blog-note-targets)
 
 (defun ns/org-clock-sum-week ()
   ;; get time clocked under an item and it's children for this week
