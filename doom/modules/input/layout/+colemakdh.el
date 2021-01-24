@@ -29,28 +29,29 @@
   ;; (map! "C-é" 'evil-window-map)
   (map!
     :leader
-    :desc "Window" "é" 'evil-window-map
-    (:when (featurep! :ui popup)
-      :desc "Toggle last popup"     "#"    #'+popup/toggle)
-    (:when (featurep! :ui workspaces)
-      :desc "Switch buffer"           "«" #'switch-to-buffer)
-    :desc "Switch to last buffer" "$"    #'evil-switch-to-windows-last-buffer
-    (:when (featurep! :ui workspaces)
-      (:prefix-map ("TAB" . "workspace")
-        :desc "Switch to last workspace"  "$"   #'+workspace/other
-        :desc "Next workspace"            ")"   #'+workspace/switch-right
-        :desc "Previous workspace"        "("   #'+workspace/switch-left))
-    (:prefix-map ("b" . "buffer")
-      :desc "Previous buffer"             "("   #'previous-buffer
-      :desc "Next buffer"                 ")"   #'next-buffer)
-    (:prefix-map ("c" . "code")
-      :desc "Jump to documentation"                 "S"   #'+lookup/documentation)
-    (:prefix-map ("g" . "git")
-      (:when (featurep! :ui vc-gutter)
-        :desc "Jump to next hunk"         ")"   #'git-gutter:next-hunk
-        :desc "Jump to previous hunk"     "("   #'git-gutter:previous-hunk))
-    (:prefix-map ("p" . "project")
-      :desc "Browse other project"         "»" #'doom/browse-in-other-project)))
+    ;; :desc "Window" "é" 'evil-window-map
+    ;; (:when (featurep! :ui popup)
+    ;;   :desc "Toggle last popup"     "#"    #'+popup/toggle)
+    ;; (:when (featurep! :ui workspaces)
+    ;;   :desc "Switch buffer"           "«" #'switch-to-buffer)
+    ;; :desc "Switch to last buffer" "$"    #'evil-switch-to-windows-last-buffer
+    ;; (:when (featurep! :ui workspaces)
+    ;;   (:prefix-map ("TAB" . "workspace")
+    ;;     :desc "Switch to last workspace"  "$"   #'+workspace/other
+    ;;     :desc "Next workspace"            ")"   #'+workspace/switch-right
+    ;;     :desc "Previous workspace"        "("   #'+workspace/switch-left))
+    ;; (:prefix-map ("b" . "buffer")
+    ;;   :desc "Previous buffer"             "("   #'previous-buffer
+    ;;   :desc "Next buffer"                 ")"   #'next-buffer)
+    ;; (:prefix-map ("c" . "code")
+    ;;   :desc "Jump to documentation"                 "S"   #'+lookup/documentation)
+    ;; (:prefix-map ("g" . "git")
+    ;;   (:when (featurep! :ui vc-gutter)
+    ;;     :desc "Jump to next hunk"         ")"   #'git-gutter:next-hunk
+    ;;     :desc "Jump to previous hunk"     "("   #'git-gutter:previous-hunk))
+    ;; (:prefix-map ("p" . "project")
+    ;;   :desc "Browse other project"         "»" #'doom/browse-in-other-project)
+    ))
 
 (when (featurep! :editor evil)
   (add-transient-hook! 'doom-init-modules-hook
@@ -69,18 +70,21 @@
     (doom-bepo-rotate-bare-keymap '(evil-window-map) doom-bepo-cr-rotation-style)
     (doom-bepo-rotate-evil-keymap doom-bepo-cr-rotation-style)
 
-    (map! :i "C-t" #'+default-newline
-      (:when (featurep! :editor multiple-cursors)
-        :prefix "gz"
-        :nv "t" #'evil-mc-make-cursor-move-next-line
-        :nv "s" #'evil-mc-make-cursor-move-prev-line
-        ;; the old toggle mapping (t) is made available both on "T" for mnemonics and
-        ;; "j" as a "classic" rotation
-        :nv "T" #'+multiple-cursors/evil-mc-toggle-cursors
-        :nv "j" #'+multiple-cursors/evil-mc-toggle-cursors)
-      (:when (featurep! :ui popup)
-        :n "C-$"   #'+popup/toggle
-        :n "C-#"   #'+popup/raise))
+    ;; (map! :i "C-t" #'+default-newline
+    ;;   (:when (featurep! :editor multiple-cursors)
+    ;;     :prefix "gz"
+    ;;     :nv "t" #'evil-mc-make-cursor-move-next-line
+    ;;     :nv "s" #'evil-mc-make-cursor-move-prev-line
+    ;;     ;; the old toggle mapping (t) is made available both on "T" for mnemonics and
+    ;;     ;; "j" as a "classic" rotation
+    ;;     :nv "T" #'+multiple-cursors/evil-mc-toggle-cursors
+    ;;     :nv "j" #'+multiple-cursors/evil-mc-toggle-cursors)
+
+    ;;   ;; (:when (featurep! :ui popup)
+    ;;   ;;   :n "C-$"   #'+popup/toggle
+    ;;   ;;   :n "C-#"   #'+popup/raise)
+    ;;   )
+
     (after! treemacs
       (doom-bepo-rotate-ts-bare-keymap '(evil-treemacs-state-map)))
     (after! (:or helm ivy)
