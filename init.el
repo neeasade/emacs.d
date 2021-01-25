@@ -145,7 +145,7 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      (ns/load-theme 'tarp-struan)))
+      (ns/load-theme 'tarp-mcfay)))
 
   (add-hook 'emacs-startup-hook 'ns/initial-startup-hook))
 

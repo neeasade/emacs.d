@@ -3,20 +3,21 @@
 ;; for fontifying src blocks
 (use-package htmlize)
 
-;; set src font blocks to use the weak emphasis colorset from the tarp theme:
-;; (let ((theme-colors (append
-;;                       ;; here -- wrong emphasis --- would want to add or pass
-;;                       (tarp/map-to-base16 :weak)
-;;                       (ht-to-plist (ht-get tarp/theme* :weak)))))
-;;   (setq htmlize-face-overrides
-;;     (-mapcat
-;;       (lambda (definition)
-;;         (list
-;;           (car definition)
-;;           (base16-transform-spec
-;;             (cdr definition)
-;;             theme-colors)))
-;;       (tarp/theme-make-faces theme-colors))))
+(defun ns/blog-set-htmlize-colors ()
+  ;; depends on tarp theme being available
+  (let ((theme-colors (append
+                        ;; here -- wrong emphasis --- would want to add or pass
+                        (tarp/map-to-base16 :weak)
+                        (ht-to-plist (ht-get tarp/theme* :weak)))))
+    (setq htmlize-face-overrides
+      (-mapcat
+        (lambda (definition)
+          (list
+            (car definition)
+            (base16-transform-spec
+              (cdr definition)
+              theme-colors)))
+        (tarp/theme-make-faces theme-colors)))))
 
 (defun ns/mustache (text table)
   "Basic mustache templating."
@@ -329,7 +330,7 @@
 
 (defun ns/blog-make-detail (&rest parts)
   ;; this is done so I don't have to escape commas in details
-  (format "@@html:<detail>%s</detail>@@"
+  (format "@@html:<detail>@@%s@@html:</detail>@@"
     (s-join ","
       (-filter (fn (not (string-empty-p <>)))
         parts))))

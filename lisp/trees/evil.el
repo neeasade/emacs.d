@@ -236,8 +236,13 @@
   ;; (add-hook 'better-jumper-post-jump-hook 'recenter)
   )
 
-(use-package undo-tree
-  :config
-  (require 'undo-tree)
-  (global-undo-tree-mode)
-  (evil-set-undo-system 'undo-tree))
+;; (use-package undo-tree
+;;   :config
+;;   (require 'undo-tree)
+;;   (global-undo-tree-mode)
+;;   (evil-set-undo-system 'undo-tree))
+
+;; undo-tree seems to have a weird garbage collection thing going on
+;; freezes emacs
+(use-package undo-fu)
+(evil-set-undo-system 'undo-fu)

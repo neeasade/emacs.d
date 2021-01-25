@@ -1,6 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 (when (not (-contains-p features 'tarps))
-  (ns/use-package ct "neeasade/ct")
+  (ns/use-package ct "neeasade/ct.el")
   (ns/use-package tarps "neeasade/tarps" :config (require 'tarps)))
 
 (defun ns/update-xrdb-font (font &optional toggle)
@@ -16,24 +16,24 @@
             (ns/update-xrdb-font <>)))
   (list
     (or (font-get (face-attribute 'default :font) :name) "")
+    "Menlo-14"
     "Dejavu Sans Mono-14"
     "DejaVu Sans Mono-14"
     "Lucida Console-14"
     "Noto Sans Mono-14"
     "Source Code Pro-14"
-    "Go Mono-14"
-    "Menlo-14"))
+    "Go Mono-14"))
 
 (mapc (fn (when (find-font (font-spec :name <>))
             (ns/update-xrdb-font <> t)))
   (list
     (or (font-get (face-attribute 'default :font) :name) "")
+    "Menlo-14"
     "Dejavu Sans-14"
     "DejaVu Sans-14"
     "Lucida Console-14"
     "Noto Serif-14"
-    "Charter-14"
-    "Menlo-14"))
+    "Charter-14"))
 
 ;; frames:
 (ns/frame-set-parameter 'internal-border-width (if ns/enable-home-p 0 6))
@@ -87,4 +87,7 @@
 
   (when (fboundp 'ns/style-circe) (ns/style-circe))
   (when (fboundp 'ns/style-org) (ns/style-org))
-  (ns/doomline))
+  (ns/doomline)
+
+  (when (fboundp 'ns/blog-set-htmlize-colors) (ns/blog-set-htmlize-colors))
+  )
