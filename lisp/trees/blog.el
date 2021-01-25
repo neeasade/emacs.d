@@ -199,7 +199,9 @@
     (with-temp-buffer
       (ht-with-context org-meta
         (message (format "BLOG: making %s " :path))
+        (org-mode)
         (insert :org-content)
+        (ns/blog-enhance-headings)
         (org-export-to-file 'html :html-dest)))))
 
 ;; idea: auto refresh on save or on change might be nice
@@ -253,54 +255,47 @@
   t
   )
 
-;; cf https://writequit.org/articles/emacs-org-mode-generate-ids.html#the-problem
-;; enhancing this to also turn the header into an anchor link
-(defun! eos/org-custom-id-get (&optional pom create prefix)
-  "Get the CUSTOM_ID property of the entry at point-or-marker POM.
-   If POM is nil, refer to the entry at point. If the entry does
-   not have an CUSTOM_ID, the function returns nil. However, when
-   CREATE is non nil, create a CUSTOM_ID if none is present
-   already. PREFIX will be passed through to `org-id-new'. In any
-   case, the CUSTOM_ID of the entry is returned."
-  (org-with-point-at pom
-    (let ((id (org-entry-get nil "CUSTOM_ID")))
-      (cond
-        ((and id (stringp id) (string-match "\\S-" id)) id)
-        (create
-          (setq id (s-replace ":" "-" (org-id-new (concat prefix "h"))))
-          (org-entry-put pom "CUSTOM_ID" id)
-          (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
-          id)))))
-
 ;; todo: this should be an inline thing -- append anchor links
 (defun! ns/blog-enhance-headings ()
   "make headings links to themselves -- uses om.el to do so"
   (org-map-entries
     (lambda ()
-      ;; ensure the headlines have some custom_id
-      (eos/org-custom-id-get (point) 'create)
-
-      ;; make the heading a link to itself if it's not already a link
+      ;; give a textual id if one doesn't exist
       (org-ml-update-headline-at (point)
-        (lambda (old-heading)
-          (org-ml-set-property :title
-            ;; get the old heading title text
-            (->> (-> old-heading org-ml-headline-get-path last car)
-              ;; make it a link if it's not already one
-              ((lambda (old-heading-plain)
-                 (if (s-contains-p "[[" old-heading-plain)
-                   old-heading-plain
-                   (format "[[#%s][%s]]"
-                     ;; first need to get id
-                     (org-entry-get (point) "CUSTOM_ID")
-                     ;; (om-get-property :custom-id old-heading)
-                     ;; id
-                     old-heading-plain
-                     ))))
-              ;; (it expects a listed title)
-              (list))
-            old-heading
-            ))))))
+        (lambda (headline)
+          (let* ((heading-text (-> headline org-ml-headline-get-path last car))
+                  (id
+                    ;; todo: use org-ml-headline-get-node-properties
+                    ;; and check contains -- couldn't get that to work though
+                    ;; <2021-01-25 Mon 09:18>
+                    (catch 'error
+                      (condition-case err
+                        (org-ml-headline-get-node-property "CUSTOM_ID" headline)
+                        (error nil))))
+                  (id (if id id (s-replace " " "-" heading-text)))
+                  )
+
+            (->> headline
+              (org-ml-headline-set-node-property "CUSTOM_ID" id)
+              (org-ml-set-property
+                :title
+                (->> heading-text
+                  ;; remove old headling anchor style:
+                  ((lambda (s)
+                     (-if-let (m (s-match
+                                   (pcre-to-elisp/cached "\\[\\[#.*\\]\\[(.*)\\]\\]")
+                                   s))
+                       (second m)
+                       s)))
+                  ;; add anchor at the end:
+                  ((lambda (s)
+                     (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@" s
+                       (format
+                         "[[#%s][%s]]"
+                         id
+                         "⚓"
+                         ))))
+                  (list))))))))))
 
 (defun! ns/blog-new-post ()
   (let* ((title (read-from-minibuffer "new blog post title: "))
