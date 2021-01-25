@@ -255,7 +255,6 @@
   t
   )
 
-;; todo: this should be an inline thing -- append anchor links
 (defun! ns/blog-enhance-headings ()
   "make headings links to themselves -- uses om.el to do so"
   (org-map-entries
@@ -290,11 +289,7 @@
                   ;; add anchor at the end:
                   ((lambda (s)
                      (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@" s
-                       (format
-                         "[[#%s][%s]]"
-                         id
-                         "⚓"
-                         ))))
+                       (format "[[#%s][%s]]" id "⚓"))))
                   (list))))))))))
 
 (defun! ns/blog-new-post ()
