@@ -54,7 +54,8 @@
       (s-match it text)
       (first it)
       (s-replace (format "#+%s:" propname) "" it)
-      (s-trim it)))
+      (s-trim it)
+      (if (s-blank-p it) nil it)))
 
   (message (format "BLOG: generating meta for %s" path))
   (let* (
@@ -87,12 +88,9 @@
                   (substring (f-base path) 0 10)))))
 
           (post-title
-            ;; todo: consider untitled name/maybe filename
-            (or
-              (ns/blog-get-prop "title" org-file-content)
+            (or (ns/blog-get-prop "title" org-file-content)
               "untitled"
-              )
-            )
+              ))
 
           (post-subtitle (ns/blog-get-prop "title_extra" org-file-content))
 
@@ -115,9 +113,12 @@
                 ("title" post-title)
 
                 ("up"
-                  (if (s-starts-with-p "index" (f-filename path))
-                    "<a href='https://neeasade.net'>Up: Splash</a>"
-                    "<a href='/index.html'>Up: ＧＲＯＶＥ</a>"))
+                  (cond
+                    ((and (string= post-type "page")
+                       (not (string= (f-base path) "sitemap")))
+                      "<a href='/sitemap.html'>Up: Sitemap</a>")
+                    ((s-starts-with-p "index" (f-filename path)) "<a href='https://neeasade.net'>Up: Splash</a>")
+                    (t "<a href='/index.html'>Up: ＧＲＯＶＥ</a>")))
 
                 ("last-edited" last-edited)
                 ("subtitle" post-subtitle)
@@ -156,6 +157,7 @@
       (:org-content post-org-content)
       (:is-draft (not (s-blank-p (ns/blog-get-prop "draft" post-org-content))))
       (:title post-title)
+      (:type post-type)
       (:publish-date published-date)
 
       (:rss-title (ns/blog-get-prop "rss_title" post-org-content))
@@ -217,15 +219,15 @@
       (ns/shell-exec "qb_command :reload")
       (browse-url post-html-file))))
 
+(defun ns/blog-get-org (path)
+  "get org files in PATH relative to blog repo"
+  (f-entries (ns/blog-path path) (fn (s-ends-with-p ".org" <>))))
+
 (defun! ns/blog-generate ()
   ;; cleanup
   ;; (mapcar 'f-delete
   ;;   (f-entries ns/blog-site-dir
   ;;     (fn (s-ends-with-p ".html" <>))))
-  (defun ns/blog-get-org (path)
-    "get org files in PATH relative to blog repo"
-    (f-entries (ns/blog-path path) (fn (s-ends-with-p ".org" <>)))
-    )
 
   ;; need to define these here for index listings and rss:
   (setq
@@ -271,8 +273,11 @@
                       (condition-case err
                         (org-ml-headline-get-node-property "CUSTOM_ID" headline)
                         (error nil))))
-                  (id (if id id (s-replace " " "-" heading-text)))
-                  )
+                  (id (if id id
+                        (->> heading-text
+                          (s-replace " " "-")
+                          (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
+                          (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
 
             (->> headline
               (org-ml-headline-set-node-property "CUSTOM_ID" id)
@@ -282,7 +287,7 @@
                   ;; remove old headling anchor style:
                   ((lambda (s)
                      (-if-let (m (s-match
-                                   (pcre-to-elisp/cached "\\[\\[#.*\\]\\[(.*)\\]\\]")
+                                   (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
                                    s))
                        (second m)
                        s)))
@@ -294,14 +299,21 @@
 
 (defun! ns/blog-new-post ()
   (let* ((title (read-from-minibuffer "new blog post title: "))
-          (date (ns/shell-exec "date +%Y-%m-%d"))
           (file (format (~ "git/neeasade.github.io/posts/%s.org")
                   (s-replace " " "-" title))))
     (find-file file)
-    (insert (format "#+title: %s\n" title))
-    (insert (format "#+pubdate: <%s>\n" date))
-    (insert "#+post_type: post\n")
-    (insert "#+draft: t\n\n")))
+    (insert
+      (format "
+#+title: %s
+#+title_extra:
+#+post_type: post
+#+filetags:
+#+rss_title:
+#+draft: t
+#+pubdate: %s
+ "
+        title
+        (ns/shell-exec "date '+<%Y-%m-%d>'")))))
 
 ;;;
 ;;; here down are content helpers -- many of these have correlating macros in the template
