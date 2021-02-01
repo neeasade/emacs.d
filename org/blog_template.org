@@ -4,22 +4,25 @@
 <div style="float: left">
     {{up}}
 </div>
-#+end_export
 
-#+BEGIN_EXPORT html
 <div style="float: right">
     <a href="{{page-history-link}}">Last edit: <{{last-edited}}></a>
 </div>
 #+end_export
 
-#+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#+html_head: <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-# when local:
-# #+HTML_HEAD: <script src="./assets/js/linktext.js" defer></script>
-#+HTML_HEAD: <script src="/assets/js/linktext.js" defer></script>
+#+html_head: <meta property="og:title" content="{{title}}">
+#+html_head: <meta property="og:description" content="{{og-description}}">
+#+html_head: <meta property="description" content="{{og-description}}">
+#+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/leaves.jpg">
+#+html_head: <meta property="og:url" content="{{html-dest}}">
+#+html_head: <meta name="twitter:card" content="summary_large_image">
 
-#+HTML_HEAD: <script data-goatcounter="https://neeasade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-#+HTML_HEAD: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
+#+html_head: <script src="/assets/js/linktext.js" defer></script>
+
+#+html_head: <script data-goatcounter="https://neeasade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+#+html_head: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
 
 # cf https://orgmode.org/manual/Macro-Replacement.html
 

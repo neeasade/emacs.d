@@ -4,7 +4,6 @@
 (use-package htmlize)
 
 (defun ns/blog-set-htmlize-colors ()
-  ;; depends on tarp theme being available
   (let ((theme-colors (append
                         ;; here -- wrong emphasis --- would want to add or pass
                         (tarp/map-to-base16 :weak)
@@ -49,6 +48,7 @@
         "\n#+END_CENTER\n")))
 
   (defun ns/blog-get-prop (propname text)
+    "Get an org property out of text"
     (-some--> (format "#\\+%s:.*$" propname)
       (pcre-to-elisp it)
       (s-match it text)
@@ -59,7 +59,11 @@
 
   (message (format "BLOG: generating meta for %s" path))
   (let* (
-          (org-file-content (s-replace-regexp "^-----$" "{{{hsep}}}" (f-read path)))
+          (org-file-content
+            (->> path
+              f-read
+              (s-replace-regexp "^-----$" "{{{hsep}}}")
+              (ns/blog-make-anchors)))
 
           (post-type
             (or (ns/blog-get-prop "post_type" org-file-content)
@@ -87,12 +91,23 @@
                   (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
                   (substring (f-base path) 0 10)))))
 
-          (post-title
-            (or (ns/blog-get-prop "title" org-file-content)
-              "untitled"
-              ))
-
+          (post-title (or (ns/blog-get-prop "title" org-file-content) "untitled"))
           (post-subtitle (ns/blog-get-prop "title_extra" org-file-content))
+
+          (html-dest
+            (format "%s/%s.html"
+              (ns/blog-path "site")
+
+              (->>
+                (f-base path)
+                (s-replace-regexp
+                  (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
+
+                ;; remove forbidden characters from url
+                (funcall
+                  (apply '-compose
+                    (mapcar (lambda (char)
+                              (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))))
 
           (post-org-content
             (ns/mustache
@@ -114,14 +129,22 @@
 
                 ("up"
                   (cond
-                    ((and (string= post-type "page")
+                    ((s-starts-with-p "index" (f-filename path)) "<a href='https://neeasade.net'>Up: Splash</a>")
+                    ((and
+                       (string= post-type "page")
                        (not (string= (f-base path) "sitemap")))
                       "<a href='/sitemap.html'>Up: Sitemap</a>")
-                    ((s-starts-with-p "index" (f-filename path)) "<a href='https://neeasade.net'>Up: Splash</a>")
                     (t "<a href='/index.html'>Up: ＧＲＯＶＥ</a>")))
 
                 ("last-edited" last-edited)
                 ("subtitle" post-subtitle)
+
+                ;; remove a common macro for og:description:
+                ("og-description"
+                  (->> (or post-subtitle "")
+                    (s-replace "{{{center(" "")
+                    (s-replace ")}}}" "")))
+
                 ("content" org-file-content)
                 ("page-markup-link"
                   (format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
@@ -135,6 +158,8 @@
                   (if (s-starts-with-p "index" (f-filename path))
                     "<a href='/sitemap.html'>Sitemap</a>"
                     "<a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a>"))
+
+                ("html-dest" html-dest)
 
                 ("footer-center"
                   (when (s-starts-with-p "index" (f-filename path))
@@ -162,19 +187,7 @@
 
       (:rss-title (ns/blog-get-prop "rss_title" post-org-content))
 
-      (:html-dest (format "%s/%s.html"
-                    (ns/blog-path "site")
-
-                    (->>
-                      (f-base path)
-                      (s-replace-regexp
-                        (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
-
-                      ;; remove forbidden characters from url
-                      (funcall
-                        (apply '-compose
-                          (mapcar (lambda (char)
-                                    (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))))
+      (:html-dest html-dest)
 
       (:edited-date last-edited)
       )))
@@ -192,7 +205,7 @@
 
          ;; affects timestamp export format
          ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
-         (org-time-stamp-custom-formats '("[%Y-%m-%d]" . "[%Y-%m-%d %I:%M %p]"))
+         (org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %I:%M %p>"))
          (org-display-custom-times t)
 
          ;; don't ask about generation when exporting
@@ -201,9 +214,8 @@
     (with-temp-buffer
       (ht-with-context org-meta
         (message (format "BLOG: making %s " :path))
-        (org-mode)
+        ;; (org-mode)
         (insert :org-content)
-        (ns/blog-enhance-headings)
         (org-export-to-file 'html :html-dest)))))
 
 ;; idea: auto refresh on save or on change might be nice
@@ -257,45 +269,50 @@
   t
   )
 
-(defun! ns/blog-enhance-headings ()
-  "make headings links to themselves -- uses om.el to do so"
-  (org-map-entries
-    (lambda ()
-      ;; give a textual id if one doesn't exist
-      (org-ml-update-headline-at (point)
-        (lambda (headline)
-          (let* ((heading-text (-> headline org-ml-headline-get-path last car))
-                  (id
-                    ;; todo: use org-ml-headline-get-node-properties
-                    ;; and check contains -- couldn't get that to work though
-                    ;; <2021-01-25 Mon 09:18>
-                    (catch 'error
-                      (condition-case err
-                        (org-ml-headline-get-node-property "CUSTOM_ID" headline)
-                        (error nil))))
-                  (id (if id id
-                        (->> heading-text
-                          (s-replace " " "-")
-                          (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
-                          (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
+(defun ns/blog-make-anchors (org-content)
+  "turn headlines into anchor links within a string org-content."
+  (with-temp-buffer
+    (insert org-content)
+    (org-mode)
 
-            (->> headline
-              (org-ml-headline-set-node-property "CUSTOM_ID" id)
-              (org-ml-set-property
-                :title
-                (->> heading-text
-                  ;; remove old headling anchor style:
-                  ((lambda (s)
-                     (-if-let (m (s-match
-                                   (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
-                                   s))
-                       (second m)
-                       s)))
-                  ;; add anchor at the end:
-                  ((lambda (s)
-                     (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@" s
-                       (format "[[#%s][%s]]" id "⚓"))))
-                  (list))))))))))
+    (org-map-entries
+      (lambda ()
+        ;; give a textual id if one doesn't exist
+        (org-ml-update-headline-at (point)
+          (lambda (headline)
+            (let* ((heading-text (-> headline org-ml-headline-get-path last car))
+                    (id
+                      ;; todo: use org-ml-headline-get-node-properties
+                      ;; and check contains -- couldn't get that to work though
+                      ;; <2021-01-25 Mon 09:18>
+                      (catch 'error
+                        (condition-case err
+                          (org-ml-headline-get-node-property "CUSTOM_ID" headline)
+                          (error nil))))
+                    (id (if id id
+                          (->> heading-text
+                            (s-replace " " "-")
+                            (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
+                            (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
+
+              (->> headline
+                (org-ml-headline-set-node-property "CUSTOM_ID" id)
+                (org-ml-set-property
+                  :title
+                  (->> heading-text
+                    ;; remove old headling anchor style:
+                    ((lambda (s)
+                       (-if-let (m (s-match
+                                     (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
+                                     s))
+                         (third m)
+                         s)))
+                    ;; add anchor at the end:
+                    ((lambda (s)
+                       (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@" s
+                         (format "[[#%s][%s]]" id "⚓"))))
+                    (list)))))))))
+    (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun! ns/blog-new-post ()
   (let* ((title (read-from-minibuffer "new blog post title: "))
