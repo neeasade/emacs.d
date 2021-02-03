@@ -36,6 +36,7 @@
 #+MACRO: newline @@latex:\newline@@@@html:<br/>@@
 
 #+MACRO:  color (eval (ns/blog-make-color-preview $1 $2))
+#+MACRO:  color-ext (eval (ns/blog-make-color-preview-extended $1 $2 $3))
 #+MACRO:  colorblock (eval (ns/blog-make-color-block $1 $2 $3 $4 $5))
 
 # cf: https://emacs.stackexchange.com/questions/7792/can-i-make-links-in-org-mode-that-contain-brackets-or/7793#7793

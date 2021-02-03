@@ -40,6 +40,16 @@
                (fn (s-ends-with-p ".org" <>))))
            :action 'find-file)))
 
+(defun ns/blog-get-prop (propname text)
+  "Get an org property out of text"
+  (-some--> (format "#\\+%s:.*$" propname)
+    (pcre-to-elisp it)
+    (s-match it text)
+    (first it)
+    (s-replace (format "#+%s:" propname) "" it)
+    (s-trim it)
+    (if (s-blank-p it) nil it)))
+
 (defun ns/blog-file-to-meta (path)
   (defun ns/blog-make-nav-strip (&rest items)
     (apply 'concat
@@ -47,15 +57,7 @@
         (->> (-remove 'not items) (s-join " "))
         "\n#+END_CENTER\n")))
 
-  (defun ns/blog-get-prop (propname text)
-    "Get an org property out of text"
-    (-some--> (format "#\\+%s:.*$" propname)
-      (pcre-to-elisp it)
-      (s-match it text)
-      (first it)
-      (s-replace (format "#+%s:" propname) "" it)
-      (s-trim it)
-      (if (s-blank-p it) nil it)))
+
 
   (message (format "BLOG: generating meta for %s" path))
   (let* (
@@ -123,7 +125,7 @@
 	                          (concat
 		                          (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
 		                          (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-	                    '("org" "colors" "notes" "new"))))
+	                    '("colors" "new" "org" "notes"))))
 
                 ("title" post-title)
 
@@ -346,6 +348,14 @@
     ;; (tarp/get :background :strong)
     (if (not (s-equals? "" (or text "")))
       text color)))
+
+(defun ns/blog-make-color-preview-extended (bg fg text)
+  ;; assumes a dark FG and light BG
+  (format
+    "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
+    bg fg
+    (if (ct-is-light-p bg) (tarp/get :foreground) bg)
+    text))
 
 (defun ns/blog-make-detail (&rest parts)
   ;; this is done so I don't have to escape commas in details
