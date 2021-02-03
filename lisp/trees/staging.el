@@ -28,7 +28,6 @@
 (defun ns/text-to-widechar (beg end) (interactive "r")
   (translate-region beg end ns/widechar-table))
 
-
 (defun ns/make-urlnote-funcs ()
   (defun ns/urlnote-get-point (url)
     (let ((url-plain
@@ -280,7 +279,10 @@
     (->> (org-ml-get-subtrees)
 	    (org-ml-match '(:any * (:pred ns/org-scheduled-today)))
       ;; map headline text to scheduled timestamps
-      (-map (fn (list (-> <> cadr cadr)
+      (-map (fn (list
+                  ;; FIXME: code smell -- there should be a plist thing to get the title  here
+                  ;; (this same smell is in node-to-note export)
+                  (-> <> cadr cadr)
                   (--> <>
                     (org-ml-headline-get-planning it)
                     (cadr it)
@@ -376,21 +378,72 @@
       (s-join "\n"))))
 
 (defun ns/org-blog-note (heading)
-  (org-ml-headline-has-tag "share" heading))
+  (org-ml-headline-get-node-property "blog_slug" heading))
+
+(defun ns/write-node-to-post (node)
+  "Org headline node to blog post. assumes the presence of blog_slug."
+  (let*
+    ((slug (org-ml-headline-get-node-property "blog_slug" node))
+      (dest (ns/blog-path (format "notes/%s.org" slug)))
+      (exists? (f-exists-p dest))
+      (old-content (if exists? (f-read dest) ""))
+
+      )
+
+    ;; (message dest)
+
+    (f-mkdir (f-dirname dest))
+    (when exists? (f-delete dest))
+    (f-write
+      (format "
+#+title: %s
+#+title_extra: %s
+#+filetags: %s
+#+pubdate: %s
+
+%s"
+        (or (ns/blog-get-prop "title" old-content) (-> node cadr cadr))
+        (or (ns/blog-get-prop "title_extra" old-content) "")
+        (or (ns/blog-get-prop "filetags" old-content) "")
+        (or (ns/blog-get-prop "pubdate" old-content) (ns/shell-exec "date '+<%Y-%m-%d>'"))
+        (->> node
+          (org-ml-to-trimmed-string)
+
+          ;; remove through the end of the PROPERTIES drawer:
+          (s-split "\n" )
+          (-reduce-from
+            (lambda (acc new)
+              (if (= (length acc) 0)
+                (when (s-equals-p new ":END:")
+                  (list ""))
+                (-snoc acc new)))
+            (list))
+          (s-join "\n")))
+
+      'utf-8
+      dest)
+    )
+  ;; return the original node:
+  node
+  )
 
 (defun ns/export-blog-note-targets ()
   (ns/with-notes
     (->> (org-ml-get-subtrees)
 	    (org-ml-match '(:any * (:pred ns/org-blog-note)))
+      ;; this could maybe move into it's own function -- 'normalize'
       (-map (lambda (node)
               (let ((difference (- 1 (org-ml-get-property :level node))))
-                (->>
-                  node
-                  (org-ml-map-children* (--map (org-ml-shift-property :level difference it) it))
-                  (org-ml-set-property :level 1))))))
-    ))
-
-(ns/export-blog-note-targets)
+                (->> node
+                  (org-ml-map-children*
+                    (if (eq (org-ml-get-type it) 'headline)
+                      (org-ml-shift-property :level difference it)
+                      it))
+                  (org-ml-set-property :level 1)))))
+      (-map 'ns/write-node-to-post)
+      (-map (-partial 'org-ml-headline-get-node-property "blog_slug"))
+      ;; TODO: crosscheck blog_slugs vs directory listing
+      )))
 
 (defun ns/org-clock-sum-week ()
   ;; get time clocked under an item and it's children for this week

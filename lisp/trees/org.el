@@ -600,7 +600,13 @@
   "a" 'org-agenda
   ;; todo: want a "jump to parent"
   "f" 'ns/org-set-unique-property
-  "F" (fn! (ns/org-set-unique-property (read-string "property name: ")))
+  "F"
+  ;; (fn! (ns/org-set-unique-property (read-string "property name: ")))
+  (fn! (org-set-property
+         (read-string "property name: ")
+         (read-string "value: ")
+         ;; (or value "t")
+         ))
   "s" 'org-schedule
   )
 
