@@ -602,11 +602,8 @@
   "f" 'ns/org-set-unique-property
   "F"
   ;; (fn! (ns/org-set-unique-property (read-string "property name: ")))
-  (fn! (org-set-property
-         (read-string "property name: ")
-         (read-string "value: ")
-         ;; (or value "t")
-         ))
+  (fn! (org-set-property (read-string "property name: ") (read-string "value: ")))
+  "b" (fn! (org-set-property "blog_slug" (read-string "slug: ")))
   "s" 'org-schedule
   )
 

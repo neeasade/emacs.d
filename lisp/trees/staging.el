@@ -400,7 +400,7 @@
 #+title_extra: %s
 #+filetags: %s
 #+pubdate: %s
-
+#+post_type: note
 %s"
         (or (ns/blog-get-prop "title" old-content) (-> node cadr cadr))
         (or (ns/blog-get-prop "title_extra" old-content) "")
@@ -422,12 +422,11 @@
 
       'utf-8
       dest)
-    )
-  ;; return the original node:
-  node
-  )
+    ;; return the path:
+    dest
+    ))
 
-(defun ns/export-blog-note-targets ()
+(defun! ns/export-blog-note-targets ()
   (ns/with-notes
     (->> (org-ml-get-subtrees)
 	    (org-ml-match '(:any * (:pred ns/org-blog-note)))
@@ -441,8 +440,10 @@
                       it))
                   (org-ml-set-property :level 1)))))
       (-map 'ns/write-node-to-post)
-      (-map (-partial 'org-ml-headline-get-node-property "blog_slug"))
-      ;; TODO: crosscheck blog_slugs vs directory listing
+      ((lambda (valid)
+         (dolist (file (ns/blog-get-org "notes"))
+           (when (not (-contains? valid file))
+             (f-delete file)))))
       )))
 
 (defun ns/org-clock-sum-week ()

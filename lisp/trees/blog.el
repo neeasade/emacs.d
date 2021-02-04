@@ -164,7 +164,7 @@
                 ("html-dest" html-dest)
 
                 ("footer-center"
-                  (when (s-starts-with-p "index" (f-filename path))
+                  (if (s-starts-with-p "index" (f-filename path))
                     "#+BEGIN_EXPORT html
 <div class=footer-center>
 <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
@@ -172,7 +172,9 @@
 <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
 </div>
 #+end_export
-"))
+"
+                    (format "@@html:<div class=footer-center>type: %s</div>@@" post-type))
+                  )
 
                 ("flair"
                   (when (or (string= post-type "post")
