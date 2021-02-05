@@ -177,15 +177,45 @@ This works like `org-find-olp', but much faster."
     ))
 
 ;; ensure capture hierarchy exists for capture targets
+;; TODO: presuppose this at time of capture
 (-map
   (lambda (heading)
     (-map (fn (ns/make-org-tree org-default-notes-file "projects" heading <>))
       '("captures" "notes" "tasks")))
   ns/org-capture-project-list)
 
-;; todo: follow up on this idea, maybe blend qutebrowser quickmarks
-;; (ns/use-package linkmarks "dustinlacewell/linkmarks"
-;;   :config (setq linkmarks-file (concat org-directory "/linkmarks.org")))
+(setq ns/linkmark-file (concat org-directory "/linkmarks.org"))
+
+(defun! linkmark-select ()
+  ;; context ideas (store in properties):
+  ;; major-mode
+  ;; date
+  ;; file location
+  ;; hostname
+  ;; idk
+  (ns/jump-to-notes-heading
+    ns/linkmark-file
+    (lambda (heading-and-mark)
+      ;; it returns like ("heading" . <mark>)
+      (with-current-buffer (marker-buffer (cdr heading-and-mark))
+        (->> (cdr heading-and-mark)
+          (marker-position)
+          (org-ml-parse-element-at)
+          (org-ml-headline-map-node-properties (lambda (_) nil))
+          (org-ml-to-trimmed-string)
+          (s-split "\n")
+          (cdr)
+          (-filter (fn (not (s-blank-p <>))))
+          (first)
+          (s-clean)
+          ((lambda (link)
+             (with-temp-buffer
+               (insert link)
+               (beginning-of-line)
+               (ns/follow))))
+          )))))
+
+(ns/bind "nl" #'linkmark-select)
 
 (setq ns/org-capture-project-templates
   (doct
@@ -207,16 +237,14 @@ This works like `org-find-olp', but much faster."
                      ;; "[[%?]]"
                      ))
 
-       ;; todo: linkmarks
-       ;; todo: consider "offline tweets"
-       ;; ("LinkMark" :keys "l"
-       ;;   :file ,linkmarks-file
-       ;;   :template ("* %^{Title}"
-       ;;               ":PROPERTIES:"
-       ;;               ":captured: %U"
-       ;;               ":END:"
-       ;;               "[[%?]]"
-       ;;               ))
+       ("LinkMark" :keys "l"
+         :file ,ns/linkmark-file
+         :template ("* %?"
+                     ":PROPERTIES:"
+                     ":captured: %U"
+                     ":END:"
+                     ""
+                     ))
 
        ("Journal" :keys "j"
          :template "* %?\n%U\n"

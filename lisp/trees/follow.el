@@ -46,7 +46,7 @@
 (defun ns/follow-log (msg)
   (message msg))
 
-(defun! ns/follow()
+(defun! ns/follow ()
   "This is my home rolled DWIM at point function -- maybe it could be considered to be 'bad hyperbole'
    Tries to integrate a few meta solutions
    org link --> our own peek where we build an org file link --> jump to definition with smart-jump"
@@ -136,6 +136,7 @@
       (ns/follow-log "ns/follow: resolving with smart-jump-go")
       (shut-up (smart-jump-go))))
 
-  (recenter))
+  ;; (recenter)
+  )
 
 (ns/bind "nn" 'ns/follow)

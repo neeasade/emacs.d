@@ -496,19 +496,16 @@
     (with-current-buffer b
       (ns/set-buffer-face-variable))))
 
-(defun! ns/jump-to-notes-heading ()
+(defun! ns/jump-to-notes-heading (&optional target-buffer handler)
   "jump to org headlines only within selected files"
   (let* ((buffer-list
-           `(
-              ,(when (and
-                       (eq major-mode 'org-mode)
-                       (not (string= org-default-notes-file (buffer-file-name))))
+           (if target-buffer
+             (list (find-file-noselect target-buffer))
+             (list
+               (when (not (string= org-default-notes-file (buffer-file-name)))
                  (current-buffer))
 
-              ;; two different MO's
-              ,(find-file-noselect org-default-notes-file)
-              ;; ,@(ns/buffers-by-mode 'org-mode)
-              ))
+               (find-file-noselect org-default-notes-file))))
           (entries))
     (dolist (b buffer-list)
       (when b
@@ -519,9 +516,11 @@
                 (counsel-outline-candidates
                   (cdr (assq 'org-mode counsel-outline-settings))
                   (counsel-org-goto-all--outline-path-prefix))))))))
-    (ivy-read "Goto: " entries
-      :history 'counsel-org-goto-history
-      :action #'counsel-org-goto-action
+    (ivy-read "org heading: " entries
+      :action (or handler
+                (lambda (x)
+                  (counsel-org-goto-action x)
+                  (ns/org-jump-to-element-content)))
       :caller 'counsel-org-goto-all)))
 
 (defun! ns/org-clock-out ()
@@ -574,10 +573,9 @@
   ;; cancel org-pomodoro or a clocked in task
   "oI" 'ns/org-clock-out
 
-  "no" (fn!
-         (ns/jump-to-notes-heading)
-         ;; (counsel-org-goto-all)
-         (ns/org-jump-to-element-content)))
+  "no" #'ns/jump-to-notes-heading
+
+  )
 
 
 (ns/bind-mode 'org

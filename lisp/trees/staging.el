@@ -407,17 +407,12 @@
         (or (ns/blog-get-prop "filetags" old-content) "")
         (or (ns/blog-get-prop "pubdate" old-content) (ns/shell-exec "date '+<%Y-%m-%d>'"))
         (->> node
+          (org-ml-headline-map-node-properties (lambda (_) nil))
           (org-ml-to-trimmed-string)
 
           ;; remove through the end of the PROPERTIES drawer:
           (s-split "\n" )
-          (-reduce-from
-            (lambda (acc new)
-              (if (= (length acc) 0)
-                (when (s-equals-p new ":END:")
-                  (list ""))
-                (-snoc acc new)))
-            (list))
+          (cdr)
           (s-join "\n")))
 
       'utf-8

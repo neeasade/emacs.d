@@ -276,8 +276,11 @@
          (llet [url (ns/shell-exec "qb_active_url")]
            (insert
              (if (eq major-mode 'org-mode)
-               (format "[[%s][%s]]" url
-                 (read-string (format  "link description for %s: " url)))
+               (let ((desc (read-string (format  "link description for %s: " url))))
+                 (if (s-blank-p desc)
+                   (format "[[%s]]" url)
+                   (format "[[%s][%s]]" url desc))
+                 )
                url))))
   "ih" 'ns/insert-history
   )
