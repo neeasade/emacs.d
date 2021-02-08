@@ -184,13 +184,31 @@
               (theme-magic--auto-extract-16-colors))
 
       (-map
-        (fn (format "%s=%s" (car <>)
-              (s-replace "#" "" (ct-shorten (cadr <>)))))
+        (fn
+          (format "%s=%s"
+            (car <>)
+            (s-replace "#" "" (ct-shorten (cadr <>)))))
         (-partition 2
-          (list
-            "foreground" (face-attribute 'default :foreground)
-            "background" (face-attribute 'default :background)
-            "cursorColor" (first evil-insert-state-cursor)))))))
+          (append
+            (list
+              "foreground" (face-attribute 'default :foreground)
+              "background" (face-attribute 'default :background)
+              "cursorColor" (first evil-insert-state-cursor))
+            (->>
+              (list :normal :weak :strong :focused)
+              (-map
+                (lambda (bg-key)
+                  (-snoc (-interpose bg-key '(:background :foreground :faded :primary :alt :strings :assumed)) bg-key)))
+              (-flatten)
+              (-partition 2)
+              (-mapcat
+                (lambda (parts)
+                  (seq-let (fg-key bg-key) parts
+                    (list
+                      (format "e_%s_%s"
+                        (-> fg-key pr-string (substring 1))
+                        (-> bg-key pr-string (substring 1)))
+                      (tarp/get fg-key bg-key))))))))))))
 
 (use-package git-link
   :config
@@ -198,7 +216,6 @@
 
 ;; this seems to be a little nicer:
 ;; (use-package browse-at-remote)
-
 
 ;; (named-timer-run :show-periodic-reminder
 ;;   t
@@ -219,7 +236,6 @@
 ;; todo: doom does a thing where they blend the major mode w/ editor config
 ;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
 (use-package dtrt-indent :config (dtrt-indent-global-mode 1))
-
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds

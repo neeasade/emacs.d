@@ -215,7 +215,10 @@ This works like `org-find-olp', but much faster."
                (ns/follow))))
           )))))
 
-(ns/bind "nl" #'linkmark-select)
+(ns/bind
+  "nl" #'linkmark-select
+  "nL" (fn! (find-file ns/linkmark-file))
+  )
 
 (setq ns/org-capture-project-templates
   (doct

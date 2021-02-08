@@ -595,12 +595,8 @@
 (defun! ns/style-circe ()
   "Make chat pretty."
   (let*
-    ((comment-fg (face-attribute 'font-lock-keyword-face :foreground))
-      (default-fg (face-attribute 'default :foreground))
-      (default-bg (face-attribute 'default :background))
-      (highlight-fg (ct-lessen default-fg 20))
-      (fade-fg (face-attribute 'font-lock-comment-face :foreground))
-      )
+    ((highlight-fg (tarp/get :alt))
+      (fade-fg (tarp/get :faded)))
 
     (set-face-attribute 'circe-server-face          nil  :foreground fade-fg)
     (set-face-attribute 'lui-time-stamp-face        nil  :foreground fade-fg)

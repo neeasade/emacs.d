@@ -40,14 +40,14 @@
 
   (evil-collection-init))
 
-(defun ns/zz-scroll (&rest optional)
+(defun ns/zz-scroll (&rest _)
   (when (not (-contains-p '(circe-channel-mode circe-query-mode) major-mode))
     (let* ((scrollcount (/ (window-total-size) 7))
             (halfheight (/ (window-total-size) 2))
             (scrollcheck (- halfheight scrollcount)))
-      (if (> (line-number-at-pos) scrollcheck)
-        ;; (evil-scroll-line-down scrollcount)
-        nil
+      (when (> (line-number-at-pos) scrollcheck)
+        (evil-scroll-line-down scrollcount)
+        ;; nil
         ))))
 
 (advice-add #'recenter :after #'ns/zz-scroll)

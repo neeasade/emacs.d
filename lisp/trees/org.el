@@ -35,7 +35,7 @@
   ;; weeks start on mondays
   agenda-start-on-weekday 1
 
-  ellipsis "--"
+  ellipsis "…"
 
   adapt-indentation nil
   startup-indented nil
