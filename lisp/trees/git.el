@@ -1,32 +1,32 @@
 ;; -*- lexical-binding: t; -*-
 
-(use-package magit
-  :config
-  (setq-ns magit
-    save-repository-buffers 'dontask
-    repository-directories (list (~ "git"))
-    )
+;; note: initial use-package call for magit happens in evil.
 
-  ;; https://magit.vc/manual/magit/Performance.html
-  (when ns/enable-windows-p
-    (setq-ns magit
-      ;; diff perf
-      diff-highlight-indentation nil
-      diff-highlight-trailing nil
-      diff-highlight-hunk-body nil
-      diff-paint-whitespace nil
-      diff-refine-hunk nil
-      refresh-status-buffer nil
-      )
-
-    ;; don't show diff when committing --
-    ;; means reviewing will have to be purposeful before
-    (remove-hook 'server-switch-hook 'magit-commit-diff)
-    )
-
-  ;; do the require here so our bindings below in evil-magit override correctly
-  (require 'magit)
+(setq-ns magit
+  save-repository-buffers 'dontask
+  repository-directories (list (~ "git"))
   )
+
+;; https://magit.vc/manual/magit/Performance.html
+(when ns/enable-windows-p
+  (setq-ns magit
+    ;; diff perf
+    diff-highlight-indentation nil
+    diff-highlight-trailing nil
+    diff-highlight-hunk-body nil
+    diff-paint-whitespace nil
+    diff-refine-hunk nil
+    refresh-status-buffer nil
+    )
+
+  ;; don't show diff when committing --
+  ;; means reviewing will have to be purposeful before
+  (remove-hook 'server-switch-hook 'magit-commit-diff)
+  )
+
+;; do the require here so our bindings below in evil-magit override correctly
+(require 'magit)
+
 
 (when (not ns/enable-windows-p)
   (ns/use-package magit-todos "alphapapa/magit-todos"
@@ -42,25 +42,26 @@
 (use-package magit-svn :config
   (add-hook 'magit-mode-hook 'magit-svn-mode))
 
-(use-package evil-magit
-  :config
+;; this has been merged into evil collection
+;; (use-package evil-magit
+;;   :config
 
-  (general-nmap magit-mode-map "q"
-    (fn!
-      (quit-window)
-      (when ns/magit-before-display-layout
-        (set-window-configuration ns/magit-before-display-layout))))
+;;   (general-nmap magit-mode-map "q"
+;;     (fn!
+;;       (quit-window)
+;;       (when ns/magit-before-display-layout
+;;         (set-window-configuration ns/magit-before-display-layout))))
 
-  ;; todo: these don't bind
-  (general-nmap magit-mode-map "n" 'evil-next-line)
-  (general-nmap magit-mode-map "e" 'evil-previous-line)
-  (general-vmap magit-mode-map "n" 'evil-next-line)
-  (general-vmap magit-mode-map "e" 'evil-previous-line)
-  (general-nmap magit-mode-map "k" 'evil-search-next)
-  (general-nmap magit-mode-map "K" 'evil-search-previous)
-  (general-nmap magit-mode-map "?" 'evil-search-backward)
-  (general-nmap magit-status-mode-map "e" 'evil-previous-line)
-  (general-nmap magit-status-mode-map "n" 'evil-next-line))
+;;   ;; todo: these don't bind -- really weird.
+;;   (general-nmap magit-mode-map "n" 'evil-next-line)
+;;   (general-nmap magit-mode-map "e" 'evil-previous-line)
+;;   (general-vmap magit-mode-map "n" 'evil-next-line)
+;;   (general-vmap magit-mode-map "e" 'evil-previous-line)
+;;   (general-nmap magit-mode-map "k" 'evil-search-next)
+;;   (general-nmap magit-mode-map "K" 'evil-search-previous)
+;;   (general-nmap magit-mode-map "?" 'evil-search-backward)
+;;   (general-nmap magit-status-mode-map "e" 'evil-previous-line)
+;;   (general-nmap magit-status-mode-map "n" 'evil-next-line))
 
 (use-package git-gutter-fringe
   :config

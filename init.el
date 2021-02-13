@@ -6,6 +6,11 @@
 (setq
   ns/enable-windows-p (eq system-type 'windows-nt)
   ns/enable-linux-p (eq system-type 'gnu/linux)
+  ns/enable-mac-p (eq system-type 'darwin)
+
+  mac-command-modifier 'control
+  mac-option-modifier 'meta
+
   ns/enable-home-p (string= (getenv "USER") "neeasade")
   ns/enable-work-p ns/enable-windows-p
   ;; for when we're away from $HOME.
@@ -60,7 +65,7 @@
   projectile
   restclient
   latex
-  search-engines
+  ;; search-engines
 
   blog
   scripting

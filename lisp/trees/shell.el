@@ -6,6 +6,12 @@
 (when ns/enable-linux-p
   (setq explicit-shell-file-name (getenv "SHELL")))
 
+
+(when
+  (and ns/enable-mac-p
+    (executable-find   "/run/current-system/sw/bin/bash"))
+  (setq explicit-shell-file-name  "/run/current-system/sw/bin/bash"))
+
 (when ns/enable-windows-p
   (setenv "PATH"
     (format "%s;%s"

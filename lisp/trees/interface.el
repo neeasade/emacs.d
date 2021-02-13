@@ -119,7 +119,10 @@
 
 (use-package alert
   :config (setq alert-default-style
-            (if ns/enable-windows-p 'toaster 'libnotify))
+            (cond
+              (ns/enable-windows-p 'toaster)
+              (ns/enable-mac-p 'osx-notifier)
+              (t 'libnotify)))
 
   ;; I could not get the (alert :persistent t keyword to work)
   (defun alert! (&rest alert-args)

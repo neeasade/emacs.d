@@ -15,7 +15,7 @@
 (mapc (fn (when (find-font (font-spec :name <>))
             (ns/update-xrdb-font <>)))
   (list
-    (or (font-get (face-attribute 'default :font) :name) "")
+    ;; (or (font-get (face-attribute 'default :font) :name) "")
     "Menlo-14"
     "Dejavu Sans Mono-14"
     "DejaVu Sans Mono-14"
@@ -27,7 +27,7 @@
 (mapc (fn (when (find-font (font-spec :name <>))
             (ns/update-xrdb-font <> t)))
   (list
-    (or (font-get (face-attribute 'default :font) :name) "")
+    ;; (or (font-get (face-attribute 'default :font) :name) "")
     "Menlo-14"
     "Dejavu Sans-14"
     "DejaVu Sans-14"

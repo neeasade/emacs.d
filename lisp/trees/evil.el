@@ -3,6 +3,9 @@
 ;; TODO make a toggle for this
 ;; evil-ex-visual-char-range
 
+;; this happens here to appease evil-collection
+(use-package magit (require 'magit))
+
 ;; evil-collection
 (setq evil-want-keybinding nil)
 
@@ -18,11 +21,15 @@
 (use-package evil-collection :config
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
     (evil-collection-translate-key 'normal mode-keymaps
-      "n" "j"
       "e" "k"
-      "j" "e"
       "k" "n"
+      "n" "j"
+      "j" "e"
+
+      "E" "K"
       "K" "N"
+      "N" "J"
+      "J" "E"
       )
 
     ;; todo: test diffing
@@ -38,7 +45,8 @@
 
   (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
 
-  (evil-collection-init))
+  (evil-collection-init)
+  )
 
 (defun ns/zz-scroll (&rest _)
   (when (not (-contains-p '(circe-channel-mode circe-query-mode) major-mode))

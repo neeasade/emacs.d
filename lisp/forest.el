@@ -210,7 +210,7 @@
   )
 
 (defconfig nix
-  (ns/guard ns/enable-home-p)
+  ;; (ns/guard ns/enable-home-p)
   (use-package nix-mode))
 
 (defconfig music
