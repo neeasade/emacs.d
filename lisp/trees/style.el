@@ -35,11 +35,14 @@
     "Noto Serif-14"
     "Charter-14"))
 
-;; frames:
-(ns/frame-set-parameter 'internal-border-width (if ns/enable-home-p 0 6))
-(ns/frame-set-parameter 'right-divider-width 1)
-(ns/frame-set-parameter 'bottom-divider-width 1)
-(ns/frame-set-parameter 'font (get-resource "st.font"))
+(->>
+  (list
+    'internal-border-width (if ns/enable-home-p 0 6)
+    'right-divider-width 1
+    'bottom-divider-width 1
+    'font (get-resource "st.font"))
+  (-partition 2)
+  (-map (-applify #'ns/frame-set-parameter)))
 
 ;; fringe
 ;; (fringe-mode 8)
