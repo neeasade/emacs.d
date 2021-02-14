@@ -35,15 +35,6 @@
     "Noto Serif-14"
     "Charter-14"))
 
-(->>
-  (list
-    'internal-border-width (if ns/enable-home-p 0 6)
-    'right-divider-width 1
-    'bottom-divider-width 1
-    'font (get-resource "st.font"))
-  (-partition 2)
-  (-map (-applify #'ns/frame-set-parameter)))
-
 ;; fringe
 ;; (fringe-mode 8)
 (setq window-divider-default-right-width 1)
@@ -73,20 +64,30 @@
 (set-face-attribute 'italic nil :slant 'italic)
 
 (defun! ns/load-theme (&optional theme)
-  (let ((theme
-          (or theme
-            (intern
-              (ivy-read "Load custom theme: "
-                ;; (mapcar 'symbol-name (custom-available-themes))
-                '(tarp-mcfay tarp-struan)
-                :action 'identity)))))
-    (mapcar 'disable-theme custom-enabled-themes)
-    (load-theme theme t))
+  (mapcar 'disable-theme custom-enabled-themes)
+
+  (load-theme
+    (or theme
+      (intern
+        (ivy-read "Load custom theme: "
+          ;; (mapcar 'symbol-name (custom-available-themes))
+          '(tarp-mcfay tarp-struan)
+          :action 'identity)))
+    t)
 
   (setq ns/theme tarp/theme)
+
   (setq hl-todo-keyword-faces
     `(("TODO" . ,(ht-get tarp/theme :foreground_))
        ("todo" . ,(ht-get tarp/theme :foreground_))))
+
+  (->>
+    `(internal-border-width ,(if ns/enable-home-p 0 10)
+       right-divider-width 1
+       bottom-divider-width 1
+       font ,(get-resource "st.font"))
+    (-partition 2)
+    (-map (-applify #'ns/frame-set-parameter)))
 
   (when (fboundp 'ns/style-circe) (ns/style-circe))
   (when (fboundp 'ns/style-org) (ns/style-org))
