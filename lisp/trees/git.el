@@ -24,9 +24,6 @@
   (remove-hook 'server-switch-hook 'magit-commit-diff)
   )
 
-;; do the require here so our bindings below in evil-magit override correctly
-(require 'magit)
-
 
 (when (not ns/enable-windows-p)
   (ns/use-package magit-todos "alphapapa/magit-todos"
