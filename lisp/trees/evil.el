@@ -3,8 +3,11 @@
 ;; TODO make a toggle for this
 ;; evil-ex-visual-char-range
 
+
 ;; this happens here to appease evil-collection
-(use-package magit (require 'magit))
+(use-package magit
+  ;; (require 'magit)
+  )
 
 ;; evil-collection
 (setq evil-want-keybinding nil)
