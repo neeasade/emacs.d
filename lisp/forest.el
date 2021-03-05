@@ -360,7 +360,6 @@
 
 (defconfig csharp
   ;; limitation: can only work with one server/solution at a time currently
-  (ns/guard ns/enable-work-p)
   (ns/guard ns/enable-windows-p)
   (use-package omnisharp
     :config

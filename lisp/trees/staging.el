@@ -534,3 +534,40 @@
 
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
 (setq org-clock-idle-time nil)
+
+;; make adoc buffers look a little like org buffers
+(use-package adoc-mode
+  :mode (("\\.adoc\\'" . adoc-mode)
+          ("\\.asciidoc\\'" . adoc-mode))
+  :config
+  (->>
+    '(
+       markup-title-0-face org-level-1
+       markup-title-1-face org-level-2
+       markup-title-2-face org-level-3
+
+       markup-meta-hide-face org-block-begin-line
+
+       ;; markup-meta-face org-meta-line
+       markup-meta-face org-drawer
+       markup-complex-replacement-face org-drawer
+
+       markup-verbatim-face org-block
+       markup-typewriter-face org-code
+
+       markup-internal-reference-face org-link
+       markup-reference-face markdown-link-face
+       markup-list-face markdown-list-face
+       )
+    (-partition 2)
+    (-map
+      (-applify
+        (lambda (target derive)
+          (set-face-attribute target nil
+            :foreground nil
+            :background nil
+            :underline nil
+            :height 'unspecified
+            :inherit derive
+            :box 'unspecified
+            ))))))

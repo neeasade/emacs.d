@@ -12,7 +12,9 @@
   mac-option-modifier 'meta
 
   ns/enable-home-p (string= (getenv "USER") "neeasade")
-  ns/enable-work-p ns/enable-windows-p
+
+  ns/enable-work-p ns/enable-mac-p
+
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
   `(
