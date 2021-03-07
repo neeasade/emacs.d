@@ -483,14 +483,27 @@
   (set-face-attribute 'org-block-begin-line nil :height 65)
   (set-face-attribute 'org-block-end-line nil :height 65)
 
-  (let ((height (plist-get (ns/parse-font (get-resource "st.font")) :height)))
-    (set-face-attribute 'org-level-1 nil :height (+ height 15) :weight 'semi-bold)
-    (set-face-attribute 'org-level-2 nil :height (+ height 10) :weight 'semi-bold)
-    (set-face-attribute 'org-level-3 nil :height (+ height 5) :weight 'semi-bold)
-    (set-face-attribute 'org-level-4 nil :height height :weight 'semi-bold)
-    (set-face-attribute 'org-level-5 nil :height height :weight 'semi-bold)
-    (set-face-attribute 'org-level-6 nil :height height :weight 'semi-bold)
-    )
+  (->>
+    '(
+       (1  2  3 4 5 6)
+       ;; (15 10 5 0 0 0)
+       (-repeat 6 0)
+       ;; (15 10 5 0 0 0)
+       )
+    (apply #'-interleave)
+    (-partition 2)
+    (-map (-applify
+            (lambda (level height-mod)
+              `(set-face-attribute
+                 ',(intern (format "org-level-%s" level))
+                 nil
+                 :height ,(+
+                            (plist-get (ns/parse-font (get-resource "st.font")) :height)
+                            height-mod)
+                 :weight 'semi-bold
+                 :underline t
+                 ))))
+    (-map #'eval))
 
   (dolist (b (ns/buffers-by-mode 'org-mode))
     (with-current-buffer b
