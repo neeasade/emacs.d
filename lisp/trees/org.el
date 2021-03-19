@@ -492,9 +492,10 @@
     (set-face-attribute 'org-level-6 nil :height height :weight 'semi-bold)
     )
 
-  (dolist (b (ns/buffers-by-mode 'org-mode))
-    (with-current-buffer b
-      (ns/set-buffer-face-variable))))
+  (-map
+    #'ns/set-buffer-face-variable
+    (ns/buffers-by-mode 'org-mode))
+  )
 
 (defun! ns/jump-to-notes-heading (&optional target-buffer handler)
   "jump to org headlines only within selected files"

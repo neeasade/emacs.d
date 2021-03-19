@@ -287,14 +287,13 @@
     '(when t (throw 'config-catch (concat "config guard " config-name)))))
 
 (defun! ns/find-or-open (filepath)
-  "Find or open FILEPATH."
-  ;; if there's a window in this frame, switch to that
-  ;; else just find-file
-  ;; (->>)
+  "If FILEPATH is open in a buffer, switch to that."
   (let ((filename (file-name-nondirectory filepath)))
     (if (get-buffer filename)
       (counsel-switch-to-buffer-or-window filename)
-      (find-file filepath))))
+      (if (f-exists-p filepath)
+        (find-file filepath)
+        (message (format "no file found: %s" filepath))))))
 
 (defun range (one &optional two step)
   (let* ((start (if two one 0))

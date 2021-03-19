@@ -91,6 +91,7 @@
 
   (when (fboundp 'ns/style-circe) (ns/style-circe))
   (when (fboundp 'ns/style-org) (ns/style-org))
+  (when (fboundp 'ns/style-markdown) (ns/style-markdown))
   (ns/doomline)
 
   (when (fboundp 'ns/blog-set-htmlize-colors) (ns/blog-set-htmlize-colors))

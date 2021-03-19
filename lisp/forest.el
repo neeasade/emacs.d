@@ -458,14 +458,17 @@
     :keymaps 'markdown-mode-map
     (kbd "<tab>") 'markdown-cycle)
 
-  (defun ns/markdown-mode-hook ()
-    (ns/set-buffer-face-variable)
+  (defun ns/style-markdown ()
+    (ns/set-faces-monospace '(markdown-code-face))
 
-    (require 'markdown-mode)
-    (ns/set-faces-monospace '(markdown-code-face)))
+    (-map
+      #'ns/set-buffer-face-variable
+      (ns/buffers-by-mode 'markdown-mode)))
+
+  (defun ns/markdown-mode-hook ()
+    (ns/set-buffer-face-variable))
 
   (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook)
-
   )
 
 (defconfig restclient

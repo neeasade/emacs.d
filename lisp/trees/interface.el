@@ -162,6 +162,14 @@
     (set-face-attribute 'default nil :font new-font)
     (set-frame-font (get-resource new-font) nil t)))
 
+(defun! ns/kill-buffers-by-mode ()
+  (ivy-read "mode to kill: "
+    (->> (buffer-list)
+      (-map (-partial 'buffer-local-value 'major-mode))
+      (-uniq))
+    :action
+    (fn (-map #'kill-buffer (ns/buffers-by-mode (intern <>))))))
+
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 
@@ -205,6 +213,7 @@
   "bd" 'ns/kill-current-buffer
   "bK" 'ns/kill-other-buffers
   "bk" 'kill-matching-buffers
+  "bm" 'ns/kill-buffers-by-mode
 
   "n" '(:ignore t :which-key "Jump")
   "nh" 'counsel-imenu

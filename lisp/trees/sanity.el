@@ -1,5 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 
+;; give us what we expect:
+(use-package exec-path-from-shell
+  :config
+  (exec-path-from-shell-initialize))
+
 ;; should this be in dirt
 (use-package no-littering
   :config
@@ -47,10 +52,14 @@
 
 ;; todo: reconsider this, auto wrap large operations or something
 (setq gc-cons-threshold
-  (->> "free -b | awk '/^Mem/{print $2}'"
+  (->>
+    (cond
+      (ns/enable-linux-p "free -b | awk '/^Mem/{print $2}'")
+      (ns/enable-mac-p "sysctl -a | awk '/memsize/{print $2}'")
+      (ns/enable-windows-p "echo 8000000000"))
     (ns/shell-exec)
     (string-to-number)
-    (* 0.70)
+    (* 0.60)
     (floor)))
 
 ;; trim gui
