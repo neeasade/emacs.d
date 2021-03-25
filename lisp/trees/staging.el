@@ -196,10 +196,11 @@
               "cursorColor" (first evil-insert-state-cursor))
             (->>
               (list :normal :weak :strong :focused)
-              (-map
+              (-mapcat
                 (lambda (bg-key)
-                  (-snoc (-interpose bg-key '(:background :foreground :faded :primary :alt :strings :assumed)) bg-key)))
-              (-flatten)
+                  (-mapcat (fn (list <> bg-key))
+                    '(:background :foreground :faded :primary :alt :strings :assumed))))
+
               (-partition 2)
               (-mapcat
                 (lambda (parts)
