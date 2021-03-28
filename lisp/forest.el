@@ -205,9 +205,10 @@
   (when (executable-find "joker")
     (use-package flycheck-joker :config (require 'flycheck-joker)))
 
-  (use-package 4clojure)
-
-  )
+  (when (executable-find "clj-kondo")
+    (use-package flycheck-clj-kondo
+      :config
+      (require 'flycheck-clj-kondo))))
 
 (defconfig nix
   ;; (ns/guard ns/enable-home-p)
@@ -259,36 +260,43 @@
           (mapcar 'projectile-root-bottom-up open-buffers)))))
 
   ;; putting this in a function so it can be used by dmenu_switcher
-  (defun ns/jump-file-candidates ()
-    (let* ((open-buffers
-             ;; remove nils
-             (-remove (lambda (file) (not file))
-               (mapcar 'buffer-file-name (buffer-list))))
+  (defun ns/jump-file-candidates (&rest wants)
+    (let ((sources
+            (list
+              :open-buffers
+              ;; remove nils
+              (-remove 'not
+                (-map 'buffer-file-name (buffer-list)))
 
-            (project-files
-              ;; (ns/current-project-files)
-              (let ((current-file-name (buffer-file-name (current-buffer))))
-                (if current-file-name
-                  (ns/all-project-files (list current-file-name)) '()))
+              :project-files
+              (-when-let (current-file-name (buffer-file-name (current-buffer)))
+                (ns/all-project-files (list current-file-name)))
 
               ;; (ns/get-project-files (current-file))
-              ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/current-project-files))
-              ))
+              ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/get-project-files (current-file)))
 
-      ;; if a file is not remote, ensure it exists
-      (-filter
-        (lambda (f)
-          (if (file-remote-p f) t
-            (f-exists-p f)))
-        (append recentf-list project-files open-buffers))))
+              :recentf recentf-list
+              )))
 
-  (defun! ns/jump-file ()
-    (ivy-read "file: "
-      (ns/jump-file-candidates)
-      :action (fn (when (f-exists-p <>)
-                    (find-file <>)))))
+      (->> (or wants
+             '(:open-buffers :project-files :recentf))
 
-  (ns/bind "ne" 'ns/jump-file ))
+        (-map (-partial #'plist-get sources))
+        (-flatten)
+        (-uniq)
+
+        ;; if a file is not remote, ensure it exists
+        (-filter
+          (lambda (f)
+            (if (file-remote-p f) t
+              (f-exists-p f)))))))
+
+  (ns/bind
+    "ne" (fn! (ivy-read "file: " (ns/jump-file-candidates)
+                :action 'find-file))
+
+    "nE" (fn! (ivy-read "project file: " (ns/jump-file-candidates :project-files)
+                :action 'find-file))))
 
 (defconfig javascript
   ;; note: this is huge, takes a bit.
@@ -459,10 +467,10 @@
     (kbd "<tab>") 'markdown-cycle)
 
   (defun ns/style-markdown ()
+    (require 'markdown-mode)
     (ns/set-faces-monospace '(markdown-code-face))
 
-    (-map
-      #'ns/set-buffer-face-variable
+    (-map #'ns/set-buffer-face-variable
       (ns/buffers-by-mode 'markdown-mode)))
 
   (defun ns/markdown-mode-hook ()
