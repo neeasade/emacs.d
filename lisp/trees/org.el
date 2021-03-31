@@ -616,11 +616,14 @@
   "a" 'org-agenda
   ;; todo: want a "jump to parent"
   "f" 'ns/org-set-unique-property
+
   "F"
   ;; (fn! (ns/org-set-unique-property (read-string "property name: ")))
   (fn! (org-set-property (read-string "property name: ") (read-string "value: ")))
+
   "b" (fn! (org-set-property "blog_slug" (read-string "slug: ")))
-  "s" 'org-schedule
+
+  "s" (fn! (org-set-property "share" "t"))
   )
 
 (add-to-list 'auto-mode-alist '("qutebrowser-editor-" . org-mode))

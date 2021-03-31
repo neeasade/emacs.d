@@ -25,7 +25,7 @@
         (let* ((parts (s-split ":" file))
                 (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 2) (- (length parts) 1)) parts))))
           (when (f-exists-p filepath)
-            (org-open-link-from-string
+            (org-link-open-from-string
               (format "[[file:%s::%s]]" filepath (cadr (reverse parts))))
             (move-to-column (string-to-number (car (last parts))))
             t)))
@@ -34,12 +34,12 @@
         (let* ((parts (s-split ":" file))
                 (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
           (when (f-exists-p filepath)
-            (org-open-link-from-string
+            (org-link-open-from-string
               (format "[[file:%s::%s]]" filepath (car (last parts))))
             t)))
 
       (t (when (f-exists-p file)
-           (org-open-link-from-string
+           (org-link-open-from-string
              (format "[[file:%s]]" file))
            t)))))
 

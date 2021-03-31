@@ -137,15 +137,11 @@
   (previous-line 1))
 
 (defun ns/parse-font (font)
-  (let* ((parts-in (s-split "-" font))
-          ;; if there is no -, assume it is something like 'Monospace 11', just replace all spaces with dashes
-          (parts (if (< (length parts-in) 2)
-                   (s-split "-" (s-replace " " "-" font))
-                   parts-in))
-          (family (first parts))
-          (size (string-to-number (second parts))))
-    ;; height is 10x pt
-    `(:family ,family :height ,(* 10 size))))
+  (llet [font (s-replace "-" " " font)
+          size (first (s-match (pcre-to-elisp " [0-9]+") font))
+          family (s-replace size "" font)]
+
+    `(:family ,family :height ,(* 10 (string-to-number size)))))
 
 (defun ns/set-faces-variable (faces)
   (dolist (face faces)
@@ -155,13 +151,15 @@
   (dolist (face faces)
     (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
 
-(defun! ns/set-buffer-face-variable ()
-  (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
-  (buffer-face-mode t))
+(defun! ns/set-buffer-face-variable (&optional b)
+  (with-current-buffer (or b (current-buffer))
+    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
+    (buffer-face-mode t)))
 
-(defun! ns/set-buffer-face-monospace ()
-  (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
-  (buffer-face-mode t))
+(defun! ns/set-buffer-face-monospace (&optional b)
+  (with-current-buffer (or b (current-buffer))
+    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
+    (buffer-face-mode t)))
 
 (defun ns/make-lines (list)
   "Transform a LIST of things into something that can be newline iterated by a shell script."
@@ -274,14 +272,18 @@
 
   "iu" (fn!
          (llet [url (ns/shell-exec "qb_active_url")]
-           (insert
-             (if (eq major-mode 'org-mode)
-               (let ((desc (read-string (format  "link description for %s: " url))))
+           (if (eq major-mode 'org-mode)
+             (let ((desc (if (region-active-p)
+                           (buffer-substring (region-beginning) (region-end))
+                           (read-string (format  "link description for %s: " url)))))
+               (when (region-active-p)
+                 (delete-region (region-beginning) (region-end)))
+
+               (insert
                  (if (s-blank-p desc)
                    (format "[[%s]]" url)
-                   (format "[[%s][%s]]" url desc))
-                 )
-               url))))
+                   (format "[[%s][%s]]" url desc))))
+             (insert url))))
   "ih" 'ns/insert-history
   )
 
