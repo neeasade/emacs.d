@@ -64,6 +64,7 @@
         ((string= "forest" <>) (ns/find-or-open (~ ".emacs.d/lisp/forest.el")))
         ((string= "theme" <>) (ns/find-or-open (~ ".emacs.d/lisp/themes/neea-theme.el")))
         ((string= "init" <>) (ns/find-or-open (~ ".emacs.d/init.el")))
+        ((string= "follow-dwim" <>) (ns/find-or-open (~ ".emacs.d/follow.el")))
         ((f-exists-p (format (~ ".emacs.d/lisp/trees/%s.el") <>))
           (ns/find-or-open (format (~ ".emacs.d/lisp/trees/%s.el") <>)))
         (t
@@ -164,8 +165,9 @@
 (defun ns/make-lines (list)
   "Transform a LIST of things into something that can be newline iterated by a shell script."
   (->> list
-    (mapcar (fn (if (stringp <>) <>
-                  (prin1-to-string <>))))
+    (-map (fn (if (stringp <>) <>
+                (prin1-to-string <>))))
+    (-map 's-clean)
     (s-join "\n")))
 
 ;; todo: maybe ensure a same order here - buffer-list order can vary
@@ -257,6 +259,31 @@
 ;; initially went to steal but turned out to be many functions to steal
 (use-package crux)
 
+;; todo: insert qute selected text would be nice
+
+(defun! ns/insert-qute-url ()
+  (llet [url (ns/shell-exec "qb_active_url")]
+    (if (s-blank-p url)
+      (message "failed to get url!")
+      (llet [desc (when (-contains-p '(org-mode adoc-mode markdown-mode) major-mode)
+                    (if (region-active-p)
+                      (buffer-substring (region-beginning) (region-end))
+                      (read-string (format  "link description for %s (blank for none): " url))))
+              desc (if (and
+                         (stringp desc)
+                         (s-blank-p desc))
+                     nil
+                     desc)]
+        (when (region-active-p)
+          (delete-region (region-beginning) (region-end)))
+        (insert
+          (cond
+            ((not desc) url)
+            ((eq major-mode 'org-mode) (format "[[%s][%s]]" url desc))
+            ((eq major-mode 'adoc-mode) (format "%s[%s]" url desc))
+            ((eq major-mode 'markdown-mode) (format "[%s](%s)" desc url))
+            (t url)))))))
+
 (ns/bind
   "qf" 'ns/what-face
   "qc" 'describe-char
@@ -270,20 +297,7 @@
   "nc" 'ns/jump-config
   "tb" 'ns/toggle-bloat
 
-  "iu" (fn!
-         (llet [url (ns/shell-exec "qb_active_url")]
-           (if (eq major-mode 'org-mode)
-             (let ((desc (if (region-active-p)
-                           (buffer-substring (region-beginning) (region-end))
-                           (read-string (format  "link description for %s: " url)))))
-               (when (region-active-p)
-                 (delete-region (region-beginning) (region-end)))
-
-               (insert
-                 (if (s-blank-p desc)
-                   (format "[[%s]]" url)
-                   (format "[[%s][%s]]" url desc))))
-             (insert url))))
+  "iu" 'ns/insert-qute-url
   "ih" 'ns/insert-history
   )
 

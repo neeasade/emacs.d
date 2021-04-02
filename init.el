@@ -49,10 +49,11 @@
   interface
   editing
   shell
-  org org-capture
+  org org-capture org-pim
   git
   util
   server
+  follow-dwim
   )
 
 (ns/compose
@@ -79,8 +80,6 @@
   deadgrep
   elasticsearch
   graphiz
-
-  follow-dwim
   )
 
 (ns/compose

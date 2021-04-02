@@ -166,6 +166,33 @@
     (fn (-map #'kill-buffer (ns/buffers-by-mode (intern <>))))))
 
 (ns/bind
+  "nd"
+  (fn!
+    (ivy-read "directory: "
+      (->> ns/cd-dirs
+        (-uniq)
+        (-filter (fn (s-equals-p (file-remote-p <>)
+                       (file-remote-p default-directory)))))
+
+      :action
+      (lambda (dir)
+        (cond
+          ((eq major-mode 'dired-mode) (dired dir))
+          ((eq major-mode 'shell-mode)
+            (goto-char (point-max))
+            (insert (concat "cd \""
+                      (s-replace
+                        (or (file-remote-p dir) "")
+                        ""
+                        dir
+                        )
+                      "\""))
+            (comint-send-input))
+          ;; (t (insert dir))
+          (t (dired dir))
+          )))))
+
+(ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 
   ;; from the current dir down

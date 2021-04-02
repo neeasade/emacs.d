@@ -313,8 +313,9 @@
   (range 0 360 90))
 
 ;; clojure like let
-(defmacro llet (args body)
-  `(let* ,(-partition 2 (append args nil)) ,body))
+(defmacro llet (args &rest body)
+  ;; the append is to convert [vectors] to lists
+  `(let* ,(-partition 2 (append args nil)) ,@body))
 
 ;; extension to ht.el
 (defmacro ht-with-context (table &rest content)

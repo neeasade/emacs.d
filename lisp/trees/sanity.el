@@ -51,6 +51,7 @@
   )
 
 ;; todo: reconsider this, auto wrap large operations or something
+;; (see below for when we garbage collect)
 (setq gc-cons-threshold
   (->>
     (cond
@@ -59,7 +60,7 @@
       (ns/enable-windows-p "echo 8000000000"))
     (ns/shell-exec)
     (string-to-number)
-    (* 0.60)
+    (* 0.70)
     (floor)))
 
 ;; trim gui
@@ -103,6 +104,8 @@
 (when (getenv "BROWSER")
   (setq browse-url-generic-program (getenv "BROWSER")))
 
+;; (when ns/enable-work-p (setq browse-url-generic-program "/Applications/Google Chrome.app/Contents/MacOS/google chrome"))
+
 ;; Removes *scratch* from buffer after the mode has been set.
 (defun ns/after-change-major-mode-hook ()
   (when (get-buffer "*scratch*")
@@ -141,12 +144,6 @@
 
 (setq whitespace-line-column 120)
 
-(defun! ns/insert-filename ()
-  (insert (f-filename (buffer-file-name))))
-
-(defun! ns/insert-filepath ()
-  (insert (buffer-file-name)))
-
 ;; a report toggle command for debugging on keybind
 (require 'profiler)
 (defun! ns/toggle-report ()
@@ -179,6 +176,42 @@
 
 (advice-add #'proced-format-args :around #'p-proced-format-args)
 
+(defun ns/media-playing-p ()
+  (defun ns/sh-has-content-p (cmd)
+    (-> cmd ns/shell-exec s-blank-p not))
+
+  (or
+    (ns/sh-has-content-p "playerctl metadata 2>/dev/null | grep -i netflix")
+    (ns/sh-has-content-p "playerctl metadata 2>/dev/null | grep -i 'prime video'")
+    (ns/sh-has-content-p "pgrep mpv")
+    (ns/sh-has-content-p "pgrep vlc")
+
+    ;; adhoc hack (uncomment this when viewing something in an unaccounted for medium)
+    ;; t
+    ))
+
+(named-timer-run :maybe-garbage-collect
+  ;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.
+  ;; this means you won't have to garbage collect for literal minutes when we leave emacs running
+  ;; all night long
+
+  ;; run the first time in 30 seconds
+  ;; relative times are.. strings? cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Timers.html
+  "30 sec"
+  (* 5 60)
+  (fn (when (> (org-user-idle-seconds)
+              (* 5 60))
+        (garbage-collect)
+
+        (when (not (ns/media-playing-p))
+          (ns/org-clock-out))
+
+        ;; auto revert any who have changed on disk
+        (auto-revert-buffers)
+
+        ;; save everyone
+        (save-some-buffers t))))
+
 (ns/bind
   "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
   "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
@@ -197,6 +230,7 @@
 
   "i" '(:ignore t :which-key "Insert")
   "ic" 'insert-char
-  "if" 'ns/insert-filename
-  "ip" 'ns/insert-filepath
-  )
+  "if" (fn! (insert (f-filename (buffer-file-name))))
+  "ip" (fn! (insert (buffer-file-name)))
+  "id" (fn! (org-time-stamp t))
+  "iD" (fn! (org-time-stamp nil)))

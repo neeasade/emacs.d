@@ -267,7 +267,12 @@
   (defun ns/jump-file-candidates (&rest wants)
     (let ((sources
             (list
-              :open-buffers
+              ;; XXX these keys are used in dmenu_switcher
+              :buffers-without-files
+              (-filter (lambda (b) (not (buffer-file-name b)))
+                (buffer-list))
+
+              :buffers-with-files
               ;; remove nils
               (-remove 'not
                 (-map 'buffer-file-name (buffer-list)))
@@ -283,7 +288,7 @@
               )))
 
       (->> (or wants
-             '(:open-buffers :project-files :recentf))
+             '(:buffers-with-files :project-files :recentf))
 
         (-map (-partial #'plist-get sources))
         (-flatten)
@@ -846,6 +851,7 @@
 (defconfig irc        (ns/guard ns/enable-home-p) (load "~/.emacs.d/lisp/trees/irc.el"))
 (defconfig org        (load "~/.emacs.d/lisp/trees/org.el"))
 (defconfig org-capture (load "~/.emacs.d/lisp/trees/org-capture.el"))
+(defconfig org-pim (load "~/.emacs.d/lisp/trees/org-pim.el"))
 (defconfig sanity     (load "~/.emacs.d/lisp/trees/sanity.el"))
 (defconfig shell      (load "~/.emacs.d/lisp/trees/shell.el"))
 (defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))
