@@ -92,7 +92,46 @@
   (when (fboundp 'ns/style-circe) (ns/style-circe))
   (when (fboundp 'ns/style-org) (ns/style-org))
   (when (fboundp 'ns/style-markdown) (ns/style-markdown))
+
   (ns/doomline)
 
   (when (fboundp 'ns/blog-set-htmlize-colors) (ns/blog-set-htmlize-colors))
   )
+
+;; export the theme as shell env variables:
+(use-package theme-magic
+  :config
+  (defun ns/emacs-to-theme ()
+    (s-join "\n"
+      (append (seq-map-indexed
+                (fn (format "color%s=%s" (number-to-string <2>)
+                      (s-replace "#" "" <1>)))
+                (theme-magic--auto-extract-16-colors))
+
+        (-map
+          (fn
+            (format "%s=%s"
+              (car <>)
+              (s-replace "#" "" (ct-shorten (cadr <>)))))
+          (-partition 2
+            (append
+              (list
+                "foreground" (face-attribute 'default :foreground)
+                "background" (face-attribute 'default :background)
+                "cursorColor" (first evil-insert-state-cursor))
+              (->>
+                (list :normal :weak :strong :focused)
+                (-mapcat
+                  (lambda (bg-key)
+                    (-mapcat (fn (list <> bg-key))
+                      '(:background :foreground :faded :primary :alt :strings :assumed))))
+
+                (-partition 2)
+                (-mapcat
+                  (lambda (parts)
+                    (seq-let (fg-key bg-key) parts
+                      (list
+                        (format "e_%s_%s"
+                          (-> fg-key pr-string (substring 1))
+                          (-> bg-key pr-string (substring 1)))
+                        (tarp/get fg-key bg-key)))))))))))))

@@ -205,15 +205,13 @@ This works like `org-find-olp', but much faster."
           (org-ml-to-trimmed-string)
           (s-split "\n")
           (cdr)
-          (-filter (fn (not (s-blank-p <>))))
-          (first)
+          (-first (fn (not (s-blank-p <>))))
           (s-clean)
           ((lambda (link)
              (with-temp-buffer
                (insert link)
                (beginning-of-line)
-               (ns/follow))))
-          )))))
+               (ns/follow)))))))))
 
 (ns/bind
   "nl" #'linkmark-select
@@ -226,17 +224,23 @@ This works like `org-find-olp', but much faster."
        ;; ,(ns/make-project-capture "meta" nil "c")
        ,@(-map 'ns/make-project-capture ns/org-capture-project-list)
 
-       ;; ("Reminder" :keys "r"
-       ;;   :template "* %?\n%U\n"
-       ;;   )
-
-       ("standup" :keys "s"
+       ("story" :keys "s"
          :file ,org-default-notes-file
-         :olp ("standups")
-         :template ("* standup %U"
-                     "" "** What did you do yesterday?"
+         :olp ("stories")
+         :template ("* titleme"
+                     "# put the why here:"
+                     ;; ""
                      "%?"
-                     "" "** What do you want to do today?"
+                     "** Acceptance criteria" ""
+                     ;; "" "** Why"
+                     ;; todo: optionals: plan, additional context, out of scope -- "# ** thing"
+                     ;; could maybe include a second line with context/wants
+                     ;; "" "** Why"
+
+                     ""
+                     "** Plan" ""
+                     "# ** Additional Context" ""
+
                      ;; "[[%?]]"
                      ))
 

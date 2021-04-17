@@ -175,10 +175,16 @@
   (defun ns/org-note-share (heading)
     (org-ml-headline-get-node-property "share" heading))
 
-  (->> (ns/get-notes-nodes 'ns/org-note-share)
-    (-map 'ns/org-normalize)
-    (-map 'org-ml-to-string)
-    (s-join "\n")))
+  (let ((content (->>
+                   (ns/get-notes-nodes 'ns/org-note-share)
+                   (-map 'ns/org-normalize)
+                   (-map 'org-ml-to-string)
+                   (s-join "\n")))
+         (labs-folder (pass "labs-folder")))
+    (when (f-exists-p labs-folder)
+      (f-write (format "Exported on: %s\n\n %s" (ts-format (ts-now)) content)
+        'utf-8
+        (format "%s/notes.org" labs-folder)))))
 
 (defun! ns/export-blog-note-targets ()
   (defun ns/org-blog-note (heading)
@@ -217,8 +223,7 @@
   ;; accounts for current clock if it is under a casual heading
   (ns/with-notes
     (goto-char (ns/org-get-active-point))
-    (let* (
-            (clocked-casual-p (string= (first (org-get-outline-path)) "casual"))
+    (let* ((clocked-casual-p (string= (first (org-get-outline-path)) "casual"))
             (current-clock-time
               (if clocked-casual-p (ns/org-get-current-clock-time) 0))
             (casual-clocked-time

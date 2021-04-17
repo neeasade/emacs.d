@@ -34,7 +34,10 @@
     (setq magit-todos-keywords-list
       '("todo" "HOLD" "TODO" "NEXT" "THEM" "PROG" "OKAY" "DONT" "FAIL" "KLUDGE" "HACK" "TEMP" "FIXME" "XXX+"))
 
-    (magit-todos-mode)))
+    (magit-todos-mode
+      ;; magit-todos-mode is sometimes not smart about scanning thicc files
+      (if ns/enable-work-p t 0))
+    ))
 
 (use-package magit-svn :config
   (add-hook 'magit-mode-hook 'magit-svn-mode))

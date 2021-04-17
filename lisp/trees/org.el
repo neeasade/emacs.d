@@ -480,7 +480,7 @@
                              org-block-end-line
                              ))
 
-  ;; smol
+  ;; smol -- consider doing this in the tarp themes
   (set-face-attribute 'org-block-begin-line nil :height 65)
   (set-face-attribute 'org-block-end-line nil :height 65)
 
@@ -490,7 +490,8 @@
     `(
        (1 2 3 4 5 6)
        ;; (15 10 5 0 0 0)
-       ,(-repeat 6 0))
+       ,(-repeat 6 0)
+       )
     (apply #'-interleave)
     (-partition 2)
     (-map (-applify
@@ -508,13 +509,12 @@
                  ))))
     (-map #'eval))
 
-  (-map
-    #'ns/set-buffer-face-variable
-    (ns/buffers-by-mode 'org-mode))
+  (-map #'ns/set-buffer-face-variable (ns/buffers-by-mode 'org-mode))
   )
 
 (defun! ns/jump-to-notes-heading (&optional target-buffer handler)
   "jump to org headlines only within selected files"
+  ;; extracted from counsel
   (let* ((buffer-list
            (if target-buffer
              (list (find-file-noselect target-buffer))
@@ -591,9 +591,7 @@
   ;; cancel org-pomodoro or a clocked in task
   "oI" 'ns/org-clock-out
 
-  "no" #'ns/jump-to-notes-heading
-
-  )
+  "no" #'ns/jump-to-notes-heading)
 
 
 (ns/bind-mode 'org
