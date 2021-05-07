@@ -28,9 +28,8 @@
   default-diary-file  (concat org-directory "/journal.org")
   default-habits-file  (concat org-directory "/habits.org")
 
-  agenda-files
-  ;; all the files in our org directory
-  (f-entries org-directory (fn (s-ends-with-p ".org" <>))  t)
+  ;; one really big notes file
+  agenda-files (list org-default-notes-file)
 
   ;; weeks start on mondays
   agenda-start-on-weekday 1
@@ -118,21 +117,22 @@
 (defun ns/notes-current-standup-task (parent-headline)
   "Get a TODO underneath a headline that is passed in."
   (let ((standup-point
-	        (->> parent-headline
-	          cdr car
-	          ((lambda (props) (plist-get props :begin))))))
+          (->> parent-headline
+            cdr car
+            ((lambda (props) (plist-get props :begin))))))
     (or
       (with-current-buffer (get-file-buffer org-default-notes-file)
         (->> (org-ml-parse-element-at standup-point)
-	        (org-ml-get-children)
-	        (org-ml-match '(:any * (:pred ns/org-ml-not-done)))
+          (org-ml-get-children)
+          (org-ml-match '(:any * (:pred ns/org-ml-not-done)))
           first))
 
       parent-headline)))
 
 (defun! ns/org-get-next-review-point (&optional property)
   "Return the next captured thing to review"
-  ;; something to consider: organize by date, since we mark that with capture targets
+  ;; something to consider: organize by date,
+  ;; since we mark that with capture targets
   ;; then just treat dateless as priority above dated
   )
 
@@ -141,10 +141,10 @@
   (cond
     ((org-clocking-p) org-clock-marker)
     ((and org-clock-goto-may-find-recent-task
-	   (car org-clock-history)
-	   (marker-buffer (car org-clock-history)))
-	  (setq recent t)
-	  (car org-clock-history))
+       (car org-clock-history)
+       (marker-buffer (car org-clock-history)))
+      (setq recent t)
+      (car org-clock-history))
     (t (user-error "No active or recent clock task"))))
 
 (defun! ns/org-get-active-point (&optional property)
@@ -489,8 +489,8 @@
   (->>
     `(
        (1 2 3 4 5 6)
-       ;; (15 10 5 0 0 0)
-       ,(-repeat 6 0)
+       (15 10 5 0 0 0)
+       ;; ,(-repeat 6 0)
        )
     (apply #'-interleave)
     (-partition 2)

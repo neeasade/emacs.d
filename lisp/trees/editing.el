@@ -86,8 +86,17 @@
 (use-package yasnippet-snippets)
 (use-package yasnippet :config (yas-global-mode 1))
 
-(add-hook 'sh-mode-hook
-  (lambda () (sh-electric-here-document-mode -1)))
+(defun ns/sh-mode-init-hook ()
+  (sh-electric-here-document-mode -1)
+
+  ;; (setq-local sh-basic-offset 2)
+  ;; (setq-local sh-indentation 2)
+  ;; (setq tab-width 2)
+
+  ;; (setq-local indent-tabs-mode nil)
+  )
+
+(add-hook 'sh-mode-hook 'ns/sh-mode-init-hook)
 
 ;; lisp stuff
 (use-package lispy)

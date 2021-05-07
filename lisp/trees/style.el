@@ -95,7 +95,8 @@
 
   (ns/doomline)
 
-  (when (fboundp 'ns/blog-set-htmlize-colors) (ns/blog-set-htmlize-colors))
+  (when ns/enable-blog-p
+    (ns/blog-set-htmlize-colors))
   )
 
 ;; export the theme as shell env variables:
