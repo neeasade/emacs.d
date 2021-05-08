@@ -32,10 +32,11 @@
   "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
   (llet [scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)
           todo-state (org-ml--get-property-nocheck :todo-keyword heading)]
-    (when (string= todo-state "TODO")
-      (when scheduled
-        (ts> (ts-now)
-          (ts-parse-org (plist-get (cadr scheduled) :raw-value)))))))
+    (when (and
+            (string= todo-state "TODO")
+            scheduled)
+      (ts> (ts-now)
+        (ts-parse-org (plist-get (cadr scheduled) :raw-value))))))
 
 ;; track headlines to notification status
 (when (not (boundp 'ns/org-notify-ht))
@@ -60,10 +61,11 @@
                   (cadr it)
                   (plist-get it :raw-value)
                   (ts-parse-org it)))))
+
     ;; process notifications
     (-map
       (lambda (pair)
-        (cl-destructuring-bind (headline timestamp) pair
+        (seq-let (headline timestamp) pair
           ;; ensure we're tracking the headline
           (when (not (ht-contains? ns/org-notify-ht headline))
             (ht-set! ns/org-notify-ht headline nil))
@@ -268,10 +270,16 @@
           :severity 'normal
           :title "TIME"
           ))
-
       (ns/org-check-casual-time-today t))))
-
-(named-timer-cancel :harass-myself)
 
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
 (setq org-clock-idle-time nil)
+
+(defun! ns/org-clock-into-misc ()
+  (llet [position (->> `(,org-default-notes-file "casual" "misc")
+                    ns/org-find-olp
+                    marker-position)]
+    (ns/with-notes
+      (goto-char position)
+      (org-clock-in))))
+

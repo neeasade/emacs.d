@@ -594,36 +594,34 @@
 
 (defun! ns/style-circe ()
   "Make chat pretty."
-  (let*
-    ((highlight-fg (tarp/get :alt))
-      (fade-fg (tarp/get :faded)))
+  (set-face-attribute 'circe-prompt-face nil :background nil)
 
-    (set-face-attribute 'circe-server-face          nil  :foreground fade-fg)
-    (set-face-attribute 'lui-time-stamp-face        nil  :foreground fade-fg)
-    (set-face-attribute 'circe-prompt-face          nil  :foreground fade-fg)
-    (set-face-attribute 'circe-my-message-face      nil  :foreground fade-fg)
-    (set-face-attribute 'circe-highlight-nick-face  nil  :foreground highlight-fg)
-    (set-face-attribute 'circe-originator-face      nil  :foreground highlight-fg)
+  (llet [highlight-fg (tarp/get :alt)
+          fade-fg (tarp/get :faded)]
 
     (defface circe-originator-fade-face
       `((t :foreground ,fade-fg))
       "circe actions and self-say characters")
 
-    ;; urls
-    (set-face-attribute 'lui-button-face nil :foreground highlight-fg)
-    (set-face-attribute 'lui-button-face nil :underline nil)
+    (->> `(circe-server-face          ,fade-fg
+            lui-time-stamp-face        ,fade-fg
+            circe-prompt-face          ,fade-fg
+            circe-my-message-face      ,fade-fg
+            circe-highlight-nick-face  ,highlight-fg
+            circe-originator-face      ,highlight-fg)
+      (-partition 2)
+      (-map
+        (-applify
+          (lambda (face fg-color)
+            (set-face-attribute face nil :foreground fg-color))))))
 
-    (set-face-attribute 'circe-prompt-face nil :background nil)
+  (ns/set-faces-monospace '(circe-originator-face circe-prompt-face circe-originator-fade-face))
 
-    (ns/set-faces-monospace '(circe-originator-face circe-prompt-face circe-originator-fade-face))
-
-    ;; apply the hook to everyone to update body font
-    (dolist (b (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))
-      (with-current-buffer b
-        (ns/set-buffer-face-variable)
-        ;; turn off quits and joins in high member count channels
-        (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100)))))
-  )
+  (dolist (b (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))
+    (with-current-buffer b
+      (ns/set-buffer-face-variable)
+      ;; turn off quits and joins in high member count channels
+      (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100)))))
 
 (defmacro ns/circe-bind (&rest binds)
   "Bind BINDS in normal/insert mode, in both channel and query buffers."
