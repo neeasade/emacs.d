@@ -20,7 +20,9 @@
   :foreground (tarp/get :foreground :weak))
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (tarp/get :background :strong))
+  (ct-transform-hsluv-l
+    (tarp/get :background :strong)
+    (-rpartial '- 10)))
 
 ;; (face-attribute 'mode-line :foreground)
 (set-face-attribute 'doom-modeline-buffer-file nil :foreground (ht-get ns/theme :foreground))

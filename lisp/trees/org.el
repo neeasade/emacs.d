@@ -437,10 +437,7 @@
           (not (and (boundp 'flyspell-mode)
                  flyspell-mode))
           (flyspell-mode))
-        (flyspell-correct-wrapper)))
-
-    )
-  )
+        (flyspell-correct-wrapper)))))
 
 (defun ns/org-mode-hook ()
   (olivetti-mode)

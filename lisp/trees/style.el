@@ -84,7 +84,7 @@
   (->>
     `(internal-border-width ,(if ns/enable-home-p 0 10)
        right-divider-width 1
-       bottom-divider-width 1
+       bottom-divider-width 0
        font ,(get-resource "st.font"))
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))

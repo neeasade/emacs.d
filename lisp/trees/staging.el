@@ -167,3 +167,39 @@
        ("\\.x?html?\\'" . default)
        ("\\.pdf\\'" . default)
        (t . emacs))))
+
+
+;; terminal setup
+(when (and ns/enable-mac-p
+        (not window-system))
+
+  ;; style
+  (use-package evil-terminal-cursor-changer
+    :config
+    (evil-terminal-cursor-changer-activate))
+
+  (setq flycheck-indication-mode 'left-margin)
+
+  (setq-default left-margin-width 1 right-margin-width 1)
+
+  (defun! ns/windows-set-margins ()
+    (-map (-rpartial 'set-window-margins left-margin-width right-margin-width)
+      (window-list)))
+
+  (ns/windows-set-margins)
+
+  (set-face-attribute 'flycheck-error nil :underline nil)
+
+  ;; utility:
+  (xterm-mouse-mode 1)
+
+  (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
+  (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
+
+  (use-package xclip :config (xclip-mode t)))
+
+;; this doesn't work for getting tab in notes.org
+(evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+
+;; (evil-define-key 'normal org-mode-map (kbd "\t") #'org-cycle)
+

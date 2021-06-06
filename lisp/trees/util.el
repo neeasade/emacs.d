@@ -114,6 +114,7 @@
 
   (request
     (simpleclip-get-contents)
+
     :type "GET"
     :parser 'buffer-string
     :success
@@ -264,7 +265,6 @@
 (use-package crux)
 
 ;; todo: insert qute selected text would be nice
-
 (defun! ns/insert-qute-url ()
   (llet [url (ns/shell-exec "qb_active_url")]
     (if (s-blank-p url)
@@ -301,7 +301,10 @@
   "nc" 'ns/jump-config
   "tb" 'ns/toggle-bloat
 
+  ;; todo: title/auto link with title, insert region (would need a qute script?)
   "iu" 'ns/insert-qute-url
+  ;; "iU" 'ns/insert-qute-url-title
+
   "ih" 'ns/insert-history
   )
 

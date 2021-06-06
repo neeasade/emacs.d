@@ -154,7 +154,8 @@
       (counsel-dash (buffer-substring (region-beginning) (region-end)))
       (counsel-dash "")))
 
-  (ns/bind "nd" 'ns/counsel-dash-word)
+  ;; doesn't work, dired/switch
+  ;; (ns/bind "nd" 'ns/counsel-dash-word)
 
   )
 
@@ -200,8 +201,7 @@
 
   (ns/bind-mode 'clojure
     "e" 'ns/smart-cider-eval
-    "E" 'cider-eval-print-last-sexp
-    )
+    "E" 'cider-eval-print-last-sexp)
 
   (add-to-list 'interpreter-mode-alist '("bb" . clojure-mode))
   (add-to-list 'interpreter-mode-alist '("joker" . clojure-mode))
@@ -411,51 +411,6 @@
 
 (defconfig terraform
   (use-package terraform-mode))
-
-(defconfig email
-  (ns/guard ns/enable-home-p)
-  (ns/guard nil)
-
-  ;; (use-package wanderlust :init (autoload 'wl "wl" "Wanderlust" t))
-
-  ;; IMAP
-  (setq elmo-imap4-default-server "imap.gmail.com")
-  (setq elmo-imap4-default-user (pass "gmail/user"))
-  (setq elmo-imap4-default-authenticate-type 'clear)
-  (setq elmo-imap4-default-port '993)
-  (setq elmo-imap4-default-stream-type 'ssl)
-
-  (setq elmo-imap4-use-modified-utf7 t)
-
-  ;; SMTP
-  (setq wl-smtp-connection-type 'starttls)
-  (setq wl-smtp-posting-port 587)
-  (setq wl-smtp-authenticate-type "plain")
-  (setq wl-smtp-posting-user (pass "gmail/user"))
-  (setq wl-smtp-posting-server "smtp.gmail.com")
-  (setq wl-local-domain "gmail.com")
-
-  (setq wl-default-folder "%inbox")
-  (setq wl-default-spec "%")
-  (setq wl-draft-folder "%[Gmail]/Drafts") ; Gmail IMAP
-  (setq wl-trash-folder "%[Gmail]/Trash")
-
-  (setq wl-folder-check-async t)
-
-  ;; ???
-  (setq elmo-imap4-use-modified-utf7 t)
-
-  (autoload 'wl-user-agent-compose "wl-draft" nil t)
-  (setq mail-user-agent 'wl-user-agent)
-
-  (define-mail-user-agent
-    'wl-user-agent
-    'wl-user-agent-compose
-    'wl-draft-send
-    'wl-draft-kill
-    'mail-send-hook)
-
-  )
 
 (defconfig jekyll
   (use-package jekyll-modes))
@@ -675,53 +630,6 @@
       "ie" 'emojify-insert-emoji
       "te" 'emojify-mode)))
 
-(defconfig elfeed
-  (ns/guard ns/enable-home-p)
-  ;; checking out miniflux+wallabag
-  (ns/guard nil)
-
-  (use-package elfeed)
-  (use-package elfeed-protocol)
-
-  (ns/bind "af" 'elfeed)
-
-  ;; (setq elfeed-feeds
-  ;;   '(
-  ;;      "https://hnrss.org/newest?q=emacs"
-  ;;      "http://pragmaticemacs.com/feed/"
-  ;;      "http://xkcd.com/rss.xml"
-  ;;      )
-  ;;   )
-
-  (setq elfeed-use-curl t)
-  (elfeed-set-timeout 36000)
-
-  ;; (setq elfeed-curl-extra-arguments '("--insecure")) ;necessary for https without a trust certificate
-
-  (elfeed-protocol-fever-reinit "redacted")
-
-  (setq elfeed-feeds (list
-                       (list "fever+<redacted"
-                         :api-url "redacted"
-                         :password "<redacted"
-                         :username ""
-                         :autotags '(("example.com" comic))
-                         ))
-
-    )
-
-  ;; Entries older than 2 weeks are marked as read
-  ;; (add-hook 'elfeed-new-entry-hook
-  ;;   (elfeed-make-tagger :before "2 weeks ago"
-  ;;     :remove 'unread))
-
-
-  ;; (use-package elfeed-goodies
-  ;;   :config (elfeed-goodies/setup))
-
-  ;; (use-package elfeed-org)
-  )
-
 (defconfig powershell
   (ns/guard ns/enable-windows-p)
   (use-package powershell))
@@ -791,15 +699,16 @@
 
 (defconfig server
   ;; cf https://tychoish.com/post/running-multiple-emacs-daemons-on-a-single-system/
-  ; (setq server-use-tcp t)
+  ;; (setq server-use-tcp t)
 
   ;; https://stackoverflow.com/questions/885793/emacs-error-when-calling-server-start
   ;; this is the wrong way to do this.
   ;; TODO: auto chmod?
-  ; (defun server-ensure-safe-dir (dir) "Noop" t)
+  ;; (defun server-ensure-safe-dir (dir) "Noop" t)
 
   (require 'server)
   (unless (server-running-p)
+
     (when ns/enable-windows-p
       (setq-ns server
         auth-dir (~ ".emacs.d/server")

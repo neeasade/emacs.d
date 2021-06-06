@@ -200,7 +200,6 @@
         (fn! (counsel-rg nil default-directory))
         (fn! (counsel-git-grep nil default-directory)))
 
-  "TAB" '(switch-to-other-buffer :which-key "prev buffer")
   "SPC" 'counsel-M-x
 
   ;; windows

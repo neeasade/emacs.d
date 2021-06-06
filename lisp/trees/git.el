@@ -36,7 +36,8 @@
 
     (magit-todos-mode
       ;; magit-todos-mode is sometimes not smart about scanning thicc files
-      (if ns/enable-work-p t 0))
+      (if ns/enable-work-p 0 t))
+
     ))
 
 (use-package magit-svn :config

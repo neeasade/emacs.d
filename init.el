@@ -3,13 +3,20 @@
 ;;; commentary:
 ;;; code:
 
+
 (setq
   ns/enable-windows-p (eq system-type 'windows-nt)
   ns/enable-linux-p (eq system-type 'gnu/linux)
   ns/enable-mac-p (eq system-type 'darwin)
 
-  mac-command-modifier 'control
+  ;; default:
+  mac-command-modifier 'super
   mac-option-modifier 'meta
+  mac-control-modifier 'control
+
+  ;; mac-command-modifier 'control
+  ;; mac-option-modifier 'meta
+  ;; mac-control-modifier 'super
 
   ns/enable-home-p (string= (getenv "USER") "neeasade")
 
@@ -104,14 +111,7 @@
   ;; jekyll
   ;; plantuml
   python
-  )
-
-(ns/compose
-  communication
-
   irc
-  email
-  ;; elfeed
   )
 
 (if (getenv "NS_EMACS_BATCH")
@@ -124,7 +124,6 @@
   (ns/core)
   (ns/extra)
   (ns/development)
-  (ns/communication)
   (ns/staging)
   (ns/check-for-orphans)
   (ns/style)
