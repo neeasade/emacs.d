@@ -104,7 +104,7 @@ This works like `org-find-olp', but much faster."
           (when (not (ns/org-find-olp path))
             (org-insert-heading-respect-content)
             (org-demote-subtree)
-            (insert (car (last path)))))))))
+            (insert (-last-item path))))))))
 
 (ns/use-package org-doct "progfolio/doct"
   :config

@@ -6,10 +6,6 @@
               :files ("lisp/*.el" "contrib/lisp/*.el")))
 
 (require 'org-habit)
-
-;; give us easy templates/tab completion like yasnippet and the like
-;; form is '<<key><tab>', eg <s<tab> expands to src block
-;; todo: reference what all this gives us: https://orgmode.org/manual/Easy-templates.html
 (require 'org-tempo)
 
 ;; nice functional org library
@@ -109,7 +105,6 @@
     (org-delete-property-globally prop)
     (org-set-property prop (or value "t"))))
 
-
 (defun ns/org-ml-not-done (node)
   (and (eq (org-ml-get-type node) 'headline)
     (not (org-ml-headline-is-done node))))
@@ -177,8 +172,8 @@
   (ns/org-jump-to-element-content))
 
 (use-package org-pomodoro
-  ;; pomodoro, tied to music playing status
   :config
+
   (defun ns/toggle-music (action)
     (let ((target (or (executable-find "player.sh") "mpc")))
       (ns/shell-exec-dontcare (concat target " " action))))
@@ -187,26 +182,39 @@
   (defun ns/toggle-music-play () (ns/toggle-music "play"))
   (defun ns/toggle-music-pause () (ns/toggle-music "pause"))
 
+  (when ns/enable-mac-p
+    (defun ns/toggle-music-play ()
+      (ns/shell-exec-dontcare (format "macos-vol setvol %s" ns/macos-vol)))
+    (defun ns/toggle-music-pause ()
+      (setq ns/macos-vol (ns/shell-exec "macos-vol get"))
+      (ns/shell-exec-dontcare "macos-vol setvol 0")))
+
   (defun! ns/focus-mode-enter ()
     (ns/toggle-music-play)
-    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_PAUSE")
+
+    (when ns/enable-home-p
+      (ns/shell-exec-dontcare "dunstctl set-paused true")
+      (ns/shell-exec-dontcare "panelt stop"))
+
     ;; turn off distracting websites
     ;; list stolen from https://raw.githubusercontent.com/viccherubini/get-shit-done/master/sites.ini
     ;; and extended a little bit
-    (->>
-      "mastodon.social, aurora.web.telegram.org, lobste.rs, nixers.net, old.reddit.com, reddit.com, www.reddit.com, web.telegram.org, forums.somethingawful.com, somethingawful.com, digg.com, break.com, news.ycombinator.com, infoq.com, bebo.com, api.twitter.com, zulipchat.com, twitter.com, facebook.com, blip.com, youtube.com, vimeo.com, delicious.com, flickr.com, friendster.com, hi5.com, linkedin.com, livejournal.com, meetup.com, myspace.com, plurk.com, stickam.com, stumbleupon.com, yelp.com, slashdot.org, plus.google.com, hckrnews.com, kongregate.com, newgrounds.com, addictinggames.com, hulu.com"
+    (->> "mastodon.social, aurora.web.telegram.org, lobste.rs, nixers.net, old.reddit.com, reddit.com, www.reddit.com, web.telegram.org, forums.somethingawful.com, somethingawful.com, digg.com, break.com, news.ycombinator.com, infoq.com, bebo.com, api.twitter.com, zulipchat.com, twitter.com, facebook.com, blip.com, youtube.com, vimeo.com, delicious.com, flickr.com, friendster.com, hi5.com, linkedin.com, livejournal.com, meetup.com, myspace.com, plurk.com, stickam.com, stumbleupon.com, yelp.com, slashdot.org, plus.google.com, hckrnews.com, kongregate.com, newgrounds.com, addictinggames.com, hulu.com"
       (s-replace ", " "\n")
       ((lambda (content)
          (f-write content 'utf-8 (~ ".config/qutebrowser/adblock.txt")))))
     (ns/shell-exec-dontcare "qb_command :adblock-update")
-    (ns/shell-exec-dontcare "panelt false"))
+    )
 
   (defun! ns/focus-mode-quit ()
     (ns/toggle-music-pause)
-    (ns/shell-exec-dontcare "notify-send DUNST_COMMAND_RESUME")
+
+    (when ns/enable-home-p
+      (ns/shell-exec-dontcare "dunstctl set-paused false")
+      (ns/shell-exec-dontcare "panelt start"))
+
     (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
-    (ns/shell-exec-dontcare "qb_command :adblock-update")
-    (ns/shell-exec-dontcare "panelt true"))
+    (ns/shell-exec-dontcare "qb_command :adblock-update"))
 
   (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-enter)
   (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-enter)
@@ -230,7 +238,7 @@
   (org-show-children)
   ;; (org-show-subtree)
 
-  (let* ((props (cadr (org-ml-parse-this-headline)))
+  (let* ((props (second (org-ml-parse-this-headline)))
           (contents-begin (plist-get props :contents-begin))
           (begin (plist-get props :begin)))
     (goto-char (or contents-begin begin))
@@ -542,10 +550,21 @@
   (when (org-clock-is-active)
     (if (org-pomodoro-active-p)
       (org-pomodoro)
-      ;; todo: subtract idle time (right not the loss is small, like 3 min)
-      ;; something like org-clockout nil t (- (org-current-time) idle-time)
-      (org-clock-out))
+      (llet [idle-start-time (seconds-to-time
+                               (ts-unix
+                                 (ts-adjust 'second
+                                   (- (org-user-idle-seconds))
+                                   (ts-now))))]
+        (org-clock-out nil t idle-start-time)))
+
+
     (ns/with-notes (save-buffer))))
+
+(defun! ns/org-clock-in ()
+  "Clock into headline at point"
+  (ns/org-clock-out)
+  (org-clock-in)
+  (save-buffer))
 
 (ns/bind
   "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
@@ -578,16 +597,10 @@
   "ot" 'org-archive-subtree
 
   ;; this is just a nice homerow roll on my layout
-
-  ;; clock into the current headline, clocking out of what's running
-  "oi" (fn!
-         (ns/org-clock-out)
-         (org-clock-in)
-         (save-buffer))
-
-  ;; cancel org-pomodoro or a clocked in task
+  "oi" 'ns/org-clock-in
   "oI" 'ns/org-clock-out
 
+  ;; todo: jump to heading general markup as well (markdown, adoc)
   "no" #'ns/jump-to-notes-heading)
 
 
