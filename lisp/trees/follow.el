@@ -1,7 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 ;; follow <thing> at point
 ;; <thing> can be a file location, one of many kinds of emacs links, a code definition, whatever.
-;; TODO: idea: in shell mode, if over file in $PATH, just go to it
 
 ;; give me org-open-link-from-string
 (require 'org)
@@ -27,7 +26,7 @@
           (when (f-exists-p filepath)
             (org-link-open-from-string
               (format "[[file:%s::%s]]" filepath (cadr (reverse parts))))
-            (move-to-column (string-to-number (car (last parts))))
+            (move-to-column (string-to-number (-last-item parts)))
             t)))
 
       ((s-matches-p (pcre-to-elisp ".*:[0-9]+") file)

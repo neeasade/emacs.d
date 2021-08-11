@@ -89,25 +89,28 @@
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
-  (when (fboundp 'ns/style-circe) (ns/style-circe))
-  (when (fboundp 'ns/style-org) (ns/style-org))
-  (when (fboundp 'ns/style-markdown) (ns/style-markdown))
-
   (ns/doomline)
 
+  (-map (fn (when (fboundp <>)
+              (funcall <>)))
+    '(ns/style-circe
+       ns/style-org
+       ns/style-markdown
+       ns/style-terminal))
+
   (when ns/enable-blog-p
-    (ns/blog-set-htmlize-colors))
-  )
+    (ns/blog-set-htmlize-colors)))
 
 ;; export the theme as shell env variables:
 (use-package theme-magic
   :config
   (defun ns/emacs-to-theme ()
     (s-join "\n"
-      (append (seq-map-indexed
-                (fn (format "color%s=%s" (number-to-string <2>)
-                      (s-replace "#" "" <1>)))
-                (theme-magic--auto-extract-16-colors))
+      (append
+        (seq-map-indexed
+          (fn (format "color%s=%s" (number-to-string <2>)
+                (s-replace "#" "" <1>)))
+          (theme-magic--auto-extract-16-colors))
 
         (-map
           (fn

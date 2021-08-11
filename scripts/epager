@@ -17,8 +17,15 @@ else
     if [ $(wc -l < "$target") -lt "$window_height" ]; then
 	cat "$target"
     else
-	mode=${1:-text-mode}
-	elisp "(ns/find-or-open \"${target}\") (${mode})"
+	first_line=$(head -n 1 "$target")
+
+	if [[ $first_line = diff* ]]; then
+	    mode=diff-mode
+	else
+	    mode=${1:-text-mode}
+	fi
+
+	elisp "(ns/find-or-open \"${target}\") (${mode}) (Man-cleanup-manpage)"
     fi
 fi
 

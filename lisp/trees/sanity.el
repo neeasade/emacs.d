@@ -231,7 +231,6 @@
 
   "i" '(:ignore t :which-key "Insert")
   "ic" 'insert-char
-  "if" (fn! (insert (f-filename (buffer-file-name))))
-  "ip" (fn! (insert (buffer-file-name)))
+  "if" (fn! (insert (buffer-file-name)))
   "id" (fn! (org-time-stamp t))
   "iD" (fn! (org-time-stamp nil)))

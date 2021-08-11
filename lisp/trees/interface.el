@@ -87,6 +87,8 @@
   "s"
   (fn!
     (let ((existing-shell
+            ;; existing-shell = a shell with the same cwd as the dired buffer we are looking at
+
             ;; there's a silly issue here.
             ;; when we call f-full tramp connections are realized but might not be connected, meaning lag/failure
             ;; but we need f-full because sometimes '~' is used in default directory
@@ -157,6 +159,16 @@
         (round)
         (* 10)))))
 
+(defun! ns/kill-buffers-missing-file ()
+  "Kill buffers referencing a file that doesn't exist (EG, the file may have moved or been deleted)"
+  (->> (buffer-list)
+    (-keep
+      (fn (llet [filename (buffer-local-value 'buffer-file-truename <>)]
+            (when (and filename
+                    (not (f-exists-p filename)))
+              <>))))
+    (-map #'kill-buffer)))
+
 (defun! ns/kill-buffers-by-mode ()
   (ivy-read "mode to kill: "
     (->> (buffer-list)
@@ -210,6 +222,7 @@
   "wl" 'evil-window-right
   "wd" 'evil-window-delete
   "ww" 'other-window
+  "wb" 'balance-windows-area
   "ws" (fn! (split-window-horizontally)
          (evil-window-right 1))
   "wS" (fn!
@@ -223,8 +236,7 @@
 
   ;; todo idea here: check if we are in a shell, if so, make that the staged shell (or 'dired' shell)
   ;; so we can have fluid state across dired transitions "s" <--> "SPC d"
-  "d" (fn! (setq ns/dired-last-file (buffer-file-name))
-        (dired "."))
+  "d" (fn! (setq ns/dired-last-file (buffer-file-name)) (dired "."))
 
   "a" '(:ignore t :which-key "Applications")
   "q" '(:ignore t :which-key "Query")
