@@ -94,7 +94,6 @@
   archive-subtree-save-file-p t
   )
 
-;; todo: maybe don't be redundant with nested with-notes calls -- check current buffer at outset, maybe set a variable or something
 (defmacro ns/with-notes (&rest body)
   `(with-current-buffer (find-file-noselect org-default-notes-file)
      (save-excursion
@@ -583,6 +582,8 @@
          (ns/org-goto-active))
 
   "oc" (fn! (if (use-region-p)
+              ;; todo: currently ns/capture-current-region is very opinionated it should maybe allow you
+              ;; to SEE what you are capturing instead of defaulting to refile-like behavior
               (ns/capture-current-region)
               (org-capture)))
 

@@ -287,9 +287,7 @@
               :recentf recentf-list
               )))
 
-      (->> (or wants
-             '(:buffers-with-files :project-files :recentf))
-
+      (->> (or wants '(:recentf :project-files :buffers-with-files))
         (-map (-partial #'plist-get sources))
         (-flatten)
         (-uniq)

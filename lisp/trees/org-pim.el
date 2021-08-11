@@ -4,36 +4,33 @@
 
 (named-timer-run :auto-clock-out
   "30 sec"
-  30
+  60
   (fn (when (> (org-user-idle-seconds)
-              (* 3 60))
-
+              (* 10 60))
         (when (not (ns/media-playing-p))
           (ns/org-clock-out)))))
 
 (defun ns/get-notes-nodes (&optional filter-pred)
   "Retrieve nodes from notes file for read-only operations."
-  (ns/with-notes
+  (llet [all-nodes (ns/with-notes (org-ml-get-subtrees))]
     (if filter-pred
-	    (org-ml-match `(:any * (:pred ,filter-pred)) (org-ml-get-subtrees))
-      (org-ml-get-subtrees))))
+      (org-ml-match `(:any * (:pred ,filter-pred)) all-nodes)
+      all-nodes)))
 
 (defun ns/org-scheduled-today (heading)
   "Get headings scheduled from <now - 2hrs> --> end of day"
-  (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
-    (when scheduled
-      (let (scheduled-value)
-        (ts-in
-          (ts-adjust 'hour -2 (ts-now))
-          (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
-          (ts-parse-org (plist-get (cadr scheduled) :raw-value)))))))
+  (-when-let (scheduled (plist-get (cadr (org-ml-headline-get-planning heading))
+                          :scheduled))
+    (ts-in
+      (ts-adjust 'hour -2 (ts-now))
+      (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
+      (ts-parse-org (plist-get (cadr scheduled) :raw-value)))))
 
 (defun ns/org-scheduled-past-todo (heading)
   "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
   (llet [scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)
           todo-state (org-ml--get-property-nocheck :todo-keyword heading)]
-    (when (and
-            (string= todo-state "TODO")
+    (when (and (string= todo-state "TODO")
             scheduled)
       (ts> (ts-now)
         (ts-parse-org (plist-get (cadr scheduled) :raw-value))))))
@@ -67,7 +64,7 @@
       (lambda (pair)
         (seq-let (headline timestamp) pair
           ;; ensure we're tracking the headline
-          (when (not (ht-contains? ns/org-notify-ht headline))
+          (when-not (ht-contains? ns/org-notify-ht headline)
             (ht-set! ns/org-notify-ht headline nil))
 
           (when (and
@@ -75,7 +72,7 @@
                   (ts> (ts-now)
                     ;; get notified in advance
                     (ts-adjust 'minute -3 timestamp)))
-            (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
+            (ns/shell-exec "dunstctl set-paused false")
             (alert! headline
               :severity 'normal
               :title (ts-format "%l:%M %p" timestamp))
@@ -92,10 +89,13 @@
 (named-timer-run :org-notify-scheduled-reset t (* 60 60 24) 'ns/org-notify-reset)
 
 (defun ns/export-scheduled-org-headings-past ()
-  (let ((count (length (ns/get-notes-nodes 'ns/org-scheduled-past-todo))))
-    (if (> count 0)
-      (format "outdated: %s" count)
-      "")))
+  (llet [outdated (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
+          outdated-next (-> outdated first org-ml-headline-get-path -last-item)
+          count (length outdated)]
+    (when (> count 0)
+      (if (= count 1)
+        (format "outdated: %s" outdated-next)
+        (format "outdated: %s (next: %s)" count outdated-next)))))
 
 (defun! ns/org-jump-to-old-org-heading ()
   (-if-let (out-of-date (ns/get-notes-nodes 'ns/org-scheduled-past-todo))
@@ -176,9 +176,7 @@
 (defun! ns/org-export-shared ()
   (defun ns/org-note-share (heading)
     (org-ml-headline-get-node-property "share" heading))
-
-  (let ((content (->>
-                   (ns/get-notes-nodes 'ns/org-note-share)
+  (let ((content (->> (ns/get-notes-nodes 'ns/org-note-share)
                    (-map 'ns/org-normalize)
                    (-map 'org-ml-to-string)
                    (s-join "\n")))
@@ -217,7 +215,7 @@
       (ts-unix))))
 
 ;; this is measured in minutes
-(setq ns/org-casual-timelimit (* 60 5))
+(setq ns/org-casual-timelimit (* 60 3))
 
 (defun ns/org-check-casual-time-today (&optional notify)
   ;; returns remaining casual minutes
@@ -233,18 +231,16 @@
                 (goto-char (org-find-property "casual"))
                 (ns/org-clock-sum-day))))
 
-      (when (and
-              (or notify nil)
+      (when (and (or notify nil)
               clocked-casual-p
               (> (+ casual-clocked-time current-clock-time)
                 ns/org-casual-timelimit))
-        (ns/shell-exec "notify-send DUNST_COMMAND_RESUME")
+        (ns/shell-exec "dunstctl set-paused false")
         (alert! (format "You are out of casual time for today.")
           :severity 'normal
           :title "TIME"))
       (- ns/org-casual-timelimit
-        (+ casual-clocked-time current-clock-time))
-      )))
+        (+ casual-clocked-time current-clock-time)))))
 
 (ns/comment
   (ns/org-check-casual-time-today)
@@ -270,16 +266,16 @@
           :severity 'normal
           :title "TIME"
           ))
-      (ns/org-check-casual-time-today t))))
+      (when ns/enable-home-p
+        (ns/org-check-casual-time-today t)))))
 
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
 (setq org-clock-idle-time nil)
 
 (defun! ns/org-clock-into-misc ()
-  (llet [position (->> `(,org-default-notes-file "casual" "misc")
+  (llet [position (->> `(,org-default-notes-file "misc")
                     ns/org-find-olp
                     marker-position)]
     (ns/with-notes
       (goto-char position)
-      (org-clock-in))))
-
+      (ns/org-clock-in))))

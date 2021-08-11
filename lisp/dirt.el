@@ -54,18 +54,20 @@
 (defalias 'second 'cadr)
 (defalias 'third 'caddr)
 
-
-;; note to self: you're doing this wrong
-;; prn should be pr-string
-;; pr-message should be what prn is now
-
 ;; alias/clojure
 (defalias 'pr-string 'prin1-to-string)
-
 (defalias '-join '-interpose)
 
 (defun prn (&rest sexp)
   (message (s-join " " (-map 'pr-string sexp))) nil)
+
+(defmacro llet (args &rest body)
+  ;; the append is to convert [vectors] to lists
+  `(let* ,(-partition 2 (append args nil)) ,@body))
+
+(defmacro when-not (condition &rest body)
+  `(when (not ,condition)
+     ,@body))
 
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
@@ -101,10 +103,10 @@
       (cons 'setq)
       (-flatten-n 1))))
 
-(defun ~ (path)
-  (concat
-    (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
-    (if ns/enable-windows-p "\\" "/") path))
+(defmacro ~ (path)
+  (llet [home (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
+          delim (if ns/enable-windows-p "\\" "/")]
+    `(format "%s%s%s" ,home ,delim ,path)))
 
 ;; todo: consider conflict management/at the time of binding yell about the takeover
 ;; (general-unbind
@@ -311,12 +313,6 @@
   (range 10 10)
   (range 0 10)
   (range 0 360 90))
-
-;; clojure like let
-(defmacro llet (args &rest body)
-  ;; the append is to convert [vectors] to lists
-  `(let* ,(-partition 2 (append args nil)) ,@body))
-
 ;; extension to ht.el
 (defmacro ht-with-context (table &rest content)
   (-tree-map
@@ -341,3 +337,7 @@
            (if (= 0 (+ index 1)) nil (+ index 1))))
     (nth index coll)))
 
+(defun ns/re-search-forward (search-term)
+  "A version of re-search-forward that sets point to the beginning of the match, not the end"
+  (re-search-forward search-term)
+  (backward-char (count search-term)))

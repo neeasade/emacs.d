@@ -180,15 +180,16 @@
   (defun ns/sh-has-content-p (cmd)
     (-> cmd ns/shell-exec s-blank-p not))
 
-  (or
-    (ns/sh-has-content-p "playerctl metadata 2>/dev/null | grep -i netflix")
-    (ns/sh-has-content-p "playerctl metadata 2>/dev/null | grep -i 'prime video'")
-    (ns/sh-has-content-p "pgrep mpv")
-    (ns/sh-has-content-p "pgrep vlc")
+  ;; todo: this should detect if in zoom meeting
+  (-any-p 'ns/sh-has-content-p
+    '("playerctl metadata 2>/dev/null | grep -i netflix"
+       "playerctl metadata 2>/dev/null | grep -i 'prime video'"
+       "pgrep mpv"
+       "pgrep vlc"
 
-    ;; adhoc hack (uncomment this when viewing something in an unaccounted for medium)
-    ;; t
-    ))
+       ;; adhoc hack (uncomment this when viewing something in an unaccounted for medium)
+       ;; "echo foo"
+       )))
 
 (named-timer-run :maybe-garbage-collect
   ;; run garbage collection every ~5 minutes when we've been away for longer than 5 minutes.

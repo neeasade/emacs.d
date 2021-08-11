@@ -287,24 +287,23 @@ This works like `org-find-olp', but much faster."
     (when (s-blank-str-p (thing-at-point 'line)) (kill-whole-line))))
 
 (defun! ns/capture-current-region ()
-  ;; keep the initial region
-  (let ((ns/region-points (list (region-beginning) (region-end))))
+  (let* ((ns/region-points (list (region-beginning) (region-end))))
     (setq org-capture-templates ns/org-capture-region-templates)
-    (when (org-capture)
-      ;; assume we succeeded
+    (when (condition-case ()
+            (org-capture)
+            (quit nil))
 
-      ;; if re captured to somewhere in the current buffer, our point might have changed
+      ;; if we captured to somewhere in the current buffer, our point might have changed
       (when (not (= (region-beginning) (first ns/region-points)))
         (setq ns/region-points
-          (llet
-            [start (first ns/region-points)
-              end (second ns/region-points)
-              new-start (if (> (region-beginning) start)
-                          (+ start (- (region-beginning) start))
-                          (- start (- start (region-beginning))))
-              new-end (if (> (region-beginning) start)
-                        (+ end (- (region-beginning) start))
-                        (- end (- start (region-beginning))))]
+          (llet [start (first ns/region-points)
+                  end (second ns/region-points)
+                  new-start (if (> (region-beginning) start)
+                              (+ start (- (region-beginning) start))
+                              (- start (- start (region-beginning))))
+                  new-end (if (> (region-beginning) start)
+                            (+ end (- (region-beginning) start))
+                            (- end (- start (region-beginning))))]
             (list new-start new-end))))
 
       (apply 'kill-region ns/region-points)
@@ -312,5 +311,8 @@ This works like `org-find-olp', but much faster."
       (when (s-blank-str-p (thing-at-point 'line))
         (kill-line))))
 
-  ;; todo: catch quit for revert as well
   (setq org-capture-templates ns/org-capture-project-templates))
+
+;; so I have something to Mx search for
+(defun! ns/org-refresh-capture-templates ()
+  (ns/org-capture))
