@@ -44,8 +44,11 @@
 ;; the dependency is all ~org-ml-get-subtrees~
 ;; this is similar a manual version of the package org-wild-notifier
 ;; the main difference is instead of leveraging the agenda we do it ourselves
+;; <2021-08-17 Tue 10:48> I have since decoupled getting the nodes and processing headlines and the
+;; lag on the notes buffer is greatly reduced
 (defun ns/org-notify ()
   (->> (ns/get-notes-nodes 'ns/org-scheduled-today)
+
     ;; map headline text to scheduled timestamps
     (-map (fn (list
                 ;; FIXME: code smell -- there should be a plist thing to get the title  here
@@ -217,13 +220,22 @@
 ;; this is measured in minutes
 (setq ns/org-casual-timelimit (* 60 3))
 
+(defun ns/org-get-path (&optional point)
+  "Get the FULL path to an outline at a point within notes"
+  (ns/with-notes
+    (when point
+      (goto-char point))
+    (-snoc
+      (org-get-outline-path)
+      (s-clean (org-get-heading)))))
+
 (defun ns/org-check-casual-time-today (&optional notify)
   ;; returns remaining casual minutes
   ;; optionally notifies if you are out of them
   ;; accounts for current clock if it is under a casual heading
   (ns/with-notes
     (goto-char (ns/org-get-active-point))
-    (let* ((clocked-casual-p (string= (first (org-get-outline-path)) "casual"))
+    (let* ((clocked-casual-p (string= (first (ns/org-get-path)) "casual"))
             (current-clock-time
               (if clocked-casual-p (ns/org-get-current-clock-time) 0))
             (casual-clocked-time

@@ -72,8 +72,7 @@
     (org-do-demote)
     (newline)))
 
-(ns/bind "nt"
-  (fn! (find-file (~ ".wm_theme"))))
+(ns/bind "nt" (fn! (find-file (~ ".wm_theme"))))
 
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs
@@ -148,11 +147,6 @@
           ("\\.asciidoc\\'" . adoc-mode)))
 (use-package ox-asciidoc)
 
-;; (define-key
-;;   input-decode-map
-;;   "\e\[59;9u"
-;;   (kbd "C-;")
-;;   )
 
 (when ns/enable-mac-p
   (ns/frame-set-parameter 'inhibit-double-buffering t)
@@ -167,41 +161,11 @@
        ("\\.pdf\\'" . default)
        (t . emacs))))
 
-
-;; terminal setup
-(when (and ns/enable-mac-p
-        (not window-system))
-
-  (defun ns/style-terminal ()
-    (use-package evil-terminal-cursor-changer
-      :config
-      (evil-terminal-cursor-changer-activate))
-
-    (setq-default left-margin-width 1 right-margin-width 1)
-    (defun! ns/windows-set-margins ()
-      (-map (-rpartial 'set-window-margins left-margin-width right-margin-width)
-        (window-list)))
-
-    (ns/windows-set-margins)
-
-    (setq flycheck-indication-mode 'left-margin)
-    (set-face-attribute 'flycheck-error nil :underline nil)
-
-    (let ((modeline-background (face-attribute 'mode-line :background)))
-      (set-face-attribute 'vertical-border nil :foreground modeline-background)
-      (set-face-attribute 'vertical-border nil :background modeline-background)))
-
-  ;; utility:
-  (xterm-mouse-mode 1)
-
-  (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
-  (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
-
-  (use-package xclip :config (xclip-mode t))
-
-  ;; C-i and <tab> are equivalent in the terminal
-  ;; (until kitty saves us all)
-  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
-  (evil-define-key 'normal org-mode-map (kbd "C-i") #'org-cycle))
-
 (use-package yaml-mode)
+(use-package org-ql)
+
+;; (let ((org-super-agenda-groups
+;;         '((:auto-group t))))
+;;   (org-agenda-list))
+
+;; (use-package 4clojure)

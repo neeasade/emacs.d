@@ -57,8 +57,6 @@
         (->> (-remove 'not items) (s-join " "))
         "\n#+END_CENTER\n")))
 
-
-
   (message (format "BLOG: generating meta for %s" path))
   (let* (
           (org-file-content

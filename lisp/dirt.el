@@ -224,14 +224,16 @@
   (load user-init-file nil 'nomessage)
   (message "Reloading init.el... done."))
 
+(defalias 'ns/init 'reload-init)
+
 ;; a macro for when something is not on melpa yet (assumes github)
 (use-package el-patch)
 (defmacro ns/use-package (name repo &rest config)
   `(progn
      (straight-register-package
        '(,name :type git :host github
-	      :repo ,repo
-	      :depth full))
+          :repo ,repo
+          :depth full))
 
      (straight-use-package ',name)
      ,@(cdr config)

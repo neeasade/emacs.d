@@ -204,6 +204,22 @@
           (t (dired dir))
           )))))
 
+(when-not window-system
+  ;; (when running in a terminal)
+
+  ;; utility:
+  (xterm-mouse-mode 1)
+
+  (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
+  (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
+
+  (use-package xclip :config (xclip-mode t))
+
+  ;; C-i and <tab> are equivalent in the terminal
+  ;; (until kitty saves us all)
+  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+  (evil-define-key 'normal org-mode-map (kbd "C-i") #'org-cycle))
+
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 

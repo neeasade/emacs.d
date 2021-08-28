@@ -38,39 +38,27 @@
     ;; todo: consider tracking channels somewhere else
     network-options
     `(
-       ("Freenode"
+       ("Libera"
          :nick ,ns/irc-nick
-         :host "irc.freenode.net"
+         :host "irc.libera.chat"
          :tls t
-         :nickserv-password ,(pass "freenode")
+         :nickserv-password ,(pass "libera")
          :channels (:after-auth
                      "#bspwm"
                      "#lobsters"
                      "#emacs"
                      "#nixers_net"
-                     "#sway-devel"
                      "#k-slug"
-                     "#LawrenceLUG"
                      "#qutebrowser"
                      "#qutebrowser-offtopic"
-                     "##9fans"
                      "#clojure"
-                     "#kisslinux"
-                     "#distrotube"
                      "#clojure"
-                     "#fennel"
+
                      ;; so noisy
                      ;; "#nixos"
                      "#nixos-chat"
                      "#nixos-emacs"
                      )
-         )
-
-       ("brettgilio"
-         :nick ,ns/irc-nick
-         :host "irc.brettgilio.com"
-         :port 7097
-         :tls t
          )
 
        ("tildechat"
@@ -90,13 +78,6 @@
          :tls t
          :channels ("#cyberia" "#2f30")
          )
-
-       ;; ("Nixers"
-       ;;   :nick ,ns/irc-nick
-       ;;   :host "irc.unix.chat"
-       ;;   :port (6667 . 6697)
-       ;;   :tls t
-       ;;   :channels ("#unix"))
 
        ;; ("OFTC"
        ;;   :nick ,ns/irc-nick
@@ -129,9 +110,7 @@
          :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
          :nickserv-identify-command "PRIVMSG NickServ :IDENTIFY {password}"
          :nickserv-identify-confirmation ,(rx bol "Password accepted - you are now recognized." eol)
-         )
-
-       )))
+         ))))
 
 ;; auto fill/trim left to 8 columns
 (defun ns/make-message (left body &optional left-face message-face)
