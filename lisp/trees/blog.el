@@ -260,16 +260,12 @@
     (message "BLOG: making site rss!")
     (require 'ox-rss)
 
-    (with-temp-buffer
-      (insert (org-file-contents (ns/blog-path "rss/rss.org")))
+    (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss.org"))
       (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
 
-    (with-temp-buffer
-      (insert (org-file-contents (ns/blog-path "rss/rss_full.org")))
-      (org-export-to-file 'rss (ns/blog-path "site/rss_full.xml")))
-    )
-  t
-  )
+    (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss_full.org"))
+      (org-export-to-file 'rss (ns/blog-path "site/rss_full.xml"))))
+  t)
 
 (defun ns/blog-make-anchors (org-content)
   "turn headlines into anchor links within a string org-content."

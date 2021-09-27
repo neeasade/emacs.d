@@ -140,9 +140,9 @@
 (ns/stage-terminal)
 
 (defun! ns/spawn-terminal (&optional cwd)
-  ;; turning off until we figure out what we want to do WRT kitty terminal spawning
-  ;; (select-frame (make-frame))
-  ;; (ns/pickup-shell cwd t)
+  (when ns/enable-home-p
+    (select-frame (make-frame))
+    (ns/pickup-shell cwd t))
 
   ;; todo here: ensure there is no modeline on spawned terminal -- also maybe mode line refresh
   ;; return t so that elisp ns/spawn-terminal call is true

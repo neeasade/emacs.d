@@ -41,17 +41,17 @@
        ("Libera"
          :nick ,ns/irc-nick
          :host "irc.libera.chat"
+         :port 6697
          :tls t
          :nickserv-password ,(pass "libera")
          :channels (:after-auth
                      "#bspwm"
                      "#lobsters"
                      "#emacs"
-                     "#nixers_net"
                      "#k-slug"
                      "#qutebrowser"
                      "#qutebrowser-offtopic"
-                     "#clojure"
+                     ;; "#clojure"
                      "#clojure"
 
                      ;; so noisy
@@ -61,23 +61,23 @@
                      )
          )
 
-       ("tildechat"
-         :nick ,ns/irc-nick
-         :host "na.tilde.chat"
-         :port 6697
-         :tls t
-         :nickserv-password ,(pass "tilde.chat")
-         ;; https://tilde.chat/stats/
-         :channels (:after-auth "#club" "#meta")
-         )
+       ;; ("tildechat"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "na.tilde.chat"
+       ;;   :port 6697
+       ;;   :tls t
+       ;;   :nickserv-password ,(pass "tilde.chat")
+       ;;   ;; https://tilde.chat/stats/
+       ;;   :channels (:after-auth "#club" "#meta")
+       ;;   )
 
-       ("Cyberia"
-         :nick ,ns/irc-nick
-         :host "irc.cyberia.is"
-         :port 6697
-         :tls t
-         :channels ("#cyberia" "#2f30")
-         )
+       ;; ("Cyberia"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "irc.cyberia.is"
+       ;;   :port 6697
+       ;;   :tls t
+       ;;   :channels ("#cyberia" "#2f30")
+       ;;   )
 
        ;; ("OFTC"
        ;;   :nick ,ns/irc-nick
@@ -621,6 +621,9 @@
 
 (defun circe-command-SHRUG (content)
   (circe-command-SAY (concat content " ¯\\_(ツ)_/¯")))
+
+(defun circe-command-TROUT (nick)
+  (circe-command-ME (format "slaps %s arounda bit with a large trout" nick)))
 
 (defun circe-command-CS (content)
   (circe-command-MSG "chanserv" content))

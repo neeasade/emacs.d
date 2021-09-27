@@ -45,7 +45,8 @@
 ;; this is similar a manual version of the package org-wild-notifier
 ;; the main difference is instead of leveraging the agenda we do it ourselves
 ;; <2021-08-17 Tue 10:48> I have since decoupled getting the nodes and processing headlines and the
-;; lag on the notes buffer is greatly reduced
+;; lag on the notes buffer is greatly reduced (~0.2s)
+
 (defun ns/org-notify ()
   (->> (ns/get-notes-nodes 'ns/org-scheduled-today)
 
@@ -101,14 +102,33 @@
         (format "outdated: %s (next: %s)" count outdated-next)))))
 
 (defun! ns/org-jump-to-old-org-heading ()
+  ;; incomplete:
+  ;; (llet [points (-map (-partial 'org-ml-get-property :begin)
+  ;;                 (ns/get-notes-nodes 'ns/org-scheduled-past-todo))
+  ;;         points (when points (append points (list (first points))))]
+  ;;   (if points
+  ;;     (progn
+  ;;       (message (pr-string points))
+  ;;       (find-file org-default-notes-file)
+  ;;       (-if-let (current-match (-find-index (-partial 'eq
+  ;;                                              (point)
+  ;;                                              )
+  ;;                                 points))
+  ;;         (goto-char (nth (+ 1 current-match) points))
+  ;;         (goto-char (first points)))
+  ;;       (ns/org-jump-to-element-content))
+  ;;     (message "nothing out of date!")))
+
   (-if-let (out-of-date (ns/get-notes-nodes 'ns/org-scheduled-past-todo))
     (progn
       (find-file org-default-notes-file)
-      (->> (first out-of-date)
+      (->>
+        (first out-of-date)
         (org-ml-get-property :begin)
         (goto-char))
       (ns/org-jump-to-element-content))
-    (message "no out of date notes!")))
+    (message "no out of date notes!"))
+  )
 
 (ns/bind "oq" 'ns/org-jump-to-old-org-heading)
 

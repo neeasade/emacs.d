@@ -30,9 +30,6 @@
 (use-package ts)      ; timestamps
 (use-package pcre2el) ; sane regex
 
-;; sometimes the above doesn't work
-;; (ns/use-package ts "alphapapa/ts.el")    ; timestamps
-
 
 ;; other/emacs enhancers
 (use-package hydra)
@@ -104,17 +101,10 @@
       (-flatten-n 1))))
 
 (defmacro ~ (path)
-  (llet [home (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
-          delim (if ns/enable-windows-p "\\" "/")]
-    `(format "%s%s%s" ,home ,delim ,path)))
+  (llet [home (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))]
+    `(format "%s%s%s" ,home ,(f-path-separator) ,path)))
 
 ;; todo: consider conflict management/at the time of binding yell about the takeover
-;; (general-unbind
-;;   :states '(normal visual)
-;;   :keymaps 'override
-;;   :prefix "SPC"
-;;   "e"
-;;   )
 
 ;; binding wrappers
 (defmacro ns/bind (&rest binds)

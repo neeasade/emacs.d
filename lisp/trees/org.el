@@ -462,7 +462,7 @@
         (org-mode-flyspell-verify)
         )))
 
-  (setq mode-line-format nil)
+  ;; (setq mode-line-format nil)
   )
 
 (add-hook 'org-mode-hook 'ns/org-mode-hook)
