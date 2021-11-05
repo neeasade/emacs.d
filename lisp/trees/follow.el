@@ -13,10 +13,10 @@
   return nil if FILE doesn't exist"
   ;; untested on tramp wrt speed
 
-  ;; (message (concat "trying file: " file))
   (let ((file (->> file
                 (s-replace "$HOME" (getenv "HOME"))
                 (s-replace "~" (getenv "HOME")))))
+    (message (concat "trying file: " file))
     (cond
       ((s-blank-p file) nil)
       ;; ((not (f-exists-p file)) nil)
@@ -43,7 +43,7 @@
            t)))))
 
 (defun ns/follow-log (msg)
-  (message msg))
+  (message (format "ns/follow: %s" msg)))
 
 (defun! ns/follow ()
   "This is my home rolled DWIM at point function -- maybe it could be considered to be 'bad hyperbole'
@@ -63,25 +63,40 @@
   ;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
 
   ;; todo: handle the bash/shell line number format:
-  ;; /home/neeasade/.wm_theme: line 155:
+  ;; $HOME/.wm_theme: line 155:
+  ;; /Users/nathan/.wm_theme: line 155:
 
   (or
     ;; first try to open with org handling (includes urls)
-    (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
+    (when (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
+      (ns/follow-log "resolved with org-open-at-point")
+      t)
 
     ;; note: ffap-string-at-point is region if one is selected
     (let* ((candidate (ffap-string-at-point))
             (fallback-candidates
-              ;; line to end
               (->>
+                ;; line to end
                 (buffer-substring
                   (car ffap-string-at-point-region)
                   (save-excursion
                     (goto-char (car ffap-string-at-point-region))
                     (end-of-line) (point)))
+
                 (s-clean)
 
-                ;; assemble potential spaced out files
+                ;; handle link type: /home/neeasade/.wm_theme: line 155:
+                ;; by converting cases to EG: '/home/neeasade/.wm_theme:155 '
+                ;; (in-progress)
+                ;; ((lambda (line-to-end)
+                ;;    (-if-let (matches (s-match (pcre-to-elisp ": line ([0-9]+):")
+                ;;                        line-to-end))
+                ;;      (seq-let (match line) matches
+                ;;        (s-replace match (format ":%s " line)
+                ;;          line-to-end))
+                ;;      line-to-end)))
+
+                ;; assemble potential spaced out file-names
                 ((lambda (line-to-end)
                    (let ((parts (s-split " " line-to-end)))
                      (reverse
@@ -98,7 +113,8 @@
                 (when (region-active-p) (list (buffer-substring (region-beginning) (region-end))))
 
                 (list
-                  candidate
+                  ;; candidate
+
                   ;; handling case: '/path/to/file:some content'
                   ;; doesn't handle spaces
                   (let ((parts (s-split ":" candidate)))
@@ -108,7 +124,7 @@
 
       (let ((match (-first 'ns/handle-potential-file-link candidates)))
         (when match
-          (ns/follow-log (format "ns/follow: resolved with org link after building: %s" match))))
+          (ns/follow-log (format "resolved with org link after building: %s" match))))
 
       ;; fun, but let's not do this for now:
       ;; (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
@@ -128,14 +144,16 @@
       ;;     ))
       )
 
-    (not (string= (link-hint-open-link-at-point) "There is no link supporting the :open action at the point."))
+    (when (not (string= (link-hint-open-link-at-point) "There is no link supporting the :open action at the point."))
+      (ns/follow-log "resolved with link-hint")
+      t)
 
     ;; fall back to definitions with smart jump
     (progn
-      (ns/follow-log "ns/follow: resolving with smart-jump-go")
+      (ns/follow-log "resolving with smart-jump-go")
       (shut-up (smart-jump-go))))
 
-  ;; (recenter)
+  (recenter)
   )
 
 (ns/bind "nn" 'ns/follow)
