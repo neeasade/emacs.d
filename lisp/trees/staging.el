@@ -169,3 +169,5 @@
 ;;   (org-agenda-list))
 
 ;; (use-package 4clojure)
+
+(use-package ag)

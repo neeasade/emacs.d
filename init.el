@@ -3,29 +3,24 @@
 ;;; commentary:
 ;;; code:
 
-
 (setq
   ns/enable-windows-p (eq system-type 'windows-nt)
   ns/enable-linux-p (eq system-type 'gnu/linux)
   ns/enable-mac-p (eq system-type 'darwin)
-
-  ;; default:
-  mac-command-modifier 'super
-  mac-option-modifier 'meta
-  mac-control-modifier 'control
-
-  ;; mac-command-modifier 'control
-  ;; mac-option-modifier 'meta
-  ;; mac-control-modifier 'super
-
   ns/enable-home-p (string= (getenv "USER") "neeasade")
-
   ns/enable-work-p ns/enable-mac-p
+
+  ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
+  ns/emacs-directory user-emacs-directory
+
+  ;; maybe swap these term
+  mac-option-modifier 'meta
+  mac-command-modifier 'super
+  mac-control-modifier 'control
 
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
-  `(
-     ("Emacs.doomlineheight" . "24")
+  `(("Emacs.doomlineheight" . "24")
      ("Emacs.powerline"      . "bar")
      ("Emacs.padding_source" . "st") ;; (font or st)
 
@@ -38,8 +33,8 @@
           (font-get (face-attribute 'default :font) :name)))))
 
 (setq load-prefer-newer t)
-(load "~/.emacs.d/lisp/dirt.el")
-(load "~/.emacs.d/lisp/forest.el")
+(load (concat ns/emacs-directory "lisp/dirt.el"))
+(load (~e "lisp/forest.el"))
 
 (defmacro ns/compose (name &rest targets)
   `(defconfig ,name
@@ -50,7 +45,7 @@
   core
 
   ;; use-package
-  ;;straight
+  ;; straight
   sanity
   evil
   interface
@@ -60,8 +55,7 @@
   git
   util
   server
-  follow-dwim
-  )
+  follow-dwim)
 
 (ns/compose
   extra
@@ -128,7 +122,7 @@
   (ns/check-for-orphans)
   (ns/style)
 
-  (defun ns/initial-startup-hook ()
+  (defun! ns/initial-startup-hook ()
     (when (not (boundp 'ns/after-init-hook))
       (setq ns/after-init-hook t)
 

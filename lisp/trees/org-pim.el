@@ -274,32 +274,23 @@
       (- ns/org-casual-timelimit
         (+ casual-clocked-time current-clock-time)))))
 
-(ns/comment
-  (ns/org-check-casual-time-today)
-
-  (/ (float (ns/with-notes (ns/org-check-casual-time-today)))
-    ns/org-casual-timelimit)
-
-  (- ns/org-casual-timelimit (float (ns/with-notes (ns/org-check-casual-time-today))))
-
-  )
-
 (named-timer-run :harass-myself
   t
   20
-  (fn
-    ;; when you're not idle
-    (when (< (org-user-idle-seconds) 20)
-      ;; not clocked into anything or on a break
-      (if (and (not (org-clocking-p))
-            (not (-contains-p '(:short-break :long-break) org-pomodoro-state)))
-        (alert! (format "Hey! you should be clocked into something. %s"
-                  (random))
-          :severity 'normal
-          :title "TIME"
-          ))
-      (when ns/enable-home-p
-        (ns/org-check-casual-time-today t)))))
+  (fn (llet [pomo-break? (-contains-p '(:short-break :long-break) org-pomodoro-state)
+              org-recently-clocked-out? (< (- (ts-unix (ts-now))
+                                             (time-to-seconds org-clock-out-time))
+                                          120)
+              idle? (> (org-user-idle-seconds) 20)
+              ;; present, but not allocated
+              wandering? (-all-p 'null (list idle? pomo-break? org-recently-clocked-out? (org-clocking-p)))]
+        (when wandering?
+          (alert! (format "Hey! you should be clocked into something. %s"
+                    (if ns/enable-linux-p (random) ""))
+            :severity 'normal
+            :title "BE INTENTIONAL")
+          (when ns/enable-home-p
+            (ns/org-check-casual-time-today t))))))
 
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
 (setq org-clock-idle-time nil)

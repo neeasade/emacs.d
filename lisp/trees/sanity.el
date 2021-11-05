@@ -1,25 +1,20 @@
 ;; -*- lexical-binding: t; -*-
 
-;; give us what we expect:
 (use-package exec-path-from-shell
   :config
   (exec-path-from-shell-initialize))
 
-;; should this be in dirt
 (use-package no-littering
   :config
   (require 'no-littering)
   (require 'recentf)
-  ;; note: defaults are:
-  ;; ~/.emacs.d/var/
-  ;; ~/.emacs.d/etc/
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory))
 
 (setq
   ;; todo: relook at this setting
-  auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t))
-  backup-directory-alist `(("." . ,(~ ".emacs.d/backups")))
+  auto-save-file-name-transforms `((".*" ,(~e "auto-save-list/") t))
+  backup-directory-alist `(("." . ,(~e "backups")))
   coding-system-for-read 'utf-8
   coding-system-for-write 'utf-8
   delete-old-versions -1
@@ -74,24 +69,11 @@
 (blink-cursor-mode 0)
 
 ;; custom
-(defconst custom-file (~ ".emacs.d/custom.el"))
-(unless (file-exists-p custom-file)
+(defconst custom-file (~e "custom.el"))
+(when-not (file-exists-p custom-file)
   (write-region "" nil custom-file))
 
 (load custom-file 'noerr)
-
-;; persistent session:
-;; note: (desktop-clear) to clean/kill everything.
-(make-directory (~ ".emacs.desktop") t)
-
-(setq-ns desktop
-  auto-save-timeout 30
-  ;; this  is set by the no-littering package
-  ;; path (list (~ ".emacs.desktop"))
-  )
-
-;; disabling in favor of recentf
-(desktop-save-mode 0)
 
 (setq browse-url-browser-function 'browse-url-generic)
 
@@ -214,8 +196,8 @@
         (save-some-buffers t))))
 
 (ns/bind
-  "ns" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.el")))
-  "nS" (fn! (ns/find-or-open (~ ".emacs.d/lisp/scratch.txt")))
+  "ns" (fn! (ns/find-or-open (~e "lisp/scratch.el")))
+  "nS" (fn! (ns/find-or-open (~e "lisp/scratch.txt")))
   "nm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
   "nU" 'undo-tree-visualize
 

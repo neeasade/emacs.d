@@ -710,11 +710,10 @@
   ;; (defun server-ensure-safe-dir (dir) "Noop" t)
 
   (require 'server)
-  (unless (server-running-p)
-
+  (when-not (server-running-p)
     (when ns/enable-windows-p
       (setq-ns server
-        auth-dir (~ ".emacs.d/server")
+        auth-dir (~e "server")
         name "emacs-server-file"))
     (server-start)))
 
@@ -756,23 +755,22 @@
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-(defconfig editing    (load "~/.emacs.d/lisp/trees/editing.el"))
-(defconfig evil       (load "~/.emacs.d/lisp/trees/evil.el"))
-(defconfig git        (load "~/.emacs.d/lisp/trees/git.el"))
-(defconfig interface  (load "~/.emacs.d/lisp/trees/interface.el"))
-(defconfig irc        (ns/guard ns/enable-home-p) (load "~/.emacs.d/lisp/trees/irc.el"))
-(defconfig org        (load "~/.emacs.d/lisp/trees/org.el"))
-(defconfig org-capture (load "~/.emacs.d/lisp/trees/org-capture.el"))
-(defconfig org-pim (load "~/.emacs.d/lisp/trees/org-pim.el"))
-(defconfig sanity     (load "~/.emacs.d/lisp/trees/sanity.el"))
-(defconfig shell      (load "~/.emacs.d/lisp/trees/shell.el"))
-(defconfig doomline   (load "~/.emacs.d/lisp/trees/doomline.el"))
-(defconfig staging    (load "~/.emacs.d/lisp/trees/staging.el"))
-(defconfig util       (load "~/.emacs.d/lisp/trees/util.el"))
-
-(defconfig blog       (load "~/.emacs.d/lisp/trees/blog.el"))
-(defconfig follow-dwim       (load "~/.emacs.d/lisp/trees/follow.el"))
-(defconfig-base style (interactive)               (load "~/.emacs.d/lisp/trees/style.el"))
+(defconfig editing    (load (~e "lisp/trees/editing.el")))
+(defconfig evil       (load (~e "lisp/trees/evil.el")))
+(defconfig git        (load (~e "lisp/trees/git.el")))
+(defconfig interface  (load (~e "lisp/trees/interface.el")))
+(defconfig irc        (ns/guard ns/enable-home-p) (load (~e "lisp/trees/irc.el")))
+(defconfig org        (load (~e "lisp/trees/org.el")))
+(defconfig org-capture (load (~e "lisp/trees/org-capture.el")))
+(defconfig org-pim (load (~e "lisp/trees/org-pim.el")))
+(defconfig sanity     (load (~e "lisp/trees/sanity.el")))
+(defconfig shell      (load (~e "lisp/trees/shell.el")))
+(defconfig doomline   (load (~e "lisp/trees/doomline.el")))
+(defconfig staging    (load (~e "lisp/trees/staging.el")))
+(defconfig util       (load (~e "lisp/trees/util.el")))
+(defconfig blog       (load (~e "lisp/trees/blog.el")))
+(defconfig follow-dwim (load (~e "lisp/trees/follow.el")))
+(defconfig-base style (interactive) (load (~e "lisp/trees/style.el")))
 
 (provide 'forest)
 

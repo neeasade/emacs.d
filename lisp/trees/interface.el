@@ -220,6 +220,8 @@
   (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
   (evil-define-key 'normal org-mode-map (kbd "C-i") #'org-cycle))
 
+(winner-mode 1)
+
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 
@@ -248,7 +250,9 @@
   "wf" 'ns/follow-mode
 
   "wm" 'delete-other-windows ;; window-max
-  "wo" 'other-frame
+
+  "wo" 'winner-undo
+  "wi" 'winner-redo
 
   ;; todo idea here: check if we are in a shell, if so, make that the staged shell (or 'dired' shell)
   ;; so we can have fluid state across dired transitions "s" <--> "SPC d"

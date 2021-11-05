@@ -40,7 +40,7 @@
 
 (defun ns/get-functions ()
   "Get all the defconfig entries in the forest."
-  (->> (~ ".emacs.d/lisp/forest.el")
+  (->> (~e "lisp/forest.el")
     f-read
     (s-match-strings-all  "^(defconfig [^ \(\)]+")
     (mapcar (fn (->> (car <>) (s-chop-prefix "(defconfig ") (s-chomp))))
@@ -48,11 +48,11 @@
 
 (defun! ns/check-for-orphans ()
   "Check to see if any defconfigs are missing from init."
-  (let ((initfile (f-read (~ ".emacs.d/init.el"))))
+  (let ((initfile (f-read (~e "init.el"))))
     (mapcar
       (lambda(conf)
         (when (not (s-contains? conf initfile))
-          (message (concat "orphaned function! " conf))))
+          (message (concat "orphaned function!: " conf))))
       (ns/get-functions))))
 
 (defun! ns/jump-config ()
@@ -60,15 +60,15 @@
     :action
     (fn (interactive)
       (cond
-        ((string= "dirt" <>) (ns/find-or-open (~ ".emacs.d/lisp/dirt.el")))
-        ((string= "forest" <>) (ns/find-or-open (~ ".emacs.d/lisp/forest.el")))
-        ((string= "theme" <>) (ns/find-or-open (~ ".emacs.d/lisp/themes/neea-theme.el")))
-        ((string= "init" <>) (ns/find-or-open (~ ".emacs.d/init.el")))
-        ((string= "follow-dwim" <>) (ns/find-or-open (~ ".emacs.d/follow.el")))
-        ((f-exists-p (format (~ ".emacs.d/lisp/trees/%s.el") <>))
-          (ns/find-or-open (format (~ ".emacs.d/lisp/trees/%s.el") <>)))
+        ((string= "dirt" <>) (ns/find-or-open (~e "lisp/dirt.el")))
+        ((string= "forest" <>) (ns/find-or-open (~e "lisp/forest.el")))
+        ((string= "theme" <>) (ns/find-or-open (~e "lisp/themes/neea-theme.el")))
+        ((string= "init" <>) (ns/find-or-open (~e "init.el")))
+        ((string= "follow-dwim" <>) (ns/find-or-open (~e "lisp/trees/follow.el")))
+        ((f-exists-p (format (~e "lisp/trees/%s.el") <>))
+          (ns/find-or-open (format (~e "lisp/trees/%s.el") <>)))
         (t
-          (ns/find-or-open (~ ".emacs.d/lisp/forest.el"))
+          (ns/find-or-open (~e "lisp/forest.el"))
           (goto-char (point-min))
           (re-search-forward (format "defconfig %s\n" <>))))
       (recenter))))
@@ -123,22 +123,8 @@
         (interactive)
         (insert data)))))
 
-(defun ns/get-last-message()
-  (with-current-buffer (get-buffer "*Messages*")
-    (goto-char (point-max))
-    (previous-line 1)
-    (let ((beg (line-beginning-position 1))
-           (end (line-beginning-position 2)))
-      (buffer-substring beg end))))
-
-(defun! ns/look-at-last-message()
-  (ns/find-or-open (~ ".emacs.d/lisp/scratch.el"))
-  (goto-char (point-max))
-  (insert "\n")
-  (insert (ns/get-last-message))
-  (previous-line 1))
-
 (defun ns/parse-font (font)
+  "translate 'Font Family-10' into emacs font information"
   (llet [font (s-replace "-" " " font)
           size (first (s-match (pcre-to-elisp " [0-9]+") font))
           family (s-replace size "" font)]

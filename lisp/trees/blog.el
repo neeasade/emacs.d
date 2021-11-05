@@ -111,7 +111,7 @@
 
           (post-org-content
             (ns/mustache
-              (f-read (~ ".emacs.d/org/blog_template.org"))
+              (f-read (~e "org/blog_template.org"))
               (ht
                 ("csslinks"
                   ;; cache invalidation

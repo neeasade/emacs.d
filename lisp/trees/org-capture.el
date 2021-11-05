@@ -187,12 +187,6 @@ This works like `org-find-olp', but much faster."
 (setq ns/linkmark-file (concat org-directory "/linkmarks.org"))
 
 (defun! linkmark-select ()
-  ;; context ideas (store in properties):
-  ;; major-mode
-  ;; date
-  ;; file location
-  ;; hostname
-  ;; idk
   (ns/jump-to-notes-heading
     ns/linkmark-file
     (lambda (heading-and-mark)
@@ -218,6 +212,11 @@ This works like `org-find-olp', but much faster."
   "nL" (fn! (find-file ns/linkmark-file))
   )
 
+;; context ideas (store in properties):
+;; major-mode
+;; date
+;; file location
+;; hostname?
 (setq ns/org-capture-project-templates
   (doct
     `(

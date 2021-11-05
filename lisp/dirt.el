@@ -30,7 +30,6 @@
 (use-package ts)      ; timestamps
 (use-package pcre2el) ; sane regex
 
-
 ;; other/emacs enhancers
 (use-package hydra)
 (use-package general :config (general-override-mode t)) ; enable the override keymap
@@ -41,8 +40,7 @@
 (require 'cl-seq)
 (require 'man)
 
-(use-package named-timer)
-(require 'named-timer)
+(use-package named-timer :config (require 'named-timer))
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
@@ -50,6 +48,7 @@
 (defalias 'first 'car)
 (defalias 'second 'cadr)
 (defalias 'third 'caddr)
+(defalias 'when-not 'unless)
 
 ;; alias/clojure
 (defalias 'pr-string 'prin1-to-string)
@@ -62,47 +61,24 @@
   ;; the append is to convert [vectors] to lists
   `(let* ,(-partition 2 (append args nil)) ,@body))
 
-(defmacro when-not (condition &rest body)
-  `(when (not ,condition)
-     ,@body))
-
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
      (interactive) ,@body))
 
-(defun ht-transform-kv (table transform-function)
-  "Apply some transformation to all keys + values in a hashtable"
-  (eval `(ht ,@(-map (fn (list <>
-                           (funcall transform-function
-                             <>
-                             (ht-get table <>))))
-                 (ht-keys table)))))
+(defmacro setq-ns (namespace &rest pairs)
+  (->> (-partition 2 pairs)
+    (-mapcat (fn (list
+                   (intern (format "%s-%s"
+                             (prin1-to-string namespace)
+                             (car <>)))
+                   (cadr <>))))
+    (cons 'setq)))
 
-(defun ht-transform-v (table transform-function)
-  "Apply some transformation to all values in a hashtable"
-  (eval `(ht ,@(-map (fn (list <>
-                           (funcall transform-function
-                             (ht-get table <>))))
-                 (ht-keys table)))))
+(defun ~ (&rest args)
+  (apply #'f-join (cons ns/home-directory args)))
 
-(defun s-clean (s)
-  "Remove text properies from S."
-  (set-text-properties 0 (length s) nil s) s)
-
-;; setq namespace
-(defmacro setq-ns (namespace &rest lst)
-  (let ((namespace (prin1-to-string namespace)))
-    (->>
-      (-partition 2 lst)
-      (mapcar (fn (list
-                    (intern (format "%s-%s" namespace (car <>)))
-                    (cadr <>))))
-      (cons 'setq)
-      (-flatten-n 1))))
-
-(defmacro ~ (path)
-  (llet [home (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))]
-    `(format "%s%s%s" ,home ,(f-path-separator) ,path)))
+(defun ~e (&rest args)
+  (apply #'f-join (cons ns/emacs-directory args)))
 
 ;; todo: consider conflict management/at the time of binding yell about the takeover
 
@@ -136,17 +112,7 @@
          ,(keys (->> binds
                   (-partition 2)
                   (-map 'car)
-                  (-flatten))))
-      ))
-
-  (ns/comment
-    (general-unbind '(normal visual)
-      circe-channel-mode-map
-      :prefix "SPC"
-      :with 'ignore
-      "nq"
-      )
-    )
+                  (-flatten))))))
 
   (apply 'general-define-key
     `(:prefix "SPC"
@@ -183,6 +149,15 @@
           (select-window window-of-buffer-visible)
           (switch-to-buffer buffer))))))
 
+(defun! ns/find-or-open (filepath)
+  "If FILEPATH is open in a buffer, switch to that."
+  (let ((filename (file-name-nondirectory filepath)))
+    (if (get-buffer filename)
+      (counsel-switch-to-buffer-or-window filename)
+      (if (f-exists-p filepath)
+        (find-file filepath)
+        (message (format "no file found: %s" filepath))))))
+
 (defmacro ns/shell-exec (command)
   "trim the newline from shell exec"
   `(replace-regexp-in-string "\n$" ""
@@ -197,7 +172,7 @@
 
 ;; wrap passwordstore
 (defun pass (key)
-  (if (executable-find "pass")
+  (when (executable-find "pass")
     (ns/shell-exec (format "pass %s 2>/dev/null" key)) ""))
 
 (defun get-resource (name)
@@ -226,30 +201,15 @@
           :depth full))
 
      (straight-use-package ',name)
-     ,@(cdr config)
-     ))
+     ,@(cdr config)))
 
-;; imap + nmap
 (defun ns/inmap (keymap &rest key-func-pairs)
+  "imap + nmap"
   (dolist (pair (-partition 2 key-func-pairs))
     (let ((key (car pair))
            (func (cadr pair)))
-
-      ;; (message
-      ;;   (format
-      ;;     "setting values: %s %s"
-
-      ;;     (prin1-to-string key)
-      ;;     (prin1-to-string func)
-      ;;     ))
-
-
       (general-imap :keymaps keymap key func)
       (general-nmap :keymaps keymap key func))))
-
-(defun ns/save-file (filename data)
-  (with-temp-file filename
-    (prin1 data (current-buffer))))
 
 ;; this is overridden with eros eval later on
 (defun ns/smart-elisp-eval ()
@@ -280,15 +240,6 @@
   (if (not (eval (cons 'and conditions)))
     '(when t (throw 'config-catch (concat "config guard " config-name)))))
 
-(defun! ns/find-or-open (filepath)
-  "If FILEPATH is open in a buffer, switch to that."
-  (let ((filename (file-name-nondirectory filepath)))
-    (if (get-buffer filename)
-      (counsel-switch-to-buffer-or-window filename)
-      (if (f-exists-p filepath)
-        (find-file filepath)
-        (message (format "no file found: %s" filepath))))))
-
 (defun range (one &optional two step)
   (let* ((start (if two one 0))
           (end (if two two one))
@@ -300,11 +251,11 @@
       ((< end start)
         (number-sequence start (+ 1 end) step)))))
 
-(ns/comment
-  (range 10)
-  (range 10 10)
-  (range 0 10)
-  (range 0 360 90))
+;; extension to s.el
+(defun s-clean (s)
+  "Remove text properies from S."
+  (set-text-properties 0 (length s) nil s) s)
+
 ;; extension to ht.el
 (defmacro ht-with-context (table &rest content)
   (-tree-map
@@ -323,7 +274,7 @@
     (cons 'progn content)))
 
 (defun ns/nth (index coll)
-  "a version of nth that counts from the end if the input is negative"
+  "A version of nth that counts from the end if the input is negative"
   (if (< index 0)
     (car (seq-subseq coll index
            (if (= 0 (+ index 1)) nil (+ index 1))))

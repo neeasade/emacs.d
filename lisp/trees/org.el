@@ -22,7 +22,7 @@
 
   default-notes-file  (concat org-directory "/notes.org")
   default-diary-file  (concat org-directory "/journal.org")
-  default-habits-file  (concat org-directory "/habits.org")
+  default-habits-file (concat org-directory "/habits.org")
 
   ;; one really big notes file
   agenda-files (list org-default-notes-file)
@@ -50,9 +50,8 @@
 
   ;; days before expiration where a deadline becomes active
   deadline-warn-days 14
-  todo-keywords
-  '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-     (sequence "WAITING(w@/!)" "INACTIVE(i@/!)" "|" "CANCELLED(c@/!)" "MEETING"))
+  todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+                   (sequence "WAITING(w@/!)" "INACTIVE(i@/!)" "|" "CANCELLED(c@/!)" "MEETING"))
 
   blank-before-new-entry '((heading . t) (plainlist-item . nil))
   tag-alist '(
@@ -94,6 +93,7 @@
   archive-subtree-save-file-p t
   )
 
+;; todo -- nested with-notes might be weird/can self-cancel?
 (defmacro ns/with-notes (&rest body)
   `(with-current-buffer (find-file-noselect org-default-notes-file)
      (save-excursion
@@ -172,7 +172,7 @@
 
 (use-package org-pomodoro
   :config
-
+  (setq ns/macos-vol (if ns/enable-mac-p (ns/shell-exec "macos-vol get") 0))
   (defun ns/toggle-music (action)
     (let ((target (or (executable-find "player.sh") "mpc")))
       (ns/shell-exec-dontcare (concat target " " action))))
@@ -182,9 +182,9 @@
   (defun ns/toggle-music-pause () (ns/toggle-music "pause"))
 
   (when ns/enable-mac-p
-    (defun ns/toggle-music-play ()
+    (defun! ns/toggle-music-play ()
       (ns/shell-exec-dontcare (format "macos-vol setvol %s" ns/macos-vol)))
-    (defun ns/toggle-music-pause ()
+    (defun! ns/toggle-music-pause ()
       (setq ns/macos-vol (ns/shell-exec "macos-vol get"))
       (ns/shell-exec-dontcare "macos-vol setvol 0")))
 
