@@ -1,10 +1,5 @@
 ;; -*- lexical-binding: t; -*-
-(defun! ns/what-line ()
-  (save-restriction
-    (widen)
-    (save-excursion
-      (beginning-of-line)
-      (1+ (count-lines 1 (point))))))
+
 
 ;; todo: this does not work with anchors?
 (defun ns/eww-browse-existing-or-new (url)
@@ -62,7 +57,6 @@
       (cond
         ((string= "dirt" <>) (ns/find-or-open (~e "lisp/dirt.el")))
         ((string= "forest" <>) (ns/find-or-open (~e "lisp/forest.el")))
-        ((string= "theme" <>) (ns/find-or-open (~e "lisp/themes/neea-theme.el")))
         ((string= "init" <>) (ns/find-or-open (~e "init.el")))
         ((string= "follow-dwim" <>) (ns/find-or-open (~e "lisp/trees/follow.el")))
         ((f-exists-p (format (~e "lisp/trees/%s.el") <>))

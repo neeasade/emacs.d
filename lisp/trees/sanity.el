@@ -166,6 +166,8 @@
   (-any-p 'ns/sh-has-content-p
     '("playerctl metadata 2>/dev/null | grep -i netflix"
        "playerctl metadata 2>/dev/null | grep -i 'prime video'"
+       "playerctl metadata 2>/dev/null | grep -i 'hulu'"
+       "playerctl metadata 2>/dev/null | grep -i 'youtube movies'"
        "pgrep mpv"
        "pgrep vlc"
 

@@ -171,3 +171,7 @@
 ;; (use-package 4clojure)
 
 (use-package ag)
+
+(defun org-clocking-buffer ()
+  "Return the clocking buffer if we are currently clocking a task or nil."
+  (marker-buffer org-clock-marker))

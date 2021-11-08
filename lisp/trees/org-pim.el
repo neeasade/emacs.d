@@ -11,10 +11,10 @@
           (ns/org-clock-out)))))
 
 (defun ns/get-notes-nodes (&optional filter-pred)
-  "Retrieve nodes from notes file for read-only operations."
-  (llet [all-nodes (ns/with-notes (org-ml-get-subtrees))]
+  "Retrieve headline nodes from notes file for read-only operations."
+  (llet [all-nodes (ns/with-notes (org-ml-parse-headlines 'all))]
     (if filter-pred
-      (org-ml-match `(:any * (:pred ,filter-pred)) all-nodes)
+      (org-ml-match `((:and headline (:pred ,filter-pred))) all-nodes)
       all-nodes)))
 
 (defun ns/org-scheduled-today (heading)
@@ -30,8 +30,8 @@
   "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
   (llet [scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)
           todo-state (org-ml--get-property-nocheck :todo-keyword heading)]
-    (when (and (string= todo-state "TODO")
-            scheduled)
+    (when (and scheduled
+            (string= todo-state "TODO"))
       (ts> (ts-now)
         (ts-parse-org (plist-get (cadr scheduled) :raw-value))))))
 
@@ -92,7 +92,7 @@
 (defun ns/org-notify-reset () (setq ns/org-notify-ht (ht)))
 (named-timer-run :org-notify-scheduled-reset t (* 60 60 24) 'ns/org-notify-reset)
 
-(defun ns/export-scheduled-org-headings-past ()
+(defun ns/org-status-outdated ()
   (llet [outdated (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
           outdated-next (-> outdated first org-ml-headline-get-path -last-item)
           count (length outdated)]
@@ -101,36 +101,50 @@
         (format "outdated: %s" outdated-next)
         (format "outdated: %s (next: %s)" count outdated-next)))))
 
-(defun! ns/org-jump-to-old-org-heading ()
-  ;; incomplete:
-  ;; (llet [points (-map (-partial 'org-ml-get-property :begin)
-  ;;                 (ns/get-notes-nodes 'ns/org-scheduled-past-todo))
-  ;;         points (when points (append points (list (first points))))]
-  ;;   (if points
-  ;;     (progn
-  ;;       (message (pr-string points))
-  ;;       (find-file org-default-notes-file)
-  ;;       (-if-let (current-match (-find-index (-partial 'eq
-  ;;                                              (point)
-  ;;                                              )
-  ;;                                 points))
-  ;;         (goto-char (nth (+ 1 current-match) points))
-  ;;         (goto-char (first points)))
-  ;;       (ns/org-jump-to-element-content))
-  ;;     (message "nothing out of date!")))
+(defun ns/org-rotate (points)
+  "Rotate through org headings by points. Assumes you are already in an org file with said headings"
+  (if-not points
+    (message "Nothing to jump to!")
+    (let ((points (-snoc points (first points)))
+           (current-headline (-> (point)
+                               (org-ml-parse-headline-at)
+                               second
+                               (plist-get :begin))))
+      (-if-let (current-match (-find-index (-partial '= current-headline) points))
+        (goto-char (nth (+ 1 current-match) points))
+        (goto-char (or (first (-filter (-partial '< (point)) points))
+                     (first points))))
+      (ns/org-jump-to-element-content))))
 
-  (-if-let (out-of-date (ns/get-notes-nodes 'ns/org-scheduled-past-todo))
-    (progn
-      (find-file org-default-notes-file)
-      (->>
-        (first out-of-date)
-        (org-ml-get-property :begin)
-        (goto-char))
-      (ns/org-jump-to-element-content))
-    (message "no out of date notes!"))
-  )
+(defun! ns/org-rotate-outdated ()
+  (ns/find-or-open org-default-notes-file)
+  (ns/org-rotate
+    (-map (-partial 'org-ml-get-property :begin)
+      (ns/get-notes-nodes 'ns/org-scheduled-past-todo))))
 
-(ns/bind "oq" 'ns/org-jump-to-old-org-heading)
+(defun! ns/org-rotate-captures ()
+  (defun ns/org-captures-review (headline)
+    "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
+    (when (eq 'headline (org-ml-get-type headline))
+      (and
+        (let ((path (org-ml-headline-get-path headline)))
+          (and
+            (string= "projects" (nth 0 path))
+            (string= "captures" (nth 2 path))))
+        (-if-let (capture-date (org-ml-headline-get-node-property "captured" headline))
+          (ts< (ts-parse-org capture-date)
+            ;; todo: 3 weeks was an arbitrary choice, you should review this after awhile
+            (ts-adjust 'day (- 21) (ts-now)))
+          t))))
+
+  (ns/find-or-open org-default-notes-file)
+  (ns/org-rotate
+    (-map (-partial 'org-ml-get-property :begin)
+      (ns/get-notes-nodes 'ns/org-captures-review))))
+
+(ns/bind "oq" 'ns/org-rotate-outdated)
+
+;; (ns/bind "oq" 'ns/org-rotate-captures)
 
 (defun ns/org-get-current-clock-time ()
   "Return minutes on the current org clock."
@@ -204,16 +218,14 @@
                    (-map 'org-ml-to-string)
                    (s-join "\n")))
          (labs-folder (pass "labs-folder")))
+    ;; todo: individual notes files
     (when (f-exists-p labs-folder)
       (f-write (format "Exported on: %s\n\n %s" (ts-format (ts-now)) content)
         'utf-8
         (format "%s/notes.org" labs-folder)))))
 
 (defun! ns/export-blog-note-targets ()
-  (defun ns/org-blog-note (heading)
-    (org-ml-headline-get-node-property "blog_slug" heading))
-
-  (->> (ns/get-notes-nodes 'ns/org-blog-note)
+  (->> (ns/get-notes-nodes (-partial 'org-ml-headline-get-node-property "blog_slug"))
     (-map 'ns/org-normalize)
     (-map 'ns/write-node-to-post)
     ((lambda (valid)
@@ -242,12 +254,11 @@
 
 (defun ns/org-get-path (&optional point)
   "Get the FULL path to an outline at a point within notes"
-  (ns/with-notes
-    (when point
-      (goto-char point))
-    (-snoc
-      (org-get-outline-path)
-      (s-clean (org-get-heading)))))
+  (when point
+    (goto-char point))
+  (-snoc
+    (org-get-outline-path)
+    (s-clean (org-get-heading))))
 
 (defun ns/org-check-casual-time-today (&optional notify)
   ;; returns remaining casual minutes

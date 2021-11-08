@@ -50,6 +50,10 @@
 (defalias 'third 'caddr)
 (defalias 'when-not 'unless)
 
+(defmacro if-not (condition &rest body)
+  `(if (not ,condition)
+     ,@body))
+
 ;; alias/clojure
 (defalias 'pr-string 'prin1-to-string)
 (defalias '-join '-interpose)

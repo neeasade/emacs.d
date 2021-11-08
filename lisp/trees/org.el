@@ -437,12 +437,14 @@
     (require 'flyspell-correct-avy-menu)
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
 
-    (global-set-key (kbd "C-s")
-      (fn! (when-not (and (boundp 'flyspell-mode)
-                       flyspell-mode)
-             (flyspell-mode 1)
-             (flyspell-word))
-        (flyspell-correct-at-point)))))
+    (defun! ns/spellcheck-at-point ()
+      (when-not (and (boundp 'flyspell-mode)
+                  flyspell-mode)
+        (flyspell-mode 1)
+        (flyspell-word))
+      (flyspell-correct-at-point))
+
+    (global-set-key (kbd "C-;") 'ns/spellcheck-at-point)))
 
 (defun ns/org-mode-hook ()
   (olivetti-mode)

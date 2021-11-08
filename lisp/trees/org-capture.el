@@ -166,7 +166,6 @@ This works like `org-find-olp', but much faster."
     (ns/with-notes
       (-some->> (org-find-property "projects")
         (org-ml-parse-subtree-at)
-        ;; (org-ml-parse-headline-at )
 	      (org-ml-get-children)
         cdr
         (-map 'org-ml-headline-get-path)
