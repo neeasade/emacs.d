@@ -87,21 +87,21 @@
     (s-join "\n"
       (append
         (seq-map-indexed
-          (fn (format "color%s=%s" (number-to-string <2>)
-                (s-replace "#" "" <1>)))
+          (fn (format "color.%s = \"%s\"" (number-to-string <2>) <1>))
           (theme-magic--auto-extract-16-colors))
 
         (-map
           (fn
-            (format "%s=%s"
+            (format "%s = \"%s\""
               (car <>)
-              (s-replace "#" "" (ct-shorten (cadr <>)))))
+              (ct-shorten (cadr <>))))
           (-partition 2
             (append
               (list
-                "foreground" (face-attribute 'default :foreground)
-                "background" (face-attribute 'default :background)
-                "cursorColor" (first evil-insert-state-cursor))
+                ;; todo: support same node table + value in toml
+                ;; "color.foreground" (face-attribute 'default :foreground)
+                ;; "color.background" (face-attribute 'default :background)
+                "color.cursor" (first evil-insert-state-cursor))
               (->>
                 (list :normal :weak :strong :focused)
                 (-mapcat
@@ -114,9 +114,9 @@
                   (lambda (parts)
                     (seq-let (fg-key bg-key) parts
                       (list
-                        (format "e_%s_%s"
-                          (-> fg-key pr-string (substring 1))
-                          (-> bg-key pr-string (substring 1)))
+                        (format "color.%s.%s"
+                          (-> bg-key pr-string (substring 1))
+                          (-> fg-key pr-string (substring 1)))
                         (tarp/get fg-key bg-key)))))))))))))
 
 (defun default-font-width ()

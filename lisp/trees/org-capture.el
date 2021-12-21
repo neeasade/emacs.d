@@ -171,7 +171,7 @@ This works like `org-find-olp', but much faster."
         (-map 'org-ml-headline-get-path)
         (-map 'last)
         -flatten))
-    ;; "no notes file here"
+    ;; no notes file here
     nil
     ))
 

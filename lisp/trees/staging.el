@@ -175,3 +175,12 @@
 (defun org-clocking-buffer ()
   "Return the clocking buffer if we are currently clocking a task or nil."
   (marker-buffer org-clock-marker))
+
+
+(use-package go-mode)
+
+(ns/bind "it"
+  (fn!
+    (ivy-read "theme key: "
+      (s-split "\n" (ns/shell-exec "theme gottm -o keys"))
+      :action #'insert)))

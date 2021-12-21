@@ -87,7 +87,6 @@
   development
   c
   ;; common-lisp
-  fennel
 
   autohotkey
   clojure
