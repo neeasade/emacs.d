@@ -151,7 +151,7 @@
   (let ((multiplier (string-to-number (read-string (format "font multiplier: ")))))
     (set-face-attribute 'default nil
       :height
-      (-> (get-resource "font.monospace")
+      (-> (get-resource "font.mono.spec")
         (ns/parse-font)
         (plist-get :height)
         (/ 10)

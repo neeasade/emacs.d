@@ -39,7 +39,7 @@
     (setq ns/xrdb-fallback-values
       (cons `(,key . ,font) ns/xrdb-fallback-values))))
 
-(-map (-partial 'ns/maybe-update-xrdb-font "font.monospace")
+(-map (-partial 'ns/maybe-update-xrdb-font "font.mono.spec")
   (list
     ;; (or (font-get (face-attribute 'default :font) :name) "")
     "Menlo-14"
@@ -50,7 +50,7 @@
     "Source Code Pro-14"
     "Go Mono-14"))
 
-(-map (-partial 'ns/maybe-update-xrdb-font "font.variable")
+(-map (-partial 'ns/maybe-update-xrdb-font "font.variable.spec")
   (list
     ;; (or (font-get (face-attribute 'default :font) :name) "")
     "Menlo-14"
@@ -178,7 +178,7 @@ will also be the width of all other printable characters."
     `(internal-border-width ,(if ns/enable-home-p 0 10)
        right-divider-width ,(default-font-width)
        bottom-divider-width 0
-       font ,(get-resource "font.monospace"))
+       font ,(get-resource "font.mono.spec"))
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 

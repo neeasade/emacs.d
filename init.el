@@ -23,10 +23,10 @@
   `(("panel.height" . "24")
 
      ;; default to whatever loads, use nil if there is no default
-     ("font.monospace" .
+     ("font.monospace.spec" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
-     ("font.variable" .
+     ("font.variable.spec" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))))
 

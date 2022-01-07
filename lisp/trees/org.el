@@ -504,7 +504,7 @@
                  ',(intern (format "org-level-%s" level))
                  nil
                  :height ,(+
-                            (plist-get (ns/parse-font (get-resource "font.monospace")) :height)
+                            (plist-get (ns/parse-font (get-resource "font.mono.spec")) :height)
                             height-mod)
                  :weight 'semi-bold
                  ;; :weight 'normal
