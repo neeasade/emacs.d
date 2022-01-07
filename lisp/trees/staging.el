@@ -72,7 +72,7 @@
     (org-do-demote)
     (newline)))
 
-(ns/bind "nt" (fn! (find-file (~ ".wm_theme"))))
+(ns/bind "nt" (fn! (find-file (~ ".dotfiles/theming/scratch.toml"))))
 
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs
@@ -176,11 +176,12 @@
   "Return the clocking buffer if we are currently clocking a task or nil."
   (marker-buffer org-clock-marker))
 
-
 (use-package go-mode)
 
 (ns/bind "it"
   (fn!
     (ivy-read "theme key: "
-      (s-split "\n" (ns/shell-exec "theme gottm -o keys"))
+      (s-split "\n" (ns/shell-exec "theme -o keys"))
       :action #'insert)))
+
+(use-package paren-face)

@@ -121,7 +121,7 @@
 (column-number-mode) ; give us column info in the modeline
 
 (setq-ns doom-modeline
-  height (string-to-number (get-resource "Emacs.doomlineheight"))
+  height (string-to-number (get-resource "panel.height"))
   bar-width 3
   percent-position nil
   icon nil

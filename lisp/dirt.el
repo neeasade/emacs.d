@@ -182,10 +182,13 @@
 (defun get-resource (name)
   "Get X resource value, with a fallback value NAME."
   (let ((default (cdr (assoc name ns/xrdb-fallback-values)))
-         (result (if (executable-find "xrq")
-                   (ns/shell-exec (format "xrq '%s' 2>/dev/null" name))
-                   "")))
-    (if (string= result "") default result)))
+         (xrq-result (when (executable-find "xrq")
+                       (-when-let (stdout (ns/shell-exec (format "xrq '%s' 2>/dev/null" name)))
+                         stdout)))
+         (theme-result (when (executable-find "theme")
+                         (-when-let (stdout (ns/shell-exec (format "theme -q '%s' 2>/dev/null" name)))
+                           stdout))))
+    (or theme-result xrq-result default)))
 
 (defun! reload-init ()
   "Reload init.el with straight.el."

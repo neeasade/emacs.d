@@ -127,20 +127,20 @@
 
 (defun ns/set-faces-variable (faces)
   (dolist (face faces)
-    (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font_variable")))))
+    (apply 'set-face-attribute face nil (ns/parse-font (get-resource "font.variable")))))
 
 (defun ns/set-faces-monospace (faces)
   (dolist (face faces)
-    (apply 'set-face-attribute face nil (ns/parse-font (get-resource "st.font")))))
+    (apply 'set-face-attribute face nil (ns/parse-font (get-resource "font.monospace")))))
 
 (defun! ns/set-buffer-face-variable (&optional b)
   (with-current-buffer (or b (current-buffer))
-    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font_variable")))
+    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "font.variable")))
     (buffer-face-mode t)))
 
 (defun! ns/set-buffer-face-monospace (&optional b)
   (with-current-buffer (or b (current-buffer))
-    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "st.font")))
+    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "font.monospace")))
     (buffer-face-mode t)))
 
 (defun ns/make-lines (list)

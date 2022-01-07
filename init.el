@@ -20,15 +20,13 @@
 
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
-  `(("Emacs.doomlineheight" . "24")
-     ("Emacs.powerline"      . "bar")
-     ("Emacs.padding_source" . "st") ;; (font or st)
+  `(("panel.height" . "24")
 
      ;; default to whatever loads, use nil if there is no default
-     ("st.font"              .
+     ("font.monospace" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
-     ("st.font_variable"     .
+     ("font.variable" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))))
 
