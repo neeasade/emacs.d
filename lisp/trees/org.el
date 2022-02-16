@@ -623,12 +623,8 @@
   "T" 'org-show-todo-tree
   "v" 'org-mark-element
   "a" 'org-agenda
-  ;; todo: want a "jump to parent"
   "f" 'ns/org-set-unique-property
-
-  "F"
-  ;; (fn! (ns/org-set-unique-property (read-string "property name: ")))
-  (fn! (org-set-property (read-string "property name: ") (read-string "value: ")))
+  "F" (fn! (org-set-property (read-string "property name: ") (read-string "value: ")))
 
   "b" (fn! (org-set-property "blog_slug" (read-string "slug: ")))
 

@@ -172,7 +172,7 @@ will also be the width of all other printable characters."
   (fringe-mode 8)
   (setq window-divider-default-right-width (default-font-width))
   (setq window-divider-default-places t)
-  (window-divider-mode t)               ;
+  (window-divider-mode t)
 
   (->>
     `(internal-border-width ,(if ns/enable-home-p 0 10)

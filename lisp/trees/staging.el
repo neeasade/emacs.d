@@ -72,7 +72,10 @@
     (org-do-demote)
     (newline)))
 
-(ns/bind "nt" (fn! (find-file (~ ".dotfiles/theming/scratch.toml"))))
+(ns/bind "nt" (fn! (find-file
+                     (if ns/enable-mac-p
+                       (~ ".dotfiles/theming/scratch_mac.toml")
+                       (~ ".dotfiles/theming/scratch.toml")))))
 
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs
@@ -185,3 +188,8 @@
       :action #'insert)))
 
 (use-package paren-face)
+
+(defalias 'evil-window-north 'evil-window-up)
+(defalias 'evil-window-south 'evil-window-down)
+(defalias 'evil-window-east 'evil-window-right)
+(defalias 'evil-window-west 'evil-window-left)

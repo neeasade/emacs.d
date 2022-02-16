@@ -140,11 +140,11 @@
 (ns/stage-terminal)
 
 (defun! ns/spawn-terminal (&optional cwd)
-  (when ns/enable-home-p
+  (when window-system
+    ;; todo: select-frame with yabai window -- doesn't always work
     (select-frame (make-frame))
     (ns/pickup-shell cwd t))
 
-  ;; todo here: ensure there is no modeline on spawned terminal -- also maybe mode line refresh
   ;; return t so that elisp ns/spawn-terminal call is true
   t)
 
@@ -172,6 +172,7 @@
                  (process-list))))))
 
   (when terminal
+    (ns/toggle-modeline)
     (when (string= (get-resource "Emacs.padding_source") "st")
       (set-window-fringes nil 0 0)))
 
