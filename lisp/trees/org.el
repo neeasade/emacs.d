@@ -614,7 +614,15 @@
   "om" 'org-refile
 
   "op" 'org-pomodoro
+
+  ;; query org element
+  "qo" (fn!
+         (message
+           (pr-string
+             (org-ml-get-type (org-ml-parse-element-at (point)))))
+         )
   )
+
 
 (ns/bind-leader-mode
   'org
