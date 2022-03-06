@@ -40,6 +40,7 @@
                (fn (s-ends-with-p ".org" <>))))
            :action 'find-file)))
 
+;; note: is used in the org to toml stuff now too
 (defun ns/blog-get-prop (propname text)
   "Get an org property out of text"
   (-some--> (format "#\\+%s:.*$" propname)

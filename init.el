@@ -20,10 +20,11 @@
 
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
+
   `(("panel.height" . "24")
 
      ;; default to whatever loads, use nil if there is no default
-     ("font.monospace.spec" .
+     ("font.mono.spec" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
      ("font.variable.spec" .

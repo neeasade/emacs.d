@@ -98,8 +98,8 @@
           count (length outdated)]
     (when (> count 0)
       (if (= count 1)
-        (format "outdated: %s" outdated-next)
-        (format "outdated: %s (next: %s)" count outdated-next)))))
+        (format "OUTDATED: %s" outdated-next)
+        (format "OUTDATED: %s (next: %s)" count outdated-next)))))
 
 (defun ns/org-rotate (points)
   "Rotate through org headings by points. Assumes you are already in an org file with said headings"
