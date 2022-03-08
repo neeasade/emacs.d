@@ -14,12 +14,14 @@
   table)
 
 (defun ns/ht-walk-leaves (table callback-fn &optional path)
+  (message (format "walking %s" (pr-string path)) )
   (if-not (hash-table-p table)
     (funcall callback-fn path table)
-    (-map (fn (ns/ht-walk-leaves
-                (ht-get table <>)
-                callback-fn
-                (-snoc path <>)))
+    (-map (fn
+            (ns/ht-walk-leaves
+              (ht-get table <>)
+              callback-fn
+              (-snoc path <>)))
       (ht-keys table))))
 
 (defun ns/org-ml-walk (walk-fn &rest nodes)
@@ -82,8 +84,11 @@
             (setq result
               (->> at
                 (org-ml-get-children)
-                (-map 'org-ml-item-get-paragraph)
-                (-map 'car))))))
+                (-filter (-partial 'org-ml-is-type 'item))
+                ;; this doesn't work like I expected: (-map 'org-ml-item-get-paragraph)
+                (-map 'org-ml-to-trimmed-string)
+                (-map (fn (substring <> 2))) ; remove frontleading "- "
+                )))))
       content-nodes)
     result))
 
@@ -133,24 +138,26 @@
          (tree-paths (list))
          (collect (lambda (i) (setq tree-paths (-snoc tree-paths i))))
          (leaf-path (org-ml-headline-get-path leaf)))
+
     (setq merge-paths
       (append merge-paths
         (-map
           (lambda (merge-target)
-            (list leaf-path merge-target))
+            (list leaf-path (s-split "\\." merge-target)))
           (ns/org-headline-find-merge-directives leaf))))
 
     (if (and
           (-contains-p (ns/org-get-types leaf) 'item)
           (->> leaf
             (org-ml-headline-get-contents (ns/current-org-config))
-            (-filter (-partial 'org-ml-is-type 'item))
+            (-filter (-partial 'org-ml-is-type 'plain-list))
             (-map 'org-ml-to-trimmed-string)
             (-any-p (-partial 's-contains-p "::"))))
 
       ;; we have description list items! go find them:
       (ns/gather-list-children
         (lambda (full-path)
+          ;; (message (format "arst: full-path: %s" (pr-string full-path)))
           (funcall collect full-path))
         leaf-path leaf)
 
@@ -160,8 +167,7 @@
           ;; ! headline indicates literal toml.
           ;; (setq result "todo: toml data")
           )
-        (funcall collect
-          (list leaf-path (ns/org-headline-content leaf)))))
+        (funcall collect (-snoc leaf-path (ns/org-headline-content leaf)))))
     `(:merges ,merge-paths
        :tree-paths ,tree-paths)))
 
@@ -186,20 +192,27 @@
               (conf-tree (ht)))
 
          (message "performing sets")
-         (-map (lambda (path) (apply 'ht-set* conf-tree path))
+         (-map (lambda (path)
+                 (message (pr-string path))
+                 (apply 'ht-set* conf-tree path))
            tree-paths)
 
          (-map
            (lambda (parts)
-             (seq-let (from to) parts
-               (message (format "merge: %s to %s"
+             (seq-let (to from) parts
+               (message (format "merge: %s to %s. value: %s"
                           (s-join "." from)
-                          (s-join "." to)))
+                          (s-join "." to)
+                          (-snoc to (ht-copy (apply 'ht-get* conf-tree from)))
+                          ))
                ;; only meant for table-to-table (ht-copy call)
-               (ht-set*
+
+               (apply 'ht-set*
                  conf-tree
                  (-snoc to
-                   (ht-copy (apply ht-get* conf-tree from))))))
+                   (ht-merge
+                     (apply 'ht-get* conf-tree to)
+                     (ht-copy (apply 'ht-get* conf-tree from)))))))
            merges)
 
          conf-tree
@@ -216,20 +229,30 @@
                    (-map 'pr-string)
                    (s-join ",")
                    (format "[%s]"))
-                 (format "\"value\"")
+                 ;; (format "\"value\"")
                  (pr-string value)))))
          flattened)))
 
     (ht-map
       (lambda (k v) (format "%s = %s" k v)))
 
-    (s-join "\n"))
+    (s-join "\n")
+    )
   )
 
-(ns/org-to-toml (~ "test.org"))
 
-;; (let* ((org-default-notes-file
-;;          (~ "test.org")
-;;          f
-;;          ))
-;;   (ns/get-notes-nodes 'ns/org-leaf-p))
+(ns/comment
+  (f-write
+    (ns/org-to-toml (~ "test.org"))
+    'utf-8
+    (~ "test.toml")
+    )
+
+  (setq ns/wow (ns/org-to-toml (~ "test.org")))
+  (ht-keys ns/wow)
+
+  (ht-keys (ht-get* ns/wow "a" "b"))
+
+  (ht-get* ns/wow "a" "b" "merge me")
+  )
+
