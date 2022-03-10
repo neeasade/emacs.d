@@ -1,5 +1,12 @@
 ;; some helpers for turning org into a nested kv-store thingy
 
+(defun ht-remove* (table &rest values)
+  (if (= 1 (length values))
+    (apply 'ht-remove table values)
+    (ht-remove
+      (ht-get* table (-drop-last values))
+      (-last-item values))))
+
 (defun ht-set* (table &rest values)
   ;; must be called with at least 2 values
   (if (= 2 (length values))
@@ -14,31 +21,23 @@
   table)
 
 (defun ns/ht-walk-leaves (table callback-fn &optional path)
-  (message (format "walking %s" (pr-string path)) )
   (if-not (hash-table-p table)
     (funcall callback-fn path table)
-    (-map (fn
-            (ns/ht-walk-leaves
-              (ht-get table <>)
-              callback-fn
-              (-snoc path <>)))
+    (-map (fn (ns/ht-walk-leaves
+                (ht-get table <>)
+                callback-fn
+                (-snoc path <>)))
       (ht-keys table))))
 
-(defun ns/org-ml-walk (walk-fn &rest nodes)
-  ;; nb: this function being multi-arity is to cope with the funkiness of
-  ;; org-ml-headline-get-contents (returns a list of content nodes)
-  (-map
-    (lambda (node)
-      (funcall walk-fn node)
-      (-map (-partial 'ns/org-ml-walk walk-fn)
-        (org-ml-get-children node)))
-    nodes))
+(defun ns/org-ml-walk (walk-fn node)
+  (funcall walk-fn node)
+  (-map (-partial 'ns/org-ml-walk walk-fn)
+    (org-ml-get-children node)))
 
 (defun ns/org-get-types (node)
   (let ((seen (list)))
     (ns/org-ml-walk
-      (lambda (n)
-        (setq seen (append seen (list (org-ml-get-type n)))))
+      (fn (setq seen (-snoc seen (org-ml-get-type <>))))
       node)
     (-uniq seen)))
 
@@ -49,59 +48,62 @@
      :clock-out-notes ,org-log-note-clock-out))
 
 (defun ns/org-headline-content-string (headline)
+  "Get org markup under a headline as a string (excluding comments, keywords, drawers, properties)"
   (->> headline
     (org-ml-headline-get-contents (ns/current-org-config))
     (-remove (-partial 'org-ml-is-type 'keyword))
     (-remove (-partial 'org-ml-is-type 'comment))
     (-map 'org-ml-to-string)
-    (s-join "")))
+    (s-join "")
+    (s-trim)))
 
 (defun ns/org-headline-find-merge-directives (node)
+  "Return a list of '#+merge: %s' %s values"
   (->> node
     (org-ml-headline-get-contents (ns/current-org-config))
     (-keep
-      (lambda (item)
-        (and (org-ml-is-type 'keyword item)
-          (ns/blog-get-prop "merge" (org-ml-to-string item)))))))
+      (lambda (content-node)
+        (and (org-ml-is-type 'keyword content-node)
+          (ns/blog-get-prop "merge" (org-ml-to-string content-node)))))))
 
 (defun ns/org-headline-content (node)
+  "headline to tree content"
   (let* ((content-nodes (org-ml-headline-get-contents (ns/current-org-config) node))
           (result (ns/org-headline-content-string node)))
 
     ;; see if we see anything that sticks out, override result if so:
-    (apply 'ns/org-ml-walk
-      (lambda (at)
-        (cond
-          ((org-ml-is-type 'src-block at)
-            (setq result
-              (->> (org-ml-to-trimmed-string at)
-                (s-split "\n")
-                ;; remove #+{begin,end}_src
-                (-drop-last 1)
-                (-drop 1)
-                (s-join "\n"))))
-          ((org-ml-is-type 'plain-list at)
-            (setq result
-              (->> at
-                (org-ml-get-children)
-                (-filter (-partial 'org-ml-is-type 'item))
-                ;; this doesn't work like I expected: (-map 'org-ml-item-get-paragraph)
-                (-map 'org-ml-to-trimmed-string)
-                (-map (fn (substring <> 2))) ; remove frontleading "- "
-                )))))
+    (-map
+      (-partial 'ns/org-ml-walk
+        (lambda (at)
+          (cond
+            ((org-ml-is-type 'src-block at)
+              (setq result
+                (->> (org-ml-to-trimmed-string at)
+                  (s-split "\n")
+                  ;; remove #+{begin,end}_src
+                  (-drop-last 1)
+                  (-drop 1)
+                  (s-join "\n"))))
+            ((org-ml-is-type 'plain-list at)
+              (setq result
+                (->> at
+                  (org-ml-get-children)
+                  (-filter (-partial 'org-ml-is-type 'item))
+                  ;; this doesn't work like I expected: (-map 'org-ml-item-get-paragraph)
+                  (-map 'org-ml-to-trimmed-string)
+                  (-map (fn (substring <> 2))) ; remove frontleading "- "
+                  ))))))
       content-nodes)
     result))
 
+(defun ns/org-leaf-reject-p (leaf)
+  (-any-p (lambda (tag) (-> tag read eval not))
+    (or (org-ml--get-property-nocheck :tags leaf) '("t"))))
+
 (defun ns/org-leaf-p (node)
-  ;; is a headline a leaf headline
+  "Return if an org node is a headline with no headline childen"
   ;; todo: think there was an org-ml-*-childless or something
   (and (eq (org-ml-get-type node) 'headline)
-    (when
-      ;; todo here: tags as conditional inclusion
-      t
-      ;; (->> (org-ml-parse-this-element) (org-ml-get-property :call))
-      t
-      )
     (->> node
       org-ml-get-children
       (-filter (fn (org-ml-is-type 'headline <>)))
@@ -109,7 +111,7 @@
       (= 0))))
 
 (defun ns/gather-list-children (collect-fn path node)
-  ;; act on lists of items to build paths, pass in current path
+  "Construct paths from org's descriptive lists"
   (if (org-ml-is-type 'item node)
     ;; I don't see a reference to descriptive items in org-ml?
     (let* ((item-string (first (s-split "\n" (org-ml-to-string node))))
@@ -132,8 +134,7 @@
   nil)
 
 (defun ns/org-headline-to-data (leaf)
-  ;; a leaf might emit multiple values (leaf == headline, not true leaf)
-  ;; return: ((merge-paths: (merge-to merge-from)) (paths: (node path)))
+  "leaf headline to paths data + merge directives"
   (let ((merge-paths (list))
          (tree-paths (list))
          (collect (lambda (i) (setq tree-paths (-snoc tree-paths i))))
@@ -157,16 +158,27 @@
       ;; we have description list items! go find them:
       (ns/gather-list-children
         (lambda (full-path)
-          ;; (message (format "arst: full-path: %s" (pr-string full-path)))
           (funcall collect full-path))
         leaf-path leaf)
 
       ;; headline -> data
       (if (s-starts-with-p "!" (-last-item leaf-path))
-        (progn
-          ;; ! headline indicates literal toml.
-          ;; (setq result "todo: toml data")
-          )
+        ;; ! headline indicates literal toml.
+        ;; assume it has a src block with conf-toml
+        (->> (ns/org-headline-content leaf)
+          (s-split "\n")
+          (-remove 's-blank-p)
+          (-remove (-partial 's-starts-with-p "#" ))
+          ;; fragile
+          ;; a.c.b = "woww"
+          (-map
+            (lambda (line)
+              (seq-let (path value) (s-split "=" line)
+                (funcall collect
+                  (-snoc
+                    (s-split "\\." path)
+                    (read value)))))))
+
         (funcall collect (-snoc leaf-path (ns/org-headline-content leaf)))))
     `(:merges ,merge-paths
        :tree-paths ,tree-paths)))
@@ -200,13 +212,9 @@
          (-map
            (lambda (parts)
              (seq-let (to from) parts
-               (message (format "merge: %s to %s. value: %s"
-                          (s-join "." from)
-                          (s-join "." to)
-                          (-snoc to (ht-copy (apply 'ht-get* conf-tree from)))
-                          ))
-               ;; only meant for table-to-table (ht-copy call)
+               (message (format "merge: %s to %s" (s-join "." from) (s-join "." to)))
 
+               ;; currently only meant for table-to-table (ht-copy call)
                (apply 'ht-set*
                  conf-tree
                  (-snoc to
@@ -218,19 +226,45 @@
          conf-tree
          )))
 
+    ;; use this in org-ml-filter
+
+
+    ((lambda (conf-tree)
+
+       (->> org-files
+         (-mapcat
+           (lambda (f)
+             (let* ((org-default-notes-file f))
+               (ns/get-notes-nodes 'ns/org-leaf-reject-p))))
+         (-map 'org-ml-headline-get-path)
+         (-map (lambda (p) (apply 'ht-remove* conf-tree p))))
+
+       conf-tree))
+
     ((lambda (conf-tree)
        (let ((flattened (ht)))
          (ns/ht-walk-leaves conf-tree
            (lambda (path value)
              (ht-set flattened
-               (s-join "." path)
-               (if (listp value)
-                 (->> value
-                   (-map 'pr-string)
-                   (s-join ",")
-                   (format "[%s]"))
-                 ;; (format "\"value\"")
-                 (pr-string value)))))
+               (format "'%s'" (s-join "." path))
+               (cond
+                 ;; arrays
+                 ((listp value)
+                   (->> value
+                     (-map 'pr-string)
+                     (s-join ",")
+                     (format "[%s]")))
+
+                 ;; multiline values
+                 ((s-contains-p "\n" value)
+                   (format "'''\n%s\n'''" value))
+
+                 ;; numbers (string-to-number value is 0 in case of failure)
+                 ((and (not (= 0 (string-to-number value)))
+                    (not (string= "0" value)))
+                   (string-to-number value))
+
+                 (t (pr-string value))))))
          flattened)))
 
     (ht-map
@@ -242,17 +276,18 @@
 
 
 (ns/comment
+
   (f-write
-    (ns/org-to-toml (~ "test.org"))
+    (ns/org-to-toml "/home/neeasade/.dotfiles/theming/base.org")
+
+    ;; (ns/org-to-toml (~ "test.org") )
+
     'utf-8
-    (~ "test.toml")
-    )
+    (~ "test.toml"))
 
   (setq ns/wow (ns/org-to-toml (~ "test.org")))
   (ht-keys ns/wow)
 
   (ht-keys (ht-get* ns/wow "a" "b"))
 
-  (ht-get* ns/wow "a" "b" "merge me")
-  )
-
+  (ht-get* ns/wow "a" "b" "merge me"))
