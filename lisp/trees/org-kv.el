@@ -4,7 +4,7 @@
   (if (= 1 (length values))
     (apply 'ht-remove table values)
     (ht-remove
-      (ht-get* table (-drop-last values))
+      (apply 'ht-get* table (-drop-last 1 values))
       (-last-item values))))
 
 (defun ht-set* (table &rest values)
@@ -16,7 +16,7 @@
       (when-not (ht-contains-p table key)
         (ht-set! table key (ht)))
       (when-not (hash-table-p (ht-get table key))
-        (message "warn: ns/ht-set*: trying to set value on non-table"))
+        (message "warn: ht-set*: trying to set value on non-table"))
       (apply 'ht-set* (ht-get table key) next)))
   table)
 
@@ -185,22 +185,16 @@
 
 (defun ns/org-to-toml (&rest org-files)
   (->> org-files
-    (-map
+    (-mapcat
       (lambda (f)
         (let* ((org-default-notes-file f))
           (ns/get-notes-nodes 'ns/org-leaf-p))))
-    (-flatten-n 1)
 
     (-map 'ns/org-headline-to-data)
 
     ((lambda (data)
-       ;; "it's all just data"
-       (let ((merges (->> data
-                       (-map (fn (plist-get <> :merges)))
-                       (-flatten-n 1)))
-              (tree-paths (->> data
-                            (-map (fn (plist-get <> :tree-paths)))
-                            (-flatten-n 1)))
+       (let ((merges (-mapcat (fn (plist-get <> :merges)) data))
+              (tree-paths (-mapcat (fn (plist-get <> :tree-paths)) data))
               (conf-tree (ht)))
 
          (message "performing sets")
