@@ -124,7 +124,7 @@
         (> (org-user-idle-seconds) 10)
         (shut-up (recentf-save-list)))))
 
-(setq whitespace-line-column 120)
+(setq whitespace-line-column 80)
 
 ;; a report toggle command for debugging on keybind
 (require 'profiler)

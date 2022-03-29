@@ -84,41 +84,17 @@
 (use-package theme-magic
   :config
   (defun ns/emacs-to-theme ()
-    (s-join "\n"
-      (append
-        (list
-          (format "colors = ['%s']"
-            (s-join "', '"
-              (theme-magic--auto-extract-16-colors))))
+    (parseedn-print-str
+      (ht (:colors (apply 'vector (theme-magic--auto-extract-16-colors)))
+        (:color
+          (ht-merge tarp/theme*
+            (ht (:cursor (first evil-insert-state-cursor)))))
 
-        (-map
-          (fn
-            (format "%s = \"%s\""
-              (car <>)
-              (ct-shorten (cadr <>))))
-          (-partition 2
-            (append
-              (list
-                ;; todo: support same node table + value in toml
-                ;; "color.foreground" (face-attribute 'default :foreground)
-                ;; "color.background" (face-attribute 'default :background)
-                "color.cursor" (first evil-insert-state-cursor))
-              (->>
-                (list :normal :weak :strong :focused)
-                (-mapcat
-                  (lambda (bg-key)
-                    (-mapcat (fn (list <> bg-key))
-                      '(:background :foreground :faded :primary :alt :strings :assumed))))
+        ))
 
-                (-partition 2)
-                (-mapcat
-                  (lambda (parts)
-                    (seq-let (fg-key bg-key) parts
-                      (list
-                        (format "color.%s.%s"
-                          (-> bg-key pr-string (substring 1))
-                          (-> fg-key pr-string (substring 1)))
-                        (tarp/get fg-key bg-key)))))))))))))
+    )
+
+  )
 
 (defun default-font-width ()
   "Return the width in pixels of a character in the current
@@ -138,7 +114,15 @@ will also be the width of all other printable characters."
   (when-not window-system
     (use-package evil-terminal-cursor-changer
       :config
-      (evil-terminal-cursor-changer-activate))
+      ;;
+      (defun etcc--in-xterm? ()
+        "Runing in xterm."
+        (or (string= (getenv "TERM") "xterm-kitty")
+          (getenv "XTERM_VERSION"))
+        )
+      (evil-terminal-cursor-changer-activate)
+
+      )
 
     (setq-default left-margin-width 1 right-margin-width 1)
 
@@ -200,4 +184,7 @@ will also be the width of all other printable characters."
        ns/style-terminal))
 
   (when ns/enable-blog-p
-    (ns/blog-set-htmlize-colors)))
+    ;; this takes a bit
+    (make-thread
+      (fn (ns/blog-set-htmlize-colors))))
+  t)

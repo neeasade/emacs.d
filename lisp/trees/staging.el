@@ -194,5 +194,13 @@
 (defalias 'evil-window-east 'evil-window-right)
 (defalias 'evil-window-west 'evil-window-left)
 
+(defun ns/make-border-color (label)
+  (--> (ht-get tarp/theme label)
+    (ct-iterate it 'ct-pastel
+      (lambda (c)
+        (> (ct-name-distance it c) 20)))
+    (ct-iterate it 'ct-lab-lighten
+      ((c) (ct-is-light-p c 75)))))
+
 (provide 'staging)
 ;;; staging.el ends here

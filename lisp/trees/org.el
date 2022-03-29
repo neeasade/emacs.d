@@ -195,15 +195,9 @@
       (ns/shell-exec-dontcare "dunstctl set-paused true")
       (ns/shell-exec-dontcare "panelt stop"))
 
-    ;; turn off distracting websites
-    ;; list stolen from https://raw.githubusercontent.com/viccherubini/get-shit-done/master/sites.ini
-    ;; and extended a little bit
-    (->> "mastodon.social, aurora.web.telegram.org, lobste.rs, nixers.net, old.reddit.com, reddit.com, www.reddit.com, web.telegram.org, forums.somethingawful.com, somethingawful.com, digg.com, break.com, news.ycombinator.com, infoq.com, bebo.com, api.twitter.com, zulipchat.com, twitter.com, facebook.com, blip.com, youtube.com, vimeo.com, delicious.com, flickr.com, friendster.com, hi5.com, linkedin.com, livejournal.com, meetup.com, myspace.com, plurk.com, stickam.com, stumbleupon.com, yelp.com, slashdot.org, plus.google.com, hckrnews.com, kongregate.com, newgrounds.com, addictinggames.com, hulu.com"
-      (s-replace ", " "\n")
-      ((lambda (content)
-         (f-write content 'utf-8 (~ ".config/qutebrowser/adblock.txt")))))
-    (ns/shell-exec-dontcare "qb_command :adblock-update")
-    )
+    (f-write (f-read (~ ".config/qutebrowser/adblock_bad.txt"))
+      'utf-8 (~ ".config/qutebrowser/adblock.txt"))
+    (ns/shell-exec-dontcare "qb_command :adblock-update"))
 
   (defun! ns/focus-mode-quit ()
     (ns/toggle-music-pause)
@@ -417,7 +411,10 @@
 (use-package olivetti
   :config
   (ns/bind "tf" 'olivetti-mode)
-  (setq-default fill-column 100)
+  (setq-default fill-column 80)
+
+  (setq olivetti-body-width 0.4)
+  (setq olivetti-body-width nil)
 
   ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
   ;; There is no need for "^" as the regexp is matched at the beginning of line.
@@ -444,7 +441,11 @@
         (flyspell-word))
       (flyspell-correct-at-point))
 
-    (global-set-key (kbd "C-;") 'ns/spellcheck-at-point)))
+    ;; todo: this is not bound, something overriding, correct it
+    (global-set-key (kbd "C-;") 'ns/spellcheck-at-point)
+    (general-nmap "gs" 'ns/spellcheck-at-point)
+
+    ))
 
 (defun ns/org-mode-hook ()
   (olivetti-mode)

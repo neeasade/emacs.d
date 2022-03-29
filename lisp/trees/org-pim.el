@@ -1,6 +1,4 @@
 ;; PIM = personal information management
-;; managing my information with org in a really big notes file
-;; includes org notifications, timeout, pim stuff, exporting to some formats
 
 (named-timer-run :auto-clock-out
   "30 sec"
@@ -8,6 +6,11 @@
   (fn (when (> (org-user-idle-seconds)
               (* 10 60))
         (when (not (ns/media-playing-p))
+          (ns/org-clock-out))
+
+        ;; assume we are on a hanging clock
+        (when (> (org-user-idle-seconds)
+                (* 60 60 5))
           (ns/org-clock-out)))))
 
 (defun ns/get-notes-nodes (&optional filter-pred)
@@ -29,7 +32,7 @@
 (defun ns/org-scheduled-past-todo (heading)
   "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
   (llet [scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)
-          todo-state (org-ml--get-property-nocheck :todo-keyword heading)]
+          todo-state (org-ml-get-property :todo-keyword heading)]
     (when (and scheduled
             (string= todo-state "TODO"))
       (ts> (ts-now)
@@ -46,7 +49,6 @@
 ;; the main difference is instead of leveraging the agenda we do it ourselves
 ;; <2021-08-17 Tue 10:48> I have since decoupled getting the nodes and processing headlines and the
 ;; lag on the notes buffer is greatly reduced (~0.2s)
-
 (defun ns/org-notify ()
   (->> (ns/get-notes-nodes 'ns/org-scheduled-today)
 
@@ -106,21 +108,49 @@
   (if-not points
     (message "Nothing to jump to!")
     (let ((points (-snoc points (first points)))
-           (current-headline (-> (point)
-                               (org-ml-parse-headline-at)
-                               second
-                               (plist-get :begin))))
-      (-if-let (current-match (-find-index (-partial '= current-headline) points))
+           (current-headline-point (let ((current-headline (org-ml-parse-headline-at (point))))
+                                     (if-not current-headline 0
+                                       (-> current-headline second (plist-get :begin))))))
+      (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
         (goto-char (nth (+ 1 current-match) points))
         (goto-char (or (first (-filter (-partial '< (point)) points))
                      (first points))))
       (ns/org-jump-to-element-content))))
 
+(defun ns/headline-date (headline-node)
+  (->> headline-node
+    (org-ml-headline-get-planning)
+    (org-ml-get-property :scheduled)
+    (org-ml-get-property :raw-value)))
+
 (defun! ns/org-rotate-outdated ()
   (ns/find-or-open org-default-notes-file)
+
+  (defun ns/org-outdated-sort-node (node1 node2)
+    ;; anything for TODAY should come first
+    ;; then priority -> oldest
+    ;; also repeaters?
+
+    ;; (llet
+    ;;   [
+    ;;     today? (fn )
+    ;;     ]
+    ;;   )
+
+    ;; (-group-by 'identity '(1 1 2 ) )
+    ;; (org-ml-get-pr)
+
+    ;; everything that comes here WILL have a date
+    ;; t
+    nil
+    )
+
   (ns/org-rotate
-    (-map (-partial 'org-ml-get-property :begin)
-      (ns/get-notes-nodes 'ns/org-scheduled-past-todo))))
+    (->>
+      (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
+      ;; here: sort
+      (-sort 'ns/org-outdated-sort-node)
+      (-map (-partial 'org-ml-get-property :begin)))))
 
 (defun! ns/org-rotate-captures ()
   (defun ns/org-captures-review (headline)
@@ -130,7 +160,8 @@
         (let ((path (org-ml-headline-get-path headline)))
           (and
             (string= "projects" (nth 0 path))
-            (string= "captures" (nth 2 path))))
+            (string= "captures" (nth 2 path))
+            (not (string= (-last-item path) "captures"))))
         (-if-let (capture-date (org-ml-headline-get-node-property "captured" headline))
           (ts< (ts-parse-org capture-date)
             ;; todo: 3 weeks was an arbitrary choice, you should review this after awhile
@@ -144,7 +175,10 @@
 
 (ns/bind "oq" 'ns/org-rotate-outdated)
 
-;; (ns/bind "oq" 'ns/org-rotate-captures)
+(ns/comment
+  (ns/bind "oq" 'ns/org-rotate-captures)
+
+  )
 
 (defun ns/org-get-current-clock-time ()
   "Return minutes on the current org clock."
@@ -290,8 +324,11 @@
   20
   (fn (llet [pomo-break? (-contains-p '(:short-break :long-break) org-pomodoro-state)
               org-recently-clocked-out? (< (- (ts-unix (ts-now))
-                                             (time-to-seconds org-clock-out-time))
+                                             (if org-clock-out-time
+                                               (time-to-seconds org-clock-out-time)
+                                               10000))
                                           120)
+
               idle? (> (org-user-idle-seconds) 20)
               ;; present, but not allocated
               wandering? (-all-p 'null (list idle? pomo-break? org-recently-clocked-out? (org-clocking-p)))]
