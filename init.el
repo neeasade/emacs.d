@@ -110,7 +110,9 @@
   ;; doing a batch job, eval some lisp, message the result
   (progn
     (ns/scripting)
-    (-> "NS_EMACS_BATCH" getenv read eval pr-string message))
+    (-> "NS_EMACS_BATCH" getenv read eval pr-string)
+    ;; (-> "NS_EMACS_BATCH" getenv read eval pr-string message)
+    (kill-emacs))
 
   ;; normal MO:
   (ns/core)

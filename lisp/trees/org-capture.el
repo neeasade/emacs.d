@@ -1,10 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
 ;; standalone capture experience
-(defun! ns/org-capture-popup ()
-  (ns/shell-exec-dontcare "popup_window.sh -r")
-  (select-frame (make-frame '((name . "org-protocol-capture"))))
-  (org-capture))
 
 ;; cf https://fuco1.github.io/2017-09-02-Maximize-the-org-capture-buffer.html
 (defvar ns/my-org-capture-before-config nil)
@@ -18,11 +14,7 @@
 (defun my-org-capture-cleanup ()
   "Clean up the frame created while capturing via org-protocol."
   (when ns/my-org-capture-before-config
-    (set-window-configuration ns/my-org-capture-before-config))
-
-  (-when-let ((&alist 'name name) (frame-parameters))
-    (when (equal name "org-protocol-capture")
-      (delete-frame))))
+    (set-window-configuration ns/my-org-capture-before-config)))
 
 (add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
 
@@ -177,11 +169,14 @@ This works like `org-find-olp', but much faster."
 
 ;; ensure capture hierarchy exists for capture targets
 ;; TODO: presuppose this at time of capture
-(-map
-  (lambda (heading)
-    (-map (fn (ns/make-org-tree org-default-notes-file "projects" heading <>))
-      '("captures" "notes" "tasks")))
-  ns/org-capture-project-list)
+
+;; this is breaking things?
+
+;; (-map
+;;   (lambda (heading)
+;;     (-map (fn (ns/make-org-tree org-default-notes-file "projects" heading <>))
+;;       '("captures" "notes" "tasks")))
+;;   ns/org-capture-project-list)
 
 (setq ns/linkmark-file (concat org-directory "/linkmarks.org"))
 

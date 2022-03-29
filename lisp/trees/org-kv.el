@@ -147,8 +147,7 @@
             (list leaf-path (s-split "\\." merge-target)))
           (ns/org-headline-find-merge-directives leaf))))
 
-    (if (and
-          (-contains-p (ns/org-get-types leaf) 'item)
+    (if (and (-contains-p (ns/org-get-types leaf) 'item)
           (->> leaf
             (org-ml-headline-get-contents (ns/current-org-config))
             (-filter (-partial 'org-ml-is-type 'plain-list))
@@ -240,7 +239,7 @@
          (ns/ht-walk-leaves conf-tree
            (lambda (path value)
              (ht-set flattened
-               (format "'%s'" (s-join "." path))
+               (format "%s" (s-join "." path))
                (cond
                  ;; arrays
                  ((listp value)

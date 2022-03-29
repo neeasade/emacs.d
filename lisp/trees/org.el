@@ -64,7 +64,6 @@
                ("inactive" . ?i)
                )
 
-  ;; clock
   clock-x11idle-program-name "x11idle"
   clock-idle-time 5
   clock-sound nil

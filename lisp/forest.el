@@ -541,8 +541,7 @@
              (cmd (cadr pair)))
         (when (and (equal (buffer-file-name) file)
                 (f-exists-p file))
-          (ns/shell-exec-dontcare cmd))
-        )))
+          (ns/shell-exec-dontcare cmd)))))
 
   (add-hook 'after-save-hook 'my/cmd-after-saved-file)
   )
