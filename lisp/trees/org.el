@@ -616,12 +616,7 @@
   "op" 'org-pomodoro
 
   ;; query org element
-  "qo" (fn!
-         (message
-           (pr-string
-             (org-ml-get-type (org-ml-parse-element-at (point)))))
-         )
-  )
+  "qo" (fn! (-> (point) org-ml-parse-element-at org-ml-get-type pr-string message)))
 
 
 (ns/bind-leader-mode

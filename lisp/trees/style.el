@@ -136,6 +136,7 @@ will also be the width of all other printable characters."
     (set-face-attribute 'flycheck-error nil :underline nil)))
 
 (defun! ns/load-theme (&optional theme)
+  ;; todo here: maybe kill buffers with no file here -- breaks load-theme somehow
   (mapcar 'disable-theme custom-enabled-themes)
 
   (load-theme

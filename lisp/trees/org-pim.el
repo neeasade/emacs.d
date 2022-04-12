@@ -1,4 +1,6 @@
 ;; PIM = personal information management
+;; managing my information with org in a really big notes file
+;; includes org notifications, timeout, pim stuff, exporting to some formats
 
 (named-timer-run :auto-clock-out
   "30 sec"
@@ -20,18 +22,18 @@
       (org-ml-match `((:and headline (:pred ,filter-pred))) all-nodes)
       all-nodes)))
 
+
 (defun ns/org-scheduled-today (heading)
   "Get headings scheduled from <now - 2hrs> --> end of day"
-  (-when-let (scheduled (plist-get (cadr (org-ml-headline-get-planning heading))
-                          :scheduled))
+  (-when-let (scheduled (ns/headline-date heading))
     (ts-in
       (ts-adjust 'hour -2 (ts-now))
       (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
-      (ts-parse-org (plist-get (cadr scheduled) :raw-value)))))
+      (ts-parse-org scheduled))))
 
 (defun ns/org-scheduled-past-todo (heading)
   "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
-  (llet [scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)
+  (llet [scheduled (ns/headline-date headling)
           todo-state (org-ml-get-property :todo-keyword heading)]
     (when (and scheduled
             (string= todo-state "TODO"))
@@ -57,13 +59,7 @@
                 ;; FIXME: code smell -- there should be a plist thing to get the title  here
                 ;; (this same smell is in node-to-note export)
                 (-> <> cadr cadr)
-                (--> <>
-                  (org-ml-headline-get-planning it)
-                  (cadr it)
-                  (plist-get it :scheduled)
-                  (cadr it)
-                  (plist-get it :raw-value)
-                  (ts-parse-org it)))))
+                (ts-parse-org (ns/headline-date <>)))))
 
     ;; process notifications
     (-map
@@ -118,7 +114,7 @@
       (ns/org-jump-to-element-content))))
 
 (defun ns/headline-date (headline-node)
-  (->> headline-node
+  (-some->> headline-node
     (org-ml-headline-get-planning)
     (org-ml-get-property :scheduled)
     (org-ml-get-property :raw-value)))
@@ -189,10 +185,8 @@
 
 (defun ns/export-scheduled-org-headings ()
   (defun ns/org-scheduled-future (heading)
-    (let ((scheduled (plist-get (cadr (org-ml-headline-get-planning heading)) :scheduled)))
-      (when scheduled
-        (ts< (ts-now)
-          (ts-parse-org (plist-get (cadr scheduled) :raw-value))))))
+    (-when-let (scheduled (ns/headline-date heading))
+      (ts< (ts-now) (ts-parse-org scheduled))))
 
   (->> (ns/get-notes-nodes 'ns/org-scheduled-future)
     (-map 'org-ml-to-string)
@@ -337,8 +331,8 @@
                     (if ns/enable-linux-p (random) ""))
             :severity 'normal
             :title "BE INTENTIONAL")
-          (when ns/enable-home-p
-            (ns/org-check-casual-time-today t))))))
+          ;; (when ns/enable-home-p (ns/org-check-casual-time-today t))
+          ))))
 
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
 (setq org-clock-idle-time nil)

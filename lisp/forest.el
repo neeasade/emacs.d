@@ -24,12 +24,10 @@
         (helpful-callable "")
         (if ns/enable-dashdocs-p
           (ns/counsel-dash-word)
-          (message "dash docs not enabled!")
-          )))
+          (message "dash docs not enabled!"))))
 
     ;; todo: should this be cider/emacslisp apropros in the mix
-    (ns/bind "nh" 'ns/helpful-or-dashdoc)
-    )
+    (ns/bind "nh" 'ns/helpful-or-dashdoc))
 
   (use-package eros
     :config
@@ -181,6 +179,10 @@
 (defconfig clojure
   (use-package clojure-mode)
   (use-package cider)
+
+  ;; babashka
+  (add-to-list 'interpreter-mode-alist '("bb" . clojure-mode))
+
   (setq cider-eval-result-duration 20)
 
   (ns/inmap 'cider-repl-mode-map (kbd "C-e") 'cider-repl-previous-input)

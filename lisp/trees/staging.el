@@ -189,6 +189,7 @@
 
 (use-package paren-face)
 
+;; used in window move scripts
 (defalias 'evil-window-north 'evil-window-up)
 (defalias 'evil-window-south 'evil-window-down)
 (defalias 'evil-window-east 'evil-window-right)
