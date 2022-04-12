@@ -56,9 +56,7 @@
 
     ;; map headline text to scheduled timestamps
     (-map (fn (list
-                ;; FIXME: code smell -- there should be a plist thing to get the title  here
-                ;; (this same smell is in node-to-note export)
-                (-> <> cadr cadr)
+                (-> <> org-ml-headline-get-path -last-item)
                 (ts-parse-org (ns/headline-date <>)))))
 
     ;; process notifications
