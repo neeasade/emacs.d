@@ -11,6 +11,32 @@
          (aset str (+ i ?a) (+ i ,lower)))
        str)))
 
+;; (-map
+;;   (-lambda ((kind upper lower))
+;;     (llet
+;;       [table-name (format "ns/%s-table" kind)
+;;         function-name (format "ns/text-to-%s" kind)]
+
+;;       (when-not (boundp table-name)
+;;         (ns/make-char-table table-name upper lower))
+
+;;       `(defun ,function-name (beg end) (interactive "r")
+;;          (translate-region beg end ,table-name))
+
+;;       (defun function-name
+;;         (bug )
+;;         )
+;;       ))
+;;   '((monospace ?𝙰 ?𝚊)
+;;      (widechar ?Ａ ?ａ)
+;;      (gothic ?𝔄 ?𝔞)
+;;      (cursive ?𝓐 ?𝓪)))
+
+;; (let ((texts
+;;         '()
+;;         ))
+;;   )
+
 (ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
 (ns/make-char-table ns/widechar-table ?Ａ ?ａ)
 (ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
@@ -72,10 +98,12 @@
     (org-do-demote)
     (newline)))
 
-(ns/bind "nt" (fn! (find-file
-                     (if ns/enable-mac-p
-                       (~ ".dotfiles/theming/scratch_mac.toml")
-                       (~ ".dotfiles/theming/scratch.toml")))))
+(ns/bind "nt" (fn!
+               (find-file (executable-find "theme"))
+               (goto-line 0)
+               (re-search-forward
+                (if ns/enable-work-p "work-theme" "home-theme"))
+               (recenter)))
 
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs
@@ -87,9 +115,9 @@
 (use-package rainbow-mode
   :config
   (setq
-    ;; don't preview non-hex codes
-    rainbow-html-colors nil
-    rainbow-x-colors nil)
+   ;; don't preview non-hex codes
+   rainbow-html-colors nil
+   rainbow-x-colors nil)
 
   (ns/bind "tc" 'rainbow-mode))
 
@@ -179,12 +207,10 @@
   "Return the clocking buffer if we are currently clocking a task or nil."
   (marker-buffer org-clock-marker))
 
-(use-package go-mode)
-
 (ns/bind "it"
   (fn!
     (ivy-read "theme key: "
-      (s-split "\n" (ns/shell-exec "theme -o keys"))
+      (s-split "\n" (ns/shell-exec "theme -k"))
       :action #'insert)))
 
 (use-package paren-face)
@@ -202,6 +228,96 @@
         (> (ct-name-distance it c) 20)))
     (ct-iterate it 'ct-lab-lighten
       ((c) (ct-is-light-p c 75)))))
+
+;; somehow initialize is broken here at the moment
+(when ns/enable-work-p
+  (setq exec-path
+        (->>
+         (exec-path-from-shell-initialize)
+         (second)
+         (cdr)
+         (s-split ":"))))
+
+(use-package frog-jump-buffer
+  :config
+  (ns/bind "b" 'frog-jump-buffer)
+  (ns/bind "B" 'frog-jump-buffer-other-window)
+
+  (setq frog-jump-buffer-default-filter
+    ;; 'frog-jump-buffer-filter-file-buffers
+    ;; 'frog-jump-buffer-filter-same-project
+    'frog-jump-buffer-filter-recentf
+    ;; 'ns/jump-file-candidates
+    )
+
+  ;; (setq frog-menu-avy-padding)
+  (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
+  (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
+  (setq frog-jump-buffer-include-current-buffer nil)
+  (setq frog-jump-buffer-posframe-parameters
+    `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
+       (background-color . ,(tarp/get :background :weak))
+
+       (foreground-color . ,(tarp/get :foreground :weak))
+       (left . 0.0)
+       ))
+
+  ;; (set-face-attribute 'avy-lead-face nil :box (tarp/get :faded))
+  (set-face-attribute 'avy-lead-face nil :box nil))
+
+(defun frog-menu-type ()
+  "Return variable `frog-menu-type' to use."
+  (cond ((display-graphic-p)
+          'avy-posframe)
+    (t
+      'avy-side-window)))
+
+;; (frog-menu-type)
+
+;; todo: spc n g -> browse git repo
+;; want a shortcut to open:
+;; associated PR
+;; or just git repo generally
+
+;; clean-buffer-list-delay-general
+;; clean-buffer-list-delay-special
+;; clean-buffer-list-kill-buffer-names
+;; clean-buffer-list-kill-never-buffer-names
+;; clean-buffer-list-kill-regexps
+;; clean-buffer-list-kill-never-regexps
+
+(ns/comment
+
+
+  (defun ns/within (value tolerance anchor)
+    "return if a value is within a tolerance"
+    (>= (+ anchor tolerance)
+      value
+      (- anchor tolerance)))
+
+  (defun amp-value (v fn arg1 arg1-amp tolerance-fn)
+    (let ((next (funcall fn v arg1)))
+      (if (not (string= next v))
+        ;; we changed it!
+        next
+        (if (funcall tolerance-fn arg1)
+          (amp-value v fn (funcall arg1-amp arg1) arg1-amp tolerance-fn)
+          ;; we're out of tolerance, give up
+          v))))
+
+  (amp-value
+    "#cccccc"
+    (lambda (color amount)
+      (ct-transform-hsl-l color (-partial '+ amount)))
+    0.01
+    (-partial '+ 0.01)
+    (fn (ns/within <> 2 0.01)))
+
+
+  )
+
+(setq org-duration-format
+  (quote h:mm))
 
 (provide 'staging)
 ;;; staging.el ends here

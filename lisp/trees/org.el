@@ -130,7 +130,7 @@
   )
 
 (defun ns/org-get-clock-marker ()
-  ;; sniped from org-clock-goto
+  ;; snippet extracted from org-clock-goto
   (cond
     ((org-clocking-p) org-clock-marker)
     ((and org-clock-goto-may-find-recent-task
@@ -149,7 +149,8 @@
 "
   (ns/with-notes
     (save-window-excursion
-      (if org-clock-current-task
+      (if (and org-clock-current-task
+            (not (string= org-clock-current-task "misc")))
         ;; org clock goto does handle some niceties for us
         (let ((m (ns/org-get-clock-marker)))
           (with-current-buffer (marker-buffer m)

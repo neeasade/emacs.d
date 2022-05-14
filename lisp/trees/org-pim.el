@@ -1,6 +1,4 @@
 ;; PIM = personal information management
-;; managing my information with org in a really big notes file
-;; includes org notifications, timeout, pim stuff, exporting to some formats
 
 (named-timer-run :auto-clock-out
   "30 sec"
@@ -22,7 +20,6 @@
       (org-ml-match `((:and headline (:pred ,filter-pred))) all-nodes)
       all-nodes)))
 
-
 (defun ns/org-scheduled-today (heading)
   "Get headings scheduled from <now - 2hrs> --> end of day"
   (-when-let (scheduled (ns/headline-date heading))
@@ -33,12 +30,11 @@
 
 (defun ns/org-scheduled-past-todo (heading)
   "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
-  (llet [scheduled (ns/headline-date headling)
+  (llet [scheduled (ns/headline-date heading)
           todo-state (org-ml-get-property :todo-keyword heading)]
     (when (and scheduled
             (string= todo-state "TODO"))
-      (ts> (ts-now)
-        (ts-parse-org (plist-get (cadr scheduled) :raw-value))))))
+      (ts> (ts-now) (ts-parse-org scheduled)))))
 
 ;; track headlines to notification status
 (when (not (boundp 'ns/org-notify-ht))
@@ -61,22 +57,20 @@
 
     ;; process notifications
     (-map
-      (lambda (pair)
-        (seq-let (headline timestamp) pair
-          ;; ensure we're tracking the headline
-          (when-not (ht-contains? ns/org-notify-ht headline)
-            (ht-set! ns/org-notify-ht headline nil))
+      (-lambda ((headline timestamp))
+        ;; ensure we're tracking the headline
+        (when-not (ht-contains? ns/org-notify-ht headline)
+          (ht-set! ns/org-notify-ht headline nil))
 
-          (when (and
-                  (not (ht-get ns/org-notify-ht headline))
-                  (ts> (ts-now)
-                    ;; get notified in advance
-                    (ts-adjust 'minute -3 timestamp)))
-            (ns/shell-exec "dunstctl set-paused false")
-            (alert! headline
-              :severity 'normal
-              :title (ts-format "%l:%M %p" timestamp))
-            (ht-set! ns/org-notify-ht headline t)))))))
+        (when (and (not (ht-get ns/org-notify-ht headline))
+                (ts> (ts-now)
+                  ;; get notified in advance
+                  (ts-adjust 'minute -3 timestamp)))
+          (ns/shell-exec "dunstctl set-paused false")
+          (alert! headline
+            :severity 'normal
+            :title (ts-format "%l:%M %p" timestamp))
+          (ht-set! ns/org-notify-ht headline t))))))
 
 (ns/comment
   (setq ns/org-notify-ht (ht))
@@ -102,9 +96,9 @@
   (if-not points
     (message "Nothing to jump to!")
     (let ((points (-snoc points (first points)))
-           (current-headline-point (let ((current-headline (org-ml-parse-headline-at (point))))
-                                     (if-not current-headline 0
-                                       (-> current-headline second (plist-get :begin))))))
+           (current-headline-point (-if-let (current-headline (org-ml-parse-headline-at (point)))
+                                     (-> current-headline second (plist-get :begin))
+                                     0)))
       (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
         (goto-char (nth (+ 1 current-match) points))
         (goto-char (or (first (-filter (-partial '< (point)) points))
@@ -140,11 +134,11 @@
     )
 
   (ns/org-rotate
-    (->>
-      (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
-      ;; here: sort
-      (-sort 'ns/org-outdated-sort-node)
-      (-map (-partial 'org-ml-get-property :begin)))))
+   (->>
+    (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
+    ;; here: sort
+    (-sort 'ns/org-outdated-sort-node)
+    (-map (-partial 'org-ml-get-property :begin)))))
 
 (defun! ns/org-rotate-captures ()
   (defun ns/org-captures-review (headline)

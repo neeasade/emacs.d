@@ -166,10 +166,9 @@
          (ivy-prescient-enable-sorting nil))
 
     (ivy-read "history: "
-      (-uniq
+      (->>
         (append
           ;; current history across all open shells:
-          ;; todo here: don't include commands starting with a space
           (-mapcat
             (fn (with-current-buffer <>
                   (when (boundp 'comint-input-ring)
@@ -187,7 +186,9 @@
               (fn ;; shared history format: ': 1556747685:0;cmd'
                 (if (s-starts-with-p ":" <>)
                   (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                  <>))))))
+                  <>)))))
+        (-uniq)
+        (-remove (-partial #'s-starts-with-p " ")))
 
       :action (fn (when (eq major-mode 'shell-mode)
                     (goto-char (point-max)))

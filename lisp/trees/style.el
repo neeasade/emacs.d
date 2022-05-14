@@ -88,13 +88,7 @@
       (ht (:colors (apply 'vector (theme-magic--auto-extract-16-colors)))
         (:color
           (ht-merge tarp/theme*
-            (ht (:cursor (first evil-insert-state-cursor)))))
-
-        ))
-
-    )
-
-  )
+            (ht (:cursor (first evil-insert-state-cursor)))))))))
 
 (defun default-font-width ()
   "Return the width in pixels of a character in the current

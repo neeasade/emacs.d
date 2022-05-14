@@ -404,7 +404,7 @@
     (smart-jump-setup-default-registers)
     (ns/bind
       "n" '(:ignore t :which-key "Jump")
-      "ng" 'smart-jump-go
+      ;; "ng" 'smart-jump-go
       "nb" 'smart-jump-back
       "nr" 'smart-jump-references
       )))
@@ -680,6 +680,9 @@
                      (nth <> ns-args)))
                (number-sequence 0 (- (length args) 1))))
        ,@content)))
+
+(defconfig go
+  (use-package go-mode))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for

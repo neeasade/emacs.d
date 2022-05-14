@@ -188,7 +188,9 @@
          (theme-result (when (executable-find "theme")
                          (-when-let (stdout (ns/shell-exec (format "theme -q '%s' 2>/dev/null" name)))
                            stdout))))
-    (or theme-result xrq-result default)))
+    (->> (list theme-result xrq-result default)
+      (-remove (fn (s-blank-p <>)))
+      (first))))
 
 (defun! reload-init ()
   "Reload init.el with straight.el."
