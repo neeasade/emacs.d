@@ -81,8 +81,12 @@
                                 evil-normal-state-map
                                 evil-visual-state-map)))
 
-(define-key evil-motion-state-map "k" 'evil-search-next)
-(define-key evil-motion-state-map "K" 'evil-search-previous)
+
+;; with the isearch backend, can change the keybind here
+(evil-select-search-module 'evil-search-module 'evil-search)
+(define-key evil-motion-state-map "k" 'evil-ex-search-next)
+(define-key evil-motion-state-map "K" 'evil-ex-search-previous)
+
 (set-in-navigation-evil-states "n" 'evil-next-line)
 (set-in-navigation-evil-states "e" 'evil-previous-line)
 

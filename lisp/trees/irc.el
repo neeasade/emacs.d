@@ -12,7 +12,6 @@
   circe-default-user ns/irc-nick
   circe-default-realname ns/irc-nick)
 
-
 (setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "nessie" "bspwm" "emacs " "clojure" " nix "))
 
 (setq-ns lui
@@ -38,12 +37,22 @@
     ;; todo: consider tracking channels somewhere else
     network-options
     `(
+
+       ("gnot"
+         :nick ,ns/irc-nick
+         :host "chat.gnot.club"
+         :port 6697
+         :tls t
+         :channels ("#gnot")
+         )
+
        ("Libera"
          :nick ,ns/irc-nick
          :host "irc.libera.chat"
          :port 6697
          :tls t
          :nickserv-password ,(pass "libera")
+
          :channels (:after-auth
                      "#bspwm"
                      "#lobsters"
@@ -225,8 +234,7 @@
 
   ;; bots
   (when (or (-contains-p
-              '(
-                 "cappuccino"
+              '("cappuccino"
                  "EGGServ"
                  "EggServ"
                  "mockturtle"
@@ -236,11 +244,9 @@
           (s-ends-with-p "bot" nick))
 
     ;; peek at last message hese
-    (when (or
-            (s-contains-p "http" circe-last-message)
+    (when (or (s-contains-p "http" circe-last-message)
             (-contains-p (string-to-list ",.!~[") (string-to-char circe-last-message))
-            (s-starts-with-p "s/" circe-last-message)
-            )
+            (s-starts-with-p "s/" circe-last-message))
       (setq nick circe-last-nick)))
 
   ;; don't double print nicks
@@ -265,20 +271,21 @@
            (channel (buffer-name))
            (poster circe-last-nick))
 
-      (when
-        (and
-          (not (string= channel (if (boundp 'circe-chat-target) "")))
+      (when-not
+        (or
+          (string= channel (if (boundp 'circe-chat-target) ""))
 
           ;; don't self highlight!
-          (not (string= circe-last-nick "me"))
+          (string= circe-last-nick "me")
 
           ;; don't care if some things are mentioned in their primary channel
-          (not (and (string= "emacs " match) (string= "#emacs" channel)))
-          (not (and (string= "clojure" match) (string= "#clojure-beginners" channel)))
-          (not (and (string= "clojure" match) (string= "#clojure" channel)))
-          (not (and (string= " nix " match) (string= "#nixos" channel)))
-          (not (and (string= " nix " match) (string= "#nixos-chat" channel)))
-          )
+          (and (string= "emacs " match) (string= "#emacsconf@Libera" channel))
+          (and (string= "emacs " match) (string= "#emacs@Libera" channel))
+          (and (string= "clojure" match) (string= "#clojure-beginners@Libera" channel))
+          (and (string= "clojure" match) (string= "#clojure@Libera" channel))
+          (and (string= " nix " match) (string= "#nixos@Libera" channel))
+          (and (string= " nix " match) (string= "#nixos-chat@Libera" channel)))
+
 
         (with-current-buffer "*circe-highlight*"
           (alert!
@@ -617,7 +624,11 @@
 
 (defun circe-command-NP (&optional _)
   (interactive "sAction: ")
-  (circe-command-ME (concat "is now playing " (ns/shell-exec "music infoname"))))
+  (circe-command-ME (concat "is now playing " (ns/shell-exec "music info | head -n 1")))
+  )
+
+
+
 
 (defun circe-command-SHRUG (content)
   (circe-command-SAY (concat content " ¯\\_(ツ)_/¯")))

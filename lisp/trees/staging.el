@@ -221,13 +221,14 @@
 (defalias 'evil-window-east 'evil-window-right)
 (defalias 'evil-window-west 'evil-window-left)
 
-(defun ns/make-border-color (label)
-  (--> (ht-get tarp/theme label)
+;; move to style?
+(defun ns/make-border-color (c)
+  (--> (tarp/get c)
     (ct-iterate it 'ct-pastel
       (lambda (c)
-        (> (ct-name-distance it c) 20)))
-    (ct-iterate it 'ct-lab-lighten
-      ((c) (ct-is-light-p c 75)))))
+        (> (ct-distance it c) 20)))
+    (ct-iterate it 'ct-edit-lab-l-inc
+      (lambda (c) (ct-is-light-p c 75)))))
 
 ;; somehow initialize is broken here at the moment
 (when ns/enable-work-p
@@ -308,7 +309,7 @@
   (amp-value
     "#cccccc"
     (lambda (color amount)
-      (ct-transform-hsl-l color (-partial '+ amount)))
+      (ct-edit-hsl-l color (-partial '+ amount)))
     0.01
     (-partial '+ 0.01)
     (fn (ns/within <> 2 0.01)))
@@ -316,8 +317,23 @@
 
   )
 
+;; consider the current day to end at 3AM
+;; (setq org-extend-today-until 0)
+
+;; make timestamp processing functions aware of this
+;; (setq org-use-effective-time nil)
+
 (setq org-duration-format
   (quote h:mm))
+
+
+
+(defun! ns/babashka-default-connect ()
+  (cider-connect-clj
+    '(
+       :host "localhost"
+       :port 1667)))
+
 
 (provide 'staging)
 ;;; staging.el ends here

@@ -29,6 +29,7 @@
 (use-package async)   ; async
 (use-package ts)      ; timestamps
 (use-package pcre2el) ; sane regex
+(use-package memoize) ; caching
 
 ;; other/emacs enhancers
 (use-package hydra)

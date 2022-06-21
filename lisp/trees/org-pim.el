@@ -13,12 +13,15 @@
                 (* 60 60 5))
           (ns/org-clock-out)))))
 
-(defun ns/get-notes-nodes (&optional filter-pred)
+(defun ns/get-notes-nodes (&rest filters)
   "Retrieve headline nodes from notes file for read-only operations."
   (llet [all-nodes (ns/with-notes (org-ml-parse-headlines 'all))]
-    (if filter-pred
-      (org-ml-match `((:and headline (:pred ,filter-pred))) all-nodes)
-      all-nodes)))
+    (if-not filters
+      all-nodes
+      (org-ml-match `((:or ,@(-map (lambda (f)
+                                     `(:pred ,f))
+                               filters)))
+        all-nodes))))
 
 (defun ns/org-scheduled-today (heading)
   "Get headings scheduled from <now - 2hrs> --> end of day"
@@ -83,22 +86,25 @@
 (named-timer-run :org-notify-scheduled-reset t (* 60 60 24) 'ns/org-notify-reset)
 
 (defun ns/org-status-outdated ()
-  (llet [outdated (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
-          outdated-next (-> outdated first org-ml-headline-get-path -last-item)
-          count (length outdated)]
-    (when (> count 0)
-      (if (= count 1)
-        (format "OUTDATED: %s" outdated-next)
-        (format "OUTDATED: %s (next: %s)" count outdated-next)))))
+  (when-not (and (boundp 'org-pomodoro-state)
+              (eq org-pomodoro-state :pomodoro))
+    (llet [outdated (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
+            outdated-next (-> outdated first org-ml-headline-get-path -last-item)
+            count (length outdated)]
+      (when (> count 0)
+        (if (= count 1)
+          (format "OUTDATED: %s" outdated-next)
+          (format "OUTDATED: %s (next: %s)" count outdated-next))))))
 
 (defun ns/org-rotate (points)
   "Rotate through org headings by points. Assumes you are already in an org file with said headings"
   (if-not points
     (message "Nothing to jump to!")
-    (let ((points (-snoc points (first points)))
-           (current-headline-point (-if-let (current-headline (org-ml-parse-headline-at (point)))
-                                     (-> current-headline second (plist-get :begin))
-                                     0)))
+    (let* ((points (-uniq points))
+            (points (-snoc points (first points)))
+            (current-headline-point (-if-let (current-headline (org-ml-parse-headline-at (point)))
+                                      (-> current-headline second (plist-get :begin))
+                                      0)))
       (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
         (goto-char (nth (+ 1 current-match) points))
         (goto-char (or (first (-filter (-partial '< (point)) points))
@@ -115,6 +121,7 @@
   (ns/find-or-open org-default-notes-file)
 
   (defun ns/org-outdated-sort-node (node1 node2)
+    ;; ideas
     ;; anything for TODAY should come first
     ;; then priority -> oldest
     ;; also repeaters?
@@ -134,11 +141,9 @@
     )
 
   (ns/org-rotate
-   (->>
-    (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
-    ;; here: sort
-    (-sort 'ns/org-outdated-sort-node)
-    (-map (-partial 'org-ml-get-property :begin)))))
+    (->> (ns/get-notes-nodes 'ns/org-scheduled-past-todo 'ns/org-scheduled-today)
+      (-sort 'ns/org-outdated-sort-node)
+      (-map (-partial 'org-ml-get-property :begin)))))
 
 (defun! ns/org-rotate-captures ()
   (defun ns/org-captures-review (headline)
@@ -270,7 +275,7 @@
       (ts-unix))))
 
 ;; this is measured in minutes
-(setq ns/org-casual-timelimit (* 60 3))
+(setq ns/org-casual-timelimit (* 60 30))
 
 (defun ns/org-get-path (&optional point)
   "Get the FULL path to an outline at a point within notes"
@@ -323,10 +328,10 @@
                     (if ns/enable-linux-p (random) ""))
             :severity 'normal
             :title "BE INTENTIONAL")
-          ;; (when ns/enable-home-p (ns/org-check-casual-time-today t))
           ))))
-
+       
 ;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
+;;
 (setq org-clock-idle-time nil)
 
 (defun! ns/org-clock-into-misc ()

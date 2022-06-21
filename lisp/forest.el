@@ -9,6 +9,8 @@
 (defconfig elisp
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
 
+  ;; 'common-lisp-indent-function
+
   (setq lisp-indent-function 'common-lisp-indent-function)
 
   (use-package helpful
@@ -536,6 +538,9 @@
       (~ ".Xmodmap") "xmodmap ~/.Xmodmap"
       ))
 
+  ;; todo here:
+  ;; if file exists, and is in the templates dir and not in list
+  ;; and has hook -- add it to ns/filename-cmd
   (defun my/cmd-after-saved-file ()
     "Execute a command after saved a specific file."
     (dolist (pair (-partition 2 ns/filename-cmd))

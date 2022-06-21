@@ -162,20 +162,18 @@
       (switch-to-buffer (get-buffer "*spawn-shell-remote-temp*")))
     (switch-to-buffer (get-buffer "*spawn-shell-staged*")))
 
+
   (rename-buffer
     (format "*spawn-shell-%s*"
       ;; get the pid of the running bash process
-      (first (-map 'process-id
-               (-filter
-                 (fn (eq (process-buffer <>)
-                       (current-buffer)))
-                 (process-list))))))
+      (first
+        (-map 'process-id
+          (-filter
+            (fn (eq (process-buffer <>)
+                  (current-buffer)))
+            (process-list))))))
 
-  (when terminal
-    (ns/toggle-modeline)
-    (when (string= (get-resource "Emacs.padding_source") "st")
-      (set-window-fringes nil 0 0)))
-
+  (when terminal (ns/toggle-modeline))
   (when cwd (shell-pop--cd-to-cwd-shell cwd))
 
   ;; we don't care about how long it takes to stage the terminal

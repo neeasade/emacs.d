@@ -1,6 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-
 ;; todo: this does not work with anchors?
 (defun ns/eww-browse-existing-or-new (url)
   "If eww is displayed, use that for URL, else open here."
@@ -39,7 +38,7 @@
     f-read
     (s-match-strings-all  "^(defconfig [^ \(\)]+")
     (mapcar (fn (->> (car <>) (s-chop-prefix "(defconfig ") (s-chomp))))
-    (append '("style" "dirt" "init" "theme" "forest"))))
+    (append '("style" "dirt" "init" "forest"))))
 
 (defun! ns/check-for-orphans ()
   "Check to see if any defconfigs are missing from init."

@@ -8,18 +8,18 @@
   (ns/use-package tarps "neeasade/tarps" :config (require 'tarps))
 
   ;; overriding to force truecolor terminal
-  (defun base16-transform-face (spec colors)
+  (defun base16-theme-transform-face (spec colors)
     "Transform a face `SPEC' into an Emacs theme face definition using `COLORS'."
     (let* ((face             (car spec))
             (definition       (cdr spec))
             (shell-colors-256 (pcase base16-theme-256-color-source
-                                ('terminal      base16-shell-colors)
-                                ("terminal"     base16-shell-colors)
-                                ('base16-shell  base16-shell-colors-256)
-                                ("base16-shell" base16-shell-colors-256)
+                                ('terminal      base16-theme-shell-colors)
+                                ("terminal"     base16-theme-shell-colors)
+                                ('base16-shell  base16-theme-shell-colors-256)
+                                ("base16-shell" base16-theme-shell-colors-256)
                                 ('colors        colors)
                                 ("colors"       colors)
-                                (_              base16-shell-colors))))
+                                (_              base16-theme-shell-colors))))
 
       ;; This is a list of fallbacks to make us select the sanest option possible.
       ;; If there's a graphical terminal, we use the actual colors. If it's not
@@ -28,7 +28,7 @@
       ;; xresources colors.
       (list face `((((type graphic))   ,(base16-transform-spec definition colors))
                     (((min-colors 256)) ,(base16-transform-spec definition shell-colors-256))
-                    (t                  ,(base16-transform-spec definition base16-shell-colors)))))))
+                    (t                  ,(base16-transform-spec definition base16-theme-shell-colors)))))))
 
 (defun ns/maybe-update-xrdb-font (key font)
   "Update the fallback font for xrdb value"
@@ -80,12 +80,12 @@
 
 (set-face-attribute 'italic nil :slant 'italic)
 
-;; export the theme as shell env variables:
 (use-package theme-magic
   :config
   (defun ns/emacs-to-theme ()
     (parseedn-print-str
-      (ht (:colors (apply 'vector (theme-magic--auto-extract-16-colors)))
+      (ht
+        (:colors (apply 'vector (theme-magic--auto-extract-16-colors)))
         (:color
           (ht-merge tarp/theme*
             (ht (:cursor (first evil-insert-state-cursor)))))))))
@@ -138,7 +138,7 @@ will also be the width of all other printable characters."
       (intern
         (ivy-read "Load custom theme: "
           ;; (mapcar 'symbol-name (custom-available-themes))
-          '(tarp-mcfay tarp-struan)
+          '(tarp-mcfay tarp-struan tarp-friend)
           :action 'identity)))
     t)
 
@@ -151,7 +151,7 @@ will also be the width of all other printable characters."
   (fringe-mode 8)
   (setq window-divider-default-right-width (default-font-width))
   (setq window-divider-default-places t)
-  (window-divider-mode t)
+  (window-divider-mode t) 
 
   (->>
     `(internal-border-width ,(if ns/enable-home-p 0 10)
@@ -172,14 +172,14 @@ will also be the width of all other printable characters."
     (set-face-attribute 'window-divider-last-pixel nil :foreground modeline-background))
 
   (-map (fn (when (fboundp <>)
+              (message (pr-string <>))
               (funcall <>)))
-    '(ns/style-circe
-       ns/style-org
-       ns/style-markdown
-       ns/style-terminal))
+    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal)
+    ;; '()
+    )
 
-  (when ns/enable-blog-p
-    ;; this takes a bit
-    (make-thread
-      (fn (ns/blog-set-htmlize-colors))))
+  ;; (when ns/enable-blog-p
+  ;;   ;; this takes a bit
+  ;;   (make-thread
+  ;;     (fn (ns/blog-set-htmlize-colors))))
   t)

@@ -7,6 +7,7 @@
   (let ((theme-colors (append
                         ;; here -- wrong emphasis --- would want to add or pass
                         (tarp/map-to-base16 :weak)
+
                         (ht-to-plist (ht-get tarp/theme* :weak)))))
     (setq htmlize-face-overrides
       (-mapcat
@@ -20,13 +21,15 @@
 
 (defun ns/mustache (text table)
   "Basic mustache templating."
+  ;; This function exists because of https://github.com/Wilfred/mustache.el/issues/14
   (-reduce-from
     (lambda (text key)
       (s-replace
         (format "{{%s}}" key)
         (or (ht-get table key) "")
         text))
-    text (ht-keys table)))
+    text
+    (ht-keys table)))
 
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
@@ -38,9 +41,24 @@
            (reverse
              (f-entries (ns/blog-path "posts")
                (fn (s-ends-with-p ".org" <>))))
+           :action 'find-file))
+
+  "nQ" (fn!
+         (ivy-read "draft post: "
+           (reverse
+             (f-filter
+               (fn
+
+                 (ns/blog-get-prop "draft")
+                 (f-read <>)
+                 )
+
+               (f-entries (ns/blog-path "posts")
+                 (fn (s-ends-with-p ".org" <>)))))
            :action 'find-file)))
 
 ;; note: is used in the org to toml stuff now too
+;; todo: is this case sensitive
 (defun ns/blog-get-prop (propname text)
   "Get an org property out of text"
   (-some--> (format "#\\+%s:.*$" propname)
@@ -101,8 +119,7 @@
 
               (->>
                 (f-base path)
-                (s-replace-regexp
-                  (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
+                (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
 
                 ;; remove forbidden characters from url
                 (funcall
@@ -217,9 +234,10 @@
     (with-temp-buffer
       (ht-with-context org-meta
         (message (format "BLOG: making %s " :path))
-        ;; (org-mode)
+        (org-mode)
         (insert :org-content)
-        (org-export-to-file 'html :html-dest)))))
+        (org-export-to-file 'html :html-dest))
+      )))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
@@ -318,8 +336,7 @@
           (file (format (~ "git/neeasade.github.io/posts/%s.org")
                   (s-replace " " "-" title))))
     (find-file file)
-    (insert
-      (format "
+    (insert (format "
 #+title: %s
 #+title_extra:
 #+post_type: post
@@ -328,8 +345,8 @@
 #+draft: t
 #+pubdate: %s
  "
-        title
-        (ns/shell-exec "date '+<%Y-%m-%d>'")))))
+              title
+              (ns/shell-exec "date '+<%Y-%m-%d>'")))))
 
 ;;;
 ;;; here down are content helpers -- many of these have correlating macros in the template

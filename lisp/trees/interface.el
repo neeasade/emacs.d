@@ -261,12 +261,12 @@
   "a" '(:ignore t :which-key "Applications")
   "q" '(:ignore t :which-key "Query")
 
-  "b" '(:ignore t :which-key "Buffers")
-  "bb" 'counsel-ibuffer
-  "bd" 'ns/kill-current-buffer
-  "bK" 'ns/kill-other-buffers
-  "bk" 'kill-matching-buffers
-  "bm" 'ns/kill-buffers-by-mode
+  ;; "b" '(:ignore t :which-key "Buffers")
+  ;; "bb" 'counsel-ibuffer
+  ;; "bd" 'ns/kill-current-buffer
+  ;; "bK" 'ns/kill-other-buffers
+  ;; "bk" 'kill-matching-buffers
+  ;; "bm" 'ns/kill-buffers-by-mode
 
   "n" '(:ignore t :which-key "Jump")
   "nh" 'counsel-imenu
