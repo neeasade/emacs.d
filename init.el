@@ -13,17 +13,14 @@
   ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
   ns/emacs-directory user-emacs-directory
 
-  ;; maybe swap these term
+  ;; maybe swap these when in a terminal term
   mac-option-modifier 'meta
   mac-command-modifier 'super
   mac-control-modifier 'control
 
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
-
   `(("panel.height" . "24")
-
-     ;; default to whatever loads, use nil if there is no default
      ("font.mono.spec" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
@@ -36,8 +33,8 @@
 (load (~e "lisp/forest.el"))
 
 (defmacro ns/compose (name &rest targets)
-  `(defconfig ,name
-     ,@(-map (fn (list (intern (concat "ns/" (prin1-to-string <>)))))
+  `(ns/defconfig ,name
+     ,@(--map (list (intern (format "ns/conf-%s" it) ))
          targets)))
 
 (ns/compose
@@ -50,9 +47,10 @@
   interface
   editing
   shell
+  projectile
+  util
   org org-capture org-pim
   git
-  util
   server
   follow-dwim)
 
@@ -65,7 +63,6 @@
   dashdocs
 
   zoom
-  projectile
   restclient
   latex
   ;; search-engines
@@ -111,17 +108,17 @@
   ;; doing a batch job, eval some lisp, message the result
   (progn
     (ns/scripting)
-    (-> "NS_EMACS_BATCH" getenv read eval pr-string)
-    ;; (-> "NS_EMACS_BATCH" getenv read eval pr-string message)
+    (-> "NS_EMACS_BATCH" getenv read eval pr-str)
+    ;; (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
     (kill-emacs))
 
   ;; normal MO:
-  (ns/core)
-  (ns/extra)
-  (ns/development)
-  (ns/staging)
+  (ns/conf-core)
+  (ns/conf-extra)
+  (ns/conf-development)
+  (ns/conf-staging)
   (ns/check-for-orphans)
-  (ns/style)
+  (ns/conf-style)
 
   (defun! ns/initial-startup-hook ()
     (when (not (boundp 'ns/after-init-hook))

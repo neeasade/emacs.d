@@ -233,11 +233,10 @@
 ;; somehow initialize is broken here at the moment
 (when ns/enable-work-p
   (setq exec-path
-        (->>
-         (exec-path-from-shell-initialize)
-         (second)
-         (cdr)
-         (s-split ":"))))
+    (->> (exec-path-from-shell-initialize)
+      (second)
+      (cdr)
+      (s-split ":"))))
 
 (use-package frog-jump-buffer
   :config
@@ -326,14 +325,17 @@
 (setq org-duration-format
   (quote h:mm))
 
-
-
 (defun! ns/babashka-default-connect ()
   (cider-connect-clj
-    '(
-       :host "localhost"
+    '(:host "localhost"
        :port 1667)))
 
+
+(defun ns/re-search-forward (search-term)
+  "A version of re-search-forward that sets point to the beginning of the match, not the end"
+  ;; todo: try this out
+  (re-search-forward search-term)
+  (backward-char (count search-term)))
 
 (provide 'staging)
 ;;; staging.el ends here

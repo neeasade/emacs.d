@@ -1,12 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 ;;; forest.el --- Take a walk through the parentheses.
 ;;; Commentary:
-;;; namespace             : 'ns/'
-;;; predicate convention  : suffix '-p'
-;;; interactive convention: suffix '!'
-;;; code:
+;;; 🌲🌲👺🌲🌲🌲
+;;; Code:
 
-(defconfig elisp
+(ns/defconfig elisp
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
 
   ;; 'common-lisp-indent-function
@@ -64,7 +62,7 @@
     ;; (executable-find "cask")
     ))
 
-(defconfig flycheck
+(ns/defconfig flycheck
   (use-package flycheck
     :config
 
@@ -96,7 +94,7 @@
   (use-package flycheck-pos-tip)
   (eval-after-load 'flycheck '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages)))
 
-(defconfig company
+(ns/defconfig company
   (use-package company
     :config
     (setq-ns company
@@ -125,7 +123,7 @@
     (company-quickhelp-mode 1)
     (setq company-quickhelp-delay 0.3)))
 
-(defconfig dashdocs
+(ns/defconfig dashdocs
   (defmacro ns/install-dashdoc (docset mode-hook)
     "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
     `(when (bound-and-true-p ns/enable-dashdocs-p)
@@ -159,7 +157,7 @@
 
   )
 
-(defconfig zoom
+(ns/defconfig zoom
   (use-package zoom
     :config
     ;; if number, is lines/cols
@@ -171,14 +169,14 @@
 
     ))
 
-(defconfig python
+(ns/defconfig python
   (ns/install-dashdoc "Python 2" 'python-mode-hook)
   (use-package elpy)
   ;; maybe only when pyflake is installed
   ;; (use-package flycheck-pyflakes)
   )
 
-(defconfig clojure
+(ns/defconfig clojure
   (use-package clojure-mode)
   (use-package cider)
 
@@ -223,11 +221,12 @@
       :config
       (require 'flycheck-clj-kondo))))
 
-(defconfig nix
+(ns/defconfig nix
   ;; (ns/guard ns/enable-home-p)
-  (use-package nix-mode))
+  ;; (use-package nix-mode)
+  )
 
-(defconfig music
+(ns/defconfig music
   (ns/guard ns/enable-home-p)
   (ns/guard (executable-find "mpd"))
 
@@ -251,7 +250,7 @@
 
   (ns/bind "am" 'emms-start))
 
-(defconfig projectile
+(ns/defconfig projectile
   (use-package projectile)
 
   ;; still assuming git command, maybe lean on projectile for file listing
@@ -314,7 +313,7 @@
     "nE" (fn! (ivy-read "project file: " (ns/jump-file-candidates :project-files)
                 :action 'find-file))))
 
-(defconfig javascript
+(ns/defconfig javascript
   ;; note: this is huge, takes a bit.
   ;; (ns/install-dashdoc "JavaScript" 'web-mode-hook)
 
@@ -367,7 +366,7 @@
       "ei" 'nodejs-repl-send-last-expression
       )))
 
-(defconfig typescript
+(ns/defconfig typescript
   (ns/install-dashdoc "TypeScript" 'typescript-mode-hook)
   (use-package tide
     :config
@@ -382,7 +381,7 @@
     ;; (add-hook 'before-save-hook 'tide-format-before-save)
     ))
 
-(defconfig csharp
+(ns/defconfig csharp
   ;; limitation: can only work with one server/solution at a time currently
   (ns/guard ns/enable-windows-p)
   (use-package omnisharp
@@ -397,7 +396,7 @@
     (ns/bind-mode 'csharp "nR" 'omnisharp-find-usages-with-ido)))
 
 
-(defconfig jump
+(ns/defconfig jump
   (use-package dumb-jump)
   (use-package smart-jump
     :config
@@ -412,21 +411,21 @@
       )))
 
 
-(defconfig pdf
+(ns/defconfig pdf
   (ns/guard ns/enable-linux-p)
   (use-package pdf-tools))
 
-(defconfig terraform
+(ns/defconfig terraform
   (use-package terraform-mode))
 
-(defconfig jekyll
+(ns/defconfig jekyll
   (use-package jekyll-modes))
 
-(defconfig autohotkey
+(ns/defconfig autohotkey
   (ns/guard ns/enable-windows-p)
   (use-package xahk-mode))
 
-(defconfig markdown
+(ns/defconfig markdown
   (use-package markdown-mode
     :mode (("README\\.md\\'" . gfm-mode)
             ("\\.md\\'" . markdown-mode)
@@ -450,7 +449,7 @@
   (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook)
   )
 
-(defconfig restclient
+(ns/defconfig restclient
   (use-package restclient
     :config
     (ns/bind-leader-mode
@@ -459,7 +458,7 @@
 
   (use-package company-restclient))
 
-(defconfig sql
+(ns/defconfig sql
   ;; todo
   ;; (ns/install-dashdoc "SQLite" ')
 
@@ -470,7 +469,7 @@
   ;; )
   )
 
-(defconfig latex
+(ns/defconfig latex
   (ns/bind-leader-mode 'latex
     "\\"  'TeX-insert-macro                            ;; C-c C-m
     "-"   'TeX-recenter-output-buffer                  ;; C-c C-l
@@ -494,11 +493,11 @@
   )
 
 
-(defconfig plantuml
+(ns/defconfig plantuml
   (use-package plantuml)
   (use-package flycheck-plantuml))
 
-(defconfig ledger
+(ns/defconfig ledger
   (ns/guard ns/enable-home-p)
   (use-package ledger-mode)
   (use-package flycheck-ledger)
@@ -506,12 +505,12 @@
     :config
     (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
-(defconfig lsp
+(ns/defconfig lsp
   ;; want to use eglot + flycheck, hrm
   ;; (use-package cquery)
   )
 
-(defconfig search-engines
+(ns/defconfig search-engines
   (use-package engine-mode
     :config
 
@@ -529,7 +528,7 @@
     (bind-search youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s" "y")
     (engine-mode t)))
 
-(defconfig filehooks
+(ns/defconfig filehooks
   (ns/guard ns/enable-home-p)
 
   (setq ns/filename-cmd
@@ -553,7 +552,7 @@
   (add-hook 'after-save-hook 'my/cmd-after-saved-file)
   )
 
-(defconfig emoji
+(ns/defconfig emoji
   (use-package emojify
     :init
     ;; the reason for both is so bridges to like slack show up right
@@ -566,11 +565,11 @@
       "ie" 'emojify-insert-emoji
       "te" 'emojify-mode)))
 
-(defconfig powershell
+(ns/defconfig powershell
   (ns/guard ns/enable-windows-p)
   (use-package powershell))
 
-(defconfig c
+(ns/defconfig c
   (ns/install-dashdoc "C" 'c-mode-hook)
 
   ;; note: depends on clang and cmake
@@ -590,7 +589,7 @@
 
   )
 
-(defconfig graphiz
+(ns/defconfig graphiz
   (use-package graphviz-dot-mode
     :config
     (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)
@@ -618,22 +617,23 @@
   ;; (advice-add #'org-ctrl-c-ctrl-c :after #'ns/refresh-images-org)
   )
 
-(defconfig deadgrep
-  (ns/use-package deadgrep "Wilfred/deadgrep"
+(ns/defconfig deadgrep
+  (ns/use deadgrep
+    :straight (:host github :repo "Wilfred/deadgrep")
     :config
     (ns/bind "ss" 'deadgrep)
     (setq deadgrep-max-line-length 180)
     (general-nmap deadgrep-mode-map
       "RET" 'deadgrep-visit-result-other-window)))
 
-(defconfig guix
+(ns/defconfig guix
   (ns/guard ns/enable-home-p)
   (use-package guix))
 
-(defconfig elasticsearch
+(ns/defconfig elasticsearch
   (use-package es-mode))
 
-(defconfig server
+(ns/defconfig server
   ;; cf https://tychoish.com/post/running-multiple-emacs-daemons-on-a-single-system/
   ;; (setq server-use-tcp t)
 
@@ -650,7 +650,7 @@
         name "emacs-server-file"))
     (server-start)))
 
-(defconfig common-lisp
+(ns/defconfig common-lisp
   (use-package slime)
   (setq inferior-lisp-program (which "sbcl"))
   (setq slime-contribs '(slime-fancy))
@@ -674,7 +674,7 @@
   ;; common-lisp-mode -> lisp-mode
   (ns/bind-mode 'lisp "e" 'ns/smart-slime-eval))
 
-(defconfig scripting
+(ns/defconfig scripting
   (add-to-list 'interpreter-mode-alist '("elisp" . emacs-lisp-mode))
 
   ;; helper for unpacking args provided by elisp script as shebang
@@ -686,27 +686,28 @@
                (number-sequence 0 (- (length args) 1))))
        ,@content)))
 
-(defconfig go
+(ns/defconfig go
   (use-package go-mode))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-(defconfig editing    (load (~e "lisp/trees/editing.el")))
-(defconfig evil       (load (~e "lisp/trees/evil.el")))
-(defconfig git        (load (~e "lisp/trees/git.el")))
-(defconfig interface  (load (~e "lisp/trees/interface.el")))
-(defconfig irc        (ns/guard ns/enable-home-p) (load (~e "lisp/trees/irc.el")))
-(defconfig org        (load (~e "lisp/trees/org.el")))
-(defconfig org-capture (load (~e "lisp/trees/org-capture.el")))
-(defconfig org-pim (load (~e "lisp/trees/org-pim.el")))
-(defconfig sanity     (load (~e "lisp/trees/sanity.el")))
-(defconfig shell      (load (~e "lisp/trees/shell.el")))
-(defconfig doomline   (load (~e "lisp/trees/doomline.el")))
-(defconfig staging    (load (~e "lisp/trees/staging.el")))
-(defconfig util       (load (~e "lisp/trees/util.el")))
-(defconfig blog       (load (~e "lisp/trees/blog.el")))
-(defconfig follow-dwim (load (~e "lisp/trees/follow.el")))
-(defconfig-base style (interactive) (load (~e "lisp/trees/style.el")))
+
+(ns/defconfig blog        (load (~e "lisp/trees/blog.el")))
+(ns/defconfig doomline    (load (~e "lisp/trees/doomline.el")))
+(ns/defconfig editing     (load (~e "lisp/trees/editing.el")))
+(ns/defconfig evil        (load (~e "lisp/trees/evil.el")))
+(ns/defconfig follow-dwim (load (~e "lisp/trees/follow.el")))
+(ns/defconfig git         (load (~e "lisp/trees/git.el")))
+(ns/defconfig interface   (load (~e "lisp/trees/interface.el")))
+(ns/defconfig irc         (ns/guard ns/enable-home-p) (load (~e "lisp/trees/irc.el")))
+(ns/defconfig org         (load (~e "lisp/trees/org.el")))
+(ns/defconfig org-capture (load (~e "lisp/trees/org-capture.el")))
+(ns/defconfig org-pim     (load (~e "lisp/trees/org-pim.el")))
+(ns/defconfig sanity      (load (~e "lisp/trees/sanity.el")))
+(ns/defconfig shell       (load (~e "lisp/trees/shell.el")))
+(ns/defconfig staging     (load (~e "lisp/trees/staging.el")))
+(ns/defconfig style       (load (~e "lisp/trees/style.el")))
+(ns/defconfig util        (load (~e "lisp/trees/util.el")))
 
 (provide 'forest)
 

@@ -4,8 +4,7 @@
 (setq-default indicate-empty-lines nil)
 
 (when (not (-contains-p features 'tarps))
-  (ns/use-package ct "neeasade/ct.el")
-  (ns/use-package tarps "neeasade/tarps" :config (require 'tarps))
+  (ns/use tarps :straight (:host github :repo "neeasade/tarps"))
 
   ;; overriding to force truecolor terminal
   (defun base16-theme-transform-face (spec colors)
@@ -32,7 +31,7 @@
 
 (defun ns/maybe-update-xrdb-font (key font)
   "Update the fallback font for xrdb value"
-  (when (find-font (font-spec :name font))
+  (when (find-font (font-spec :name (plist-get (ns/parse-font font) :family)))
     (setq ns/xrdb-fallback-values
       (delq (assoc key ns/xrdb-fallback-values) ns/xrdb-fallback-values))
 
@@ -172,11 +171,10 @@ will also be the width of all other printable characters."
     (set-face-attribute 'window-divider-last-pixel nil :foreground modeline-background))
 
   (-map (fn (when (fboundp <>)
-              (message (pr-string <>))
+              (message (pr-str <>))
               (funcall <>)))
-    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal)
-    ;; '()
-    )
+
+    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal))
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

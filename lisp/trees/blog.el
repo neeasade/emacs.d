@@ -50,8 +50,7 @@
                (fn
 
                  (ns/blog-get-prop "draft")
-                 (f-read <>)
-                 )
+                 (f-read <>))
 
                (f-entries (ns/blog-path "posts")
                  (fn (s-ends-with-p ".org" <>)))))
@@ -232,12 +231,11 @@
          (org-confirm-babel-evaluate (fn nil)))
 
     (with-temp-buffer
-      (ht-with-context org-meta
-        (message (format "BLOG: making %s " :path))
+      (llet ((&hash :path :html-dest :org-content) org-meta)
+        (message (format "BLOG: making %s " path))
         (org-mode)
-        (insert :org-content)
-        (org-export-to-file 'html :html-dest))
-      )))
+        (insert org-content)
+        (org-export-to-file 'html html-dest)))))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
@@ -404,7 +402,7 @@
                      (if (listp c)
                        (-map 'ct-shorten c)
                        (ct-shorten c))) colors)
-             (or labels (-map (lambda (_) "") (range (length colors))))))
+             (or labels (-map (lambda (_) "") (-iota (length colors))))))
 
        "@@html: </div>@@"
        )))

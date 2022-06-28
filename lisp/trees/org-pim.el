@@ -59,27 +59,27 @@
                 (ts-parse-org (ns/headline-date <>)))))
 
     ;; process notifications
-    (-map
-      (-lambda ((headline timestamp))
-        ;; ensure we're tracking the headline
-        (when-not (ht-contains? ns/org-notify-ht headline)
-          (ht-set! ns/org-notify-ht headline nil))
+    (-map (-lambda ((headline timestamp))
+            ;; ensure we're tracking the headline
+            (when-not (ht-contains? ns/org-notify-ht headline)
+              (ht-set! ns/org-notify-ht headline nil))
 
-        (when (and (not (ht-get ns/org-notify-ht headline))
-                (ts> (ts-now)
-                  ;; get notified in advance
-                  (ts-adjust 'minute -3 timestamp)))
-          (ns/shell-exec "dunstctl set-paused false")
-          (alert! headline
-            :severity 'normal
-            :title (ts-format "%l:%M %p" timestamp))
-          (ht-set! ns/org-notify-ht headline t))))))
+            (when (and (not (ht-get ns/org-notify-ht headline))
+                    (ts> (ts-now)
+                      ;; get notified in advance
+                      (ts-adjust 'minute -3 timestamp)))
+              (ns/shell-exec "dunstctl set-paused false")
+              (alert! headline
+                :severity 'normal
+                :title (ts-format "%l:%M %p" timestamp))
+              (ht-set! ns/org-notify-ht headline t))))))
 
 (ns/comment
   (setq ns/org-notify-ht (ht))
   (ns/org-notify))
 
 (named-timer-run :org-notify-scheduled t 60 'ns/org-notify)
+(named-timer-cancel :org-notify-scheduled)
 
 ;; lazy
 (defun ns/org-notify-reset () (setq ns/org-notify-ht (ht)))

@@ -9,7 +9,9 @@
 (require 'org-tempo)
 
 ;; nice functional org library
-(ns/use-package org-ml "ndwarshuis/org-ml" :config (require 'org-ml))
+(ns/use org-ml
+  :straight (:host github :repo "ndwarshuis/org-ml")
+  :config (require 'org-ml))
 
 (when ns/enable-evil-p
   (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
@@ -193,11 +195,11 @@
 
     (when ns/enable-home-p
       (ns/shell-exec-dontcare "dunstctl set-paused true")
-      (ns/shell-exec-dontcare "panelt stop"))
+      (ns/shell-exec-dontcare "panelt stop")
 
-    (f-write (f-read (~ ".config/qutebrowser/adblock_bad.txt"))
-      'utf-8 (~ ".config/qutebrowser/adblock.txt"))
-    (ns/shell-exec-dontcare "qb_command :adblock-update"))
+      (f-write (f-read (~ ".config/qutebrowser/adblock_bad.txt"))
+        'utf-8 (~ ".config/qutebrowser/adblock.txt"))
+      (ns/shell-exec-dontcare "qb_command :adblock-update")))
 
   (defun! ns/focus-mode-quit ()
     ;; todo: prompt about are you SURE you want to quit
@@ -283,50 +285,50 @@
     (message "added link!")))
 
 ;; putting in this file to make sure it's after org mode
-; (when ns/enable-evil-p
-;   (ns/use-package evil-org "Somelauw/evil-org-mode")
-;   (require 'evil-org-agenda)
-;   (require 'evil-org)
-;   (add-hook 'org-mode-hook 'evil-org-mode)
+;; (when ns/enable-evil-p
+;;   (ns/use evil-org :straight (:host github :repo "Somelauw/evil-org-mode"))
+;;   (require 'evil-org-agenda)
+;;   (require 'evil-org)
+;;   (add-hook 'org-mode-hook 'evil-org-mode)
 
-;   (setq evil-org-movement-bindings
-;     '((up . "e")
-;        (down . "n")
-;        (left . "h")
-;        (right . "l")))
+;;   (setq evil-org-movement-bindings
+;;     '((up . "e")
+;;        (down . "n")
+;;        (left . "h")
+;;        (right . "l")))
 
-;   ;; cf https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org
-;   ;; todo: review textobjects https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org#text-objects
-;   (setq org-special-ctrl-a/e t)
-;   (evil-org-set-key-theme '(textobjects navigation))
+;;   ;; cf https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org
+;;   ;; todo: review textobjects https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org#text-objects
+;;   (setq org-special-ctrl-a/e t)
+;;   (evil-org-set-key-theme '(textobjects navigation))
 
-;   ;; todo: review these https://github.com/Somelauw/evil-org-mode/blob/master/evil-org-agenda.el
-;   (evil-org-agenda-set-keys)
-;   (evil-define-key 'motion org-agenda-mode-map
-;     "n" 'org-agenda-next-line
-;     "e" 'org-agenda-previous-line
-;     (kbd "C-n") 'org-agenda-next-item
-;     (kbd "C-e") 'org-agenda-previous-item
-;     "N" 'org-agenda-priority-down
-;     "E" 'org-agenda-priority-up
-;     )
+;;   ;; todo: review these https://github.com/Somelauw/evil-org-mode/blob/master/evil-org-agenda.el
+;;   (evil-org-agenda-set-keys)
+;;   (evil-define-key 'motion org-agenda-mode-map
+;;     "n" 'org-agenda-next-line
+;;     "e" 'org-agenda-previous-line
+;;     (kbd "C-n") 'org-agenda-next-item
+;;     (kbd "C-e") 'org-agenda-previous-item
+;;     "N" 'org-agenda-priority-down
+;;     "E" 'org-agenda-priority-up
+;;     )
 
-;   (general-define-key
-;     :states '(normal insert)
-;     :keymaps 'org-mode-map
-;     ;; should these be switched? I like carrying trees by default I think
-;     (kbd "C-t") 'org-shiftmetaright
-;     (kbd "C-d") 'org-shiftmetaleft
-;     (kbd "C-S-T") 'org-metaright
-;     (kbd "C-S-D") 'org-metaleft
-;     (kbd "M-e") 'org-metaup
-;     (kbd "M-n") 'org-metadown
-;     )
+;;   (general-define-key
+;;     :states '(normal insert)
+;;     :keymaps 'org-mode-map
+;;     ;; should these be switched? I like carrying trees by default I think
+;;     (kbd "C-t") 'org-shiftmetaright
+;;     (kbd "C-d") 'org-shiftmetaleft
+;;     (kbd "C-S-T") 'org-metaright
+;;     (kbd "C-S-D") 'org-metaleft
+;;     (kbd "M-e") 'org-metaup
+;;     (kbd "M-n") 'org-metadown
+;;     )
 
-;   (general-define-key
-;     :states 'normal
-;     :keymaps 'org-mode-map
-;     (kbd "E") 'org-toggle-heading))
+;;   (general-define-key
+;;     :states 'normal
+;;     :keymaps 'org-mode-map
+;;     (kbd "E") 'org-toggle-heading))
 
 (use-package org-present
   :config
@@ -619,7 +621,7 @@
   "op" 'org-pomodoro
 
   ;; query org element
-  "qo" (fn! (-> (point) org-ml-parse-element-at org-ml-get-type pr-string message)))
+  "qo" (fn! (-> (point) org-ml-parse-element-at org-ml-get-type pr-str message)))
 
 
 (ns/bind-leader-mode

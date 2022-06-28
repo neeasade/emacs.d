@@ -103,9 +103,9 @@
                        (-map
                          (fn (s-join " "
                                (-remove-at-indices
-                                 (-map (lambda (i) (- (length parts) i)) (range <>))
+                                 (-map (lambda (i) (- (length parts) i)) (-iota <>))
                                  parts)))
-                         (range 1 (length parts)))))))))
+                         (-iota (length parts) 1))))))))
 
             (candidates
               (-concat
@@ -119,8 +119,7 @@
                   ;; doesn't handle spaces
                   (let ((parts (s-split ":" candidate)))
                     (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
-                fallback-candidates)
-              ))
+                fallback-candidates)))
 
       (let ((match (-first 'ns/handle-potential-file-link candidates)))
         (when match

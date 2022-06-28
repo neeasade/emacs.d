@@ -26,7 +26,8 @@
 
 
 (when (not ns/enable-windows-p)
-  (ns/use-package magit-todos "alphapapa/magit-todos"
+  (ns/use magit-todos
+    :straight (:host github :repo "alphapapa/magit-todos")
     :config
     (setq magit-todos-nice ns/enable-linux-p)
     (evil-define-key nil magit-todos-section-map "j" nil)
@@ -36,23 +37,18 @@
 
     (magit-todos-mode
       ;; magit-todos-mode is sometimes not smart about scanning thicc files
-      (if ns/enable-work-p 0 t))
+      (if ns/enable-work-p 0 t))))
 
-    ))
+(defun ns/restore-magit-layout ()
+  (interactive)
+  (when ns/magit-before-display-layout
+    (set-window-configuration ns/magit-before-display-layout)))
 
-(use-package magit-svn :config
-  (add-hook 'magit-mode-hook 'magit-svn-mode))
+(advice-add #'magit-mode-bury-buffer :after #'ns/restore-magit-layout)
 
-;; this has been merged into evil collection
+;; todo: this has been merged into evil collection -- revisit, because these clearly aren't mapping/being rotated
 ;; (use-package evil-magit
 ;;   :config
-
-;;   (general-nmap magit-mode-map "q"
-;;     (fn!
-;;       (quit-window)
-;;       (when ns/magit-before-display-layout
-;;         (set-window-configuration ns/magit-before-display-layout))))
-
 ;;   ;; todo: these don't bind -- really weird.
 ;;   (general-nmap magit-mode-map "n" 'evil-next-line)
 ;;   (general-nmap magit-mode-map "e" 'evil-previous-line)

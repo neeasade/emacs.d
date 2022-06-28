@@ -1,7 +1,10 @@
 ;; -*- lexical-binding: t; -*-
-;; lay the plot
+;;; dirt.el --- Lay the plot
+;;; Commentary:
+;;; I'm a sugar lover. This file is about getting emacs-lisp sugar to use
+;;; everywhere else.
+;;; Code:
 
-;; get straight.el
 (defvar bootstrap-version)
 (let ((bootstrap-file
         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -19,29 +22,37 @@
 (setq straight-use-package-by-default t)
 (setq straight-cache-autoloads t)
 
+;; todo: catch errors here, log and bubble up
+;; (as opposed to logging all the time)
+(defmacro ns/use (name &rest args)
+  `(progn
+     (message (format "ns/use: %s..." ',name))
+     (use-package ,name ,@args)
+     (message (format "ns/use: %s... done." ',name))))
+
 ;; elisp enhancers
-(use-package fn)      ; function
-(use-package s)       ; string
-(use-package f)       ; file
-(use-package ht)      ; hash table
-(use-package dash)    ; list
-(use-package a)       ; assoc lists
-(use-package async)   ; async
-(use-package ts)      ; timestamps
-(use-package pcre2el) ; sane regex
-(use-package memoize) ; caching
+(ns/use fn)      ; function
+(ns/use s)       ; string
+(ns/use f)       ; file
+(ns/use ht)      ; hash table
+(ns/use dash)    ; list
+(ns/use a)       ; assoc lists
+(ns/use async)   ; async
+(ns/use ts)      ; timestamps
+(ns/use pcre2el) ; sane regex
+(ns/use memoize) ; caching
 
 ;; other/emacs enhancers
-(use-package hydra)
-(use-package general :config (general-override-mode t)) ; enable the override keymap
-(use-package request)
-(use-package shut-up)
+(ns/use hydra)
+(ns/use general :config (general-override-mode t))
+(ns/use request)
+(ns/use shut-up)
 (require 'seq)
 (require 'cl-macs)
 (require 'cl-seq)
 (require 'man)
 
-(use-package named-timer :config (require 'named-timer))
+(ns/use named-timer :config (require 'named-timer))
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
@@ -55,16 +66,15 @@
   `(if (not ,condition)
      ,@body))
 
-;; alias/clojure
-(defalias 'pr-string 'prin1-to-string)
+(defalias 'pr-str 'prin1-to-string)
 (defalias '-join '-interpose)
 
 (defun prn (&rest sexp)
-  (message (s-join " " (-map 'pr-string sexp))) nil)
+  (message (s-join " " (-map 'pr-str sexp))) nil)
 
 (defmacro llet (args &rest body)
   ;; the append is to convert [vectors] to lists
-  `(let* ,(-partition 2 (append args nil)) ,@body))
+  `(-let* ,(-partition 2 (append args nil)) ,@body))
 
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
@@ -124,8 +134,7 @@
        :states '(visual normal)
        ;; note: this depends on modes playing nice wrt conventions
        :keymaps ,(intern (format "%s-mode-map" (symbol-name mode)))
-       ,@binds)
-    ))
+       ,@binds)))
 
 (defmacro ns/bind-leader-mode (mode &rest binds)
   `(general-define-key
@@ -163,6 +172,11 @@
         (find-file filepath)
         (message (format "no file found: %s" filepath))))))
 
+(defun sh (command)
+  "trim the newline from shell exec"
+  (replace-regexp-in-string "\n$" ""
+    (shell-command-to-string command)))
+
 (defmacro ns/shell-exec (command)
   "trim the newline from shell exec"
   `(replace-regexp-in-string "\n$" ""
@@ -178,22 +192,20 @@
 ;; wrap passwordstore
 (defun pass (key)
   (when (executable-find "pass")
-    (ns/shell-exec (format "pass %s 2>/dev/null" key)) ""))
+    (sh (format "pass %s 2>/dev/null" key)) ""))
 
 (defun get-resource (name)
   "Get X resource value, with a fallback value NAME."
-  (let ((default (cdr (assoc name ns/xrdb-fallback-values)))
-         (xrq-result (when (executable-find "xrq")
-                       (-when-let (stdout (ns/shell-exec (format "xrq '%s' 2>/dev/null" name)))
-                         stdout)))
-         (theme-result (when (executable-find "theme")
-                         (-when-let (stdout (ns/shell-exec (format "theme -q '%s' 2>/dev/null" name)))
-                           stdout))))
+  (llet [default (cdr (assoc name ns/xrdb-fallback-values))
+          xrq-result (when (executable-find "xrq")
+                       (ns/shell-exec (format "xrq '%s' 2>/dev/null" name)))
+          theme-result (when (executable-find "theme")
+                         (ns/shell-exec (format "theme -q '%s' 2>/dev/null" name)))]
     (->> (list theme-result xrq-result default)
       (-remove (fn (s-blank-p <>)))
       (first))))
 
-(defun! reload-init ()
+(defun! ns/reload-init ()
   "Reload init.el with straight.el."
   (message "Reloading init.el...")
   (load user-init-file nil 'nomessage)
@@ -202,28 +214,17 @@
 (defalias 'ns/init 'reload-init)
 
 ;; a macro for when something is not on melpa yet (assumes github)
-(use-package el-patch)
-(defmacro ns/use-package (name repo &rest config)
-  `(progn
-     (straight-register-package
-       '(,name :type git :host github
-          :repo ,repo
-          :depth full))
-
-     (straight-use-package ',name)
-     ,@(cdr config)))
+(ns/use el-patch)
 
 (defun ns/inmap (keymap &rest key-func-pairs)
   "imap + nmap"
-  (dolist (pair (-partition 2 key-func-pairs))
-    (let ((key (car pair))
-           (func (cadr pair)))
-      (general-imap :keymaps keymap key func)
-      (general-nmap :keymaps keymap key func))))
+  (-map (-lambda ((key fn))
+          (general-imap :keymaps keymap key fn)
+          (general-nmap :keymaps keymap key fn))
+    (-partition 2 key-func-pairs)))
 
 ;; this is overridden with eros eval later on
-(defun ns/smart-elisp-eval ()
-  (interactive)
+(defun! ns/smart-elisp-eval ()
   (if (use-region-p)
     (eval-region (region-beginning) (region-end))
     (if (s-blank-p (s-trim (thing-at-point 'line)))
@@ -232,65 +233,27 @@
 
 (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
 
-(defmacro defconfig-base (label &rest body)
-  `(defun ,(intern (concat "ns/" (prin1-to-string label)))
-     nil ,@body))
+(defmacro ns/defconfig (label &rest body)
+  (let* ((conf-string (pr-str label))
+          (enabled-symbol (intern (format "ns/enable-%s-p" conf-string )))
+          (function-name (intern (format "ns/conf-%s" conf-string))))
+    `(progn
+       (setq ,enabled-symbol nil)
+       (defun ,function-name nil
+         (interactive)
+         (let ((config-name ,conf-string))
+           (message (format "::: %s..." ',function-name))
+           (catch 'config-catch
+             ,@body
+             (setq ,enabled-symbol t))
+           (message (format "::: %s... done." ',function-name)))))))
 
-(defmacro defconfig (label &rest body)
-  `(progn
-     (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) nil)
-     (defconfig-base ,label
-       (let ((config-name ,(prin1-to-string label)))
-         (message (concat "Loading ns/" config-name "..."))
-         (catch 'config-catch
-           ,@body
-           (setq ,(intern (format "ns/enable-%s-p" (prin1-to-string label))) t))))))
-
-(defmacro ns/guard (&rest conditions)
-  (if (not (eval (cons 'and conditions)))
-    '(when t (throw 'config-catch (concat "config guard " config-name)))))
-
-(defun range (one &optional two step)
-  (let* ((start (if two one 0))
-          (end (if two two one))
-          (step (or step (if (> end start) 1 -1))))
-    (cond
-      ((= end start) (list start))
-      ((> end start)
-        (number-sequence start (- end 1) step))
-      ((< end start)
-        (number-sequence start (+ 1 end) step)))))
+(defmacro ns/guard (check)
+  `(when-not ,check
+     (throw 'config-catch (concat "conf-guard" config-name))))
 
 ;; extension to s.el
 (defun s-clean (s)
   "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
 
-;; extension to ht.el
-(defmacro ht-with-context (table &rest content)
-  (-tree-map
-    (lambda (tree)
-      (-tree-map-nodes (lambda (node) t)
-        (lambda (node)
-          (if (and
-                (s-starts-with-p ":" (prin1-to-string node))
-                ;; if the table doesn't exist, don't sanity check the key
-                (if (boundp table)
-                  (-contains-p (ht-keys (eval table)) node)
-                  t))
-            (list 'ht-get table node)
-            node))
-        tree))
-    (cons 'progn content)))
-
-(defun ns/nth (index coll)
-  "A version of nth that counts from the end if the input is negative"
-  (if (< index 0)
-    (car (seq-subseq coll index
-           (if (= 0 (+ index 1)) nil (+ index 1))))
-    (nth index coll)))
-
-(defun ns/re-search-forward (search-term)
-  "A version of re-search-forward that sets point to the beginning of the match, not the end"
-  (re-search-forward search-term)
-  (backward-char (count search-term)))

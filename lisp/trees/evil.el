@@ -3,11 +3,8 @@
 ;; TODO make a toggle for this
 ;; evil-ex-visual-char-range
 
-
 ;; this happens here to appease evil-collection
-(use-package magit
-  ;; (require 'magit)
-  )
+(ns/use magit :config (require 'magit))
 
 ;; evil-collection
 (setq evil-want-keybinding nil)
@@ -69,7 +66,8 @@
 ;; but it's very laggy/intensive by comparison (measured in the profiler)
 (setq-default evil-escape-key-sequence "tn")
 
-(ns/use-package evil-escape "hlissner/evil-escape"
+(ns/use evil-escape
+  :straight (:host github :repo "hlissner/evil-escape")
   :config (evil-escape-mode))
 
 (defun set-in-evil-states (key def maps)
@@ -106,7 +104,8 @@
 
 (use-package evil-matchit :config (global-evil-matchit-mode 1))
 
-(ns/use-package evil-numbers "janpath/evil-numbers"
+(ns/use evil-numbers
+  :straight (:host github :repo "janpath/evil-numbers")
   :config
   (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
   (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
