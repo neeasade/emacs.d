@@ -209,7 +209,7 @@
   "tl" 'toggle-truncate-lines
   ;; "ts" 'ns/style
   "ts" 'ns/load-theme
-  "ti" (fn! (reload-init) (ns/style))
+  "ti" (fn! (ns/reload-init) (ns/conf-style))
   "m" 'ns/toggle-modeline
   "tp" 'ns/toggle-report
 

@@ -330,12 +330,17 @@
     '(:host "localhost"
        :port 1667)))
 
-
 (defun ns/re-search-forward (search-term)
   "A version of re-search-forward that sets point to the beginning of the match, not the end"
   ;; todo: try this out
   (re-search-forward search-term)
   (backward-char (count search-term)))
+
+(ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
+
+;; ugh
+(setq mac-control-modifier 'super mac-command-modifier 'control)
+
 
 (provide 'staging)
 ;;; staging.el ends here

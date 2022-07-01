@@ -286,7 +286,6 @@
           (and (string= " nix " match) (string= "#nixos@Libera" channel))
           (and (string= " nix " match) (string= "#nixos-chat@Libera" channel)))
 
-
         (with-current-buffer "*circe-highlight*"
           (alert!
             (format "[%s] %s" poster body)

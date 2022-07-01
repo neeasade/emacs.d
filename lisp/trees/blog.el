@@ -14,7 +14,7 @@
         (lambda (definition)
           (list
             (car definition)
-            (base16-transform-spec
+            (base16-theme-transform-spec
               (cdr definition)
               theme-colors)))
         (tarp/theme-make-faces theme-colors)))))

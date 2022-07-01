@@ -49,8 +49,9 @@
   shell
   projectile
   util
-  org org-capture org-pim
+  ;; nb: git must happen before org
   git
+  org org-capture org-pim
   server
   follow-dwim)
 

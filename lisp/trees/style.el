@@ -25,9 +25,11 @@
       ;; graphical, the terminal supports 256 colors, and the user enables it, we
       ;; use the base16-shell colors. Otherwise, we fall back to the basic
       ;; xresources colors.
-      (list face `((((type graphic))   ,(base16-transform-spec definition colors))
-                    (((min-colors 256)) ,(base16-transform-spec definition shell-colors-256))
-                    (t                  ,(base16-transform-spec definition base16-theme-shell-colors)))))))
+      (list face `((((type graphic))   ,(base16-theme-transform-spec definition colors))
+                    (((min-colors 256)) ,(base16-theme-transform-spec definition shell-colors-256))
+                    (t                  ,(base16-theme-transform-spec definition base16-theme-shell-colors))))))
+
+  )
 
 (defun ns/maybe-update-xrdb-font (key font)
   "Update the fallback font for xrdb value"
@@ -41,13 +43,14 @@
 (-map (-partial 'ns/maybe-update-xrdb-font "font.mono.spec")
   (list
     ;; (or (font-get (face-attribute 'default :font) :name) "")
-    "Menlo-14"
     "Dejavu Sans Mono-14"
     "DejaVu Sans Mono-14"
     "Lucida Console-14"
     "Noto Sans Mono-14"
     "Source Code Pro-14"
-    "Go Mono-14"))
+    "Menlo-14"
+    "Go Mono-14"
+    ))
 
 (-map (-partial 'ns/maybe-update-xrdb-font "font.variable.spec")
   (list
@@ -137,7 +140,7 @@ will also be the width of all other printable characters."
       (intern
         (ivy-read "Load custom theme: "
           ;; (mapcar 'symbol-name (custom-available-themes))
-          '(tarp-mcfay tarp-struan tarp-friend)
+          '(tarp-mcfay tarp-struan tarp-storm)
           :action 'identity)))
     t)
 
@@ -160,7 +163,7 @@ will also be the width of all other printable characters."
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
-  (ns/doomline)
+  (ns/conf-doomline)
 
   (let ((modeline-background (face-attribute 'mode-line-inactive :background)))
     (set-face-attribute 'vertical-border nil :foreground modeline-background)
@@ -174,7 +177,9 @@ will also be the width of all other printable characters."
               (message (pr-str <>))
               (funcall <>)))
 
-    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal))
+    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal)
+    ;; '()
+    )
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

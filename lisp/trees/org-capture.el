@@ -308,4 +308,4 @@ This works like `org-find-olp', but much faster."
 
 ;; so I have something to Mx search for
 (defun! ns/org-refresh-capture-templates ()
-  (ns/org-capture))
+  (ns/conf-org-capture))
