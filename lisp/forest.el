@@ -410,14 +410,13 @@
 
 (ns/defconfig filehooks
   (setq ns/filename-cmd
-    (list
-      (~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
-      (~ ".Xmodmap") "xmodmap ~/.Xmodmap"
-      ))
+    `(,(~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
+       ,(~ ".Xmodmap") "xmodmap ~/.Xmodmap"
+       ;; eventually
+       ;; ,@(->> (f-files (~ ".dotfiles/wm/.templates"))
+       ;;     (-mapcat (fn (list <> (format "ltheme %s" (f-base <>))))))
+       ))
 
-  ;; todo here:
-  ;; if file exists, and is in the templates dir and not in list
-  ;; and has hook -- add it to ns/filename-cmd
   (defun ns/cmd-after-saved-file ()
     "Execute a command after saved a specific file."
     (-map (-lambda ((file cmd))

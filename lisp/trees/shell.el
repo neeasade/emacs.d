@@ -56,12 +56,9 @@
 
       (when (= index 9)
         (setq shell-pop-last-shell-buffer-index old-shell-index
-          shell-pop-last-shell-buffer-buffer old-shell-buffer)))
+          shell-pop-last-shell-buffer-buffer old-shell-buffer))))
 
-    ;; todo here: if looking at a popped shell with no long running process, close the window of the same name in other frames
-    )
-
-  (mapcar (lambda (i) (ns/bind (concat "t" (number-to-string i)) (fn! (ns/shell-pop i))))
+  (-map (lambda (i) (ns/bind (concat "t" (number-to-string i)) (fn! (ns/shell-pop i))))
     (number-sequence 1 9))
 
   ;; treat 9 special, meant to be a long running buffer
@@ -139,7 +136,6 @@
 
 (defun! ns/spawn-terminal (&optional cwd)
   (when window-system
-    ;; todo: select-frame with yabai window -- doesn't always work
     (select-frame (make-frame))
     (ns/pickup-shell cwd t))
 

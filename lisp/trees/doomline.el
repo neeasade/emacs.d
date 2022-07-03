@@ -207,7 +207,6 @@ Example:
   (doom-modeline-set-modeline 'neeasade-doomline 'default))
 (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
 
-;; todo: maybe filter out shell-mode and circe buffers here
 (defun! ns/refresh-all-modeline (toggle)
   (ns/setq-local-all
     'mode-line-format
