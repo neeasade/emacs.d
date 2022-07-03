@@ -109,10 +109,10 @@
 ;; comprehensive bash completion in emacs
 ;; testing out [Fri Dec 20 15:13:58 2019]
 ;; todo: this is broken, just freezes the shell
-;; (use-package bash-completion)
+;; (ns/use bash-completion)
 ;; (bash-completion-setup)
 
-(use-package rainbow-mode
+(ns/use rainbow-mode
   :config
   (setq
    ;; don't preview non-hex codes
@@ -123,16 +123,16 @@
 
 ;; M-x direnv-update-environment
 ;; sync from the pov of the current file
-(use-package direnv)
+(ns/use direnv)
 
 
 
-(use-package git-link
+(ns/use git-link
   :config
   (setq git-link-open-in-browser t))
 
 ;; this seems to be a little nicer:
-;; (use-package browse-at-remote)
+;; (ns/use browse-at-remote)
 
 ;; (named-timer-run :show-periodic-reminder
 ;;   t
@@ -152,7 +152,7 @@
 ;; automatic detection of indent settings (vim-sleuth)
 ;; todo: doom does a thing where they blend the major mode w/ editor config
 ;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
-(use-package dtrt-indent :config (dtrt-indent-global-mode 1))
+(ns/use dtrt-indent :config (dtrt-indent-global-mode 1))
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
@@ -173,10 +173,10 @@
 
 (ns/bind "nu" 'ns/ivy-url-jump)
 
-(use-package adoc-mode
+(ns/use adoc-mode
   :mode (("\\.adoc\\'" . adoc-mode)
           ("\\.asciidoc\\'" . adoc-mode)))
-(use-package ox-asciidoc)
+(ns/use ox-asciidoc)
 
 
 (when ns/enable-mac-p
@@ -192,16 +192,16 @@
        ("\\.pdf\\'" . default)
        (t . emacs))))
 
-(use-package yaml-mode)
-(use-package org-ql)
+(ns/use yaml-mode)
+(ns/use org-ql)
 
 ;; (let ((org-super-agenda-groups
 ;;         '((:auto-group t))))
 ;;   (org-agenda-list))
 
-;; (use-package 4clojure)
+;; (ns/use 4clojure)
 
-(use-package ag)
+(ns/use ag)
 
 (defun org-clocking-buffer ()
   "Return the clocking buffer if we are currently clocking a task or nil."
@@ -213,7 +213,7 @@
       (s-split "\n" (ns/shell-exec "theme -k"))
       :action #'insert)))
 
-(use-package paren-face)
+(ns/use paren-face)
 
 ;; used in window move scripts
 (defalias 'evil-window-north 'evil-window-up)
@@ -238,32 +238,32 @@
       (cdr)
       (s-split ":"))))
 
-(use-package frog-jump-buffer
-  :config
-  (ns/bind "b" 'frog-jump-buffer)
-  (ns/bind "B" 'frog-jump-buffer-other-window)
+;; (ns/use frog-jump-buffer
+;;   :config
+;;   (ns/bind "b" 'frog-jump-buffer)
+;;   (ns/bind "B" 'frog-jump-buffer-other-window)
 
-  (setq frog-jump-buffer-default-filter
-    ;; 'frog-jump-buffer-filter-file-buffers
-    ;; 'frog-jump-buffer-filter-same-project
-    'frog-jump-buffer-filter-recentf
-    ;; 'ns/jump-file-candidates
-    )
+;;   (setq frog-jump-buffer-default-filter
+;;     ;; 'frog-jump-buffer-filter-file-buffers
+;;     ;; 'frog-jump-buffer-filter-same-project
+;;     'frog-jump-buffer-filter-recentf
+;;     ;; 'ns/jump-file-candidates
+;;     )
 
-  ;; (setq frog-menu-avy-padding)
-  (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
-  (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
-  (setq frog-jump-buffer-include-current-buffer nil)
-  (setq frog-jump-buffer-posframe-parameters
-    `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
-       (background-color . ,(tarp/get :background :weak))
+;;   ;; (setq frog-menu-avy-padding)
+;;   (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
+;;   (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
+;;   (setq frog-jump-buffer-include-current-buffer nil)
+;;   (setq frog-jump-buffer-posframe-parameters
+;;     `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
+;;        (background-color . ,(tarp/get :background :weak))
 
-       (foreground-color . ,(tarp/get :foreground :weak))
-       (left . 0.0)
-       ))
+;;        (foreground-color . ,(tarp/get :foreground :weak))
+;;        (left . 0.0)
+;;        ))
 
-  ;; (set-face-attribute 'avy-lead-face nil :box (tarp/get :faded))
-  (set-face-attribute 'avy-lead-face nil :box nil))
+;;   ;; (set-face-attribute 'avy-lead-face nil :box (tarp/get :faded))
+;;   (set-face-attribute 'avy-lead-face nil :box nil))
 
 (defun frog-menu-type ()
   "Return variable `frog-menu-type' to use."

@@ -26,9 +26,9 @@
 ;; (as opposed to logging all the time)
 (defmacro ns/use (name &rest args)
   `(progn
-     (message (format "ns/use: %s..." ',name))
+     (message (format ":: ns/use: %s..." ',name))
      (use-package ,name ,@args)
-     (message (format "ns/use: %s... done." ',name))))
+     (message (format ":: ns/use: %s... done." ',name))))
 
 ;; elisp enhancers
 (ns/use fn)      ; function
@@ -41,6 +41,7 @@
 (ns/use ts)      ; timestamps
 (ns/use pcre2el) ; sane regex
 (ns/use memoize) ; caching
+(ns/use plz)     ; curl-backed request interface
 
 ;; other/emacs enhancers
 (ns/use hydra)

@@ -1,10 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 
-(use-package exec-path-from-shell
+(ns/use exec-path-from-shell
   :config
   (exec-path-from-shell-initialize))
 
-(use-package no-littering
+(ns/use no-littering
   :config
   (require 'no-littering)
   (require 'recentf)

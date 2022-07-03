@@ -1,6 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
-(use-package org
+(ns/use org
   :straight (:host github
               :repo "emacsmirror/org"
               :files ("lisp/*.el" "contrib/lisp/*.el")))
@@ -13,8 +13,7 @@
   :straight (:host github :repo "ndwarshuis/org-ml")
   :config (require 'org-ml))
 
-(when ns/enable-evil-p
-  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
+(evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
 
 ;; config
 (setq-ns org
@@ -56,15 +55,13 @@
                    (sequence "WAITING(w@/!)" "INACTIVE(i@/!)" "|" "CANCELLED(c@/!)" "MEETING"))
 
   blank-before-new-entry '((heading . t) (plainlist-item . nil))
-  tag-alist '(
-               ("work" . ?w)
+  tag-alist '(("work" . ?w)
                ("personal" . ?P)
                ("emacs" . ?e)
                ("dotfiles" . ?d)
                ("project" . ?p)
                ("active" . ?a)
-               ("inactive" . ?i)
-               )
+               ("inactive" . ?i))
 
   clock-x11idle-program-name "x11idle"
   clock-idle-time 5
@@ -124,13 +121,6 @@
 
       parent-headline)))
 
-(defun! ns/org-get-next-review-point (&optional property)
-  "Return the next captured thing to review"
-  ;; something to consider: organize by date,
-  ;; since we mark that with capture targets
-  ;; then just treat dateless as priority above dated
-  )
-
 (defun ns/org-get-clock-marker ()
   ;; snippet extracted from org-clock-goto
   (cond
@@ -142,6 +132,7 @@
       (car org-clock-history))
     (t (user-error "No active or recent clock task"))))
 
+;; todo: rethink this
 (defun! ns/org-get-active-point (&optional property)
   "Resolves to a point in my big notes files to either:
 - currently clocked in org headline
@@ -172,7 +163,7 @@
   (goto-char (ns/org-get-active-point property))
   (ns/org-jump-to-element-content))
 
-(use-package org-pomodoro
+(ns/use org-pomodoro
   :config
   (setq ns/macos-vol (if ns/enable-mac-p (ns/shell-exec "macos-vol get") 0))
   (defun ns/toggle-music (action)
@@ -263,8 +254,7 @@
           (evil-normal-state)))))
 
   ;; todo: consider ensuring drawers are collapsed after this
-  (recenter)
-  )
+  (recenter))
 
 (defun! ns/make-org-link-to-here ()
   "Insert a link to the current cursor location in the active headline"
@@ -330,7 +320,7 @@
 ;;     :keymaps 'org-mode-map
 ;;     (kbd "E") 'org-toggle-heading))
 
-(use-package org-present
+(ns/use org-present
   :config
   (defun ns/org-present-init ()
     (org-display-inline-images)
@@ -412,7 +402,7 @@
       )))
 
 ;; writing niceties:
-(use-package olivetti
+(ns/use olivetti
   :config
   (ns/bind "tf" 'olivetti-mode)
   (setq-default fill-column 80)
@@ -426,14 +416,14 @@
 
 
   ;; words are hard (meaning)
-  (use-package mw-thesaurus
+  (ns/use mw-thesaurus
     :config
     ;; this binding doesn't work -- org has some cycle agenda files meaning
     ;; (global-set-key (kbd "C-'") #'mw-thesaurus-lookup-at-point)
     )
 
   ;; words are hard (spelling)
-  (use-package flyspell-correct-avy-menu
+  (ns/use flyspell-correct-avy-menu
     :config
     (require 'flyspell-correct-avy-menu)
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
@@ -579,7 +569,6 @@
                                       (not (string= buffer-file-name project-notes)))
                                   project-notes org-default-notes-file))))
 
-  ;; "os" (fn! (ns/org-goto-active "standups"))
   "os" 'org-sort
   "of" 'ns/org-goto-active
   "oF" (fn!
@@ -592,7 +581,6 @@
               (ns/capture-current-region)
               (org-capture)))
 
-  ;; "or" 'org-refile
   "ol" 'ns/make-org-link-to-here
   ;; "om" 'ns/insert-mark-org-links
   "ow" (fn! (widen) (recenter))

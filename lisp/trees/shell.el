@@ -33,7 +33,7 @@
   (kbd "C-n") 'comint-next-input)
 
 
-(use-package shx
+(ns/use shx
   :config
   (shx-global-mode 1)
   (defun shx-send-input-or-open-thing ()
@@ -42,7 +42,7 @@
     (when (shx-point-on-input-p)
       (shx-send-input))))
 
-(use-package shell-pop
+(ns/use shell-pop
   :config
   (setq-ns shell-pop
     window-position "top"
@@ -210,7 +210,7 @@
 
 ;; completions when editing shell scripts:
 ;; works by spawning a subshell in the background, kinda weird
-(use-package company-shell
+(ns/use company-shell
   :config
   (setq company-shell-clean-manpage t)
   (add-to-list 'company-backends 'company-shell)

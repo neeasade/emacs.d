@@ -1,10 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 
-(use-package editorconfig :config (editorconfig-mode 1))
+(ns/use editorconfig :config (editorconfig-mode 1))
 
 (setq tab-width 4)
 
-(use-package smartparens
+(ns/use smartparens
   :init
   :config
   (add-to-list 'sp-ignore-modes-list 'circe-channel-mode)
@@ -85,8 +85,8 @@
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; todo: call yas-describe-tables sometime/look into snippets to use more often
-(use-package yasnippet-snippets)
-(use-package yasnippet :config (yas-global-mode 1))
+(ns/use yasnippet-snippets)
+(ns/use yasnippet :config (yas-global-mode 1))
 
 (defun ns/sh-mode-init-hook ()
   (sh-electric-here-document-mode -1)
@@ -101,7 +101,7 @@
 (add-hook 'sh-mode-hook 'ns/sh-mode-init-hook)
 
 ;; lisp stuff
-(use-package lispy)
+(ns/use lispy)
 
 (lispy-set-key-theme '(;; these are all possible options
                         lispy
@@ -115,7 +115,7 @@
 (define-key lispy-mode-map-lispy "[" nil)
 (define-key lispy-mode-map-lispy "]" nil)
 
-(use-package lispyville)
+(ns/use lispyville)
 
 ;; little too magical
 (setq lispy-safe-actions-ignore-strings t)
@@ -146,16 +146,12 @@
      ;; slurp/barf-lispy
      ))
 
-(use-package aggressive-indent)
+(ns/use aggressive-indent)
 
 (defun! ns/lisp-editing-init ()
-  ;; issues with this setup:
-  ;; - too aggressive on the "" item handling sometimes (deletes match almost always, annoying to workaround)
-  ;; still, it's a very fun enhancer -- '<>' to slurp/barf is great, and the auto balancing is nice.
   (aggressive-indent-mode)
   (lispy-mode)
-  (lispyville-mode)
-  )
+  (lispyville-mode))
 
 
 (add-hook 'clojure-mode-hook #'ns/lisp-editing-init)

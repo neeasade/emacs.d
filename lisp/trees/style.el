@@ -62,7 +62,7 @@
     "Noto Serif-14"
     "Charter-14"))
 
-(use-package hl-todo
+(ns/use hl-todo
   :config
   (general-nmap
     "]t" 'hl-todo-next
@@ -82,7 +82,7 @@
 
 (set-face-attribute 'italic nil :slant 'italic)
 
-(use-package theme-magic
+(ns/use theme-magic
   :config
   (defun ns/emacs-to-theme ()
     (parseedn-print-str
@@ -108,7 +108,7 @@ will also be the width of all other printable characters."
 
 (defun ns/style-terminal ()
   (when-not window-system
-    (use-package evil-terminal-cursor-changer
+    (ns/use evil-terminal-cursor-changer
       :config
       ;;
       (defun etcc--in-xterm? ()
@@ -177,8 +177,8 @@ will also be the width of all other printable characters."
               (message (pr-str <>))
               (funcall <>)))
 
-    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal)
-    ;; '()
+    ;; '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal)
+    '()
     )
 
   ;; (when ns/enable-blog-p

@@ -1,6 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
-(use-package doom-modeline)
+(ns/use doom-modeline)
 
 (defface ns/mode-line-middle
   '((t (:inherit (mode-line))))

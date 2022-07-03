@@ -60,10 +60,9 @@
 ;;   (general-nmap magit-status-mode-map "e" 'evil-previous-line)
 ;;   (general-nmap magit-status-mode-map "n" 'evil-next-line))
 
-(use-package git-gutter-fringe
+(ns/use git-gutter-fringe
   :config
-  (setq git-gutter-fr:side 'right-fringe)
-  )
+  (setq git-gutter-fr:side 'right-fringe))
 
 ;; todo: make this colemak
 (defhydra git-smerge-menu ()
@@ -138,7 +137,7 @@ command was called, go to its unstaged changes section."
     (unpackaged/magit-status)))
 
 ;; todo: tryout this package
-(use-package vdiff
+(ns/use vdiff
   :config
   (evil-define-key 'normal vdiff-mode-map "," vdiff-mode-prefix-map)
 

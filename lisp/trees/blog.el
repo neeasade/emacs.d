@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
+;; todo: reconsider this whole thing
+
 ;; for fontifying src blocks
 (use-package htmlize)
 

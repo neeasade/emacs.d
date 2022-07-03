@@ -1,38 +1,36 @@
 ;; -*- lexical-binding: t; -*-
 (global-set-key (kbd "C-e") 'previous-line)
 
-(use-package ivy
+(ns/use ivy
   :config
 
   (setq-ns ivy
     re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
                          (t . ivy--regex-fuzzy))
+    height-alist '((t lambda (_caller) (/ (frame-height) 2)))
     initial-inputs-alist nil
     fixed-height-minibuffer t
-    count-format "%d/%d "
-    )
+    count-format "%d/%d ")
 
   (general-define-key
     :keymaps 'ivy-minibuffer-map
     (kbd "<C-return>") 'ivy-immediate-done)
 
-  (setq ivy-height-alist '((t lambda (_caller) (/ (frame-height) 2))))
-
   (ivy-mode 1)
 
-  (use-package prescient)
-  (use-package ivy-prescient :config
+  (ns/use prescient)
+  (ns/use ivy-prescient :config
     (ivy-prescient-mode)
     (prescient-persist-mode))
 
-  (use-package company-prescient :config (company-prescient-mode))
+  (ns/use company-prescient :config (company-prescient-mode))
 
   (prescient-persist-mode))
 
 ;; counsel
-(use-package counsel
+(ns/use counsel
   :config
-  (use-package rg)
+  (ns/use rg)
 
   (when (executable-find "rg")
     (setq-ns counsel
@@ -123,7 +121,7 @@
   (delete-other-windows)
   (evil-window-vsplit))
 
-(use-package alert
+(ns/use alert
   :config (setq alert-default-style
             (cond
               (ns/enable-windows-p 'toaster)
@@ -135,7 +133,7 @@
     (let ((alert-fade-time 0))
       (apply 'alert alert-args))))
 
-(use-package which-key
+(ns/use which-key
   :config
   (setq-ns which-key
     idle-delay 1.5
@@ -217,7 +215,7 @@
   (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
   (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
 
-  (use-package xclip :config (xclip-mode t))
+  (ns/use xclip :config (xclip-mode t))
 
   ;; C-i and <tab> are equivalent in the terminal
   ;; (until kitty saves us all)

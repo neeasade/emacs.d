@@ -83,7 +83,7 @@
       (git-gutter-mode 0))))
 
 (defun! ns/toggle-bloat-global (&optional toggle)
-  "toggle global bloat"
+  "Toggle global bloat"
   (if (or toggle (not global-company-mode))
     (progn
       (message "bloat-global: enabled")
@@ -91,23 +91,25 @@
       (global-flycheck-mode)
       (global-font-lock-mode)
       (when (not ns/enable-windows-p)
-        (add-hook 'prog-mode-hook 'git-gutter-mode)))
+        (global-git-gutter-mode)))
 
     (progn
       (message "bloat-global: disabled")
       (global-company-mode -1)
       (global-flycheck-mode -1)
       (global-font-lock-mode 0)
-      (remove-hook 'prog-mode-hook 'git-gutter-mode))))
+      (global-git-gutter-mode 0))))
 
-(use-package simpleclip)
+(ns/use simpleclip)
 
 (defun! ns/paste-from-clipboard-url ()
   "GET the clipboard contents into current point"
 
-  (request
-    (simpleclip-get-contents)
+  ;; pls seems iffy
+  ;; see https://github.com/alphapapa/plz.el/issues/3
+  ;; (insert (plz 'get (simpleclip-get-contents)))
 
+  (request
     :type "GET"
     :parser 'buffer-string
     :success
@@ -242,7 +244,7 @@
 
 ;; using this package only for a tramp aware 'open file as root' function
 ;; initially went to steal but turned out to be many functions to steal
-(use-package crux)
+(ns/use crux)
 
 ;; todo: insert qute selected text would be nice
 (defun! ns/insert-qute-url ()

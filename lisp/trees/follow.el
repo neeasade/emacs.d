@@ -6,7 +6,7 @@
 (require 'org)
 
 ;; handles many kinds of links
-(use-package link-hint)
+(ns/use link-hint)
 
 (defun ns/handle-potential-file-link (file)
   "Jump to a file with org if it exists - handles <filename>[:<row>][:<col>]

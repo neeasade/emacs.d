@@ -11,14 +11,14 @@
 
 (general-evil-setup t)
 
-(use-package evil
+(ns/use evil
   ;; evil-collection
   :init (setq evil-want-integration t)
   :config (evil-mode 1)
   (general-nmap "N" 'evil-join))
 
 ;; disable: some of the binds get in the way of our colemak remappings.
-(use-package evil-collection :config
+(ns/use evil-collection :config
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
     (evil-collection-translate-key 'normal mode-keymaps
       "e" "k"
@@ -88,7 +88,7 @@
 (set-in-navigation-evil-states "n" 'evil-next-line)
 (set-in-navigation-evil-states "e" 'evil-previous-line)
 
-(use-package evil-lion
+(ns/use evil-lion
   :config
   (evil-define-key 'normal prog-mode-map
     (kbd "g l") 'evil-lion-left
@@ -98,11 +98,11 @@
     (kbd "g l") 'evil-lion-left
     (kbd "g L") 'evil-lion-right))
 
-(use-package evil-commentary :config (evil-commentary-mode))
-(use-package evil-anzu :config
+(ns/use evil-commentary :config (evil-commentary-mode))
+(ns/use evil-anzu :config
   (setq anzu-cons-mode-line-p nil) (global-anzu-mode 1))
 
-(use-package evil-matchit :config (global-evil-matchit-mode 1))
+(ns/use evil-matchit :config (global-evil-matchit-mode 1))
 
 (ns/use evil-numbers
   :straight (:host github :repo "janpath/evil-numbers")
@@ -111,11 +111,11 @@
   (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
 
 ;; this is nice, but I don't use marks often.
-;; (use-package evil-fringe-mark
+;; (ns/use evil-fringe-mark
 ;;   :config (setq evil-fringe-mark-show-special nil)
 ;;   (global-evil-fringe-mark-mode t))
 
-(use-package evil-goggles
+(ns/use evil-goggles
   :config
   (setq evil-goggles-duration 0.100)
   (setq evil-goggles-pulse t)
@@ -123,9 +123,9 @@
   (evil-goggles-mode 0)
   )
 
-(use-package evil-surround :config (global-evil-surround-mode 1))
+(ns/use evil-surround :config (global-evil-surround-mode 1))
 
-(use-package evil-embrace
+(ns/use evil-embrace
   :config
   (general-define-key
     :states 'normal
@@ -144,7 +144,7 @@
 
   (evil-embrace-enable-evil-surround-integration))
 
-(use-package evil-snipe
+(ns/use evil-snipe
   :config
   (setq evil-snipe-smart-case t)
   (setq evil-snipe-repeat-scope 'whole-line)
@@ -152,7 +152,7 @@
   (evil-snipe-override-mode +1)
   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
 
-(use-package evil-exchange
+(ns/use evil-exchange
   :config
   (evil-exchange-cx-install))
 
@@ -228,7 +228,7 @@
 ;; break a bad habit by nop'ing :b
 ;; (evil-ex-define-cmd "b" nil)
 
-(use-package better-jumper
+(ns/use better-jumper
   :config
   ;; (with-eval-after-load 'evil-maps
   ;;   (define-key evil-motion-state-map (kbd "C-o") 'evil-jump-backward)
@@ -251,7 +251,7 @@
   ;; (add-hook 'better-jumper-post-jump-hook 'recenter)
   )
 
-;; (use-package undo-tree
+;; (ns/use undo-tree
 ;;   :config
 ;;   (require 'undo-tree)
 ;;   (global-undo-tree-mode)
@@ -259,5 +259,5 @@
 
 ;; undo-tree seems to have a weird garbage collection thing going on
 ;; freezes emacs
-(use-package undo-fu)
+(ns/use undo-fu)
 (evil-set-undo-system 'undo-fu)

@@ -158,6 +158,7 @@
              "%s is blasting off AGAINNnnnn...."
              "%s left to catch the dogecoin dip."
              "%s gave all their money to their brother day trader."
+             "%s left to go think about GNU HURD."
              )))
     (format (nth (random (- (length options) 1)) options)
       nick)))
@@ -195,7 +196,6 @@
           "Roses are red, violets are blue, %s joined this server with you"
           "%s has joined the party."
           "%s is back from meatspace."
-          "%s left to go think about HURD."
           )))
     (format
       (nth (random (- (length options) 1)) options)
@@ -219,8 +219,8 @@
         (s-contains? "left: WeeChat" reason)
         (s-contains? "Quit: ERC" reason)
         ;; assume adverts for clients
-        (s-contains? "http" reason)
-        ) nil reason))
+        (s-contains? "http" reason))
+    nil reason))
 
 (defun ns/circe-handle-say (nick body)
   "update state for say, return nick, highmon"
@@ -254,8 +254,7 @@
 
   (if (string= nick circe-last-nick)
     (setq nick "")
-    (setq-local circe-last-nick nick)
-    )
+    (setq-local circe-last-nick nick))
 
   (setq-local circe-last-message body)
 
@@ -329,10 +328,12 @@
           (nick (plist-get args :nick))
           (body (plist-get args :body))
           (reason (plist-get args :reason))
+
           ;; mode-change
           (setter (plist-get args :setter))
           (change (plist-get args :change))
           (target (plist-get args :target))
+
           ;; nick change
           (old-nick (plist-get args :old-nick))
           (new-nick (plist-get args :new-nick))
@@ -340,8 +341,7 @@
           ;; topic
           (new-topic (plist-get args :new-topic))
           (channel (plist-get args :channel))
-          (topic-ago (plist-get args :topic-ago))
-          )
+          (topic-ago (plist-get args :topic-ago)))
 
     (when (not (-contains-p '(join part quit) type))
       (setq nick (ns/circe-handle-say
@@ -382,15 +382,12 @@
       )))
 
 (defun! ns/goto-highlight (input)
-  (let (
-         (buf (nth 0 (s-split ":" input)))
+  (let ((buf (nth 0 (s-split ":" input)))
          (op (nth 1 (s-split ":" input)))
-         (message (s-join ":" (cdr (cdr (s-split ":" input)))))
-         )
+         (message (s-join ":" (cdr (cdr (s-split ":" input))))))
     (counsel-switch-to-buffer-or-window buf)
     (goto-char (point-max))
-    (search-backward message)
-    ))
+    (search-backward message)))
 
 (defun! ns/goto-last-highlight ()
   (if (get-buffer "*circe-highlight*")

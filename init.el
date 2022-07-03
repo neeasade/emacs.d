@@ -40,8 +40,6 @@
 (ns/compose
   core
 
-  ;; use-package
-  ;; straight
   sanity
   evil
   interface
@@ -143,10 +141,8 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      (ns/load-theme
-        (-if-let (theme (get-resource "emacs.theme"))
-          (intern theme)
-          'tarp-mcfay))))
+      ; (ns/load-theme)
+      ))
 
   (add-hook 'emacs-startup-hook 'ns/initial-startup-hook))
 

@@ -11,7 +11,7 @@
 
   (setq lisp-indent-function 'common-lisp-indent-function)
 
-  (use-package helpful
+  (ns/use helpful
     :config
     (global-set-key (kbd "C-h f") #'helpful-callable)
     (global-set-key (kbd "C-h v") #'helpful-variable)
@@ -29,7 +29,7 @@
     ;; todo: should this be cider/emacslisp apropros in the mix
     (ns/bind "nh" 'ns/helpful-or-dashdoc))
 
-  (use-package eros
+  (ns/use eros
     :config
     (setq eros-eval-result-duration 20)
     (eros-mode 1)
@@ -53,9 +53,9 @@
     (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
     (ns/bind-mode 'emacs-lisp "E" 'eval-print-last-sexp))
 
-  (use-package elsa
+  (ns/use elsa
     :config
-    (use-package flycheck-elsa)
+    (ns/use flycheck-elsa)
     (add-hook 'emacs-lisp-mode-hook #'flycheck-elsa-setup)
 
     ;; note: elsa needs cask to do anything:
@@ -63,7 +63,7 @@
     ))
 
 (ns/defconfig flycheck
-  (use-package flycheck
+  (ns/use flycheck
     :config
 
     ;; cf http://www.flycheck.org/en/latest/user/syntax-checks.html#check-automatically
@@ -91,11 +91,11 @@
     "[e" 'flycheck-previous-error
     )
 
-  (use-package flycheck-pos-tip)
+  (ns/use flycheck-pos-tip)
   (eval-after-load 'flycheck '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages)))
 
 (ns/defconfig company
-  (use-package company
+  (ns/use company
     :config
     (setq-ns company
       idle-delay 0.5
@@ -118,7 +118,7 @@
     (define-key company-active-map [tab] 'company-complete)
     )
 
-  (use-package company-quickhelp
+  (ns/use company-quickhelp
     :init
     (company-quickhelp-mode 1)
     (setq company-quickhelp-delay 0.3)))
@@ -136,9 +136,9 @@
   ;; (ns/guard ns/enable-home-p)
   (ns/guard nil)
 
-  (use-package dash)
+  (ns/use dash)
 
-  (use-package counsel-dash)
+  (ns/use counsel-dash)
 
   (setq-ns counsel-dash
     min-length 0
@@ -158,7 +158,7 @@
   )
 
 (ns/defconfig zoom
-  (use-package zoom
+  (ns/use zoom
     :config
     ;; if number, is lines/cols
     ;; can also be ratio
@@ -171,14 +171,14 @@
 
 (ns/defconfig python
   (ns/install-dashdoc "Python 2" 'python-mode-hook)
-  (use-package elpy)
+  (ns/use elpy)
   ;; maybe only when pyflake is installed
-  ;; (use-package flycheck-pyflakes)
+  ;; (ns/use flycheck-pyflakes)
   )
 
 (ns/defconfig clojure
-  (use-package clojure-mode)
-  (use-package cider)
+  (ns/use clojure-mode)
+  (ns/use cider)
 
   ;; babashka
   (add-to-list 'interpreter-mode-alist '("bb" . clojure-mode))
@@ -214,23 +214,23 @@
   (add-to-list 'interpreter-mode-alist '("joker" . clojure-mode))
 
   (when (executable-find "joker")
-    (use-package flycheck-joker :config (require 'flycheck-joker)))
+    (ns/use flycheck-joker :config (require 'flycheck-joker)))
 
   (when (executable-find "clj-kondo")
-    (use-package flycheck-clj-kondo
+    (ns/use flycheck-clj-kondo
       :config
       (require 'flycheck-clj-kondo))))
 
 (ns/defconfig nix
   ;; (ns/guard ns/enable-home-p)
-  ;; (use-package nix-mode)
+  ;; (ns/use nix-mode)
   )
 
 (ns/defconfig music
   (ns/guard ns/enable-home-p)
   (ns/guard (executable-find "mpd"))
 
-  (use-package emms)
+  (ns/use emms)
 
   (defun emms-start()
     (require 'emms-player-mpd)
@@ -251,7 +251,7 @@
   (ns/bind "am" 'emms-start))
 
 (ns/defconfig projectile
-  (use-package projectile)
+  (ns/use projectile)
 
   ;; still assuming git command, maybe lean on projectile for file listing
   (defun ns/get-project-files (project-root)
@@ -330,7 +330,7 @@
   (add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
 
-  (use-package rjsx-mode)
+  (ns/use rjsx-mode)
   (defun ns/webhook ()
     ;; (if (string-equal "tsx" (file-name-extension buffer-file-name))
     ;;   (if (equal web-mode-content-type "javascript")
@@ -343,11 +343,11 @@
     (when (string-equal "tsx" (file-name-extension buffer-file-name))
       (setup-tide-mode)))
 
-  (use-package web-mode
+  (ns/use web-mode
     :config
     (add-hook 'web-mode-hook 'ns/webhook))
 
-  (use-package prettier-js
+  (ns/use prettier-js
     :config
     (add-hook 'typescript-mode-hook 'prettier-js-mode)
     (add-hook 'web-mode-hook 'prettier-js-mode)
@@ -356,7 +356,7 @@
   ;; notes for using this
   ;; kill shx-mode
   ;; doesn't work with multiline input, or import command/multiple files
-  (use-package nodejs-repl
+  (ns/use nodejs-repl
     :config
     (ns/bind-leader-mode
       'nodejs-repl
@@ -368,7 +368,7 @@
 
 (ns/defconfig typescript
   (ns/install-dashdoc "TypeScript" 'typescript-mode-hook)
-  (use-package tide
+  (ns/use tide
     :config
     (defun! setup-tide-mode ()
       (tide-setup)
@@ -384,7 +384,7 @@
 (ns/defconfig csharp
   ;; limitation: can only work with one server/solution at a time currently
   (ns/guard ns/enable-windows-p)
-  (use-package omnisharp
+  (ns/use omnisharp
     :config
     (when (not (omnisharp--resolve-omnisharp-server-executable-path))
       (omnisharp-install-server))
@@ -397,8 +397,8 @@
 
 
 (ns/defconfig jump
-  (use-package dumb-jump)
-  (use-package smart-jump
+  (ns/use dumb-jump)
+  (ns/use smart-jump
     :config
     (setq dumb-jump-selector 'ivy)
     (setq dumb-jump-force-searcher 'rg)
@@ -413,20 +413,20 @@
 
 (ns/defconfig pdf
   (ns/guard ns/enable-linux-p)
-  (use-package pdf-tools))
+  (ns/use pdf-tools))
 
 (ns/defconfig terraform
-  (use-package terraform-mode))
+  (ns/use terraform-mode))
 
 (ns/defconfig jekyll
-  (use-package jekyll-modes))
+  (ns/use jekyll-modes))
 
 (ns/defconfig autohotkey
   (ns/guard ns/enable-windows-p)
-  (use-package xahk-mode))
+  (ns/use xahk-mode))
 
 (ns/defconfig markdown
-  (use-package markdown-mode
+  (ns/use markdown-mode
     :mode (("README\\.md\\'" . gfm-mode)
             ("\\.md\\'" . markdown-mode)
             ("\\.markdown\\'" . markdown-mode)))
@@ -450,20 +450,20 @@
   )
 
 (ns/defconfig restclient
-  (use-package restclient
+  (ns/use restclient
     :config
     (ns/bind-leader-mode
       'restclient
       "ei" 'restclient-http-send-current-stay-in-window))
 
-  (use-package company-restclient))
+  (ns/use company-restclient))
 
 (ns/defconfig sql
   ;; todo
   ;; (ns/install-dashdoc "SQLite" ')
 
   ;; setup: https://github.com/kostafey/ejc-sql#install-jdbc-drivers
-  ;; (use-package ejc-sql
+  ;; (ns/use ejc-sql
   ;;   :config
   ;;   ;; test local sqlite
   ;; )
@@ -489,29 +489,29 @@
   ;; todo: https://github.com/The-Compiler/dotfiles/blob/543e48cd594750188dd3e935ef6dfd77f867ca71/spacemacs#L497
   ;; todo: this doesn't build?
   ;; ref: https://github.com/raxod502/straight.el/issues/240
-  ;; (use-package company-auctex)
+  ;; (ns/use company-auctex)
   )
 
 
 (ns/defconfig plantuml
-  (use-package plantuml)
-  (use-package flycheck-plantuml))
+  (ns/use plantuml)
+  (ns/use flycheck-plantuml))
 
 (ns/defconfig ledger
   (ns/guard ns/enable-home-p)
-  (use-package ledger-mode)
-  (use-package flycheck-ledger)
-  (use-package evil-ledger
+  (ns/use ledger-mode)
+  (ns/use flycheck-ledger)
+  (ns/use evil-ledger
     :config
     (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
 (ns/defconfig lsp
   ;; want to use eglot + flycheck, hrm
-  ;; (use-package cquery)
+  ;; (ns/use cquery)
   )
 
 (ns/defconfig search-engines
-  (use-package engine-mode
+  (ns/use engine-mode
     :config
 
     ;; bind spc s 'hotkey' to a search url with a label
@@ -553,7 +553,7 @@
   )
 
 (ns/defconfig emoji
-  (use-package emojify
+  (ns/use emojify
     :init
     ;; the reason for both is so bridges to like slack show up right
     ;; (setq emojify-emoji-styles '(unicode github))
@@ -567,17 +567,17 @@
 
 (ns/defconfig powershell
   (ns/guard ns/enable-windows-p)
-  (use-package powershell))
+  (ns/use powershell))
 
 (ns/defconfig c
   (ns/install-dashdoc "C" 'c-mode-hook)
 
   ;; note: depends on clang and cmake
-  (use-package irony)
+  (ns/use irony)
   ;; fyi:
   ;; (irony-install-server)
 
-  (use-package flycheck-irony)
+  (ns/use flycheck-irony)
   (eval-after-load 'flycheck
     '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
@@ -590,7 +590,7 @@
   )
 
 (ns/defconfig graphiz
-  (use-package graphviz-dot-mode
+  (ns/use graphviz-dot-mode
     :config
     (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)
     (ns/bind-mode 'graphviz-dot "e" 'graphviz-dot-preview)
@@ -628,10 +628,10 @@
 
 (ns/defconfig guix
   (ns/guard ns/enable-home-p)
-  (use-package guix))
+  (ns/use guix))
 
 (ns/defconfig elasticsearch
-  (use-package es-mode))
+  (ns/use es-mode))
 
 (ns/defconfig server
   ;; cf https://tychoish.com/post/running-multiple-emacs-daemons-on-a-single-system/
@@ -651,7 +651,7 @@
     (server-start)))
 
 (ns/defconfig common-lisp
-  (use-package slime)
+  (ns/use slime)
   (setq inferior-lisp-program (which "sbcl"))
   (setq slime-contribs '(slime-fancy))
 
@@ -687,7 +687,7 @@
        ,@content)))
 
 (ns/defconfig go
-  (use-package go-mode))
+  (ns/use go-mode))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
