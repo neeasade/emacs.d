@@ -18,24 +18,18 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-;; (straight-use-package 'use-package)
-;; (setq straight-use-package-by-default t)
-(setq straight-cache-autoloads t)
-
-;; dash is special
-(straight-use-package 'dash)
-
-(defmacro ns/use (name &rest args)
+(defmacro ns/use (name &rest body)
   `(progn
      (message (format ":: ns/use: %s..." ',(first (-list name))))
      (straight-use-package ',name)
-     ,@(-remove (lambda (i) (eq i :config)) args)
+     ,@body
      (message (format ":: ns/use: %s... done." ',(first (-list name))))))
 
 ;; elisp enhancers
 (ns/use fn)      ; function
 (ns/use s)       ; string
 (ns/use f)       ; file
+(ns/use dash)    ; lists
 (ns/use ht)      ; hash table
 (ns/use a)       ; assoc lists
 (ns/use async)   ; async
@@ -46,7 +40,8 @@
 
 ;; other/emacs enhancers
 (ns/use hydra)
-(ns/use general :config (general-override-mode t))
+(ns/use general (general-override-mode t))
+
 (ns/use request)
 (ns/use shut-up)
 (require 'seq)
@@ -54,7 +49,7 @@
 (require 'cl-seq)
 (require 'man)
 
-(ns/use named-timer :config (require 'named-timer))
+(ns/use named-timer  (require 'named-timer))
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)

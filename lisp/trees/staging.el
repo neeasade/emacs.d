@@ -113,11 +113,8 @@
 ;; (bash-completion-setup)
 
 (ns/use rainbow-mode
-  :config
-  (setq
-   ;; don't preview non-hex codes
-   rainbow-html-colors nil
-   rainbow-x-colors nil)
+  (setq rainbow-html-colors nil
+    rainbow-x-colors nil)
 
   (ns/bind "tc" 'rainbow-mode))
 
@@ -125,11 +122,7 @@
 ;; sync from the pov of the current file
 (ns/use direnv)
 
-
-
-(ns/use git-link
-  :config
-  (setq git-link-open-in-browser t))
+(ns/use git-link (setq git-link-open-in-browser t))
 
 ;; this seems to be a little nicer:
 ;; (ns/use browse-at-remote)
@@ -152,7 +145,7 @@
 ;; automatic detection of indent settings (vim-sleuth)
 ;; todo: doom does a thing where they blend the major mode w/ editor config
 ;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
-(ns/use dtrt-indent :config (dtrt-indent-global-mode 1))
+(ns/use dtrt-indent  (dtrt-indent-global-mode 1))
 
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
@@ -240,7 +233,7 @@
       (s-split ":"))))
 
 ;; (ns/use frog-jump-buffer
-;;   :config
+;;   
 ;;   (ns/bind "b" 'frog-jump-buffer)
 ;;   (ns/bind "B" 'frog-jump-buffer-other-window)
 

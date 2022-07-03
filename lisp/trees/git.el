@@ -27,7 +27,6 @@
 
 (when (not ns/enable-windows-p)
   (ns/use (magit-todos :host github :repo "alphapapa/magit-todos")
-    :config
     (setq magit-todos-nice ns/enable-linux-p)
     (evil-define-key nil magit-todos-section-map "j" nil)
     (evil-define-key nil magit-todos-section-map "e" nil)
@@ -47,7 +46,7 @@
 
 ;; todo: this has been merged into evil collection -- revisit, because these clearly aren't mapping/being rotated
 ;; (use-package evil-magit
-;;   :config
+;;   
 ;;   ;; todo: these don't bind -- really weird.
 ;;   (general-nmap magit-mode-map "n" 'evil-next-line)
 ;;   (general-nmap magit-mode-map "e" 'evil-previous-line)
@@ -60,7 +59,6 @@
 ;;   (general-nmap magit-status-mode-map "n" 'evil-next-line))
 
 (ns/use git-gutter-fringe
-  :config
   (setq git-gutter-fr:side 'right-fringe))
 
 ;; todo: make this colemak
@@ -137,7 +135,6 @@ command was called, go to its unstaged changes section."
 
 ;; todo: tryout this package
 (ns/use vdiff
-  :config
   (evil-define-key 'normal vdiff-mode-map "," vdiff-mode-prefix-map)
 
   ;; todo: general-nmap this

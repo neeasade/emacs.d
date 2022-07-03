@@ -12,7 +12,6 @@
   (setq lisp-indent-function 'common-lisp-indent-function)
 
   (ns/use helpful
-    :config
     (global-set-key (kbd "C-h f") #'helpful-callable)
     (global-set-key (kbd "C-h v") #'helpful-variable)
     (global-set-key (kbd "C-h k") #'helpful-key)
@@ -30,7 +29,6 @@
     (ns/bind "nh" 'ns/helpful-or-dashdoc))
 
   (ns/use eros
-    :config
     (setq eros-eval-result-duration 20)
     (eros-mode 1)
 
@@ -54,7 +52,6 @@
     (ns/bind-mode 'emacs-lisp "E" 'eval-print-last-sexp))
 
   (ns/use elsa
-    :config
     (ns/use flycheck-elsa)
     (add-hook 'emacs-lisp-mode-hook #'flycheck-elsa-setup)
 
@@ -64,8 +61,6 @@
 
 (ns/defconfig flycheck
   (ns/use flycheck
-    :config
-
     ;; cf http://www.flycheck.org/en/latest/user/syntax-checks.html#check-automatically
     (setq-ns flycheck
       check-syntax-automatically (if ns/enable-windows-p
@@ -96,7 +91,6 @@
 
 (ns/defconfig company
   (ns/use company
-    :config
     (setq-ns company
       idle-delay 0.5
       selection-wrap-around t
@@ -198,11 +192,11 @@
   (add-to-list 'interpreter-mode-alist '("joker" . clojure-mode))
 
   (when (executable-find "joker")
-    (ns/use flycheck-joker :config (require 'flycheck-joker)))
+    (ns/use flycheck-joker  (require 'flycheck-joker)))
 
   (when (executable-find "clj-kondo")
     (ns/use flycheck-clj-kondo
-      :config
+      
       (require 'flycheck-clj-kondo))))
 
 (ns/defconfig nix
@@ -322,11 +316,9 @@
       (setup-tide-mode)))
 
   (ns/use web-mode
-    :config
     (add-hook 'web-mode-hook 'ns/webhook))
 
   (ns/use prettier-js
-    :config
     (add-hook 'typescript-mode-hook 'prettier-js-mode)
     (add-hook 'web-mode-hook 'prettier-js-mode)
     (add-hook 'js-mode-hook 'prettier-js-mode)))
@@ -335,7 +327,6 @@
   (ns/install-dashdoc "TypeScript" 'typescript-mode-hook)
 
   (ns/use tide
-    :config
     (defun! setup-tide-mode ()
       (tide-setup)
       (eldoc-mode +1)
@@ -384,7 +375,6 @@
 
 (ns/defconfig restclient
   (ns/use restclient
-    :config
     (ns/bind-leader-mode
       'restclient
       "ei" 'restclient-http-send-current-stay-in-window))
@@ -397,7 +387,7 @@
 
   ;; setup: https://github.com/kostafey/ejc-sql#install-jdbc-drivers
   ;; (ns/use ejc-sql
-  ;;   :config
+  ;;   
   ;;   ;; test local sqlite
   ;; )
   )
@@ -416,7 +406,6 @@
   (ns/use ledger-mode)
   (ns/use flycheck-ledger)
   (ns/use evil-ledger
-    :config
     (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
 (ns/defconfig lsp
@@ -426,7 +415,6 @@
 
 (ns/defconfig search-engines
   (ns/use engine-mode
-    :config
     ;; bind spc s 'hotkey' to a search url with a label
     (defmacro bind-search (hotkey label url)
       `(progn
@@ -435,14 +423,11 @@
            (concat "s" ,hotkey)
            (intern (concat "engine/search-" (prin1-to-string ',label))))))
 
-    ;; (bind-search "s" google "https://google.com/search?q=%s")
     (bind-search "m" melpa "https://melpa.org/#/?q=%s")
     (bind-search "o" stack-overflow "https://stackoverflow.com/search?q=%s")
     (bind-search "g" github "https://github.com/search?ref=simplesearch&q=%s")
     (bind-search "y" youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
-    (engine-mode t))
-
-  )
+    (engine-mode t)))
 
 (ns/defconfig filehooks
   (ns/guard ns/enable-home-p)
@@ -470,7 +455,6 @@
     :init
     (setq emojify-emoji-styles '(unicode)) ; only real emoji here thanks
 
-    :config
     ;; emojify-mode seems to mess with input, causing a character to
     ;; occasionally skip, so disabling (global-emojify-mode)
 
@@ -502,7 +486,6 @@
 
 (ns/defconfig graphviz
   (ns/use graphviz-dot-mode
-    :config
     (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)
     (ns/bind-mode 'graphviz-dot "e" 'graphviz-dot-preview))
 
@@ -579,7 +562,6 @@
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-
 (ns/defconfig blog        (load (~e "lisp/trees/blog.el")))
 (ns/defconfig doomline    (load (~e "lisp/trees/doomline.el")))
 (ns/defconfig editing     (load (~e "lisp/trees/editing.el")))

@@ -4,7 +4,7 @@
 ;; evil-ex-visual-char-range
 
 ;; this happens here to appease evil-collection
-(ns/use magit :config (require 'magit))
+(ns/use magit  (require 'magit))
 
 ;; evil-collection
 (setq evil-want-keybinding nil)
@@ -14,11 +14,11 @@
 (ns/use evil
   ;; evil-collection
   :init (setq evil-want-integration t)
-  :config (evil-mode 1)
+   (evil-mode 1)
   (general-nmap "N" 'evil-join))
 
 ;; disable: some of the binds get in the way of our colemak remappings.
-(ns/use evil-collection :config
+(ns/use evil-collection 
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
     (evil-collection-translate-key 'normal mode-keymaps
       "e" "k"
@@ -67,7 +67,7 @@
 (setq-default evil-escape-key-sequence "tn")
 
 (ns/use (evil-escape :host github :repo "hlissner/evil-escape")
-  :config (evil-escape-mode))
+   (evil-escape-mode))
 
 (defun set-in-evil-states (key def maps)
   (while maps
@@ -88,7 +88,6 @@
 (set-in-navigation-evil-states "e" 'evil-previous-line)
 
 (ns/use evil-lion
-  :config
   (evil-define-key 'normal prog-mode-map
     (kbd "g l") 'evil-lion-left
     (kbd "g L") 'evil-lion-right)
@@ -97,34 +96,31 @@
     (kbd "g l") 'evil-lion-left
     (kbd "g L") 'evil-lion-right))
 
-(ns/use evil-commentary :config (evil-commentary-mode))
-(ns/use evil-anzu :config
+(ns/use evil-commentary  (evil-commentary-mode))
+(ns/use evil-anzu 
   (setq anzu-cons-mode-line-p nil) (global-anzu-mode 1))
 
-(ns/use evil-matchit :config (global-evil-matchit-mode 1))
+(ns/use evil-matchit  (global-evil-matchit-mode 1))
 
 (ns/use (evil-numbers :host github :repo "janpath/evil-numbers")
-  :config
   (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
   (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
 
 ;; this is nice, but I don't use marks often.
 ;; (ns/use evil-fringe-mark
-;;   :config (setq evil-fringe-mark-show-special nil)
+;;    (setq evil-fringe-mark-show-special nil)
 ;;   (global-evil-fringe-mark-mode t))
 
 (ns/use evil-goggles
-  :config
   (setq evil-goggles-duration 0.100)
   (setq evil-goggles-pulse t)
   ;; fun visual vim mode
   (evil-goggles-mode 0)
   )
 
-(ns/use evil-surround :config (global-evil-surround-mode 1))
+(ns/use evil-surround  (global-evil-surround-mode 1))
 
 (ns/use evil-embrace
-  :config
   (general-define-key
     :states 'normal
     "c" (general-key-dispatch 'evil-change "s" #'embrace-change)
@@ -143,7 +139,6 @@
   (evil-embrace-enable-evil-surround-integration))
 
 (ns/use evil-snipe
-  :config
   (setq evil-snipe-smart-case t)
   (setq evil-snipe-repeat-scope 'whole-line)
   (setq evil-snipe-spillover-scope 'whole-line)
@@ -151,7 +146,6 @@
   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
 
 (ns/use evil-exchange
-  :config
   (evil-exchange-cx-install))
 
 ;; Overload shifts so that they don't lose the selection
@@ -227,7 +221,6 @@
 ;; (evil-ex-define-cmd "b" nil)
 
 (ns/use better-jumper
-  :config
   ;; (with-eval-after-load 'evil-maps
   ;;   (define-key evil-motion-state-map (kbd "C-o") 'evil-jump-backward)
   ;;   (define-key evil-motion-state-map (kbd "<C-i>") 'evil-jump-forward))
@@ -250,7 +243,7 @@
   )
 
 ;; (ns/use undo-tree
-;;   :config
+;;   
 ;;   (require 'undo-tree)
 ;;   (global-undo-tree-mode)
 ;;   (evil-set-undo-system 'undo-tree))

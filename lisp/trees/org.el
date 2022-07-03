@@ -10,7 +10,7 @@
 
 ;; nice functional org library
 (ns/use (org-ml :host github :repo "ndwarshuis/org-ml")
-  :config (require 'org-ml))
+   (require 'org-ml))
 
 (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
 
@@ -163,7 +163,6 @@
   (ns/org-jump-to-element-content))
 
 (ns/use org-pomodoro
-  :config
   (setq ns/macos-vol (if ns/enable-mac-p (ns/shell-exec "macos-vol get") 0))
   (defun ns/toggle-music (action)
     (let ((target (or (executable-find "player.sh") "mpc")))
@@ -320,7 +319,6 @@
 ;;     (kbd "E") 'org-toggle-heading))
 
 (ns/use org-present
-  :config
   (defun ns/org-present-init ()
     (org-display-inline-images)
     (org-present-hide-cursor)
@@ -402,7 +400,6 @@
 
 ;; writing niceties:
 (ns/use olivetti
-  :config
   (ns/bind "tf" 'olivetti-mode)
   (setq-default fill-column 80)
 
@@ -416,14 +413,12 @@
 
   ;; words are hard (meaning)
   (ns/use mw-thesaurus
-    :config
     ;; this binding doesn't work -- org has some cycle agenda files meaning
     ;; (global-set-key (kbd "C-'") #'mw-thesaurus-lookup-at-point)
     )
 
   ;; words are hard (spelling)
   (ns/use flyspell-correct-avy-menu
-    :config
     (require 'flyspell-correct-avy-menu)
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
 

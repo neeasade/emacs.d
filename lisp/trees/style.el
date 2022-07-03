@@ -60,7 +60,6 @@
     "Charter-14"))
 
 (ns/use hl-todo
-  :config
   (general-nmap
     "]t" 'hl-todo-next
     "[t" 'hl-todo-previous)
@@ -80,7 +79,6 @@
 (set-face-attribute 'italic nil :slant 'italic)
 
 (ns/use theme-magic
-  :config
   (defun ns/emacs-to-theme ()
     (parseedn-print-str
       (ht
@@ -106,7 +104,7 @@ will also be the width of all other printable characters."
 (defun ns/style-terminal ()
   (when-not window-system
     (ns/use evil-terminal-cursor-changer
-      :config
+      
       ;;
       (defun etcc--in-xterm? ()
         "Runing in xterm."

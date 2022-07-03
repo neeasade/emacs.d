@@ -34,7 +34,6 @@
 
 
 (ns/use shx
-  :config
   (shx-global-mode 1)
   (defun shx-send-input-or-open-thing ()
     "Open thing at point, or send input if no identifiable thing."
@@ -43,7 +42,6 @@
       (shx-send-input))))
 
 (ns/use shell-pop
-  :config
   (setq-ns shell-pop
     window-position "top"
     window-size 33 ;; percent
@@ -211,7 +209,6 @@
 ;; completions when editing shell scripts:
 ;; works by spawning a subshell in the background, kinda weird
 (ns/use company-shell
-  :config
   (setq company-shell-clean-manpage t)
   (add-to-list 'company-backends 'company-shell)
   ;; possibly a weird one to add

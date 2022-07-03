@@ -2,7 +2,6 @@
 (global-set-key (kbd "C-e") 'previous-line)
 
 (ns/use ivy
-  :config
 
   (setq-ns ivy
     re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
@@ -19,17 +18,16 @@
   (ivy-mode 1)
 
   (ns/use prescient)
-  (ns/use ivy-prescient :config
+  (ns/use ivy-prescient 
     (ivy-prescient-mode)
     (prescient-persist-mode))
 
-  (ns/use company-prescient :config (company-prescient-mode))
+  (ns/use company-prescient  (company-prescient-mode))
 
   (prescient-persist-mode))
 
 ;; counsel
 (ns/use counsel
-  :config
   (ns/use rg)
 
   (when (executable-find "rg")
@@ -122,7 +120,7 @@
   (evil-window-vsplit))
 
 (ns/use alert
-  :config (setq alert-default-style
+   (setq alert-default-style
             (cond
               (ns/enable-windows-p 'toaster)
               (ns/enable-mac-p 'osx-notifier)
@@ -134,7 +132,6 @@
       (apply 'alert alert-args))))
 
 (ns/use which-key
-  :config
   (setq-ns which-key
     idle-delay 1.5
     side-window-max-width 0.33
@@ -215,7 +212,7 @@
   (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
   (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
 
-  (ns/use xclip :config (xclip-mode t))
+  (ns/use xclip  (xclip-mode t))
 
   ;; C-i and <tab> are equivalent in the terminal
   ;; (until kitty saves us all)
@@ -275,7 +272,6 @@
   )
 
 (ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
-  :config
   (ns/bind "ss" 'deadgrep)
   (setq deadgrep-max-line-length 180)
   (general-nmap deadgrep-mode-map

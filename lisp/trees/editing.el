@@ -1,12 +1,11 @@
 ;; -*- lexical-binding: t; -*-
 
-(ns/use editorconfig :config (editorconfig-mode 1))
+(ns/use editorconfig  (editorconfig-mode 1))
 
 (setq tab-width 4)
 
 (ns/use smartparens
   :init
-  :config
   (add-to-list 'sp-ignore-modes-list 'circe-channel-mode)
   (add-to-list 'sp-ignore-modes-list 'org-mode)
   (smartparens-global-mode))
@@ -78,14 +77,14 @@
 
 ;; only trim whitespace on lines you edit
 (ns/use (ws-butler :host github :repo "hlissner/ws-butler")
-  :config (ws-butler-global-mode))
+   (ws-butler-global-mode))
 
 ;; to always trim it all
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; todo: call yas-describe-tables sometime/look into snippets to use more often
 (ns/use yasnippet-snippets)
-(ns/use yasnippet :config (yas-global-mode 1))
+(ns/use yasnippet  (yas-global-mode 1))
 
 (defun ns/sh-mode-init-hook ()
   (sh-electric-here-document-mode -1)

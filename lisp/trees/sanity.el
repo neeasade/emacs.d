@@ -1,11 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 
 (ns/use exec-path-from-shell
-  :config
   (exec-path-from-shell-initialize))
 
 (ns/use no-littering
-  :config
   (require 'no-littering)
   (require 'recentf)
   (add-to-list 'recentf-exclude no-littering-var-directory)

@@ -99,7 +99,7 @@ This works like `org-find-olp', but much faster."
             (insert (-last-item path))))))))
 
 (ns/use (org-doct :host github :repo  "progfolio/doct")
-  :config (require 'doct))
+   (require 'doct))
 
 (defun ns/make-project-capture (project &optional template-override key)
   `(,project

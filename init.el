@@ -88,7 +88,6 @@
   typescript
   markdown
   powershell
-  ;; guix
   ;; lsp
   ;; terraform
   ;; sql
