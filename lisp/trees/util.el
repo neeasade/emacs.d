@@ -242,6 +242,14 @@
      ,@body
      (message "%.06f" (float-time (time-since time)))))
 
+(defmacro ns/install-dashdoc (docset mode-hook)
+  "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
+  `(when (bound-and-true-p ns/enable-dashdocs-p)
+     (when nil
+       (message (format "Installing %s docset..." ,docset))
+       (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))
+     (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
+
 ;; using this package only for a tramp aware 'open file as root' function
 ;; initially went to steal but turned out to be many functions to steal
 (ns/use crux)

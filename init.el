@@ -32,70 +32,78 @@
 (load (concat ns/emacs-directory "lisp/dirt.el"))
 (load (~e "lisp/forest.el"))
 
-(defmacro ns/compose (name &rest targets)
-  `(ns/defconfig ,name
-     ,@(--map (list (intern (format "ns/conf-%s" it) ))
-         targets)))
+(defun ns/call-conf (confs)
+  (->> confs
+    (-map '-list)
+    (-remove
+      (-lambda ((f . enables))
+        (when enables
+          (-any-p (fn (null (eval <>))) enables))))
+    (--map (intern (format "ns/conf-%s" (first (-list it)))))
+    (-map 'funcall)))
 
-(ns/compose
-  core
+;; alias to signal intent -- layers I don't use but might be nice for reference later
+(setq ns/outdated nil)
 
-  sanity
-  evil
-  interface
-  editing
-  shell
-  projectile
-  util
-  ;; nb: git must happen before org
-  git
-  org org-capture org-pim
-  server
-  follow-dwim)
+(ns/defconfig core
+  (ns/call-conf
+    `(
+       sanity
+       evil
+       interface
+       editing
+       shell
+       projectile
+       util
+       ;; nb: git must happen before org
+       git
+       org org-capture org-pim
+       server
+       follow-dwim
+       )))
 
-(ns/compose
-  extra
+(ns/defconfig extra
+  (ns/call-conf
+    `(
+       company
+       flycheck
+       (dashdocs nil)
 
-  company
-  flycheck
-  dashdocs
+       (restclient ns/outdated)
+       (latex ns/enable-home-p)
+       search-engines
 
-  zoom
-  restclient
-  latex
-  search-engines
+       blog
+       scripting
+       (music ns/enable-home-p (executable-find "mpd"))
+       (pdf ns/enable-linux-p)
+       (ledger ns/enable-home-p)
+       emoji
+       (filehooks ns/enable-home-p)
+       elasticsearch
+       graphviz)))
 
-  blog
-  scripting
-  ;; music
-  pdf
-  ledger
-  emoji
-  filehooks
-  elasticsearch
-  graphviz)
+(ns/defconfig development
+  (ns/call-conf
+    `(
+       (c ns/outdated)
+       (common-lisp ns/outdated)
 
-(ns/compose
-  development
-  ;; c
-  ;; common-lisp
-
-  autohotkey
-  clojure
-  elisp
-  nix
-  javascript
-  typescript
-  markdown
-  powershell
-  ;; lsp
-  ;; terraform
-  ;; sql
-  ;; plantuml
-  go
-  python
-  irc
-  )
+       (autohotkey ns/enable-windows-p)
+       clojure
+       elisp
+       nix
+       (javascript ns/outdated)
+       (typescript ns/outdated)
+       markdown
+       (powershell ns/enable-windows-p)
+       lsp
+       terraform
+       sql
+       plantuml
+       go
+       (python ns/outdated)
+       (irc ns/enable-home-p))))
 
 (if (getenv "NS_EMACS_BATCH")
   ;; doing a batch job, eval some lisp, message the result
@@ -109,6 +117,7 @@
   (ns/conf-core)
   (ns/conf-extra)
   (ns/conf-development)
+
   (ns/conf-staging)
   (ns/check-for-orphans)
   (ns/conf-style)
@@ -135,7 +144,7 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      ; (ns/load-theme)
+      ;; (ns/load-theme)
       ))
 
   (add-hook 'emacs-startup-hook 'ns/initial-startup-hook))

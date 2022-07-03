@@ -240,14 +240,8 @@
          (interactive)
          (let ((config-name ,conf-string))
            (message (format "::: %s..." ',function-name))
-           (catch 'config-catch
-             ,@body
-             (setq ,enabled-symbol t))
+           ,@body
            (message (format "::: %s... done." ',function-name)))))))
-
-(defmacro ns/guard (check)
-  `(when-not ,check
-     (throw 'config-catch (concat "conf-guard" config-name))))
 
 ;; extension to s.el
 (defun s-clean (s)

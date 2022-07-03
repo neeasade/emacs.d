@@ -118,18 +118,6 @@
     (setq company-quickhelp-delay 0.3)))
 
 (ns/defconfig dashdocs
-  (defmacro ns/install-dashdoc (docset mode-hook)
-    "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
-    `(when (bound-and-true-p ns/enable-dashdocs-p)
-       (when nil
-         (message (format "Installing %s docset..." ,docset))
-         (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))
-       (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
-
-  ;; (ns/guard ns/enable-home-p)
-  (ns/guard nil)
-
-  (ns/use dash)
   (ns/use counsel-dash)
 
   (setq-ns counsel-dash
@@ -151,7 +139,7 @@
 (ns/defconfig python
   (ns/install-dashdoc "Python 3" 'python-mode-hook)
   (ns/use elpy)
-  (when (executable-find "pyflake")
+  (when (executable-find "pyflakes")
     (ns/use flycheck-pyflakes)))
 
 (ns/defconfig clojure
@@ -203,9 +191,6 @@
   (ns/use nix-mode))
 
 (ns/defconfig music
-  (ns/guard ns/enable-home-p)
-  (ns/guard (executable-find "mpd"))
-
   (ns/use emms)
 
   (defun emms-start()
@@ -339,14 +324,12 @@
     ))
 
 (ns/defconfig pdf
-  (ns/guard ns/enable-linux-p)
   (ns/use pdf-tools))
 
 (ns/defconfig terraform
   (ns/use terraform-mode))
 
 (ns/defconfig autohotkey
-  (ns/guard ns/enable-windows-p)
   (ns/use xahk-mode))
 
 (ns/defconfig markdown
@@ -393,7 +376,6 @@
   )
 
 (ns/defconfig latex
-  (ns/guard ns/enable-home-p)
   (ns/install-dashdoc "LaTeX" 'latex-mode-hook)
   (ns/use company-auctex))
 
@@ -402,7 +384,6 @@
   (ns/use flycheck-plantuml))
 
 (ns/defconfig ledger
-  (ns/guard ns/enable-home-p)
   (ns/use ledger-mode)
   (ns/use flycheck-ledger)
   (ns/use evil-ledger
@@ -430,8 +411,6 @@
     (engine-mode t)))
 
 (ns/defconfig filehooks
-  (ns/guard ns/enable-home-p)
-
   (setq ns/filename-cmd
     (list
       (~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
@@ -463,7 +442,6 @@
       "te" 'emojify-mode)))
 
 (ns/defconfig powershell
-  (ns/guard ns/enable-windows-p)
   (ns/use powershell))
 
 (ns/defconfig c
@@ -569,7 +547,7 @@
 (ns/defconfig follow-dwim (load (~e "lisp/trees/follow.el")))
 (ns/defconfig git         (load (~e "lisp/trees/git.el")))
 (ns/defconfig interface   (load (~e "lisp/trees/interface.el")))
-(ns/defconfig irc         (ns/guard ns/enable-home-p) (load (~e "lisp/trees/irc.el")))
+(ns/defconfig irc         (load (~e "lisp/trees/irc.el")))
 (ns/defconfig org         (load (~e "lisp/trees/org.el")))
 (ns/defconfig org-capture (load (~e "lisp/trees/org-capture.el")))
 (ns/defconfig org-pim     (load (~e "lisp/trees/org-pim.el")))
