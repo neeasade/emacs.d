@@ -22,11 +22,6 @@
 ;; (setq straight-use-package-by-default t)
 (setq straight-cache-autoloads t)
 
-(defun ns-split-form (sexp)
-  "Split a form by config declaration"
-  (let ((seen-config nil))
-    ))
-
 ;; dash is special
 (straight-use-package 'dash)
 
