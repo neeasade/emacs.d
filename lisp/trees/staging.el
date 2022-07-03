@@ -167,9 +167,8 @@
 (ns/bind "nu" 'ns/ivy-url-jump)
 
 (ns/use adoc-mode
-  ;; :mode (("\\.adoc\\'" . adoc-mode)
-  ;;         ("\\.asciidoc\\'" . adoc-mode))
-  )
+  (ns/file-mode "adoc" 'adoc-mode)
+  (ns/file-mode "asciidoc" 'adoc-mode))
 
 (ns/use ox-asciidoc)
 
@@ -178,8 +177,7 @@
 
   ;; adding the (t . emacs) so we don't open in textedit and stuff when using ns/follow
   (setq org-file-apps
-    '(
-       (auto-mode . emacs)
+    '((auto-mode . emacs)
        (directory . emacs)
        ("\\.mm\\'" . default)
        ("\\.x?html?\\'" . default)

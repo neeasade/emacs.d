@@ -17,15 +17,14 @@
     (global-set-key (kbd "C-h k") #'helpful-key)
     (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol)
 
-    ;; todo: make this work, figure out what goes to helpful-callable in interactive arg
     (defun! ns/helpful-or-dashdoc ()
-      (if (eq 'emacs-lisp-mode major-mode)
-        (helpful-callable "")
-        (if ns/enable-dashdocs-p
-          (ns/counsel-dash-word)
-          (message "dash docs not enabled!"))))
+      (cond
+        ((eq 'emacs-lisp-mode major-mode)
+          (helpful-callable (helpful--symbol-at-point)))
+        ((eq 'clojure-mode major-mode) (cider-apropos-documentation))
+        (ns/enable-dashdocs-p (ns/counsel-dash-word))
+        (t (message "no doc option available!"))))
 
-    ;; todo: should this be cider/emacslisp apropros in the mix
     (ns/bind "nh" 'ns/helpful-or-dashdoc))
 
   (ns/use eros
@@ -286,8 +285,10 @@
     (advice-add #'js-jsx-indent-line :after #'js-jsx-indent-line-align-closing-bracket))
 
   ;; use web-mode for .js files
-  (add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+
+
+  (ns/file-mode "js" 'web-mode)
+  (ns/file-mode "tsx" 'web-mode)
 
   (ns/use rjsx-mode)
   (defun ns/webhook ()
@@ -333,11 +334,9 @@
   (ns/use xahk-mode))
 
 (ns/defconfig markdown
-  ;; todo: file association
-  (ns/use markdown-mode
-    ;; :mode (("\\.md\\'" . markdown-mode)
-    ;;         ("\\.markdown\\'" . markdown-mode))
-    )
+  (ns/use markdown-mode)
+  (ns/file-mode "md" 'markdown-mode)
+  (ns/file-mode "markdown" 'markdown-mode)
 
   (general-define-key
     :states '(normal)
@@ -365,8 +364,7 @@
   (ns/use company-restclient))
 
 (ns/defconfig sql
-  ;; todo
-  ;; (ns/install-dashdoc "SQLite" ')
+  (ns/install-dashdoc "SQLite" 'sql-mode)
 
   ;; setup: https://github.com/kostafey/ejc-sql#install-jdbc-drivers
   ;; (ns/use ejc-sql
@@ -529,7 +527,7 @@
   ;; helper for unpacking args provided by elisp script as shebang
   ;; use: (ns/let-script-args (named named2) body)
   (defmacro ns/let-script-args (args &rest content)
-    `(let (,@(mapcar
+    `(let (,@(-map
                (fn (list (nth <> args)
                      (nth <> ns-args)))
                (number-sequence 0 (- (length args) 1))))

@@ -243,6 +243,10 @@
            ,@body
            (message (format "::: %s... done." ',function-name)))))))
 
+(defun ns/file-mode (file-extension mode)
+  (let ((pattern (format  "\\.%s\\'" file-extension)))
+    (add-to-list 'auto-mode-alist `(,pattern . ,mode))))
+
 ;; extension to s.el
 (defun s-clean (s)
   "Remove text properies from S."

@@ -135,8 +135,7 @@
   ;; note: default update rate is 5 seconds
   ;; (proced-toggle-auto-update)
   (message "we are reaching here")
-  (delete-other-windows)
-  )
+  (delete-other-windows))
 
 ;; (advice-remove 'proced-mode #'ns/proced-init)
 (advice-add 'proced-mode :after #'ns/proced-init)
