@@ -273,3 +273,10 @@
   "n" '(:ignore t :which-key "Jump")
   "nh" 'counsel-imenu
   )
+
+(ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
+  :config
+  (ns/bind "ss" 'deadgrep)
+  (setq deadgrep-max-line-length 180)
+  (general-nmap deadgrep-mode-map
+    "RET" 'deadgrep-visit-result-other-window))

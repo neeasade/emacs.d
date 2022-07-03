@@ -58,13 +58,12 @@
 
   company
   flycheck
-  jump
   dashdocs
 
   zoom
   restclient
   latex
-  ;; search-engines
+  search-engines
 
   blog
   scripting
@@ -73,19 +72,16 @@
   ledger
   emoji
   filehooks
-  deadgrep
   elasticsearch
-  graphiz
-  )
+  graphviz)
 
 (ns/compose
   development
-  c
+  ;; c
   ;; common-lisp
 
   autohotkey
   clojure
-  ;; csharp
   elisp
   nix
   javascript
@@ -96,7 +92,6 @@
   ;; lsp
   ;; terraform
   ;; sql
-  ;; jekyll
   ;; plantuml
   go
   python

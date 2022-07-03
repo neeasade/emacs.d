@@ -8,6 +8,19 @@
 ;; handles many kinds of links
 (ns/use link-hint)
 
+;; layer on top of dumb-jump
+(ns/use smart-jump
+  :config
+  (setq dumb-jump-selector 'ivy)
+  (setq dumb-jump-force-searcher 'rg)
+  (smart-jump-setup-default-registers)
+  (ns/bind
+    "n" '(:ignore t :which-key "Jump")
+    ;; "ng" 'smart-jump-go
+    "nb" 'smart-jump-back
+    "nr" 'smart-jump-references
+    ))
+
 (defun ns/handle-potential-file-link (file)
   "Jump to a file with org if it exists - handles <filename>[:<row>][:<col>]
   return nil if FILE doesn't exist"

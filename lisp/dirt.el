@@ -18,24 +18,30 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
+;; (straight-use-package 'use-package)
+;; (setq straight-use-package-by-default t)
 (setq straight-cache-autoloads t)
 
-;; todo: catch errors here, log and bubble up
-;; (as opposed to logging all the time)
+(defun ns-split-form (sexp)
+  "Split a form by config declaration"
+  (let ((seen-config nil))
+    ))
+
+;; dash is special
+(straight-use-package 'dash)
+
 (defmacro ns/use (name &rest args)
   `(progn
-     (message (format ":: ns/use: %s..." ',name))
-     (use-package ,name ,@args)
-     (message (format ":: ns/use: %s... done." ',name))))
+     (message (format ":: ns/use: %s..." ',(first (-list name))))
+     (straight-use-package ',name)
+     ,@(-remove (lambda (i) (eq i :config)) args)
+     (message (format ":: ns/use: %s... done." ',(first (-list name))))))
 
 ;; elisp enhancers
 (ns/use fn)      ; function
 (ns/use s)       ; string
 (ns/use f)       ; file
 (ns/use ht)      ; hash table
-(ns/use dash)    ; list
 (ns/use a)       ; assoc lists
 (ns/use async)   ; async
 (ns/use ts)      ; timestamps
@@ -166,7 +172,7 @@
 
 (defun! ns/find-or-open (filepath)
   "If FILEPATH is open in a buffer, switch to that."
-  (let ((filename (file-name-nondirectory filepath)))
+  (llet (filename (file-name-nondirectory filepath))
     (if (get-buffer filename)
       (counsel-switch-to-buffer-or-window filename)
       (if (f-exists-p filepath)

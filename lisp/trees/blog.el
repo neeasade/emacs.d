@@ -269,9 +269,8 @@
     org-note-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "notes"))
     )
 
-  (let* (
-          ;; don't ask about generation when exporting
-          (org-confirm-babel-evaluate (fn nil)))
+  (llet (;; don't ask about generation when exporting
+          org-confirm-babel-evaluate (fn nil))
 
     (message "BLOG: making pages!")
     (-map 'ns/blog-publish-meta (append org-post-metas org-page-metas org-note-metas))

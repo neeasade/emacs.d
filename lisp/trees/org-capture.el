@@ -98,8 +98,7 @@ This works like `org-find-olp', but much faster."
             (org-demote-subtree)
             (insert (-last-item path))))))))
 
-(ns/use org-doct
-  :straight (:host github :repo  "progfolio/doct")
+(ns/use (org-doct :host github :repo  "progfolio/doct")
   :config (require 'doct))
 
 (defun ns/make-project-capture (project &optional template-override key)

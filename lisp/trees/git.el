@@ -26,8 +26,7 @@
 
 
 (when (not ns/enable-windows-p)
-  (ns/use magit-todos
-    :straight (:host github :repo "alphapapa/magit-todos")
+  (ns/use (magit-todos :host github :repo "alphapapa/magit-todos")
     :config
     (setq magit-todos-nice ns/enable-linux-p)
     (evil-define-key nil magit-todos-section-map "j" nil)

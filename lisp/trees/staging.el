@@ -174,10 +174,11 @@
 (ns/bind "nu" 'ns/ivy-url-jump)
 
 (ns/use adoc-mode
-  :mode (("\\.adoc\\'" . adoc-mode)
-          ("\\.asciidoc\\'" . adoc-mode)))
-(ns/use ox-asciidoc)
+  ;; :mode (("\\.adoc\\'" . adoc-mode)
+  ;;         ("\\.asciidoc\\'" . adoc-mode))
+  )
 
+(ns/use ox-asciidoc)
 
 (when ns/enable-mac-p
   (ns/frame-set-parameter 'inhibit-double-buffering t)

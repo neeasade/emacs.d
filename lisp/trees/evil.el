@@ -66,8 +66,7 @@
 ;; but it's very laggy/intensive by comparison (measured in the profiler)
 (setq-default evil-escape-key-sequence "tn")
 
-(ns/use evil-escape
-  :straight (:host github :repo "hlissner/evil-escape")
+(ns/use (evil-escape :host github :repo "hlissner/evil-escape")
   :config (evil-escape-mode))
 
 (defun set-in-evil-states (key def maps)
@@ -104,8 +103,7 @@
 
 (ns/use evil-matchit :config (global-evil-matchit-mode 1))
 
-(ns/use evil-numbers
-  :straight (:host github :repo "janpath/evil-numbers")
+(ns/use (evil-numbers :host github :repo "janpath/evil-numbers")
   :config
   (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
   (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))

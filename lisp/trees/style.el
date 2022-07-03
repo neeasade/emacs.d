@@ -3,33 +3,30 @@
 
 (setq-default indicate-empty-lines nil)
 
-(when (not (-contains-p features 'tarps))
-  (ns/use tarps :straight (:host github :repo "neeasade/tarps"))
+(ns/use (tarps :host github :repo "neeasade/tarps"))
 
-  ;; overriding to force truecolor terminal
-  (defun base16-theme-transform-face (spec colors)
-    "Transform a face `SPEC' into an Emacs theme face definition using `COLORS'."
-    (let* ((face             (car spec))
-            (definition       (cdr spec))
-            (shell-colors-256 (pcase base16-theme-256-color-source
-                                ('terminal      base16-theme-shell-colors)
-                                ("terminal"     base16-theme-shell-colors)
-                                ('base16-shell  base16-theme-shell-colors-256)
-                                ("base16-shell" base16-theme-shell-colors-256)
-                                ('colors        colors)
-                                ("colors"       colors)
-                                (_              base16-theme-shell-colors))))
+;; overriding to force truecolor terminal
+(defun base16-theme-transform-face (spec colors)
+  "Transform a face `SPEC' into an Emacs theme face definition using `COLORS'."
+  (let* ((face             (car spec))
+          (definition       (cdr spec))
+          (shell-colors-256 (pcase base16-theme-256-color-source
+                              ('terminal      base16-theme-shell-colors)
+                              ("terminal"     base16-theme-shell-colors)
+                              ('base16-shell  base16-theme-shell-colors-256)
+                              ("base16-shell" base16-theme-shell-colors-256)
+                              ('colors        colors)
+                              ("colors"       colors)
+                              (_              base16-theme-shell-colors))))
 
-      ;; This is a list of fallbacks to make us select the sanest option possible.
-      ;; If there's a graphical terminal, we use the actual colors. If it's not
-      ;; graphical, the terminal supports 256 colors, and the user enables it, we
-      ;; use the base16-shell colors. Otherwise, we fall back to the basic
-      ;; xresources colors.
-      (list face `((((type graphic))   ,(base16-theme-transform-spec definition colors))
-                    (((min-colors 256)) ,(base16-theme-transform-spec definition shell-colors-256))
-                    (t                  ,(base16-theme-transform-spec definition base16-theme-shell-colors))))))
-
-  )
+    ;; This is a list of fallbacks to make us select the sanest option possible.
+    ;; If there's a graphical terminal, we use the actual colors. If it's not
+    ;; graphical, the terminal supports 256 colors, and the user enables it, we
+    ;; use the base16-shell colors. Otherwise, we fall back to the basic
+    ;; xresources colors.
+    (list face `((((type graphic))   ,(base16-theme-transform-spec definition colors))
+                  (((min-colors 256)) ,(base16-theme-transform-spec definition shell-colors-256))
+                  (t                  ,(base16-theme-transform-spec definition base16-theme-shell-colors))))))
 
 (defun ns/maybe-update-xrdb-font (key font)
   "Update the fallback font for xrdb value"

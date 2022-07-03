@@ -43,8 +43,8 @@
 (defun! ns/check-for-orphans ()
   "Check to see if any defconfigs are missing from init."
   (let ((initfile (f-read (~e "init.el"))))
-    (mapcar
-      (lambda(conf)
+    (-map
+      (lambda (conf)
         (when (not (s-contains? conf initfile))
           (message (concat "orphaned function!: " conf))))
       (ns/get-functions))))
@@ -52,18 +52,19 @@
 (defun! ns/jump-config ()
   (ivy-read "config: " (ns/get-functions)
     :action
-    (fn (interactive)
+    (lambda (f)
+      (interactive)
       (cond
-        ((string= "dirt" <>) (ns/find-or-open (~e "lisp/dirt.el")))
-        ((string= "forest" <>) (ns/find-or-open (~e "lisp/forest.el")))
-        ((string= "init" <>) (ns/find-or-open (~e "init.el")))
-        ((string= "follow-dwim" <>) (ns/find-or-open (~e "lisp/trees/follow.el")))
-        ((f-exists-p (format (~e "lisp/trees/%s.el") <>))
-          (ns/find-or-open (format (~e "lisp/trees/%s.el") <>)))
+        ((string= "dirt" f) (ns/find-or-open (~e "lisp/dirt.el")))
+        ((string= "forest" f) (ns/find-or-open (~e "lisp/forest.el")))
+        ((string= "init" f) (ns/find-or-open (~e "init.el")))
+        ((string= "follow-dwim" f) (ns/find-or-open (~e "lisp/trees/follow.el")))
+        ((f-exists-p (format (~e "lisp/trees/%s.el") f))
+          (ns/find-or-open (format (~e "lisp/trees/%s.el") f)))
         (t
           (ns/find-or-open (~e "lisp/forest.el"))
           (goto-char (point-min))
-          (re-search-forward (format "defconfig %s\n" <>))))
+          (re-search-forward (format "defconfig %s\n" f))))
       (recenter))))
 
 (defun! ns/toggle-bloat()
@@ -226,8 +227,7 @@
   (setq default-frame-alist
     (assq-delete-all key default-frame-alist))
 
-  (add-to-list 'default-frame-alist `(,key . ,value))
-  )
+  (add-to-list 'default-frame-alist `(,key . ,value)))
 
 (defun! ns/kill-buffers-no-file ()
   "Kill buffers pointing to a file when that file doesn't exist"
@@ -248,7 +248,7 @@
 
 ;; todo: insert qute selected text would be nice
 (defun! ns/insert-qute-url ()
-  (llet [url (ns/shell-exec "qb_active_url")]
+  (llet [url (sh "qb_active_url")]
     (if (s-blank-p url)
       (message "failed to get url!")
       (llet [desc (when (-contains-p '(org-mode adoc-mode markdown-mode) major-mode)

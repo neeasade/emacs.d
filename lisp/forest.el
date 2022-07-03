@@ -132,12 +132,10 @@
          (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))
        (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
 
-
   ;; (ns/guard ns/enable-home-p)
   (ns/guard nil)
 
   (ns/use dash)
-
   (ns/use counsel-dash)
 
   (setq-ns counsel-dash
@@ -154,27 +152,13 @@
 
   ;; doesn't work, dired/switch
   ;; (ns/bind "nd" 'ns/counsel-dash-word)
-
   )
-
-(ns/defconfig zoom
-  (ns/use zoom
-    :config
-    ;; if number, is lines/cols
-    ;; can also be ratio
-    (setq zoom-size '(80 . 24))
-
-    ;; (setq zoom-size '(0.58 . 0.618))
-    (zoom-mode 0)
-
-    ))
 
 (ns/defconfig python
-  (ns/install-dashdoc "Python 2" 'python-mode-hook)
+  (ns/install-dashdoc "Python 3" 'python-mode-hook)
   (ns/use elpy)
-  ;; maybe only when pyflake is installed
-  ;; (ns/use flycheck-pyflakes)
-  )
+  (when (executable-find "pyflake")
+    (ns/use flycheck-pyflakes)))
 
 (ns/defconfig clojure
   (ns/use clojure-mode)
@@ -222,9 +206,7 @@
       (require 'flycheck-clj-kondo))))
 
 (ns/defconfig nix
-  ;; (ns/guard ns/enable-home-p)
-  ;; (ns/use nix-mode)
-  )
+  (ns/use nix-mode))
 
 (ns/defconfig music
   (ns/guard ns/enable-home-p)
@@ -255,25 +237,23 @@
 
   ;; still assuming git command, maybe lean on projectile for file listing
   (defun ns/get-project-files (project-root)
-    (let* ((default-directory (expand-file-name project-root))
-            (project-files-relative
-              (s-split "\n"
-                (s-replace (char-to-string ?\0) "\n"
-                  (shell-command-to-string
-                    counsel-git-cmd
-                    )) t)))
+    (llet (default-directory (expand-file-name project-root)
+            project-files-relative (s-split "\n"
+                                     (s-replace (char-to-string ?\0) "\n"
+                                       (shell-command-to-string
+                                         counsel-git-cmd
+                                         )) t))
 
-      (mapcar (fn (concat default-directory <>)) project-files-relative)))
+      (-map (fn (concat default-directory <>)) project-files-relative)))
 
   (defun ns/all-project-files (open-buffers)
     (-flatten
-      (mapcar 'ns/get-project-files
+      (-map 'ns/get-project-files
         (-remove (lambda (file) (not file))
-          (mapcar 'projectile-root-bottom-up open-buffers)))))
+          (-map 'projectile-root-bottom-up open-buffers)))))
 
-  ;; putting this in a function so it can be used by dmenu_switcher
   (defun ns/jump-file-candidates (&rest wants)
-    (let ((sources
+    (llet (sources
             (list
               ;; XXX these keys are used in dmenu_switcher
               :buffers-without-files
@@ -292,8 +272,7 @@
               ;; (ns/get-project-files (current-file))
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/get-project-files (current-file)))
 
-              :recentf recentf-list
-              )))
+              :recentf recentf-list))
 
       (->> (or wants '(:recentf :project-files :buffers-with-files))
         (-map (-partial #'plist-get sources))
@@ -315,16 +294,17 @@
 
 (ns/defconfig javascript
   ;; note: this is huge, takes a bit.
-  ;; (ns/install-dashdoc "JavaScript" 'web-mode-hook)
+  (ns/install-dashdoc "JavaScript" 'web-mode-hook)
 
-  (defun js-jsx-indent-line-align-closing-bracket ()
-    "Workaround sgml-mode and align closing bracket with opening bracket"
-    (save-excursion
-      (beginning-of-line)
-      (when (looking-at-p "^ +\/?> *$")
-        (delete-char sgml-basic-offset))))
+  (ns/comment
+    (defun js-jsx-indent-line-align-closing-bracket ()
+      "Workaround sgml-mode and align closing bracket with opening bracket"
+      (save-excursion
+        (beginning-of-line)
+        (when (looking-at-p "^ +\/?> *$")
+          (delete-char sgml-basic-offset))))
 
-  (advice-add #'js-jsx-indent-line :after #'js-jsx-indent-line-align-closing-bracket)
+    (advice-add #'js-jsx-indent-line :after #'js-jsx-indent-line-align-closing-bracket))
 
   ;; use web-mode for .js files
   (add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
@@ -336,9 +316,7 @@
     ;;   (if (equal web-mode-content-type "javascript")
     ;;     (progn
     ;;       (web-mode-set-content-type "jsx")
-    ;;       (setup-tide-mode)
-    ;;       )
-    ;;     )
+    ;;       (setup-tide-mode)))
     ;;   (message "now set to: %s" web-mode-content-type))
     (when (string-equal "tsx" (file-name-extension buffer-file-name))
       (setup-tide-mode)))
@@ -351,23 +329,11 @@
     :config
     (add-hook 'typescript-mode-hook 'prettier-js-mode)
     (add-hook 'web-mode-hook 'prettier-js-mode)
-    (add-hook 'js-mode-hook 'prettier-js-mode))
-
-  ;; notes for using this
-  ;; kill shx-mode
-  ;; doesn't work with multiline input, or import command/multiple files
-  (ns/use nodejs-repl
-    :config
-    (ns/bind-leader-mode
-      'nodejs-repl
-      "er "'nodejs-repl-send-region
-      "eb" 'nodejs-repl-load-file
-      "ee" 'nodejs-repl-send-line
-      "ei" 'nodejs-repl-send-last-expression
-      )))
+    (add-hook 'js-mode-hook 'prettier-js-mode)))
 
 (ns/defconfig typescript
   (ns/install-dashdoc "TypeScript" 'typescript-mode-hook)
+
   (ns/use tide
     :config
     (defun! setup-tide-mode ()
@@ -381,36 +347,6 @@
     ;; (add-hook 'before-save-hook 'tide-format-before-save)
     ))
 
-(ns/defconfig csharp
-  ;; limitation: can only work with one server/solution at a time currently
-  (ns/guard ns/enable-windows-p)
-  (ns/use omnisharp
-    :config
-    (when (not (omnisharp--resolve-omnisharp-server-executable-path))
-      (omnisharp-install-server))
-
-    (add-hook 'csharp-mode-hook 'omnisharp-mode)
-    (add-to-list 'company-backends 'company-omnisharp)
-
-    (ns/bind-mode 'csharp "nr" 'omnisharp-find-usages)
-    (ns/bind-mode 'csharp "nR" 'omnisharp-find-usages-with-ido)))
-
-
-(ns/defconfig jump
-  (ns/use dumb-jump)
-  (ns/use smart-jump
-    :config
-    (setq dumb-jump-selector 'ivy)
-    (setq dumb-jump-force-searcher 'rg)
-    (smart-jump-setup-default-registers)
-    (ns/bind
-      "n" '(:ignore t :which-key "Jump")
-      ;; "ng" 'smart-jump-go
-      "nb" 'smart-jump-back
-      "nr" 'smart-jump-references
-      )))
-
-
 (ns/defconfig pdf
   (ns/guard ns/enable-linux-p)
   (ns/use pdf-tools))
@@ -418,18 +354,16 @@
 (ns/defconfig terraform
   (ns/use terraform-mode))
 
-(ns/defconfig jekyll
-  (ns/use jekyll-modes))
-
 (ns/defconfig autohotkey
   (ns/guard ns/enable-windows-p)
   (ns/use xahk-mode))
 
 (ns/defconfig markdown
+  ;; todo: file association
   (ns/use markdown-mode
-    :mode (("README\\.md\\'" . gfm-mode)
-            ("\\.md\\'" . markdown-mode)
-            ("\\.markdown\\'" . markdown-mode)))
+    ;; :mode (("\\.md\\'" . markdown-mode)
+    ;;         ("\\.markdown\\'" . markdown-mode))
+    )
 
   (general-define-key
     :states '(normal)
@@ -446,8 +380,7 @@
   (defun ns/markdown-mode-hook ()
     (ns/set-buffer-face-variable))
 
-  (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook)
-  )
+  (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook))
 
 (ns/defconfig restclient
   (ns/use restclient
@@ -470,28 +403,9 @@
   )
 
 (ns/defconfig latex
-  (ns/bind-leader-mode 'latex
-    "\\"  'TeX-insert-macro                            ;; C-c C-m
-    "-"   'TeX-recenter-output-buffer                  ;; C-c C-l
-    "%"   'TeX-comment-or-uncomment-paragraph          ;; C-c %
-    ";"   'TeX-comment-or-uncomment-region             ;; C-c ; or C-c :
-    ;; TeX-command-run-all runs compile and open the viewer
-    "a"   'TeX-command-run-all                         ;; C-c C-a
-    "b"   'latex/build
-    "k"   'TeX-kill-job                                ;; C-c C-k
-    "l"   'TeX-recenter-output-buffer                  ;; C-c C-l
-    "m"   'TeX-insert-macro                            ;; C-c C-m
-    "v"   'TeX-view                                    ;; C-c C-v
-    )
-
+  (ns/guard ns/enable-home-p)
   (ns/install-dashdoc "LaTeX" 'latex-mode-hook)
-
-  ;; todo: https://github.com/The-Compiler/dotfiles/blob/543e48cd594750188dd3e935ef6dfd77f867ca71/spacemacs#L497
-  ;; todo: this doesn't build?
-  ;; ref: https://github.com/raxod502/straight.el/issues/240
-  ;; (ns/use company-auctex)
-  )
-
+  (ns/use company-auctex))
 
 (ns/defconfig plantuml
   (ns/use plantuml)
@@ -513,20 +427,22 @@
 (ns/defconfig search-engines
   (ns/use engine-mode
     :config
-
     ;; bind spc s 'hotkey' to a search url with a label
-    (defmacro bind-search (label url hotkey)
+    (defmacro bind-search (hotkey label url)
       `(progn
          (defengine ,label ,url)
          (ns/bind
-           (concat "s" ,hotkey) (intern (concat "engine/search-" (prin1-to-string ',label))))))
+           (concat "s" ,hotkey)
+           (intern (concat "engine/search-" (prin1-to-string ',label))))))
 
-    (bind-search google "https://google.com/search?q=%s" "s")
-    (bind-search melpa "https://melpa.org/#/?q=%s" "m")
-    (bind-search stack-overflow "https://stackoverflow.com/search?q=%s" "o")
-    (bind-search github "https://github.com/search?ref=simplesearch&q=%s" "g")
-    (bind-search youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s" "y")
-    (engine-mode t)))
+    ;; (bind-search "s" google "https://google.com/search?q=%s")
+    (bind-search "m" melpa "https://melpa.org/#/?q=%s")
+    (bind-search "o" stack-overflow "https://stackoverflow.com/search?q=%s")
+    (bind-search "g" github "https://github.com/search?ref=simplesearch&q=%s")
+    (bind-search "y" youtube "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
+    (engine-mode t))
+
+  )
 
 (ns/defconfig filehooks
   (ns/guard ns/enable-home-p)
@@ -540,27 +456,24 @@
   ;; todo here:
   ;; if file exists, and is in the templates dir and not in list
   ;; and has hook -- add it to ns/filename-cmd
-  (defun my/cmd-after-saved-file ()
+  (defun ns/cmd-after-saved-file ()
     "Execute a command after saved a specific file."
-    (dolist (pair (-partition 2 ns/filename-cmd))
-      (let ((file (car pair))
-             (cmd (cadr pair)))
-        (when (and (equal (buffer-file-name) file)
-                (f-exists-p file))
-          (ns/shell-exec-dontcare cmd)))))
+    (-map (-lambda ((file cmd))
+            (when (equal (buffer-file-name) file)
+              (ns/shell-exec-dontcare cmd)))
+      (-partition 2 ns/filename-cmd)))
 
-  (add-hook 'after-save-hook 'my/cmd-after-saved-file)
-  )
+  (add-hook 'after-save-hook 'ns/cmd-after-saved-file))
 
 (ns/defconfig emoji
   (ns/use emojify
     :init
-    ;; the reason for both is so bridges to like slack show up right
-    ;; (setq emojify-emoji-styles '(unicode github))
     (setq emojify-emoji-styles '(unicode)) ; only real emoji here thanks
+
     :config
     ;; emojify-mode seems to mess with input, causing a character to
     ;; occasionally skip, so disabling (global-emojify-mode)
+
     (ns/bind
       "ie" 'emojify-insert-emoji
       "te" 'emojify-mode)))
@@ -573,7 +486,7 @@
   (ns/install-dashdoc "C" 'c-mode-hook)
 
   ;; note: depends on clang and cmake
-  (ns/use irony)
+  ;; (ns/use irony)
   ;; fyi:
   ;; (irony-install-server)
 
@@ -585,16 +498,13 @@
     (let ((compilation-directory (projectile-project-root)))
       (ns/shell-exec-dontcare
         (format "cd '%s' && make clean" compilation-directory))
-      (recompile)))
+      (recompile))))
 
-  )
-
-(ns/defconfig graphiz
+(ns/defconfig graphviz
   (ns/use graphviz-dot-mode
     :config
     (ns/bind-leader-mode 'graphviz-dot "," 'graphviz-dot-preview)
-    (ns/bind-mode 'graphviz-dot "e" 'graphviz-dot-preview)
-    )
+    (ns/bind-mode 'graphviz-dot "e" 'graphviz-dot-preview))
 
   ;; use dot in org mode
   (org-babel-do-load-languages
@@ -603,10 +513,10 @@
 
   (add-to-list 'org-src-lang-modes (quote ("dot" . graphviz-dot)))
 
-  (defun my-org-confirm-babel-evaluate (lang body)
-    (not (string= lang "dot")))  ; don't ask for dot
+  (defun ns/org-confirm-babel-evaluate (lang body)
+    (not (string= lang "dot")))         ;; don't ask for dot
 
-  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+  (setq org-confirm-babel-evaluate 'ns/org-confirm-babel-evaluate)
 
   (defun! ns/refresh-images-org ()
     (org-toggle-inline-images)
@@ -617,37 +527,15 @@
   ;; (advice-add #'org-ctrl-c-ctrl-c :after #'ns/refresh-images-org)
   )
 
-(ns/defconfig deadgrep
-  (ns/use deadgrep
-    :straight (:host github :repo "Wilfred/deadgrep")
-    :config
-    (ns/bind "ss" 'deadgrep)
-    (setq deadgrep-max-line-length 180)
-    (general-nmap deadgrep-mode-map
-      "RET" 'deadgrep-visit-result-other-window)))
-
-(ns/defconfig guix
-  (ns/guard ns/enable-home-p)
-  (ns/use guix))
-
-(ns/defconfig elasticsearch
-  (ns/use es-mode))
-
 (ns/defconfig server
-  ;; cf https://tychoish.com/post/running-multiple-emacs-daemons-on-a-single-system/
-  ;; (setq server-use-tcp t)
-
-  ;; https://stackoverflow.com/questions/885793/emacs-error-when-calling-server-start
-  ;; this is the wrong way to do this.
-  ;; TODO: auto chmod?
-  ;; (defun server-ensure-safe-dir (dir) "Noop" t)
-
   (require 'server)
+
+  (when ns/enable-windows-p
+    (setq-ns server
+      auth-dir (~e "server")
+      name "emacs-server-file"))
+
   (when-not (server-running-p)
-    (when ns/enable-windows-p
-      (setq-ns server
-        auth-dir (~e "server")
-        name "emacs-server-file"))
     (server-start)))
 
 (ns/defconfig common-lisp

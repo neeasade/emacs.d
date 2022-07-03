@@ -1,16 +1,15 @@
 ;; -*- lexical-binding: t; -*-
 
-(ns/use org
-  :straight (:host github
-              :repo "emacsmirror/org"
-              :files ("lisp/*.el" "contrib/lisp/*.el")))
+(ns/use (org
+          :host github
+          :repo "emacsmirror/org"
+          :files ("lisp/*.el" "contrib/lisp/*.el")))
 
 (require 'org-habit)
 (require 'org-tempo)
 
 ;; nice functional org library
-(ns/use org-ml
-  :straight (:host github :repo "ndwarshuis/org-ml")
+(ns/use (org-ml :host github :repo "ndwarshuis/org-ml")
   :config (require 'org-ml))
 
 (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
