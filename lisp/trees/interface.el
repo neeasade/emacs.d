@@ -94,19 +94,16 @@
             ;; but we need f-full because sometimes '~' is used in default directory
             ;; we can toss the tramp dirs before comparing with f-full/f-same-p to remove the delay
             (->> (ns/buffers-by-mode 'shell-mode)
-              (-filter (fn (not (s-starts-with-p "*shell-" (buffer-name <>)))))
-              (-filter (fn (not (file-remote-p (buffer-local-value 'default-directory <>)))))
+              (-remove (fn (s-starts-with-p "*shell-" (buffer-name <>))))
+              (-remove (fn (file-remote-p (buffer-local-value 'default-directory <>))))
               (-filter (fn (f-same-p (buffer-local-value 'default-directory <>)
                              default-directory)))
-              ;; todo: maybe should also check if shell buffer is idle as well
               (first))))
 
       (if existing-shell
         (switch-to-buffer existing-shell)
-        (ns/pickup-shell (expand-file-name default-directory))))
-    ;; todo: maybe:
-    ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
-    )
+        (ns/pickup-shell (expand-file-name default-directory)))))
+
   ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
   "q" 'previous-buffer
   )
@@ -253,9 +250,17 @@
   "wo" 'winner-undo
   "wi" 'winner-redo
 
-  ;; todo idea here: check if we are in a shell, if so, make that the staged shell (or 'dired' shell)
-  ;; so we can have fluid state across dired transitions "s" <--> "SPC d"
-  "d" (fn! (setq ns/dired-last-file (buffer-file-name)) (dired "."))
+  "d" (fn!
+        ;; (setq ns/dired-last-file (buffer-file-name))
+
+        (if (eq major-mode 'shell-mode)
+          (progn
+            (-when-let (b (get-buffer "*spawn-shell-staged*"))
+              (kill-buffer b))
+            (rename-buffer "*spawn-shell-staged*"))
+          (setq ns/dired-last-file (buffer-file-name)))
+        (dired ".")
+        )
 
   "a" '(:ignore t :which-key "Applications")
   "q" '(:ignore t :which-key "Query")

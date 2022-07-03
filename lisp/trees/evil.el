@@ -238,9 +238,7 @@
 
   (better-jumper-mode +1)
 
-  ;; todo: consider using this:
-  ;; (add-hook 'better-jumper-post-jump-hook 'recenter)
-  )
+  (add-hook 'better-jumper-post-jump-hook 'recenter))
 
 ;; (ns/use undo-tree
 ;;   
