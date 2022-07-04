@@ -259,8 +259,7 @@
               (kill-buffer b))
             (rename-buffer "*spawn-shell-staged*"))
           (setq ns/dired-last-file (buffer-file-name)))
-        (dired ".")
-        )
+        (dired "."))
 
   "a" '(:ignore t :which-key "Applications")
   "q" '(:ignore t :which-key "Query")
@@ -278,6 +277,7 @@
 
 (ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
   (ns/bind "ss" 'deadgrep)
+  (require 'deadgrep)
   (setq deadgrep-max-line-length 180)
   (general-nmap deadgrep-mode-map
     "RET" 'deadgrep-visit-result-other-window))

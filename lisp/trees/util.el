@@ -1,14 +1,11 @@
 ;; -*- lexical-binding: t; -*-
 
-;; todo: this does not work with anchors?
 (defun ns/eww-browse-existing-or-new (url)
   "If eww is displayed, use that for URL, else open here."
-  (if (get-buffer-window "*eww*" 'visible)
-    (save-excursion
-      (select-window (get-buffer-window "*eww*" 'visible))
-      (ns/zz-scroll)
-      (eww url))
-    (eww url)))
+  (when (get-buffer-window "*eww*" 'visible)
+    (select-window (get-buffer-window "*eww*" 'visible)))
+  (eww url)
+  (ns/zz-scroll))
 
 (defun ns/what-face (pos)
   (interactive "d")
@@ -153,11 +150,12 @@
     (-map 's-clean)
     (s-join "\n")))
 
-;; todo: maybe ensure a same order here - buffer-list order can vary
 (defun ns/buffers-by-mode (&rest modes)
   (cl-remove-if-not
     (fn (-contains-p modes (buffer-local-value 'major-mode <>)))
-    (buffer-list)))
+    (sort (buffer-list)
+      ;; sort by name to ensure same order
+      (lambda (&rest bs) (apply 'string> (-map 'pr-str bs))))))
 
 (defun! ns/insert-history ()
   (let ((shell-name
@@ -254,22 +252,21 @@
 ;; initially went to steal but turned out to be many functions to steal
 (ns/use crux)
 
-;; todo: insert qute selected text would be nice
-(defun! ns/insert-qute-url ()
+(defun! ns/insert-qute-url (&optional description-in)
   (llet [url (sh "qb_active_url")]
     (if (s-blank-p url)
       (message "failed to get url!")
-      (llet [desc (when (-contains-p '(org-mode adoc-mode markdown-mode) major-mode)
-                    (if (region-active-p)
-                      (buffer-substring (region-beginning) (region-end))
-                      (read-string (format  "link description for %s (blank for none): " url))))
-              desc (if (and
-                         (stringp desc)
-                         (s-blank-p desc))
+      (llet [desc (if description-in description-in
+                    (when (-contains-p '(org-mode adoc-mode markdown-mode) major-mode)
+                      (if (region-active-p)
+                        (let ((result (buffer-substring (region-beginning) (region-end))))
+                          (delete-region (region-beginning) (region-end))
+                          result)
+                        (read-string (format  "link description for %s (blank for none): " url)))))
+              desc (if (and (stringp desc) (s-blank-p desc))
                      nil
                      desc)]
-        (when (region-active-p)
-          (delete-region (region-beginning) (region-end)))
+
         (insert
           (cond
             ((not desc) url)
@@ -277,6 +274,9 @@
             ((eq major-mode 'adoc-mode) (format "%s[%s]" url desc))
             ((eq major-mode 'markdown-mode) (format "[%s](%s)" desc url))
             (t url)))))))
+
+(defun! ns/insert-qute-url-title ()
+  (ns/insert-qute-url (ns/shell-exec "qb_active_url .title")))
 
 (ns/bind
   "qf" 'ns/what-face
@@ -291,10 +291,7 @@
   "nc" 'ns/jump-config
   "tb" 'ns/toggle-bloat
 
-  ;; todo: title/auto link with title, insert region (would need a qute script?)
   "iu" 'ns/insert-qute-url
-  ;; "iU" 'ns/insert-qute-url-title
+  "iU" 'ns/insert-qute-url-title
 
-  "ih" 'ns/insert-history
-  )
-
+  "ih" 'ns/insert-history)
