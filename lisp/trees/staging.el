@@ -11,32 +11,6 @@
          (aset str (+ i ?a) (+ i ,lower)))
        str)))
 
-;; (-map
-;;   (-lambda ((kind upper lower))
-;;     (llet
-;;       [table-name (format "ns/%s-table" kind)
-;;         function-name (format "ns/text-to-%s" kind)]
-
-;;       (when-not (boundp table-name)
-;;         (ns/make-char-table table-name upper lower))
-
-;;       `(defun ,function-name (beg end) (interactive "r")
-;;          (translate-region beg end ,table-name))
-
-;;       (defun function-name
-;;         (bug )
-;;         )
-;;       ))
-;;   '((monospace ?𝙰 ?𝚊)
-;;      (widechar ?Ａ ?ａ)
-;;      (gothic ?𝔄 ?𝔞)
-;;      (cursive ?𝓐 ?𝓪)))
-
-;; (let ((texts
-;;         '()
-;;         ))
-;;   )
-
 (ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
 (ns/make-char-table ns/widechar-table ?Ａ ?ａ)
 (ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)

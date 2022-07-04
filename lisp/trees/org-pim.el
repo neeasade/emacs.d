@@ -157,8 +157,7 @@
             (not (string= (-last-item path) "captures"))))
         (-if-let (capture-date (org-ml-headline-get-node-property "captured" headline))
           (ts< (ts-parse-org capture-date)
-            ;; todo: 3 weeks was an arbitrary choice, you should review this after awhile
-            (ts-adjust 'day (- 21) (ts-now)))
+            (ts-adjust 'day (- 14) (ts-now)))
           t))))
 
   (ns/find-or-open org-default-notes-file)
@@ -243,7 +242,6 @@
                    (-map 'org-ml-to-string)
                    (s-join "\n")))
          (labs-folder (pass "labs-folder")))
-    ;; todo: individual notes files
     (when (f-exists-p labs-folder)
       (f-write (format "Exported on: %s\n\n %s" (ts-format (ts-now)) content)
         'utf-8

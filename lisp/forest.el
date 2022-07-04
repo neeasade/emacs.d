@@ -154,11 +154,8 @@
   (ns/inmap 'cider-repl-mode-map (kbd "C-n") 'cider-repl-next-input)
 
   ;; https://docs.cider.mx/cider/caveats.html#_injecting_dependencies_and_leiningen_pedantic_abort_mode
-
-  ;; todo: peek and see if we set middleware in our profile, then disable in tha tcase
   (when ns/enable-work-p
     (setq cider-inject-dependencies-at-jack-in nil))
-  ;; (setq cider-inject-dependencies-at-jack-in t)
 
   (setq cljr-suppress-middleware-warnings t)
 
@@ -478,12 +475,7 @@
 
   (defun! ns/refresh-images-org ()
     (org-toggle-inline-images)
-    (org-toggle-inline-images))
-
-  ;; todo: CcCc is pretty generic, ideally we only do this after eval'ing a dot source block.
-  ;; <2020-12-24 Thu 20:08> cancelling this for now
-  ;; (advice-add #'org-ctrl-c-ctrl-c :after #'ns/refresh-images-org)
-  )
+    (org-toggle-inline-images)))
 
 (ns/defconfig server
   (require 'server)

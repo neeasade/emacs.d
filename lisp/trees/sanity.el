@@ -10,7 +10,6 @@
   (add-to-list 'recentf-exclude no-littering-etc-directory))
 
 (setq
-  ;; todo: relook at this setting
   auto-save-file-name-transforms `((".*" ,(~e "auto-save-list/") t))
   backup-directory-alist `(("." . ,(~e "backups")))
   coding-system-for-read 'utf-8
@@ -43,7 +42,6 @@
   calc-multiplication-has-precedence nil
   )
 
-;; todo: reconsider this, auto wrap large operations or something
 ;; (see below for when we garbage collect)
 (setq gc-cons-threshold
   (->>
