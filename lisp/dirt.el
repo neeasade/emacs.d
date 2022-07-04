@@ -18,18 +18,22 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-(defmacro ns/use (name &rest body)
-  `(progn
-     (message (format ":: ns/use: %s..." ',(first (-list name))))
-     (straight-use-package ',name)
-     ,@body
-     (message (format ":: ns/use: %s... done." ',(first (-list name))))))
+(straight-use-package 'dash)
+(require 'dash)
+
+(defmacro ns/use (pkg-def &rest body)
+  (-let [pkg (-first-item (-list pkg-def))]
+    `(progn
+       (message (format ": ns/use: %s..." ',pkg))
+       (straight-use-package ',pkg-def)
+       (require ',pkg nil t)
+       ,@body
+       (message (format ": ns/use: %s... done." ',pkg)))))
 
 ;; elisp enhancers
 (ns/use fn)      ; function
 (ns/use s)       ; string
 (ns/use f)       ; file
-(ns/use dash)    ; lists
 (ns/use ht)      ; hash table
 (ns/use a)       ; assoc lists
 (ns/use async)   ; async

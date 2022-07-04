@@ -4,7 +4,7 @@
 ;; alerts on DMs as well as channel highlights
 ;; don't alert on highlights if the window is focused and we are not idle
 
-(use-package circe)
+(ns/use circe)
 
 (setq
   ns/irc-nick "neeasade"
@@ -745,7 +745,7 @@
 
 (ns/comment
   ;; trying out treemacs idea -- want buflist but for circe buffers
-  (use-package treemacs)
+  (ns/use treemacs)
 
   ;; treemacs-define-* stuff isn't included ootb with the above?
   (require 'treemacs)

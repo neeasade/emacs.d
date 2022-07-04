@@ -50,13 +50,11 @@
     (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
     (ns/bind-mode 'emacs-lisp "E" 'eval-print-last-sexp))
 
-  (ns/use elsa
+  ;; note: elsa needs cask to do anything:
+  (when (executable-find "cask")
+    (ns/use elsa)
     (ns/use flycheck-elsa)
-    (add-hook 'emacs-lisp-mode-hook #'flycheck-elsa-setup)
-
-    ;; note: elsa needs cask to do anything:
-    ;; (executable-find "cask")
-    ))
+    (add-hook 'emacs-lisp-mode-hook #'flycheck-elsa-setup)))
 
 (ns/defconfig flycheck
   (ns/use flycheck
@@ -375,7 +373,7 @@
   (ns/use company-auctex))
 
 (ns/defconfig plantuml
-  (ns/use plantuml)
+  (ns/use plantuml-mode)
   (ns/use flycheck-plantuml))
 
 (ns/defconfig ledger
@@ -529,22 +527,22 @@
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-(ns/defconfig blog        (load (~e "lisp/trees/blog.el")))
-(ns/defconfig doomline    (load (~e "lisp/trees/doomline.el")))
-(ns/defconfig editing     (load (~e "lisp/trees/editing.el")))
-(ns/defconfig evil        (load (~e "lisp/trees/evil.el")))
-(ns/defconfig follow-dwim (load (~e "lisp/trees/follow.el")))
-(ns/defconfig git         (load (~e "lisp/trees/git.el")))
-(ns/defconfig interface   (load (~e "lisp/trees/interface.el")))
-(ns/defconfig irc         (load (~e "lisp/trees/irc.el")))
-(ns/defconfig org         (load (~e "lisp/trees/org.el")))
-(ns/defconfig org-capture (load (~e "lisp/trees/org-capture.el")))
-(ns/defconfig org-pim     (load (~e "lisp/trees/org-pim.el")))
-(ns/defconfig sanity      (load (~e "lisp/trees/sanity.el")))
-(ns/defconfig shell       (load (~e "lisp/trees/shell.el")))
-(ns/defconfig staging     (load (~e "lisp/trees/staging.el")))
-(ns/defconfig style       (load (~e "lisp/trees/style.el")))
-(ns/defconfig util        (load (~e "lisp/trees/util.el")))
+(ns/defconfig blog        (shut-up-load (~e "lisp/trees/blog.el")))
+(ns/defconfig doomline    (shut-up-load (~e "lisp/trees/doomline.el")))
+(ns/defconfig editing     (shut-up-load (~e "lisp/trees/editing.el")))
+(ns/defconfig evil        (shut-up-load (~e "lisp/trees/evil.el")))
+(ns/defconfig follow-dwim (shut-up-load (~e "lisp/trees/follow.el")))
+(ns/defconfig git         (shut-up-load (~e "lisp/trees/git.el")))
+(ns/defconfig interface   (shut-up-load (~e "lisp/trees/interface.el")))
+(ns/defconfig irc         (shut-up-load (~e "lisp/trees/irc.el")))
+(ns/defconfig org         (shut-up-load (~e "lisp/trees/org.el")))
+(ns/defconfig org-capture (shut-up-load (~e "lisp/trees/org-capture.el")))
+(ns/defconfig org-pim     (shut-up-load (~e "lisp/trees/org-pim.el")))
+(ns/defconfig sanity      (shut-up-load (~e "lisp/trees/sanity.el")))
+(ns/defconfig shell       (shut-up-load (~e "lisp/trees/shell.el")))
+(ns/defconfig staging     (shut-up-load (~e "lisp/trees/staging.el")))
+(ns/defconfig style       (shut-up-load (~e "lisp/trees/style.el")))
+(ns/defconfig util        (shut-up-load (~e "lisp/trees/util.el")))
 
 (provide 'forest)
 

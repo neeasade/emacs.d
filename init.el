@@ -30,7 +30,7 @@
 
 (setq load-prefer-newer t)
 (load (concat ns/emacs-directory "lisp/dirt.el"))
-(load (~e "lisp/forest.el"))
+(shut-up-load (~e "lisp/forest.el"))
 
 (defun ns/call-conf (confs)
   (->> confs
@@ -73,14 +73,13 @@
        (latex ns/enable-home-p)
        search-engines
 
-       blog
+       (blog nil)
        scripting
        (music ns/enable-home-p (executable-find "mpd"))
        (pdf ns/enable-linux-p)
        (ledger ns/enable-home-p)
        emoji
        (filehooks ns/enable-home-p)
-       elasticsearch
        graphviz)))
 
 (ns/defconfig development
