@@ -1,9 +1,14 @@
 ;; -*- lexical-binding: t; -*-
 
-;; todo: reconsider this whole thing
-
 ;; for fontifying src blocks
 (ns/use htmlize)
+
+(ns/use (ox-rss
+          :host github
+          :repo "emacsmirror/ox-rss"))
+
+(setq ns/blog-title "🍃🌳ＧＲＯＶＥ🍃🌳")
+(setq ns/blog-title  "𝔊𝔄𝔗𝔈𝔚𝔄𝔜⟴" )
 
 (defun ns/blog-set-htmlize-colors ()
   ;; this is for weak emphasis in code blocks
@@ -84,6 +89,7 @@
     (ns/mustache
       (f-read (~e "org/blog_template.org"))
       (-ht
+        :blog-title ns/blog-title
         :title title
         :last-edited last-edited
         :subtitle subtitle
@@ -105,7 +111,7 @@
                     (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
                       ((and (string= post-type "page") (not (string= (f-base path) "sitemap")))
                         '("/sitemap.html" "Sitemap"))
-                      (t '("/index.html" "ＧＲＯＶＥ")))]
+                      (t `("/index.html" ,ns/blog-title)))]
               (format "<a href='%s'>Up: %s</a>" dest label))
 
         ;; remove a common macro for og:description:
@@ -119,22 +125,22 @@
 
         :footer-left (if (s-starts-with-p "index" (f-filename path))
                        "<a href='/sitemap.html'>Sitemap</a>"
-                       "<a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a>")
+                       (format "<a href='/index.html'>%s</a>" ns/blog-title))
 
         :footer-center (if-not (s-starts-with-p "index" (f-filename path))
                          (format "@@html:<div class=footer-center>type: %s</div>@@" post-type)
                          "#+BEGIN_EXPORT html
-<div class=footer-center>
-<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
-<a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
-<a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
-</div>
-#+end_export
-")
+  <div class=footer-center>
+  <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
+  <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
+  <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
+  </div>
+  #+end_export
+  ")
 
         :flair (when (or (string= post-type "post")
                        (string= post-type "note"))
-                 "@@html:<div class='title flair'><img class='flair-border' src='./assets/img/backgrounds/bark.jpg' /> </div>@@")))))
+                 "@@html:<div class='title flair'><img class='flair-border' src='./assets/img/backgrounds/pattern_125.gif' /> </div>@@")))))
 
 
 (defun ns/blog-file-to-meta (path)
@@ -144,7 +150,8 @@
                             (ns/blog-make-anchors))
 
           post-type (or (ns/blog-get-prop "post_type" org-file-content)
-                      (->> path f-parent f-base (s-replace "s" "")))
+                      (llet [parent-dir (->> path f-parent f-base)]
+                        (substring parent-dir 0 (1- (length parent-dir)))))
 
           last-edited (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log -1 --format=%%cI '%s'"
                                                                ;; appease the shell.
@@ -153,8 +160,8 @@
                         (when-not (s-blank-p git-query-result)
                           (substring git-query-result 0 10)))
 
-          published-date (-when-let (internal-pubdate (ns/blog-get-prop "pubdate" org-file-content))
-                           (if internal-pubdate
+          published-date (when (-contains-p '("post" "note") post-type)
+                           (-if-let (internal-pubdate (ns/blog-get-prop "pubdate" org-file-content))
                              (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
                              (substring (f-base path) 0 10)))
 
@@ -242,8 +249,7 @@
   (setq
     org-post-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "posts"))
     org-page-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "pages"))
-    org-note-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "notes"))
-    )
+    org-note-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "notes")))
 
   (llet (;; don't ask about generation when exporting
           org-confirm-babel-evaluate (fn nil))
@@ -259,6 +265,8 @@
 
     (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss_full.org"))
       (org-export-to-file 'rss (ns/blog-path "site/rss_full.xml"))))
+
+  (message "BLOG: done! ✨✨✨✨")
   t)
 
 (defun ns/blog-make-anchors (org-content)
@@ -352,9 +360,7 @@
 (defun ns/blog-make-detail (&rest parts)
   ;; this is done so I don't have to escape commas in details
   (format "@@html:<detail>@@%s@@html:</detail>@@"
-    (s-join ","
-      (-filter (fn (not (string-empty-p <>)))
-        parts))))
+    (s-join "," (-remove 'not parts))))
 
 (defun ns/blog-make-color-block (width color &optional text foreground class)
   ;; assumes a dark FG and light BG
@@ -391,11 +397,10 @@
   (format "\n#+begin_center\n%s\n#+end_center\n"
     (let* ((options "🍇🍉🍓🍅🍄🍈🍍")
             (options "🍂🌿🌱🍁🍀")
+            (options "🪨⛰️🗿🌋")
             (index (random (length options)))
             (char (substring options index (+ index 1))))
       (format "%s %s %s" char char char))))
-
-
 
 (ns/comment
   (measure-time

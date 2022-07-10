@@ -256,3 +256,13 @@
   "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
 
+(defun -ht (&rest kvs)
+  (eval `(ht ,@(-partition 2 kvs))))
+
+;; compat, do not use
+(defun range (start &optional end step)
+  (if end
+    (if step
+      (-iota (/ (- end start) step) start step)
+      (-iota (- end start) start))
+    (-iota start)))
