@@ -3,23 +3,18 @@
 ;; todo: reconsider this whole thing
 
 ;; for fontifying src blocks
-(use-package htmlize)
+(ns/use htmlize)
 
 (defun ns/blog-set-htmlize-colors ()
-  (let ((theme-colors (append
-                        ;; here -- wrong emphasis --- would want to add or pass
+  ;; this is for weak emphasis in code blocks
+  (llet [theme-colors (append
                         (tarp/map-to-base16 :weak)
-
-                        (ht-to-plist (ht-get tarp/theme* :weak)))))
+                        (ht-to-plist (ht-get tarp/theme* :weak)))]
     (setq htmlize-face-overrides
-      (-mapcat
-        (lambda (definition)
-          (list
-            (car definition)
-            (base16-theme-transform-spec
-              (cdr definition)
-              theme-colors)))
-        (tarp/theme-make-faces theme-colors)))))
+      (->> (tarp/theme-make-faces theme-colors)
+        (-mapcat
+          (-lambda ((face . spec))
+            (list face (base16-theme-transform-spec spec theme-colors))))))))
 
 (defun ns/mustache (text table)
   "Basic mustache templating."
@@ -27,7 +22,12 @@
   (-reduce-from
     (lambda (text key)
       (s-replace
-        (format "{{%s}}" key)
+        (format "{{%s}}"
+          (cond
+            ((stringp key) key)
+            ((keywordp key) (substring (pr-str key) 1))
+            (t (pr-str key))))
+        ;; nil vals can exist
         (or (ht-get table key) "")
         text))
     text
@@ -58,10 +58,9 @@
                  (fn (s-ends-with-p ".org" <>)))))
            :action 'find-file)))
 
-;; note: is used in the org to toml stuff now too
-;; todo: is this case sensitive
 (defun ns/blog-get-prop (propname text)
   "Get an org property out of text"
+  ;; nb: this is case insensitive
   (-some--> (format "#\\+%s:.*$" propname)
     (pcre-to-elisp it)
     (s-match it text)
@@ -70,71 +69,29 @@
     (s-trim it)
     (if (s-blank-p it) nil it)))
 
-(defun ns/blog-file-to-meta (path)
-  (defun ns/blog-make-nav-strip (&rest items)
-    (apply 'concat
-      (list "\n#+BEGIN_CENTER\n"
-        (->> (-remove 'not items) (s-join " "))
-        "\n#+END_CENTER\n")))
+(defun ns/blog-make-nav-strip (&rest items)
+  ;; ??????????????????????????
+  (apply 'concat
+    (list "\n#+BEGIN_CENTER\n"
+      (->> (-remove 'not items) (s-join " "))
+      "\n#+END_CENTER\n")))
 
-  (message (format "BLOG: generating meta for %s" path))
-  (let* (
-          (org-file-content
-            (->> path
-              f-read
-              (s-replace-regexp "^-----$" "{{{hsep}}}")
-              (ns/blog-make-anchors)))
+(defun ns/html-link (link label)
+  (format "<a href='%s'>%s</a>" dest label))
 
-          (post-type
-            (or (ns/blog-get-prop "post_type" org-file-content)
-              ;; this could maybe just be changed to the parent folder name
-              (if (-contains-p
-                    (f-entries (ns/blog-path "posts")
-                      (fn (s-ends-with-p ".org" <>)))
-                    path)
-                "post"
-                "page")))
+(defun ns/blog-render-org (path &rest args)
+  (llet [(&plist :post-type :title :last-edited :subtitle :content :html-dest) args]
+    (ns/mustache
+      (f-read (~e "org/blog_template.org"))
+      (-ht
+        :title title
+        :last-edited last-edited
+        :subtitle subtitle
+        :content content
+        :html-dest html-dest
 
-          (last-edited
-            (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log -1 --format=%%cI '%s'"
-                                                     ;; appease the shell.
-                                                     (s-replace "'" "'\\''" (f-dirname path))
-                                                     (s-replace "'" "'\\''" path)))))
-
-              (if (s-blank-p git-query-result)
-                nil (substring git-query-result 0 10))))
-
-          (published-date
-            (when (string= post-type "post")
-              (let ((internal-pubdate (ns/blog-get-prop "pubdate" org-file-content)))
-                (if internal-pubdate
-                  (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
-                  (substring (f-base path) 0 10)))))
-
-          (post-title (or (ns/blog-get-prop "title" org-file-content) "untitled"))
-          (post-subtitle (ns/blog-get-prop "title_extra" org-file-content))
-
-          (html-dest
-            (format "%s/%s.html"
-              (ns/blog-path "site")
-
-              (->>
-                (f-base path)
-                (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
-
-                ;; remove forbidden characters from url
-                (funcall
-                  (apply '-compose
-                    (mapcar (lambda (char)
-                              (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))))
-
-          (post-org-content
-            (ns/mustache
-              (f-read (~e "org/blog_template.org"))
-              (ht
-                ("csslinks"
-                  ;; cache invalidation
-                  (s-join "\n"
+        ;; cache invalidation
+        :csslinks (s-join "\n"
                     (-map
 	                    (fn (let* ((file-path (ns/blog-path (format "site/assets/css/%s.css" <>)))
 		                              (include-path (format "/assets/css/%s.css" <>))
@@ -142,61 +99,84 @@
 	                          (concat
 		                          (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
 		                          (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-	                    '("colors" "new" "org" "notes"))))
+	                    '("colors" "new" "org" "notes")))
 
-                ("title" post-title)
+        :up (llet [(dest label)
+                    (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
+                      ((and (string= post-type "page") (not (string= (f-base path) "sitemap")))
+                        '("/sitemap.html" "Sitemap"))
+                      (t '("/index.html" "ＧＲＯＶＥ")))]
+              (format "<a href='%s'>Up: %s</a>" dest label))
 
-                ("up"
-                  (cond
-                    ((s-starts-with-p "index" (f-filename path)) "<a href='https://neeasade.net'>Up: Splash</a>")
-                    ((and
-                       (string= post-type "page")
-                       (not (string= (f-base path) "sitemap")))
-                      "<a href='/sitemap.html'>Up: Sitemap</a>")
-                    (t "<a href='/index.html'>Up: ＧＲＯＶＥ</a>")))
+        ;; remove a common macro for og:description:
+        :og-description (->> (or subtitle "") (s-replace "{{{center(" "") (s-replace ")}}}" ""))
 
-                ("last-edited" last-edited)
-                ("subtitle" post-subtitle)
+        :page-markup-link (format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
+                            post-type (f-filename path))
 
-                ;; remove a common macro for og:description:
-                ("og-description"
-                  (->> (or post-subtitle "")
-                    (s-replace "{{{center(" "")
-                    (s-replace ")}}}" "")))
+        :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
+                             post-type (f-filename path))
 
-                ("content" org-file-content)
-                ("page-markup-link"
-                  (format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
-                    post-type (f-filename path)))
+        :footer-left (if (s-starts-with-p "index" (f-filename path))
+                       "<a href='/sitemap.html'>Sitemap</a>"
+                       "<a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a>")
 
-                ("page-history-link"
-                  (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
-                    post-type (f-filename path)))
-
-                ("footer-left"
-                  (if (s-starts-with-p "index" (f-filename path))
-                    "<a href='/sitemap.html'>Sitemap</a>"
-                    "<a href='/index.html'>🍃🌳ＧＲＯＶＥ🍃🌳</a>"))
-
-                ("html-dest" html-dest)
-
-                ("footer-center"
-                  (if (s-starts-with-p "index" (f-filename path))
-                    "#+BEGIN_EXPORT html
+        :footer-center (if-not (s-starts-with-p "index" (f-filename path))
+                         (format "@@html:<div class=footer-center>type: %s</div>@@" post-type)
+                         "#+BEGIN_EXPORT html
 <div class=footer-center>
 <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
 <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
 <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
 </div>
 #+end_export
-"
-                    (format "@@html:<div class=footer-center>type: %s</div>@@" post-type))
-                  )
+")
 
-                ("flair"
-                  (when (or (string= post-type "post")
-                          (string= post-type "note"))
-                    "@@html:<div class='title flair'><img class='flair-border' src='./assets/img/backgrounds/bark.jpg' /> </div>@@"))))))
+        :flair (when (or (string= post-type "post")
+                       (string= post-type "note"))
+                 "@@html:<div class='title flair'><img class='flair-border' src='./assets/img/backgrounds/bark.jpg' /> </div>@@")))))
+
+
+(defun ns/blog-file-to-meta (path)
+  (message (format "BLOG: generating meta for %s" path))
+  (llet (org-file-content (->> (f-read path)
+                            (s-replace-regexp "^-----$" "{{{hsep}}}")
+                            (ns/blog-make-anchors))
+
+          post-type (or (ns/blog-get-prop "post_type" org-file-content)
+                      (->> path f-parent f-base (s-replace "s" "")))
+
+          last-edited (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log -1 --format=%%cI '%s'"
+                                                               ;; appease the shell.
+                                                               (s-replace "'" "'\\''" (f-dirname path))
+                                                               (s-replace "'" "'\\''" path)))))
+                        (when-not (s-blank-p git-query-result)
+                          (substring git-query-result 0 10)))
+
+          published-date (-when-let (internal-pubdate (ns/blog-get-prop "pubdate" org-file-content))
+                           (if internal-pubdate
+                             (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
+                             (substring (f-base path) 0 10)))
+
+          post-title (or (ns/blog-get-prop "title" org-file-content) "untitled")
+          post-subtitle (ns/blog-get-prop "title_extra" org-file-content)
+
+          html-dest (format "%s/%s.html" (ns/blog-path "site")
+                      (->> (f-base path)
+                        (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
+                        ;; remove forbidden characters from url
+                        (funcall
+                          (apply '-compose
+                            (-map (lambda (char)
+                                    (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'")))))
+
+          post-org-content (ns/blog-render-org path
+                             :title post-title
+                             :last-edited last-edited
+                             :subtitle post-subtitle
+                             :post-type post-type
+                             :content org-file-content
+                             :html-dest html-dest))
 
     (ht
       (:path path)
@@ -205,13 +185,9 @@
       (:title post-title)
       (:type post-type)
       (:publish-date published-date)
-
       (:rss-title (ns/blog-get-prop "rss_title" post-org-content))
-
       (:html-dest html-dest)
-
-      (:edited-date last-edited)
-      )))
+      (:edited-date last-edited))))
 
 (defun! ns/blog-publish-meta (org-meta)
   (let ((default-directory (ns/blog-path "site"))
@@ -242,8 +218,8 @@
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
   (save-buffer)
-  (let* ((file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta))
-          (post-html-file (ht-get file-meta :html-dest)))
+  (llet (file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta)
+          post-html-file (ht-get file-meta :html-dest))
 
     (ns/blog-publish-meta file-meta)
 
@@ -286,48 +262,51 @@
   t)
 
 (defun ns/blog-make-anchors (org-content)
+  ;; todo: this is a rather expensive part
   "turn headlines into anchor links within a string org-content."
   (with-temp-buffer
     (insert org-content)
-    (org-mode)
+    (->> (org-ml-parse-headlines 'all)
+      (-map (-lambda ((kind props))
+              (plist-get props :begin)))
+      (reverse)
+      (-map (lambda (point)
+              ;; give a textual id if one doesn't exist
+              (org-ml-update-headline-at point
+                (lambda (headline)
+                  (let* ((heading-text (-> headline org-ml-headline-get-path last car))
+                          (id
+                            ;; todo: use org-ml-headline-get-node-properties
+                            ;; and check contains -- couldn't get that to work though
+                            ;; <2021-01-25 Mon 09:18>
+                            (catch 'error
+                              (condition-case err
+                                (org-ml-headline-get-node-property "CUSTOM_ID" headline)
+                                (error nil))))
+                          (id (if id id
+                                (->> heading-text
+                                  (s-replace " " "-")
+                                  (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
+                                  (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
 
-    (org-map-entries
-      (lambda ()
-        ;; give a textual id if one doesn't exist
-        (org-ml-update-headline-at (point)
-          (lambda (headline)
-            (let* ((heading-text (-> headline org-ml-headline-get-path last car))
-                    (id
-                      ;; todo: use org-ml-headline-get-node-properties
-                      ;; and check contains -- couldn't get that to work though
-                      ;; <2021-01-25 Mon 09:18>
-                      (catch 'error
-                        (condition-case err
-                          (org-ml-headline-get-node-property "CUSTOM_ID" headline)
-                          (error nil))))
-                    (id (if id id
-                          (->> heading-text
-                            (s-replace " " "-")
-                            (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
-                            (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
-
-              (->> headline
-                (org-ml-headline-set-node-property "CUSTOM_ID" id)
-                (org-ml-set-property
-                  :title
-                  (->> heading-text
-                    ;; remove old headling anchor style:
-                    ((lambda (s)
-                       (-if-let (m (s-match
-                                     (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
-                                     s))
-                         (third m)
-                         s)))
-                    ;; add anchor at the end:
-                    ((lambda (s)
-                       (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@" s
-                         (format "[[#%s][%s]]" id "⚓"))))
-                    (list)))))))))
+                    (->> headline
+                      (org-ml-headline-set-node-property "CUSTOM_ID" id)
+                      (org-ml-set-property
+                        :title
+                        (->> heading-text
+                          ;; remove old headling anchor style:
+                          ((lambda (s)
+                             (-if-let (m (s-match
+                                           (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
+                                           s))
+                               (third m)
+                               s)))
+                          ;; add anchor at the end:
+                          ((lambda (s)
+                             (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@" s
+                               (format "[[#%s][%s]]" id "⚓"))))
+                          (list)))))))
+              )))
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun! ns/blog-new-post ()
@@ -415,3 +394,16 @@
             (index (random (length options)))
             (char (substring options index (+ index 1))))
       (format "%s %s %s" char char char))))
+
+
+
+(ns/comment
+  (measure-time
+    (progn
+      (-map 'ns/blog-file-to-meta (ns/blog-get-org "posts"))
+      nil
+      )
+
+
+    )
+  )
