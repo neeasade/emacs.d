@@ -30,6 +30,9 @@
        ,@body
        (message (format ": ns/use: %s... done." ',pkg)))))
 
+;; load org early so that requires use the correct package
+(ns/use org)
+
 ;; elisp enhancers
 (ns/use fn)      ; function
 (ns/use s)       ; string

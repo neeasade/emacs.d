@@ -21,6 +21,7 @@
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
   `(("panel.height" . "24")
+     ("emacs.theme" . "tarp-mcfay")
      ("font.mono.spec" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
@@ -143,8 +144,7 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      ;; (ns/load-theme)
-      ))
+      (ns/load-theme (intern (get-resource "emacs.theme")))))
 
   (add-hook 'emacs-startup-hook 'ns/initial-startup-hook))
 

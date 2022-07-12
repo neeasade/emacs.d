@@ -1,16 +1,13 @@
 ;; -*- lexical-binding: t; -*-
 
-(ns/use (org
-          :host github
-          :repo "emacsmirror/org"
-          :files ("lisp/*.el" "contrib/lisp/*.el")))
 
+;; note: org package is loaded in dirt
+
+(require 'org-fold)
 (require 'org-habit)
 (require 'org-tempo)
 
-;; nice functional org library
-(ns/use (org-ml :host github :repo "ndwarshuis/org-ml")
-   (require 'org-ml))
+(ns/use org-ml)
 
 (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
 

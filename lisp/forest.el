@@ -407,6 +407,7 @@
   (setq ns/filename-cmd
     `(,(~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
        ,(~ ".Xmodmap") "xmodmap ~/.Xmodmap"
+       ,(~ "bin/theme") "themeq REFRESH"
        ;; eventually
        ;; ,@(->> (f-files (~ ".dotfiles/wm/.templates"))
        ;;     (-mapcat (fn (list <> (format "ltheme %s" (f-base <>))))))
