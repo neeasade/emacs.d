@@ -16,7 +16,7 @@
 #+html_head: <meta property="og:description" content="{{og-description}}">
 #+html_head: <meta property="description" content="{{og-description}}">
 #+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/warm.png">
-#+html_head: <meta property="og:url" content="{{html-dest}}">
+#+html_head: <meta property="og:url" content="{{url}}">
 #+html_head: <meta name="twitter:card" content="summary">
 
 #+html_head: <script src="/assets/js/linktext.js" defer></script>
@@ -31,8 +31,11 @@
 
 #+MACRO:  hsep (eval (ns/blog-make-hsep))
 #+MACRO:  detail (eval (ns/blog-make-detail $1 $2 $3 $4 $5 $6 $7 $8 $9))
+
+# todo: resolv
 #+MACRO:  nav-strip (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
 #+MACRO:  center (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
+
 #+MACRO: newline @@latex:\newline@@@@html:<br/>@@
 #+MACRO: blog-title (eval ns/blog-title)
 

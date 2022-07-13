@@ -7,8 +7,7 @@
           :host github
           :repo "emacsmirror/ox-rss"))
 
-(setq ns/blog-title "🍃🌳ＧＲＯＶＥ🍃🌳")
-(setq ns/blog-title  "𝔊𝔄𝔗𝔈𝔚𝔄𝔜⟴" )
+(setq ns/blog-title "𝟶𝚡𝙳𝙴𝙲𝙰𝙵𝙱𝙰𝙳☕")
 
 (defun ns/blog-set-htmlize-colors ()
   ;; this is for weak emphasis in code blocks
@@ -24,6 +23,7 @@
 (defun ns/mustache (text table)
   "Basic mustache templating."
   ;; This function exists because of https://github.com/Wilfred/mustache.el/issues/14
+  ;; todo here: check rendered text, yell if missing keys
   (-reduce-from
     (lambda (text key)
       (s-replace
@@ -53,7 +53,7 @@
   "nQ" (fn!
          (ivy-read "draft post: "
            (reverse
-             (f-filter
+             (-filter
                (fn
 
                  (ns/blog-get-prop "draft")
@@ -88,48 +88,44 @@
   (llet [(&plist :post-type :title :last-edited :subtitle :content :html-dest) args]
     (ns/mustache
       (f-read (~e "org/blog_template.org"))
-      (-ht
-        :blog-title ns/blog-title
-        :title title
-        :last-edited last-edited
-        :subtitle subtitle
-        :content content
-        :html-dest html-dest
+      (apply '-ht
+        `(
+           ,@args
 
-        ;; cache invalidation
-        :csslinks (s-join "\n"
-                    (-map
-	                    (fn (let* ((file-path (ns/blog-path (format "site/assets/css/%s.css" <>)))
-		                              (include-path (format "/assets/css/%s.css" <>))
-		                              (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
-	                          (concat
-		                          (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
-		                          (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-	                    '("colors" "new" "org" "notes")))
+           ;; cache invalidation
+           :csslinks ,(s-join "\n"
+                        (-map
+	                        (fn (let* ((file-path (ns/blog-path (format "published/assets/css/%s.css" <>)))
+		                                  (include-path (format "/assets/css/%s.css" <>))
+		                                  (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
+	                              (concat
+		                              (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
+		                              (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
+	                        '("colors" "new" "org" "notes")))
 
-        :up (llet [(dest label)
-                    (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
-                      ((and (string= post-type "page") (not (string= (f-base path) "sitemap")))
-                        '("/sitemap.html" "Sitemap"))
-                      (t `("/index.html" ,ns/blog-title)))]
-              (format "<a href='%s'>Up: %s</a>" dest label))
+           :up ,(llet [(dest label)
+                        (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
+                          ((and (string= post-type "page") (not (string= (f-base path) "sitemap")))
+                            '("/sitemap.html" "Sitemap"))
+                          (t `("/index.html" ,ns/blog-title)))]
+                  (format "<a href='%s'>Up: %s</a>" dest label))
 
-        ;; remove a common macro for og:description:
-        :og-description (->> (or subtitle "") (s-replace "{{{center(" "") (s-replace ")}}}" ""))
+           ;; remove a common macro for og:description:
+           :og-description ,(->> (or subtitle "") (s-replace "{{{center(" "") (s-replace ")}}}" ""))
 
-        :page-markup-link (format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
-                            post-type (f-filename path))
+           :page-markup-link ,(format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
+                                post-type (f-filename path))
 
-        :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
-                             post-type (f-filename path))
+           :page-history-link ,(format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
+                                 post-type (f-filename path))
 
-        :footer-left (if (s-starts-with-p "index" (f-filename path))
-                       "<a href='/sitemap.html'>Sitemap</a>"
-                       (format "<a href='/index.html'>%s</a>" ns/blog-title))
+           :footer-left ,(if (s-starts-with-p "index" (f-filename path))
+                           "<a href='/sitemap.html'>Sitemap</a>"
+                           (format "<a href='/index.html'>%s</a>" ns/blog-title))
 
-        :footer-center (if-not (s-starts-with-p "index" (f-filename path))
-                         (format "@@html:<div class=footer-center>type: %s</div>@@" post-type)
-                         "#+BEGIN_EXPORT html
+           :footer-center ,(if-not (s-starts-with-p "index" (f-filename path))
+                             (format "@@html:<div class=footer-center>type: %s</div>@@" post-type)
+                             "#+BEGIN_EXPORT html
   <div class=footer-center>
   <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
   <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
@@ -138,9 +134,9 @@
   #+end_export
   ")
 
-        :flair (when (or (string= post-type "post")
-                       (string= post-type "note"))
-                 "@@html:<div class='title flair'><img class='flair-border' src='./assets/img/backgrounds/pattern_125.gif' /> </div>@@")))))
+           :flair ,(when (or (string= post-type "post")
+                           (string= post-type "note"))
+                     "@@html:<div class='flair'></div>@@"))))))
 
 
 (defun ns/blog-file-to-meta (path)
@@ -168,36 +164,39 @@
           post-title (or (ns/blog-get-prop "title" org-file-content) "untitled")
           post-subtitle (ns/blog-get-prop "title_extra" org-file-content)
 
-          html-dest (format "%s/%s.html" (ns/blog-path "site")
-                      (->> (f-base path)
-                        (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
-                        ;; remove forbidden characters from url
-                        (funcall
-                          (apply '-compose
-                            (-map (lambda (char)
-                                    (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'")))))
+          html-slug (->> (f-base path)
+                      (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
+                      ;; remove forbidden characters from url
+                      (funcall
+                        (apply '-compose
+                          (-map (lambda (char)
+                                  (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))
+
+          html-dest (format "%s/%s.html" (ns/blog-path "published") html-slug)
 
           post-org-content (ns/blog-render-org path
+                             :blog-title ns/blog-title
                              :title post-title
                              :last-edited last-edited
                              :subtitle post-subtitle
                              :post-type post-type
+                             :url (format "https://notes.neeasade.net/%s.html" html-slug)
                              :content org-file-content
                              :html-dest html-dest))
 
-    (ht
-      (:path path)
-      (:org-content post-org-content)
-      (:is-draft (not (s-blank-p (ns/blog-get-prop "draft" post-org-content))))
-      (:title post-title)
-      (:type post-type)
-      (:publish-date published-date)
-      (:rss-title (ns/blog-get-prop "rss_title" post-org-content))
-      (:html-dest html-dest)
-      (:edited-date last-edited))))
+    (-ht
+      :path path
+      :org-content post-org-content
+      :is-draft (not (s-blank-p (ns/blog-get-prop "draft" post-org-content)))
+      :title post-title
+      :type post-type
+      :publish-date published-date
+      :rss-title (ns/blog-get-prop "rss_title" post-org-content)
+      :html-dest html-dest
+      :edited-date last-edited)))
 
 (defun! ns/blog-publish-meta (org-meta)
-  (let ((default-directory (ns/blog-path "site"))
+  (let ((default-directory (ns/blog-path "published"))
          (org-export-with-toc nil)
          (org-export-with-section-numbers t)
          (org-export-with-timestamps nil)
@@ -258,13 +257,12 @@
     (-map 'ns/blog-publish-meta (append org-post-metas org-page-metas org-note-metas))
 
     (message "BLOG: making site rss!")
-    (require 'ox-rss)
 
     (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss.org"))
-      (org-export-to-file 'rss (ns/blog-path "site/rss.xml")))
+      (org-export-to-file 'rss (ns/blog-path "published/rss.xml")))
 
     (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss_full.org"))
-      (org-export-to-file 'rss (ns/blog-path "site/rss_full.xml"))))
+      (org-export-to-file 'rss (ns/blog-path "published/rss_full.xml"))))
 
   (message "BLOG: done! ✨✨✨✨")
   t)

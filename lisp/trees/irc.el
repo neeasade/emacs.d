@@ -747,9 +747,6 @@
   ;; trying out treemacs idea -- want buflist but for circe buffers
   (ns/use treemacs)
 
-  ;; treemacs-define-* stuff isn't included ootb with the above?
-  (require 'treemacs)
-
   (defun showcase--get-buffer-groups ()
     "Get the list of buffers, grouped by their major mode."
     (->> (buffer-list)
