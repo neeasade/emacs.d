@@ -229,7 +229,7 @@
 
 (defun! ns/kill-buffers-no-file ()
   "Kill buffers pointing to a file when that file doesn't exist"
-  (mapcar 'kill-buffer
+  (-map 'kill-buffer
     (-filter (fn (let ((file (buffer-file-name <>)))
                    (if file (not (f-exists-p file)) nil)))
       (buffer-list))))

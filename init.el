@@ -74,7 +74,7 @@
        (latex ns/enable-home-p)
        search-engines
 
-       (blog nil)
+       (blog ns/enable-home-p)
        scripting
        (music ns/enable-home-p (executable-find "mpd"))
        (pdf ns/enable-linux-p)

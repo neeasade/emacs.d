@@ -127,15 +127,18 @@ will also be the width of all other printable characters."
     (set-face-attribute 'flycheck-error nil :underline nil)))
 
 (defun! ns/load-theme (&optional theme)
-  ;; todo here: maybe kill buffers with no file here -- breaks load-theme somehow
-  (mapcar 'disable-theme custom-enabled-themes)
+  (ns/kill-buffers-no-file)
+
+  (-map 'disable-theme custom-enabled-themes)
 
   (load-theme
     (or theme
       (intern
-        (ivy-read "Load custom theme: "
+        (ivy-read "Load tarp theme: "
           ;; (mapcar 'symbol-name (custom-available-themes))
-          '(tarp-mcfay tarp-struan tarp-storm)
+          (-filter
+            (fn (s-starts-with-p "tarp-" (pr-str <>)))
+            (custom-available-themes))
           :action 'identity)))
     t)
 
@@ -171,10 +174,8 @@ will also be the width of all other printable characters."
   (-map (fn (when (fboundp <>)
               (message (pr-str <>))
               (funcall <>)))
-
-    ;; '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal)
-    '()
-    )
+    ;; '()
+    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal))
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

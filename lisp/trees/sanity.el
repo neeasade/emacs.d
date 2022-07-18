@@ -4,7 +4,6 @@
   (exec-path-from-shell-initialize))
 
 (ns/use no-littering
-  (require 'no-littering)
   (require 'recentf)
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory))
@@ -25,6 +24,8 @@
   version-control t
   network-security-level 'high
   frame-resize-pixelwise t
+  frame-title-format '(multiple-frames "%b"
+		                    ("" "%b"))
 
   ;; set to 0 for default/centering behavior
   scroll-conservatively 1

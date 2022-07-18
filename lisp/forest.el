@@ -143,8 +143,7 @@
   (ns/use clojure-mode)
   (ns/use cider)
 
-  ;; babashka
-  (add-to-list 'interpreter-mode-alist '("bb" . clojure-mode))
+  ;; (ns/use clj-refactor)
 
   (setq cider-eval-result-duration 20)
 
@@ -339,7 +338,6 @@
     (kbd "<tab>") 'markdown-cycle)
 
   (defun ns/style-markdown ()
-    (require 'markdown-mode)
     (ns/set-faces-monospace '(markdown-code-face))
 
     (-map #'ns/set-buffer-face-variable
