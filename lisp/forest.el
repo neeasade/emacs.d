@@ -381,9 +381,16 @@
     (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
 (ns/defconfig lsp
-  ;; want to use eglot + flycheck, hrm
-  ;; (ns/use cquery)
-  )
+  (ns/use lsp-mode)
+  (ns/use lsp-ui)
+
+  (defun ns/lsp-cleanup ()
+    "lsp-format and imports on save"
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+  (add-hook 'go-mode-hook #'lsp-deferred)
+  (add-hook 'go-mode-hook #'ns/lsp-cleanup))
 
 (ns/defconfig search-engines
   (ns/use engine-mode
@@ -405,7 +412,7 @@
   (setq ns/filename-cmd
     `(,(~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
        ,(~ ".Xmodmap") "xmodmap ~/.Xmodmap"
-       ,(~ "bin/theme") "themeq REFRESH"
+       ,(~ "bin/theme") "theme -c"
        ;; eventually
        ;; ,@(->> (f-files (~ ".dotfiles/wm/.templates"))
        ;;     (-mapcat (fn (list <> (format "ltheme %s" (f-base <>))))))

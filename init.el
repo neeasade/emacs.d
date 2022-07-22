@@ -97,13 +97,16 @@
        (typescript ns/outdated)
        markdown
        (powershell ns/enable-windows-p)
-       lsp
        terraform
        sql
        plantuml
        go
        (python ns/outdated)
-       (irc ns/enable-home-p))))
+       (irc ns/enable-home-p)
+
+       ;; keep after $langs on purpose
+       lsp
+       )))
 
 (if (getenv "NS_EMACS_BATCH")
   ;; doing a batch job, eval some lisp, message the result
@@ -127,7 +130,7 @@
       (setq ns/after-init-hook t)
 
       ;; Emacs is terribly slow on windows
-      (ns/toggle-bloat-global ns/enable-linux-p)
+      (ns/toggle-bloat-global (not ns/enable-windows-p))
 
       (run-with-idle-timer 2 t 'garbage-collect)
 

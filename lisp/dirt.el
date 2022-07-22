@@ -22,11 +22,15 @@
 (require 'dash)
 
 (defmacro ns/use (pkg-def &rest body)
-  (-let [pkg (-first-item (-list pkg-def))]
+  (-let* ((pkg (-first-item (-list pkg-def)))
+           ;; note: if we use this, need s before defmacro
+           ;; (pkg-mode (intern (format "%s-mode" (s-chop-suffixes '("-mode") (prin1-to-string pkg)))))
+           )
     `(progn
        (message (format ": ns/use: %s..." ',pkg))
        (straight-use-package ',pkg-def)
        (require ',pkg nil t)
+       ;; (require ',pkg-mode nil t)
        ,@body
        (message (format ": ns/use: %s... done." ',pkg)))))
 
