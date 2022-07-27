@@ -52,7 +52,7 @@
            t)))))
 
 (defun ns/follow-log (msg)
-  (message (format "ns/follow: %s" msg)))
+  (message "ns/follow: %s" msg))
 
 (defun! ns/follow ()
   "This is my home rolled DWIM at point function -- maybe it could be considered to be 'bad hyperbole'

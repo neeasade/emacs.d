@@ -27,12 +27,12 @@
            ;; (pkg-mode (intern (format "%s-mode" (s-chop-suffixes '("-mode") (prin1-to-string pkg)))))
            )
     `(progn
-       (message (format ": ns/use: %s..." ',pkg))
+       (message ": ns/use: %s..." ',pkg)
        (straight-use-package ',pkg-def)
        (require ',pkg nil t)
        ;; (require ',pkg-mode nil t)
        ,@body
-       (message (format ": ns/use: %s... done." ',pkg)))))
+       (message ": ns/use: %s... done." ',pkg))))
 
 ;; load org early so that requires use the correct package
 (ns/use org)
@@ -78,7 +78,7 @@
 (defalias '-join '-interpose)
 
 (defun prn (&rest sexp)
-  (message (s-join " " (-map 'pr-str sexp))) nil)
+  (message "%s" (s-join " " (-map 'pr-str sexp))) nil)
 
 (defmacro llet (args &rest body)
   ;; the append is to convert [vectors] to lists
@@ -264,7 +264,17 @@
   (set-text-properties 0 (length s) nil s) s)
 
 (defun -ht (&rest kvs)
-  (eval `(ht ,@(-partition 2 kvs))))
+  (llet (table (ht-create))
+    (-map (-applify (-partial 'ht-set table))
+      (-partition 2 kvs))
+    table))
+
+(defun ns/str (val)
+  "Coerce VAL to string. nil is empty string."
+  (cond
+    ((stringp val) val)
+    ((keywordp val) (substring (pr-str val) 1))
+    (t (pr-str val))))
 
 ;; compat, do not use
 (defun range (start &optional end step)

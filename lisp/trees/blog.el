@@ -7,7 +7,7 @@
           :host github
           :repo "emacsmirror/ox-rss"))
 
-(setq ns/blog-title "𝟶𝚡𝙳𝙴𝙲𝙰𝙵𝙱𝙰𝙳☕")
+(setq ns/blog-title "neeanotes📜")
 
 (defun ns/blog-set-htmlize-colors ()
   ;; this is for weak emphasis in code blocks
@@ -20,26 +20,16 @@
           (-lambda ((face . spec))
             (list face (base16-theme-transform-spec spec theme-colors))))))))
 
-(defun ns/mustache (text table)
-  "Basic mustache templating."
-  ;; This function exists because of https://github.com/Wilfred/mustache.el/issues/14
-  ;; todo here: check rendered text, yell if missing keys
-  (-reduce-from
-    (lambda (text key)
-      (s-replace
-        (format "{{%s}}"
-          (cond
-            ((stringp key) key)
-            ((keywordp key) (substring (pr-str key) 1))
-            (t (pr-str key))))
-        ;; nil vals can exist
-        (or (ht-get table key) "")
-        text))
-    text
-    (ht-keys table)))
-
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
+
+(defun ns/mustache (text table)
+  "Basic mustache templating."
+  (llet [replace-map (ht-amap `(,(format "{{%s}}" (ns/str key)) . ,(or value "")) table)]
+    ;; doing this twice is what enables a #+title: of {{blog-title}}
+    (->> text
+      (s-replace-all replace-map)
+      (s-replace-all replace-map))))
 
 (ns/bind-soft
   ;; todo: jump by site title
@@ -63,16 +53,13 @@
                  (fn (s-ends-with-p ".org" <>)))))
            :action 'find-file)))
 
-(defun ns/blog-get-prop (propname text)
-  "Get an org property out of text"
-  ;; nb: this is case insensitive
-  (-some--> (format "#\\+%s:.*$" propname)
-    (pcre-to-elisp it)
-    (s-match it text)
-    (first it)
-    (s-replace (format "#+%s:" propname) "" it)
-    (s-trim it)
-    (if (s-blank-p it) nil it)))
+(defun ns/blog-get-properties (text)
+  "org string to properties ht"
+  (->> (org-ml--from-string text)
+    (org-ml-match '(keyword))
+    (-mapcat (-lambda ((_ (&plist :key :value)))
+               (list (downcase key) value)))
+    (apply '-ht)))
 
 (defun ns/blog-make-nav-strip (&rest items)
   ;; ??????????????????????????
@@ -84,48 +71,47 @@
 (defun ns/html-link (link label)
   (format "<a href='%s'>%s</a>" dest label))
 
-(defun ns/blog-render-org (path &rest args)
-  (llet [(&plist :post-type :title :last-edited :subtitle :content :html-dest) args]
-    (ns/mustache
-      (f-read (~e "org/blog_template.org"))
-      (apply '-ht
-        `(
-           ,@args
+(defun ns/blog-render-org (post-table)
+  (ns/mustache
+    (->> (f-read (~e "org/blog_template.org"))
+      (s-replace "{{content}}"
+        (->> (ht-get post-table :text)
+          (s-replace-regexp "^-----$" "{{{hsep}}}")
+          (ns/blog-make-anchors))))
 
-           ;; cache invalidation
-           :csslinks ,(s-join "\n"
-                        (-map
-	                        (fn (let* ((file-path (ns/blog-path (format "published/assets/css/%s.css" <>)))
-		                                  (include-path (format "/assets/css/%s.css" <>))
-		                                  (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
-	                              (concat
-		                              (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
-		                              (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-	                        '("colors" "new" "org" "notes")))
+    ;; (ht-merge (-ht :a 1) (-ht :b nil))
 
-           :up ,(llet [(dest label)
-                        (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
-                          ((and (string= post-type "page") (not (string= (f-base path) "sitemap")))
-                            '("/sitemap.html" "Sitemap"))
-                          (t `("/index.html" ,ns/blog-title)))]
-                  (format "<a href='%s'>Up: %s</a>" dest label))
+    (ht-merge
+      post-table
+      (llet ((&hash :type :path :subtitle) post-table)
+        (-ht
+          :blog-title ns/blog-title
 
-           ;; remove a common macro for og:description:
-           :og-description ,(->> (or subtitle "") (s-replace "{{{center(" "") (s-replace ")}}}" ""))
+          :up (llet [(dest label)
+                      (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
+                        ((and (string= type "page") (not (string= (f-base path) "sitemap")))
+                          '("/sitemap.html" "Sitemap"))
+                        (t `("/index.html" ,ns/blog-title)))]
+                (format "<a href='%s'>Up: %s</a>" dest label))
 
-           :page-markup-link ,(format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
-                                post-type (f-filename path))
 
-           :page-history-link ,(format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
-                                 post-type (f-filename path))
+          :og-description (->> (or subtitle "")
+                            (s-replace-regexp "{{{.*(" "")
+                            (s-replace ")}}}" ""))
 
-           :footer-left ,(if (s-starts-with-p "index" (f-filename path))
-                           "<a href='/sitemap.html'>Sitemap</a>"
-                           (format "<a href='/index.html'>%s</a>" ns/blog-title))
+          :page-markup-link (format "https://raw.githubusercontent.com/neeasade/neeasade.github.io/source/%ss/%s"
+                              type (f-filename path))
 
-           :footer-center ,(if-not (s-starts-with-p "index" (f-filename path))
-                             (format "@@html:<div class=footer-center>type: %s</div>@@" post-type)
-                             "#+BEGIN_EXPORT html
+          :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
+                               type (f-filename path))
+
+          :footer-left (if (s-starts-with-p "index" (f-filename path))
+                         "<a href='/sitemap.html'>Sitemap</a>"
+                         (format "<a href='/index.html'>%s</a>" ns/blog-title))
+
+          :footer-center (if-not (s-starts-with-p "index" (f-filename path))
+                           (format "@@html:<div class=footer-center>type: %s</div>@@" type)
+                           "#+BEGIN_EXPORT html
   <div class=footer-center>
   <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
   <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
@@ -134,35 +120,15 @@
   #+end_export
   ")
 
-           :flair ,(when (or (string= post-type "post")
-                           (string= post-type "note"))
-                     "@@html:<div class='flair'></div>@@"))))))
-
+          :flair (when (or (string= type "post")
+                         (string= type "note"))
+                   "@@html:<div class='flair'></div>@@"))))))
 
 (defun ns/blog-file-to-meta (path)
-  (message (format "BLOG: generating meta for %s" path))
-  (llet (org-file-content (->> (f-read path)
-                            (s-replace-regexp "^-----$" "{{{hsep}}}")
-                            (ns/blog-make-anchors))
-
-          post-type (or (ns/blog-get-prop "post_type" org-file-content)
-                      (llet [parent-dir (->> path f-parent f-base)]
-                        (substring parent-dir 0 (1- (length parent-dir)))))
-
-          last-edited (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log -1 --format=%%cI '%s'"
-                                                               ;; appease the shell.
-                                                               (s-replace "'" "'\\''" (f-dirname path))
-                                                               (s-replace "'" "'\\''" path)))))
-                        (when-not (s-blank-p git-query-result)
-                          (substring git-query-result 0 10)))
-
-          published-date (when (-contains-p '("post" "note") post-type)
-                           (-if-let (internal-pubdate (ns/blog-get-prop "pubdate" org-file-content))
-                             (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") internal-pubdate))
-                             (substring (f-base path) 0 10)))
-
-          post-title (or (ns/blog-get-prop "title" org-file-content) "untitled")
-          post-subtitle (ns/blog-get-prop "title_extra" org-file-content)
+  "File path to meta. Does not do anything that might need file processing."
+  ;; (message (format "BLOG: generating meta for %s" path))
+  (llet [org-file-content (f-read path)
+          props (ns/blog-get-properties org-file-content)
 
           html-slug (->> (f-base path)
                       (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
@@ -170,30 +136,30 @@
                       (funcall
                         (apply '-compose
                           (-map (lambda (char)
-                                  (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))
-
-          html-dest (format "%s/%s.html" (ns/blog-path "published") html-slug)
-
-          post-org-content (ns/blog-render-org path
-                             :blog-title ns/blog-title
-                             :title post-title
-                             :last-edited last-edited
-                             :subtitle post-subtitle
-                             :post-type post-type
-                             :url (format "https://notes.neeasade.net/%s.html" html-slug)
-                             :content org-file-content
-                             :html-dest html-dest))
-
+                                  (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))]
     (-ht
       :path path
-      :org-content post-org-content
-      :is-draft (not (s-blank-p (ns/blog-get-prop "draft" post-org-content)))
-      :title post-title
-      :type post-type
-      :publish-date published-date
-      :rss-title (ns/blog-get-prop "rss_title" post-org-content)
-      :html-dest html-dest
-      :edited-date last-edited)))
+      :text org-file-content
+      :draft-p (not (s-blank-p (ht-get props "draft")))
+      :title (ht-get props "title" "(untitled)")
+      :rss-title (ht-get props "rss_title")
+      :subtitle (ht-get props "title_extra")
+      :type (llet [parent-dir (->> path f-parent f-base)]
+              (substring parent-dir 0 (1- (length parent-dir))))
+
+      :published-date (first
+                        (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
+                          (list (ht-get props "pubdate" "")
+                            (f-base path))))
+
+      :edited-date (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log --follow -1 --format=%%cI '%s'"
+                                                            ;; appease the shell.
+                                                            (s-replace "'" "'\\''" (f-dirname path))
+                                                            (s-replace "'" "'\\''" path)))))
+                     (when-not (s-blank-p git-query-result)
+                       (substring git-query-result 0 10)))
+      :url (format "https://notes.neeasade.net/%s.html" html-slug)
+      :html-dest (format "%s/%s.html" (ns/blog-path "published") html-slug))))
 
 (defun! ns/blog-publish-meta (org-meta)
   (let ((default-directory (ns/blog-path "published"))
@@ -204,6 +170,7 @@
          (org-html-html5-fancy t)
          (org-export-with-title nil)
          (org-export-with-smart-quotes t)
+         (org-use-sub-superscripts "{}")
          (org-html-doctype "html5")
 
          ;; affects timestamp export format
@@ -212,13 +179,27 @@
          (org-display-custom-times t)
 
          ;; don't ask about generation when exporting
-         (org-confirm-babel-evaluate (fn nil)))
+         (org-confirm-babel-evaluate (fn nil))
+         ;; caching
+         (css-markup (s-join "\n"
+                       (-map
+	                       (fn (let* ((file-path (ns/blog-path (format "published/assets/css/%s.css" <>)))
+		                                 (include-path (format "/assets/css/%s.css" <>))
+		                                 (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
+	                             (concat
+		                             (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
+		                             (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
+	                       '("colors" "new" "org" "notes")))))
 
     (with-temp-buffer
-      (llet ((&hash :path :html-dest :org-content) org-meta)
-        (message (format "BLOG: making %s " path))
+      (llet ((&hash :text :path :html-dest :org-content) org-meta)
+        (message "BLOG: making %s " path)
+
+        (insert
+          (ns/blog-render-org
+            (ht-merge org-meta
+              (-ht :csslinks css-markup))))
         (org-mode)
-        (insert org-content)
         (org-export-to-file 'html html-dest)))))
 
 ;; idea: auto refresh on save or on change might be nice
@@ -234,27 +215,47 @@
       (ns/shell-exec "qb_command :reload")
       (browse-url post-html-file))))
 
-(defun ns/blog-get-org (path)
-  "get org files in PATH relative to blog repo"
-  (f-entries (ns/blog-path path) (fn (s-ends-with-p ".org" <>))))
+(defun ns/blog-changed-files-metas ()
+  (llet [default-directory (ns/blog-path "published")
+          last-published-date (sh "git log -n 1 --format=%cd")
+          default-directory (ns/blog-path ".")
+          files-changed (sh (format "git diff --name-only --since=\"{%s}\" --until=now" last-published-date))]
+    (->> files-changed
+      (s-split "\n")
+      (-remove (-partial 's-starts-with-p "rss"))
+      (-map 'ns/blog-path)
+      (-filter (-partial #'s-ends-with-p ".org"))
+      ;; force indexes to be regenerated all the time
+      (append
+        (f-entries (ns/blog-path "pages")
+          (lambda (f) (s-starts-with-p "index_" (f-base f)))))
+      (-uniq)                          
+      (-map 'ns/blog-file-to-meta))))
+
+(setq ns/blog-metas nil)
+
+(defun ns/blog-get-metas ()
+  (when (not ns/blog-metas)
+    (setq ns/blog-metas
+      (->> '("posts" "pages" "notes")
+        (--mapcat
+          (f-entries (ns/blog-path it)
+            (-partial #'s-ends-with-p ".org")))
+        (-map 'ns/blog-file-to-meta))))
+  ns/blog-metas)
 
 (defun! ns/blog-generate ()
-  ;; cleanup
-  ;; (mapcar 'f-delete
-  ;;   (f-entries ns/blog-site-dir
-  ;;     (fn (s-ends-with-p ".html" <>))))
+  (setq ns/blog-metas nil)
 
   ;; need to define these here for index listings and rss:
-  (setq
-    org-post-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "posts"))
-    org-page-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "pages"))
-    org-note-metas (-map 'ns/blog-file-to-meta (ns/blog-get-org "notes")))
-
   (llet (;; don't ask about generation when exporting
           org-confirm-babel-evaluate (fn nil))
 
     (message "BLOG: making pages!")
-    (-map 'ns/blog-publish-meta (append org-post-metas org-page-metas org-note-metas))
+    (-map #'ns/blog-publish-meta
+      (ns/blog-changed-files-metas)
+      ;; (ns/blog-get-metas)
+      )
 
     (message "BLOG: making site rss!")
 
@@ -400,13 +401,4 @@
             (char (substring options index (+ index 1))))
       (format "%s %s %s" char char char))))
 
-(ns/comment
-  (measure-time
-    (progn
-      (-map 'ns/blog-file-to-meta (ns/blog-get-org "posts"))
-      nil
-      )
-
-
-    )
-  )
+(ns/comment)
