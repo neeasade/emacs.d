@@ -101,6 +101,11 @@
 ;; lisp stuff
 (ns/use lispy)
 
+(setq lispy-thread-last-macro "->>")
+
+;; allow "tn" pressing in lispy insert/special mode
+(define-key lispy-mode-map-special (kbd "t") nil)
+
 (lispy-set-key-theme '(;; these are all possible options
                         lispy
                         c-digits
