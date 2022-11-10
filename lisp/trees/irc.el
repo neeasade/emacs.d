@@ -578,8 +578,8 @@
   "Make chat pretty."
   (set-face-attribute 'circe-prompt-face nil :background nil)
 
-  (llet [highlight-fg (tarp/get :alt)
-          fade-fg (tarp/get :faded)]
+  (llet [highlight-fg (myron-get :alt)
+          fade-fg (myron-get :faded)]
 
     (defface circe-originator-fade-face
       `((t :foreground ,fade-fg))

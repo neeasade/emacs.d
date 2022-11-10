@@ -229,8 +229,12 @@
             (list
               ;; XXX these keys are used in dmenu_switcher
               :buffers-without-files
-              (-filter (lambda (b) (not (buffer-file-name b)))
-                (buffer-list))
+              (->> (buffer-list)
+                (--filter (not (buffer-file-name it)))
+                (-map 'buffer-name)
+                ;; there appear to be "special buffers" in the buffers-without-files set
+                ;; using this hack to get the "right" special buffers
+                (-intersection (internal-complete-buffer "" nil t)))
 
               :buffers-with-files
               ;; remove nils
@@ -246,16 +250,20 @@
 
               :recentf recentf-list))
 
-      (->> (or wants '(:recentf :project-files :buffers-with-files))
-        (-map (-partial #'plist-get sources))
-        (-flatten)
-        (-uniq)
+      (llet [selected (or wants '(:recentf :project-files :buffers-with-files))
+              results (->> selected
+                        (-map (-partial #'plist-get sources))
+                        (-flatten)
+                        (-uniq)
+                        (--filter
+                          ;; if a file is not remote, ensure it exists
+                          ;; (f-exists-p is slow on remote files)
+                          (or (file-remote-p it)
+                            (f-exists-p it))))]
 
-        ;; if a file is not remote, ensure it exists
-        (-filter
-          (lambda (f)
-            (if (file-remote-p f) t
-              (f-exists-p f)))))))
+        (if (-contains-p selected :buffers-without-files)
+          (append results (plist-get sources :buffers-without-files))
+          results))))
 
   (ns/bind
     "ne" (fn! (ivy-read "file: " (ns/jump-file-candidates)

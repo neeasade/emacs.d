@@ -3,7 +3,7 @@
 
 (setq-default indicate-empty-lines nil)
 
-(ns/use (tarps :host github :repo "neeasade/tarps"))
+(ns/use (myron-themes :host github :repo "neeasade/myron-themes"))
 
 ;; overriding to force truecolor terminal
 (defun base16-theme-transform-face (spec colors)
@@ -84,7 +84,7 @@
       (ht
         (:colors (apply 'vector (theme-magic--auto-extract-16-colors)))
         (:color
-          (ht-merge tarp/theme*
+          (ht-merge myron-theme*
             (ht (:cursor (first evil-insert-state-cursor)))))))))
 
 (defun default-font-width ()
@@ -134,19 +134,17 @@ will also be the width of all other printable characters."
   (load-theme
     (or theme
       (intern
-        (ivy-read "Load tarp theme: "
+        (ivy-read "Load theme: "
           ;; (mapcar 'symbol-name (custom-available-themes))
           (-filter
-            (fn (s-starts-with-p "tarp-" (pr-str <>)))
+            (fn (s-starts-with-p "myron-" (pr-str <>)))
             (custom-available-themes))
           :action 'identity)))
     t)
 
-  (setq ns/theme tarp/theme)
-
   (setq hl-todo-keyword-faces
-    `(("TODO" . ,(ht-get tarp/theme :foreground_))
-       ("todo" . ,(ht-get tarp/theme :foreground_))))
+    `(("TODO" . ,(myron-get :faded))
+       ("todo" . ,(myron-get :faded))))
 
   (fringe-mode 8)
   (setq window-divider-default-right-width (default-font-width))

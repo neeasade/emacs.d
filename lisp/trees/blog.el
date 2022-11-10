@@ -13,7 +13,7 @@
   ;; this is for weak emphasis in code blocks
   (llet [theme-colors (append
                         (tarp/map-to-base16 :weak)
-                        (ht-to-plist (ht-get tarp/theme* :weak)))]
+                        (ht-to-plist (ht-get myron-theme* :weak)))]
     (setq htmlize-face-overrides
       (->> (tarp/theme-make-faces theme-colors)
         (-mapcat
@@ -228,7 +228,7 @@
       ;; force indexes to be regenerated all the time
       (append
         (f-entries (ns/blog-path "pages")
-          (lambda (f) (s-starts-with-p "index_" (f-base f)))))
+          (lambda (f) (s-starts-with-p "index" (f-base f)))))
       (-uniq)                          
       (-map 'ns/blog-file-to-meta))))
 

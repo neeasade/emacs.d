@@ -35,7 +35,7 @@
     f-read
     (s-match-strings-all  "^(ns/defconfig [^ \(\)]+")
     (mapcar (fn (->> (car <>) (s-chop-prefix "(ns/defconfig ") (s-chomp))))
-    (append '("style" "dirt" "init" "forest"))))
+    (append '("dirt" "init" "forest"))))
 
 (defun! ns/check-for-orphans ()
   "Check to see if any defconfigs are missing from init."
@@ -88,8 +88,7 @@
       (global-company-mode)
       (global-flycheck-mode)
       (global-font-lock-mode)
-      (when (not ns/enable-windows-p)
-        (global-git-gutter-mode)))
+      (global-git-gutter-mode (if ns/enable-windows-p 0 t)))
 
     (progn
       (message "bloat-global: disabled")

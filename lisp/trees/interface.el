@@ -265,7 +265,11 @@
   "q" '(:ignore t :which-key "Query")
 
   ;; "b" '(:ignore t :which-key "Buffers")
-  ;; "bb" 'counsel-ibuffer
+
+  "bb" (fn! (ivy-read "file: "
+              (ns/jump-file-candidates :buffers-without-files)
+              :action 'counsel-switch-to-buffer-or-window))
+
   ;; "bd" 'ns/kill-current-buffer
   ;; "bK" 'ns/kill-other-buffers
   ;; "bk" 'kill-matching-buffers

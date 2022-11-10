@@ -317,21 +317,18 @@
                                                (time-to-seconds org-clock-out-time)
                                                10000))
                                           120)
-
               idle? (> (org-user-idle-seconds) 20)
-              ;; present, but not allocated
               wandering? (-all-p 'null (list idle? pomo-break? org-recently-clocked-out? (org-clocking-p)))]
         (when wandering?
           (alert! (format "Hey! you should be clocked into something. %s"
                     (if ns/enable-linux-p (random) ""))
             :severity 'normal
-            :title "BE INTENTIONAL")
-          ))))
-       
-;; cf "track time" @ https://pages.sachachua.com/.emacs.d/Sacha.html
-;;
+            :title "BE INTENTIONAL")))))
+
+;; don't prompt when idle more than x minutes -- we auto-clock out
 (setq org-clock-idle-time nil)
 
+;; todo: does this work?
 (defun! ns/org-clock-into-misc ()
   (llet [position (->> `(,org-default-notes-file "misc")
                     ns/org-find-olp
