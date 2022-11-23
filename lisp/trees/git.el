@@ -16,14 +16,11 @@
     diff-highlight-hunk-body nil
     diff-paint-whitespace nil
     diff-refine-hunk nil
-    refresh-status-buffer nil
-    )
+    refresh-status-buffer nil)
 
   ;; don't show diff when committing --
   ;; means reviewing will have to be purposeful before
-  (remove-hook 'server-switch-hook 'magit-commit-diff)
-  )
-
+  (remove-hook 'server-switch-hook 'magit-commit-diff))
 
 (when (not ns/enable-windows-p)
   (ns/use (magit-todos :host github :repo "alphapapa/magit-todos")

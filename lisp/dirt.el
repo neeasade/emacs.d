@@ -20,17 +20,17 @@
 
 (straight-use-package 'dash)
 (require 'dash)
+(straight-use-package 's)
+(require 's)
 
 (defmacro ns/use (pkg-def &rest body)
   (-let* ((pkg (-first-item (-list pkg-def)))
-           ;; note: if we use this, need s before defmacro
-           ;; (pkg-mode (intern (format "%s-mode" (s-chop-suffixes '("-mode") (prin1-to-string pkg)))))
-           )
+           (pkg-mode (intern (format "%s-mode" (s-chop-suffixes '("-mode") (prin1-to-string pkg))))))
     `(progn
        (message ": ns/use: %s..." ',pkg)
        (straight-use-package ',pkg-def)
        (require ',pkg nil t)
-       ;; (require ',pkg-mode nil t)
+       (require ',pkg-mode nil t)
        ,@body
        (message ": ns/use: %s... done." ',pkg))))
 
@@ -39,7 +39,6 @@
 
 ;; elisp enhancers
 (ns/use fn)      ; function
-(ns/use s)       ; string
 (ns/use f)       ; file
 (ns/use ht)      ; hash table
 (ns/use a)       ; assoc lists
@@ -64,6 +63,7 @@
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
+(defmacro comment (&rest body) nil)
 
 (defalias 'first 'car)
 (defalias 'second 'cadr)

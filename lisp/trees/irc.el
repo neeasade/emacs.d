@@ -38,13 +38,13 @@
     network-options
     `(
 
-       ("gnot"
-         :nick ,ns/irc-nick
-         :host "chat.gnot.club"
-         :port 6697
-         :tls t
-         :channels ("#gnot")
-         )
+       ;; ("gnot"
+       ;;   :nick ,ns/irc-nick
+       ;;   :host "chat.gnot.club"
+       ;;   :port 6697
+       ;;   :tls t
+       ;;   :channels ("#gnot")
+       ;;   )
 
        ("Libera"
          :nick ,ns/irc-nick
@@ -119,7 +119,9 @@
          :nickserv-identify-challenge ,(rx bol "This nickname is registered and protected.")
          :nickserv-identify-command "PRIVMSG NickServ :IDENTIFY {password}"
          :nickserv-identify-confirmation ,(rx bol "Password accepted - you are now recognized." eol)
-         ))))
+         )))
+
+  )
 
 ;; auto fill/trim left to 8 columns
 (defun ns/make-message (left body &optional left-face message-face)

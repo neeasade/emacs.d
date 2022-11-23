@@ -1,83 +1,53 @@
 ;; -*- lexical-binding: t; -*-
 
-(defmacro ns/make-char-table (name upper lower)
+(defun ns/make-char-table (name upper lower)
   "Make a char table for a certain kind of character"
-  `(defvar ,name
-     (let ((str (make-string 127 0)))
-       (dotimes (i 127)
-         (aset str i i))
-       (dotimes (i 26)
-         (aset str (+ i ?A) (+ i ,upper))
-         (aset str (+ i ?a) (+ i ,lower)))
-       str)))
+  (set name
+    (let ((str (make-string 127 0)))
+      (dotimes (i 127)
+        (aset str i i))
+      (dotimes (i 26)
+        (aset str (+ i ?A) (+ i upper))
+        (aset str (+ i ?a) (+ i lower)))
+      str)))
 
-(ns/make-char-table ns/monospace-table ?𝙰 ?𝚊)
-(ns/make-char-table ns/widechar-table ?Ａ ?ａ)
-(ns/make-char-table ns/gothic-table ?𝔄 ?𝔞)
-(ns/make-char-table ns/cursive-table ?𝓐 ?𝓪)
+(->> '((?𝙰 ?𝚊 monospace)
+        (?Ａ ?ａ widechar)
+        (?𝔄 ?𝔞 gothic)
+        (?𝓐 ?𝓪 cursive))
+  (-map
+    (-lambda ((upper lower label))
+      (llet [char-table-name (intern (format "ns/%s-char-table" label))
+              fn-name (intern (format "ns/text-to-%s" label))]
+        (ns/make-char-table char-table-name upper lower)
+        (eval
+          `(defun ,fn-name (beg end) (interactive "r")
+             (translate-region beg end ,char-table-name)))))))
 
-(defun ns/text-to-cursive (beg end) (interactive "r")
-  (translate-region beg end ns/cursive-table))
+;; needs a timer
+(defun ns/cleanup-shells ()
+  "Clean up shell-mode buffers that have no children"
+  (->> (ns/buffers-by-mode 'shell-mode)
+    (-filter
+      (lambda (b)
+        (llet [pid (process-id (get-buffer-process b))
+                children (sh (format "pgrep -P %s" pid))]
+          (s-blank? children))))
+    (-map 'kill-buffer)))
 
-(defun ns/text-to-monospace (beg end) (interactive "r")
-  (translate-region beg end ns/monospace-table))
+(named-timer-run :maybe-cleanup-shells
+  t
+  (* 60 60 24)
+  (lambda ()
+    )
+  )
 
-(defun ns/text-to-gothic (beg end) (interactive "r")
-  (translate-region beg end ns/gothic-table))
 
-(defun ns/text-to-widechar (beg end) (interactive "r")
-  (translate-region beg end ns/widechar-table))
 
-(defun ns/make-urlnote-funcs ()
-  (defun ns/urlnote-get-point (url)
-    (let ((url-plain
-            (when url
-              (if (s-contains-p "?" url)
-                (first (s-split "?" url)) url))))
-
-      (catch 'error
-        (condition-case msg
-          (marker-position
-            (org-find-olp
-              (if url-plain
-                (list org-default-notes-file "url notes" url-plain)
-                (list org-default-notes-file "url notes"))))
-          (error
-            ;; show what went wrong:
-            ;; (nth 1 msg)
-            nil)))))
-
-  (defun ns/urlnote-get-content (url)
-    (let ((url-point (ns/urlnote-get-point url)))
-      (when url-point
-        (with-current-buffer
-          (get-file-buffer org-default-notes-file)
-          (->> url-point org-ml-parse-subtree-at)))))
-
-  (defun ns/urlnote-jump (url)
-    (let ((url-point (ns/urlnote-get-point url)))
-      (when url-point
-        (find-file org-default-notes-file)
-        (goto-char (ns/urlnote-get-point url)))))
-
-  (defun ns/urlnote-make-and-jump (url)
-    (find-file org-default-notes-file)
-    (goto-char (ns/urlnote-get-point nil))
-    (next-line)
-    ;; (org-insert-subheading nil)
-    ;; (org-insert-heading-after-current)
-    (if (s-contains-p "?" url)
-      (first (s-split "?" url)) url)
-    (insert url)
-    (org-do-demote)
-    (newline)))
-
-(ns/bind "nt" (fn!
-               (find-file (executable-find "theme"))
-               (goto-line 0)
-               (re-search-forward
-                (if ns/enable-work-p "work-theme" "home-theme"))
-               (recenter)))
+(ns/bind "nt" (fn! (find-file (executable-find "theme"))
+                (goto-line 0)
+                (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
+                (recenter)))
 
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs
@@ -131,11 +101,10 @@
 ;; jump to url in current window text:
 (defun! ns/ivy-url-jump ()
   (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
-          (urls (s-match-strings-all rcirc-url-regexp window-text)))
+          (urls (s-match-strings-all rcirc-url-regexp window-text))
+          (urls (-map 'car urls)))
     (if urls
-      (ivy-read "url: "
-        (->> urls (-map 'car))
-        :action 'browse-url)
+      (ivy-read "url: " urls :action 'browse-url)
       (message "no urls!"))))
 
 (ns/bind "nu" 'ns/ivy-url-jump)
@@ -143,7 +112,6 @@
 (ns/use adoc-mode
   (ns/file-mode "adoc" 'adoc-mode)
   (ns/file-mode "asciidoc" 'adoc-mode))
-
 (ns/use ox-asciidoc)
 
 (when ns/enable-mac-p
@@ -159,13 +127,12 @@
        (t . emacs))))
 
 (ns/use yaml-mode)
+
 (ns/use org-ql)
 
 ;; (let ((org-super-agenda-groups
 ;;         '((:auto-group t))))
 ;;   (org-agenda-list))
-
-;; (ns/use 4clojure)
 
 (ns/use ag)
 
@@ -189,15 +156,16 @@
 
 ;; move to style?
 (defun ns/make-border-color (c)
-  (--> (tarp/get c)
+  "pass in myron theme label to get a border-style version of it"
+  (--> (myron-get c)
     (ct-iterate it 'ct-pastel
       (lambda (c)
         (> (ct-distance it c) 20)))
     (ct-iterate it 'ct-edit-lab-l-inc
       (lambda (c) (ct-is-light-p c 75)))))
 
-;; somehow initialize is broken here at the moment
 (when ns/enable-work-p
+  ;; somehow initialize is broken in macos at the moment
   (setq exec-path
     (->> (exec-path-from-shell-initialize)
       (second)
@@ -253,8 +221,6 @@
 ;; clean-buffer-list-kill-never-regexps
 
 (ns/comment
-
-
   (defun ns/within (value tolerance anchor)
     "return if a value is within a tolerance"
     (>= (+ anchor tolerance)
@@ -288,6 +254,7 @@
 ;; make timestamp processing functions aware of this
 ;; (setq org-use-effective-time nil)
 
+;; todo: I'm not sure why we set this
 (setq org-duration-format
   (quote h:mm))
 
@@ -302,10 +269,75 @@
   (re-search-forward search-term)
   (backward-char (count search-term)))
 
-(ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
+;; (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
 
 ;; ugh
 (setq mac-control-modifier 'super mac-command-modifier 'control)
+
+
+(defun! ns/toggle-modeline ()
+  "toggle the modeline in the current buffer"
+  (make-local-variable 'ns/modeline)
+  (if mode-line-format
+    (progn
+      (setq ns/modeline mode-line-format)
+      (setq mode-line-format nil))
+    (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
+  (redraw-frame))
+
+(ns/bind "tm" 'ns/toggle-modeline)
+
+
+
+(comment
+  (named-timer-run :test-myself
+    t 100
+    (lambda ()
+      (alert! "wow"))))
+
+(defun ns/make-urlnote-funcs ()
+  (defun ns/urlnote-get-point (url)
+    (let ((url-plain
+            (when url
+              (if (s-contains-p "?" url)
+                (first (s-split "?" url)) url))))
+
+      (catch 'error
+        (condition-case msg
+          (marker-position
+            (org-find-olp
+              (if url-plain
+                (list org-default-notes-file "url notes" url-plain)
+                (list org-default-notes-file "url notes"))))
+          (error
+            ;; show what went wrong:
+            ;; (nth 1 msg)
+            nil)))))
+
+  (defun ns/urlnote-get-content (url)
+    (let ((url-point (ns/urlnote-get-point url)))
+      (when url-point
+        (with-current-buffer
+          (get-file-buffer org-default-notes-file)
+          (->> url-point org-ml-parse-subtree-at)))))
+
+  (defun ns/urlnote-jump (url)
+    (let ((url-point (ns/urlnote-get-point url)))
+      (when url-point
+        (find-file org-default-notes-file)
+        (goto-char (ns/urlnote-get-point url)))))
+
+  (defun ns/urlnote-make-and-jump (url)
+    (find-file org-default-notes-file)
+    (goto-char (ns/urlnote-get-point nil))
+    (next-line)
+    ;; (org-insert-subheading nil)
+    ;; (org-insert-heading-after-current)
+    (if (s-contains-p "?" url)
+      (first (s-split "?" url)) url)
+    (insert url)
+    (org-do-demote)
+    (newline)))
 
 
 (provide 'staging)

@@ -21,7 +21,7 @@
   ;; for when we're away from $HOME.
   ns/xrdb-fallback-values
   `(("panel.height" . "24")
-     ("emacs.theme" . "tarp-mcfay")
+     ("emacs.theme" . "myron-mcfay")
      ("font.mono.spec" .
        ,(when (stringp (face-attribute 'default :font))
           (font-get (face-attribute 'default :font) :name)))
@@ -105,7 +105,7 @@
        (irc ns/enable-home-p)
 
        ;; keep after $langs on purpose
-       lsp
+       ;; lsp
        )))
 
 (if (getenv "NS_EMACS_BATCH")
@@ -124,6 +124,7 @@
   (ns/conf-staging)
   (ns/check-for-orphans)
   (ns/conf-style)
+  (message "::: done! 🔥🔥🔥")
 
   (defun! ns/initial-startup-hook ()
     (when (not (boundp 'ns/after-init-hook))

@@ -13,6 +13,28 @@
                 (* 60 60 5))
           (ns/org-clock-out)))))
 
+(ns/comment
+  (ns/get-notes-nodes-fn
+    (lambda (heading)
+      (-when-let (scheduled (ns/headline-date heading))
+        (ts-in
+          (ts-adjust 'hour -2 (ts-now))
+          (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
+          (ts-parse-org scheduled)))))
+
+  (defun ns/get-notes-nodes-fn (fn)
+    (ns/get-notes-nodes
+      '(lambda (heading)
+         (-when-let (scheduled (ns/headline-date heading))
+           (ts-in
+             (ts-adjust 'hour -2 (ts-now))
+             (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
+             (ts-parse-org scheduled))))
+      )
+
+    )
+  )
+
 (defun ns/get-notes-nodes (&rest filters)
   "Retrieve headline nodes from notes file for read-only operations."
   (llet [all-nodes (ns/with-notes (org-ml-parse-headlines 'all))]

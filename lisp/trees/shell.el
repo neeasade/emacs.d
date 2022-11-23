@@ -167,7 +167,10 @@
                   (current-buffer)))
             (process-list))))))
 
-  (when terminal (ns/toggle-modeline))
+  (and terminal
+    (fboundp 'ns/toggle-modeline)
+    (ns/toggle-modeline))
+
   (when cwd (shell-pop--cd-to-cwd-shell cwd))
 
   ;; we don't care about how long it takes to stage the terminal

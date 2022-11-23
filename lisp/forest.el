@@ -234,6 +234,7 @@
                 (-map 'buffer-name)
                 ;; there appear to be "special buffers" in the buffers-without-files set
                 ;; using this hack to get the "right" special buffers
+                ;; (derived from the completion used for evil's :b)
                 (-intersection (internal-complete-buffer "" nil t)))
 
               :buffers-with-files
@@ -390,6 +391,7 @@
 
 (ns/defconfig lsp
   (ns/use lsp-mode)
+
   (ns/use lsp-ui)
 
   (defun ns/lsp-cleanup ()
@@ -534,7 +536,9 @@
                (fn (list (nth <> args)
                      (nth <> ns-args)))
                (number-sequence 0 (- (length args) 1))))
-       ,@content)))
+       ,@content))
+
+  )
 
 (ns/defconfig go
   (ns/use go-mode))

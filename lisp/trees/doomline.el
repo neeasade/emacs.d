@@ -11,26 +11,26 @@
   "sep" :group 'doom-modeline-faces)
 
 (set-face-attribute 'mode-line nil
-  :background (tarp/get :background :weak))
+  :background (myron-get :background :weak))
 
 (set-face-attribute 'mode-line nil
-  :foreground (tarp/get :foreground))
+  :foreground (myron-get :foreground))
 
 (set-face-attribute 'mode-line nil
-  :foreground (tarp/get :foreground :weak))
+  :foreground (myron-get :foreground :weak))
 
 (set-face-attribute 'ns/mode-line-middle nil :background
-  (tarp/get :background :strong))
+  (myron-get :background :strong))
 
 ;; (face-attribute 'mode-line :foreground)
-(set-face-attribute 'doom-modeline-buffer-file nil :foreground (ht-get ns/theme :foreground))
-(set-face-attribute 'doom-modeline-buffer-modified nil :foreground (ht-get ns/theme :foreground))
+(set-face-attribute 'doom-modeline-buffer-file nil :foreground (myron-get :foreground))
+(set-face-attribute 'doom-modeline-buffer-modified nil :foreground (myron-get :foreground))
 
 (set-face-attribute 'ns/mode-line-sep nil :background
-  (tarp/get :background :strong))
+  (myron-get :background :strong))
 
 (set-face-attribute 'mode-line-inactive nil :background
-  (tarp/get :background :weak))
+  (myron-get :background :weak))
 
 (set-face-attribute 'mode-line nil :height 100)
 (set-face-attribute 'mode-line-inactive nil :height 100)
@@ -222,18 +222,6 @@ Example:
 
 ;; refesh all mode lines based on the value of the modeline in the current buffer
 (ns/bind "tM" (fn! (ns/refresh-all-modeline (not mode-line-format))))
-
-(defun! ns/toggle-modeline ()
-  "toggle the modeline in the current buffer"
-  (make-local-variable 'ns/modeline)
-  (if mode-line-format
-    (progn
-      (setq ns/modeline mode-line-format)
-      (setq mode-line-format nil))
-    (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
-  (redraw-frame))
-
-(ns/bind "tm" 'ns/toggle-modeline)
 
 (ns/refresh-all-modeline t)
 (ns/frame-set-parameter 'bottom-divider-width 0)

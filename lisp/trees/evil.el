@@ -45,8 +45,7 @@
 
   (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
 
-  (evil-collection-init)
-  (global-evil-collection-unimpaired-mode 0))
+  (evil-collection-init))
 
 (defun ns/zz-scroll (&rest _)
   (when (not (-contains-p '(circe-channel-mode circe-query-mode) major-mode))
