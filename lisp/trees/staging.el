@@ -27,23 +27,26 @@
 ;; needs a timer
 (defun ns/cleanup-shells ()
   "Clean up shell-mode buffers that have no children"
+  (interactive)
   (->> (ns/buffers-by-mode 'shell-mode)
     (-filter
       (lambda (b)
         (llet [pid (process-id (get-buffer-process b))
-                children (sh (format "pgrep -P %s" pid))]
-          (s-blank? children))))
+                children (sh (format "pgrep -P %s" pid))
+                visible? (get-buffer-window "*Messages*")]
+          (and visible?
+            (s-blank? children)))))
     (-map 'kill-buffer)))
 
 (named-timer-run :maybe-cleanup-shells
-  t
+  t                                     ; do not run initially
+  ;; once a day I suppose?
   (* 60 60 24)
-  (lambda ()
-    )
-  )
+  (fn (when (> (org-user-idle-seconds)
+              (* 5 60))
+        (ns/cleanup-shells))))
 
-
-
+;; (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
 (ns/bind "nt" (fn! (find-file (executable-find "theme"))
                 (goto-line 0)
                 (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
@@ -269,8 +272,6 @@
   (re-search-forward search-term)
   (backward-char (count search-term)))
 
-;; (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
-
 ;; ugh
 (setq mac-control-modifier 'super mac-command-modifier 'control)
 
@@ -338,6 +339,21 @@
     (insert url)
     (org-do-demote)
     (newline)))
+
+(defun ns/org-headline-to-progress (headline)
+  "Convert headline completion to percentage"
+  (-when-let (status (-some->> headline
+                       (org-ml-headline-get-path)
+                       (-last-item)
+                       (s-match (rx "["
+                                  (group (+ digit)) "/"
+                                  (group (+ digit))
+                                  "]" eol))))
+    ;; now we have EG ("[0/1]" "0" "1")
+    (llet [(_ progress total) status
+            (progress total) (-map (-compose 'float 'string-to-number)
+                               (list progress total))]
+      (floor (* 100 (/ progress total))))))
 
 
 (provide 'staging)
