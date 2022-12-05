@@ -78,9 +78,12 @@
 (defun! ns/windowshot ()
   "get a string that is the currently displayed text in emacs window"
   (with-current-buffer (window-buffer)
-    (let ((result (s-clean (buffer-substring (window-start) (window-end)))))
-      (if (eq major-mode 'shell-mode)
-        (substring result 0 (- (length result) (length "shellshot") 1))
+    (let ((result (-> (buffer-substring (window-start) (window-end))
+                    (s-clean)
+                    (s-trim))))
+      (if (and (eq major-mode 'shell-mode)
+            (s-ends-with-p "shellshot" result))
+        (s-chop-suffix "shellshot" result)
         result))))
 
 ;; cf http://trey-jackson.blogspot.com/2008/08/emacs-tip-25-shell-dirtrack-by-prompt.html

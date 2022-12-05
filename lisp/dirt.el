@@ -24,17 +24,27 @@
 (require 's)
 
 (defmacro ns/use (pkg-def &rest body)
+  "Load a PKG-DEF with straight, require it, and then eval BODY."
   (-let* ((pkg (-first-item (-list pkg-def)))
-           (pkg-mode (intern (format "%s-mode" (s-chop-suffixes '("-mode") (prin1-to-string pkg))))))
-    `(progn
+           (pkg-mode (intern (format "%s-mode" (s-chop-suffix "-mode" (prin1-to-string pkg))))))
+    `(let ((ns-use-time (current-time)))
        (message ": ns/use: %s..." ',pkg)
        (straight-use-package ',pkg-def)
        (require ',pkg nil t)
        (require ',pkg-mode nil t)
        ,@body
-       (message ": ns/use: %s... done." ',pkg))))
+       (message ": ns/use: %s... done ." ',pkg)
+       ;; (message ": ns/use: %s... done (%.02fs)." ',pkg
+       ;;   (float-time (time-since ns-use-time)))
+       )))
 
-;; load org early so that requires use the correct package
+(defmacro ns/use-all (&rest pkg-defs)
+  "Load a PKG-DEF with straight, require it, and then eval BODY."
+  `(progn
+     ,@(-map (lambda (p) `(ns/use ,p))
+         pkg-defs)))
+
+;; load org early so that require's use the correct package
 (ns/use org)
 
 ;; elisp enhancers
@@ -52,12 +62,16 @@
 (ns/use hydra)
 (ns/use general (general-override-mode t))
 
+
 (ns/use request)
 (ns/use shut-up)
+
+(ns/use man)
+
 (require 'seq)
 (require 'cl-macs)
 (require 'cl-seq)
-(require 'man)
+(unload-feature 'man t)
 
 (ns/use named-timer  (require 'named-timer))
 
@@ -105,21 +119,42 @@
 
 ;; todo: consider conflict management/at the time of binding yell about the takeover
 
-;; binding wrappers
-(defmacro ns/bind (&rest binds)
-  `(general-define-key
-     :states '(normal visual)
-     ;; note: 'override means we squash anyone with overlapping keybinds
-     :keymaps 'override
-     :prefix "SPC"
-     ,@binds))
+(defun ns/general-definition (binding &optional keymap)
+  (llet [keymap (or keymap 'general-override-mode-map)]
+    (->> general-keybindings
+      (-first (-lambda ((keymap_ &rest bindings))
+                (eq keymap_ keymap)))
+      (-drop 1)
+      ;; assume normal mode
+      (-first (-lambda ((mode &rest bindings))
+                (eq mode 'normal)))
+      (-drop 1)
+      (-first (-lambda ((binding_ action))
+                (string= binding_ binding))))))
 
-(defmacro ns/bind-soft (&rest binds)
+(defun ns/bind (&rest binds)
+  (ns/comment
+    (->> binds
+      (-partition 2)
+      (-map 'first)
+      (-map (lambda (bind)
+              (when (ns/general-definition (concat " " bind))
+                (message "ns/bind: already bound: %s" bind))))))
+
+
+  (apply 'general-define-key
+    :states '(normal visual)
+    ;; note: 'override means we squash anyone with overlapping keybinds
+    :keymaps 'override
+    :prefix "SPC"
+    binds))
+
+(defun ns/bind-soft (&rest binds)
   "a version of ns/bind that will not be present via an override mode"
-  `(general-define-key
-     :states '(normal visual)
-     :prefix "SPC"
-     ,@binds))
+  (apply 'general-define-key
+    :states '(normal visual)
+    :prefix "SPC"
+    binds))
 
 (defun ns/bind-mode (mode &rest binds)
   ;; unbind anything that might be bound in ~mode~ already

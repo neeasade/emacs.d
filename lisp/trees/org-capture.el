@@ -18,46 +18,6 @@
 
 (add-hook 'org-capture-after-finalize-hook 'my-org-capture-cleanup)
 
-(defun ns/org-olp-marker (olp &optional unique)
-  ;; cf https://old.reddit.com/r/emacs/comments/ixjcau/weekly_tipstricketc_thread/g72kvae/?context=3
-  "Return a marker pointing to outline path OLP in current buffer.
-Return nil if not found.  If UNIQUE, display a warning if OLP
-points to multiple headings.
-
-This works like `org-find-olp', but much faster."
-  ;; Copied from `org-recent-headings--olp-marker'.
-  ;; `org-find-olp' provides the same results, but this function is about 3x faster.
-  ;; The solution to the problem--of finding OLPs containing headings with links--was
-  ;; returning raw heading text in `org-recent-headings--current-entry' rather than the
-  ;; de-linked strings returned by `org-get-outline-path'.  But while exploring that
-  ;; problem, I wrote this function, and since it's faster, we might as well use it.
-  ;; NOTE: Disabling `case-fold-search' is important to avoid voluntary hair loss.
-  (let ((case-fold-search nil))
-    (cl-labels ((find-at (level headings)
-                  ;; Could use `org-complex-heading-regexp-format', but this is actually much faster.
-                  (let ((re (rx-to-string `(seq bol (repeat ,level "*") (1+ blank)
-                                             (optional (1+ upper) (1+ blank)) ; To-do keyword
-                                             (optional "[#" (in "ABC") "]" (1+ blank)) ; Priority
-                                             ,(car headings) (0+ blank) (or eol ":")))))
-                    (when (re-search-forward re nil t)
-                      (when (and unique (save-excursion
-                                          (save-restriction
-                                            (when (re-search-forward re nil t)
-                                              (if (cdr headings)
-                                                (find-at (1+ level) (cdr headings))
-                                                t)))))
-                        (display-warning 'org-recent-headings
-                          (format "Multiple headings found in %S for outline path: %S" (current-buffer) olp)
-                          :warning))
-                      (if (cdr headings)
-                        (progn
-                          (org-narrow-to-subtree)
-                          (find-at (1+ level) (cdr headings)))
-                        (copy-marker (point-at-bol)))))))
-      (org-with-wide-buffer
-        (goto-char (point-min))
-        (find-at 1 olp)))))
-
 (defun ns/org-find-olp (&rest args)
   "a soft version of org-find-olp which doesn't throw"
   (condition-case msg

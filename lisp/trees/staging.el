@@ -46,8 +46,9 @@
               (* 5 60))
         (ns/cleanup-shells))))
 
-;; (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
-(ns/bind "nt" (fn! (find-file (executable-find "theme"))
+(ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
+
+(ns/bind "nk" (fn! (find-file (executable-find "theme"))
                 (goto-line 0)
                 (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
                 (recenter)))

@@ -110,7 +110,6 @@
     )
 
   (ns/use company-quickhelp
-    :init
     (company-quickhelp-mode 1)
     (setq company-quickhelp-delay 0.3)))
 
@@ -439,7 +438,6 @@
 
 (ns/defconfig emoji
   (ns/use emojify
-    :init
     (setq emojify-emoji-styles '(unicode)) ; only real emoji here thanks
 
     ;; emojify-mode seems to mess with input, causing a character to

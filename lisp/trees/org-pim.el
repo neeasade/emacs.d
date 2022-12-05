@@ -13,37 +13,17 @@
                 (* 60 60 5))
           (ns/org-clock-out)))))
 
-(ns/comment
-  (ns/get-notes-nodes-fn
-    (lambda (heading)
-      (-when-let (scheduled (ns/headline-date heading))
-        (ts-in
-          (ts-adjust 'hour -2 (ts-now))
-          (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
-          (ts-parse-org scheduled)))))
-
-  (defun ns/get-notes-nodes-fn (fn)
-    (ns/get-notes-nodes
-      '(lambda (heading)
-         (-when-let (scheduled (ns/headline-date heading))
-           (ts-in
-             (ts-adjust 'hour -2 (ts-now))
-             (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
-             (ts-parse-org scheduled))))
-      )
-
-    )
-  )
-
 (defun ns/get-notes-nodes (&rest filters)
-  "Retrieve headline nodes from notes file for read-only operations."
+  "Retrieve headline nodes from notes file for read-only operations. Can be called with symbols or quoted lambdas to filter results."
   (llet [all-nodes (ns/with-notes (org-ml-parse-headlines 'all))]
-    (if-not filters
-      all-nodes
-      (org-ml-match `((:or ,@(-map (lambda (f)
-                                     `(:pred ,f))
-                               filters)))
-        all-nodes))))
+    (cond
+      ((not filters) all-nodes)
+      ((-any-p (-not 'symbolp) filters)
+        (error (message "called ns/get-notes-nodes with non-symbol filter")))
+      (t (org-ml-match `((:or ,@(-map (lambda (f)
+                                        `(:pred ,f))
+                                  filters)))
+           all-nodes)))))
 
 (defun ns/org-scheduled-today (heading)
   "Get headings scheduled from <now - 2hrs> --> end of day"
@@ -347,14 +327,21 @@
             :severity 'normal
             :title "BE INTENTIONAL")))))
 
+(named-timer-cancel :harass-myself)
+
+
 ;; don't prompt when idle more than x minutes -- we auto-clock out
 (setq org-clock-idle-time nil)
 
-;; todo: does this work?
-(defun! ns/org-clock-into-misc ()
-  (llet [position (->> `(,org-default-notes-file "misc")
-                    ns/org-find-olp
-                    marker-position)]
-    (ns/with-notes
-      (goto-char position)
-      (ns/org-clock-in))))
+(defun! ns/org-clock-into (&rest path)
+  "Clock into a heading in the notes file. defaults to clock->misc"
+  (interactive)
+  (llet [headline-path (or path '("clock" "misc"))
+          position (->> `(,org-default-notes-file ,@headline-path)
+                     ns/org-find-olp
+                     marker-position)]
+    (if-not position
+      (message "ns/org-clock-into: headline path not found: %s" path)
+      (ns/with-notes
+        (goto-char position)
+        (ns/org-clock-in)))))

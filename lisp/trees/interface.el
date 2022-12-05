@@ -2,7 +2,6 @@
 (global-set-key (kbd "C-e") 'previous-line)
 
 (ns/use ivy
-
   (setq-ns ivy
     re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
                          (t . ivy--regex-fuzzy))
@@ -26,10 +25,12 @@
 
   (prescient-persist-mode))
 
+(defun ns/pick (prompt candidates)
+  (ivy-read prompt candidates))
+
 ;; counsel
 (ns/use counsel
   (ns/use rg)
-
   (when (executable-find "rg")
     (setq-ns counsel
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
@@ -269,6 +270,12 @@
   "bb" (fn! (ivy-read "file: "
               (ns/jump-file-candidates :buffers-without-files)
               :action 'counsel-switch-to-buffer-or-window))
+
+  ;;  todo: buffers by mode
+  ;; "bm"
+  ;; (fn! (ivy-read "file: " (ns/jump-file-candidates :buffers-without-files) :action 'counsel-switch-to-buffer-or-window))
+
+
 
   ;; "bd" 'ns/kill-current-buffer
   ;; "bK" 'ns/kill-other-buffers

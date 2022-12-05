@@ -31,7 +31,7 @@
       (s-replace-all replace-map)
       (s-replace-all replace-map))))
 
-(ns/bind-soft
+(ns/bind
   ;; todo: jump by site title
   "nq" (fn!
          (ivy-read "post: "

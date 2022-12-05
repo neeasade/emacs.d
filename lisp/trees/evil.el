@@ -13,8 +13,8 @@
 
 (ns/use evil
   ;; evil-collection
-  :init (setq evil-want-integration t)
-   (evil-mode 1)
+  (setq evil-want-integration t)
+  (evil-mode 1)
   (general-nmap "N" 'evil-join))
 
 ;; disable: some of the binds get in the way of our colemak remappings.
