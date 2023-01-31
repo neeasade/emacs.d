@@ -39,7 +39,6 @@
        )))
 
 (defmacro ns/use-all (&rest pkg-defs)
-  "Load a PKG-DEF with straight, require it, and then eval BODY."
   `(progn
      ,@(-map (lambda (p) `(ns/use ,p))
          pkg-defs)))
@@ -56,7 +55,7 @@
 (ns/use ts)      ; timestamps
 (ns/use pcre2el) ; sane regex
 (ns/use memoize) ; caching
-(ns/use plz)     ; curl-backed request interface
+;; (ns/use plz)     ; curl-backed request interface (nice in theory, unused in practice)
 
 ;; other/emacs enhancers
 (ns/use hydra)

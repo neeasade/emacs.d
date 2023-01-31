@@ -1,5 +1,4 @@
 ;; PIM = personal information management
-
 (named-timer-run :auto-clock-out
   "30 sec"
   60

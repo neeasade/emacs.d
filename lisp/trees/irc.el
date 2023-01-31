@@ -622,11 +622,7 @@
 
 (defun circe-command-NP (&optional _)
   (interactive "sAction: ")
-  (circe-command-ME (concat "is now playing " (ns/shell-exec "music info | head -n 1")))
-  )
-
-
-
+  (circe-command-ME (format "is now playing '%s'" (sh "music name_from_pos"))))
 
 (defun circe-command-SHRUG (content)
   (circe-command-SAY (concat content " ¯\\_(ツ)_/¯")))

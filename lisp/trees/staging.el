@@ -24,7 +24,6 @@
           `(defun ,fn-name (beg end) (interactive "r")
              (translate-region beg end ,char-table-name)))))))
 
-;; needs a timer
 (defun ns/cleanup-shells ()
   "Clean up shell-mode buffers that have no children"
   (interactive)
@@ -33,9 +32,9 @@
       (lambda (b)
         (llet [pid (process-id (get-buffer-process b))
                 children (sh (format "pgrep -P %s" pid))
-                visible? (get-buffer-window "*Messages*")]
-          (and visible?
-            (s-blank? children)))))
+                visible? (get-buffer-window b)]
+          (and (s-blank? children)
+            (not visible?)))))
     (-map 'kill-buffer)))
 
 (named-timer-run :maybe-cleanup-shells
@@ -113,9 +112,11 @@
 
 (ns/bind "nu" 'ns/ivy-url-jump)
 
-(ns/use adoc-mode
-  (ns/file-mode "adoc" 'adoc-mode)
-  (ns/file-mode "asciidoc" 'adoc-mode))
+(ns/comment
+  (ns/use adoc-mode
+    (ns/file-mode "adoc" 'adoc-mode)
+    (ns/file-mode "asciidoc" 'adoc-mode)))
+
 (ns/use ox-asciidoc)
 
 (when ns/enable-mac-p
@@ -263,9 +264,7 @@
   (quote h:mm))
 
 (defun! ns/babashka-default-connect ()
-  (cider-connect-clj
-    '(:host "localhost"
-       :port 1667)))
+  (cider-connect-clj '(:host "localhost" :port 1667)))
 
 (defun ns/re-search-forward (search-term)
   "A version of re-search-forward that sets point to the beginning of the match, not the end"
@@ -288,14 +287,6 @@
   (redraw-frame))
 
 (ns/bind "tm" 'ns/toggle-modeline)
-
-
-
-(comment
-  (named-timer-run :test-myself
-    t 100
-    (lambda ()
-      (alert! "wow"))))
 
 (defun ns/make-urlnote-funcs ()
   (defun ns/urlnote-get-point (url)

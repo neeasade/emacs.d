@@ -180,7 +180,9 @@
       (require 'flycheck-clj-kondo))))
 
 (ns/defconfig nix
-  (ns/use nix-mode))
+  ;; broken
+  ;; (ns/use nix-mode)
+  )
 
 (ns/defconfig music
   (ns/use emms)
@@ -231,6 +233,7 @@
               (->> (buffer-list)
                 (--filter (not (buffer-file-name it)))
                 (-map 'buffer-name)
+                (-remove (-partial 's-starts-with-p "*spawn-shell-"))
                 ;; there appear to be "special buffers" in the buffers-without-files set
                 ;; using this hack to get the "right" special buffers
                 ;; (derived from the completion used for evil's :b)

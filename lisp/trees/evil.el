@@ -49,14 +49,8 @@
 
 (defun ns/zz-scroll (&rest _)
   (when (not (-contains-p '(circe-channel-mode circe-query-mode) major-mode))
-    (let* ((scrollcount (/ (window-total-size) 7))
-            (halfheight (/ (window-total-size) 2))
-            (scrollcheck (- halfheight scrollcount)))
-      (when (> (line-number-at-pos) scrollcheck)
-        ;; this is sometimes broken? always scrolling
-        ;; (evil-scroll-line-down scrollcount)
-        nil
-        ))))
+    ;; lift the gaze a little
+    (scroll-up 6)))
 
 (advice-add #'recenter :after #'ns/zz-scroll)
 
@@ -239,13 +233,13 @@
 
   (add-hook 'better-jumper-post-jump-hook 'recenter))
 
-;; (ns/use undo-tree
-;;   
-;;   (require 'undo-tree)
-;;   (global-undo-tree-mode)
-;;   (evil-set-undo-system 'undo-tree))
+(ns/use undo-tree
+
+  (require 'undo-tree)
+  (global-undo-tree-mode)
+  (evil-set-undo-system 'undo-tree))
 
 ;; undo-tree seems to have a weird garbage collection thing going on
 ;; freezes emacs
-(ns/use undo-fu)
-(evil-set-undo-system 'undo-fu)
+(ns/use undo-fu
+		(evil-set-undo-system 'undo-fu))

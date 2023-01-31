@@ -52,18 +52,18 @@
           (mouse-face 'mode-line-highlight)
           (local-map mode-line-column-line-number-mode-map))
     (concat
-      (doom-modeline-spc)
+      doom-modeline-spc
       (propertize (format-mode-line lc)
         'face face
         'help-echo "Buffer position - mouse-1: Display Line and Column Mode Menu"
         'mouse-face mouse-face
         'local-map local-map)
-      (doom-modeline-spc))))
+      doom-modeline-spc)))
 
 (doom-modeline-def-segment buffer-info-neeasade
   (concat
-    (doom-modeline-spc)
-    (doom-modeline-spc)
+    doom-modeline-spc
+    doom-modeline-spc
     (doom-modeline--buffer-name)
     ;; (doom-modeline--buffer-file-name)
     (doom-modeline--buffer-state-icon)))
@@ -97,13 +97,13 @@
   (when (doom-modeline--active)
     (propertize
       (concat
-        (doom-modeline-spc)
+        doom-modeline-spc
 
         (format "[%s:%s]"
           (or (s-left 8 (ns/prev-buffer-name)) "<None>")
           (or (s-left 8 (ns/next-buffer-name)) "<None>"))
 
-        (doom-modeline-spc)
+        doom-modeline-spc
         )
       'face 'mode-line
       )))
