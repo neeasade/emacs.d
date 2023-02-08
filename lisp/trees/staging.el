@@ -347,7 +347,10 @@
                                (list progress total))]
       (floor (* 100 (/ progress total))))))
 
+(ns/conf-style)
 (load-file (~e "straight/repos/myron-themes/myron.el"))
+
+(setq undo-tree-enable-undo-in-region t)
 
 (ns/bind "iq" (fn! (sh "qb_userscript paste_selected")))
 
