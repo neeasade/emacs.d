@@ -347,6 +347,9 @@
                                (list progress total))]
       (floor (* 100 (/ progress total))))))
 
+(load-file (~e "straight/repos/myron-themes/myron.el"))
+
+(ns/bind "iq" (fn! (sh "qb_userscript paste_selected")))
 
 (provide 'staging)
 ;;; staging.el ends here

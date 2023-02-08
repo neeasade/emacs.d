@@ -48,9 +48,12 @@
   (evil-collection-init))
 
 (defun ns/zz-scroll (&rest _)
-  (when (not (-contains-p '(circe-channel-mode circe-query-mode) major-mode))
+  (when (not (-contains-p '(circe-channel-mode circe-query-mode shell-mode) major-mode))
     ;; lift the gaze a little
-    (scroll-up 6)))
+    ;; ignore the error if we can't scroll
+    (condition-case nil
+      (scroll-up 6)
+      (error nil))))
 
 (advice-add #'recenter :after #'ns/zz-scroll)
 
@@ -214,22 +217,19 @@
 ;; (evil-ex-define-cmd "b" nil)
 
 (ns/use better-jumper
-  ;; (with-eval-after-load 'evil-maps
-  ;;   (define-key evil-motion-state-map (kbd "C-o") 'evil-jump-backward)
-  ;;   (define-key evil-motion-state-map (kbd "<C-i>") 'evil-jump-forward))
-
   (with-eval-after-load 'evil-maps
     (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
     (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))
 
   (setq-ns better-jumper
-    context 'buffer ;; buffer or window
-    new-window-behavior 'copy ;; copy or empty - new window context
-    use-evil-jump-advice t ;; any evil jumps from elsewhere will be synced
-    use-savehist nil ;; save when using 'buffer context
+    context 'buffer           ; buffer or window
+    new-window-behavior 'copy ; copy or empty - new window context
+    use-evil-jump-advice t    ; any evil jumps from elsewhere will be synced
+    use-savehist t            ; save when using 'buffer context
+    ignored-file-patterns '("COMMIT_EDITMSG$") ; remove TAGS from the filter
     )
 
-  (better-jumper-mode +1)
+  (better-jumper-mode t)
 
   (add-hook 'better-jumper-post-jump-hook 'recenter))
 
