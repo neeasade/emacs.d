@@ -175,9 +175,7 @@
     (ns/use flycheck-joker  (require 'flycheck-joker)))
 
   (when (executable-find "clj-kondo")
-    (ns/use flycheck-clj-kondo
-      
-      (require 'flycheck-clj-kondo))))
+    (ns/use flycheck-clj-kondo)))
 
 (ns/defconfig nix
   ;; broken
@@ -422,7 +420,9 @@
 
 (ns/defconfig filehooks
   (setq ns/filename-cmd
-    `(,(~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
+    `(
+       ;; ,(~ ".Xresources") "xrdb -merge ~/.Xresources && pkill -x --signal USR1 xst"
+       ,(~ ".Xresources") "xrdb -merge ~/.Xresources"
        ,(~ ".Xmodmap") "xmodmap ~/.Xmodmap"
        ,(~ "bin/theme") "theme -c"
        ;; eventually

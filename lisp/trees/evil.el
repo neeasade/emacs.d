@@ -4,7 +4,7 @@
 ;; evil-ex-visual-char-range
 
 ;; this happens here to appease evil-collection
-(ns/use magit  (require 'magit))
+(ns/use magit)
 
 ;; evil-collection
 (setq evil-want-keybinding nil)
@@ -14,6 +14,7 @@
 (ns/use evil
   ;; evil-collection
   (setq evil-want-integration t)
+  (evil-select-search-module 'evil-search-module 'evil-search)
   (evil-mode 1)
   (general-nmap "N" 'evil-join))
 
@@ -75,8 +76,11 @@
                                 evil-visual-state-map)))
 
 
-;; with the isearch backend, can change the keybind here
-(evil-select-search-module 'evil-search-module 'evil-search)
+;; commenting out -- want to see if setting  search backend before  evil-collection fixes (edit: it does not)
+
+;; note: these are associated with the evil-search search module, set above with
+;; (evil-select-search-module 'evil-search-module 'evil-search)
+;; with the isearch backend, can change the keybind here to evil-search-{next,previous}
 (define-key evil-motion-state-map "k" 'evil-ex-search-next)
 (define-key evil-motion-state-map "K" 'evil-ex-search-previous)
 
@@ -234,8 +238,6 @@
   (add-hook 'better-jumper-post-jump-hook 'recenter))
 
 (ns/use undo-tree
-
-  (require 'undo-tree)
   (global-undo-tree-mode)
   (evil-set-undo-system 'undo-tree))
 

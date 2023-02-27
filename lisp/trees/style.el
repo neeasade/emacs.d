@@ -5,28 +5,16 @@
 
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"))
 
-;; overriding to force truecolor terminal
-(defun base16-theme-transform-face (spec colors)
-  "Transform a face `SPEC' into an Emacs theme face definition using `COLORS'."
-  (let* ((face             (car spec))
-          (definition       (cdr spec))
-          (shell-colors-256 (pcase base16-theme-256-color-source
-                              ('terminal      base16-theme-shell-colors)
-                              ("terminal"     base16-theme-shell-colors)
-                              ('base16-shell  base16-theme-shell-colors-256)
-                              ("base16-shell" base16-theme-shell-colors-256)
-                              ('colors        colors)
-                              ("colors"       colors)
-                              (_              base16-theme-shell-colors))))
+;; overriding to force truecolor in terminal
+(when (and (not window-system)
+        (string= (getenv "TERM") "xterm-kitty"))
+  (defun base16-theme-transform-face (spec colors)
+    (let* ((face             (car spec))
+            (definition       (cdr spec)))
+      (list face `((((type graphic))   ,(base16-theme-transform-spec definition colors))
+                    (((min-colors 256)) ,(base16-theme-transform-spec definition colors))
+                    (t                  ,(base16-theme-transform-spec definition colors)))))))
 
-    ;; This is a list of fallbacks to make us select the sanest option possible.
-    ;; If there's a graphical terminal, we use the actual colors. If it's not
-    ;; graphical, the terminal supports 256 colors, and the user enables it, we
-    ;; use the base16-shell colors. Otherwise, we fall back to the basic
-    ;; xresources colors.
-    (list face `((((type graphic))   ,(base16-theme-transform-spec definition colors))
-                  (((min-colors 256)) ,(base16-theme-transform-spec definition shell-colors-256))
-                  (t                  ,(base16-theme-transform-spec definition base16-theme-shell-colors))))))
 
 (defun ns/maybe-update-xrdb-font (key font)
   "Update the fallback font for xrdb value"
@@ -92,28 +80,26 @@
 window's default font.  More precisely, this returns the
 width of the letter ‘m’.  If the font is mono-spaced, this
 will also be the width of all other printable characters."
-  (let ((window (selected-window))
-         (remapping face-remapping-alist))
-    (with-temp-buffer
-      (make-local-variable 'face-remapping-alist)
-      (setq face-remapping-alist remapping)
-      (set-window-buffer window (current-buffer))
-      (insert "m")
-      (aref (aref (font-get-glyphs (font-at 1) 1 2) 0) 4))))
+  (if-not window-system
+    1                                   ; seems to not matter
+    (let ((window (selected-window))
+           (remapping face-remapping-alist))
+      (with-temp-buffer
+        (make-local-variable 'face-remapping-alist)
+        (setq face-remapping-alist remapping)
+        (set-window-buffer window (current-buffer))
+        (insert "m")
+        (aref (aref (font-get-glyphs (font-at 1) 1 2) 0) 4)))))
 
 (defun ns/style-terminal ()
   (when-not window-system
     (ns/use evil-terminal-cursor-changer
       
-      ;;
       (defun etcc--in-xterm? ()
         "Runing in xterm."
         (or (string= (getenv "TERM") "xterm-kitty")
-          (getenv "XTERM_VERSION"))
-        )
-      (evil-terminal-cursor-changer-activate)
-
-      )
+          (getenv "XTERM_VERSION")))
+      (evil-terminal-cursor-changer-activate))
 
     (setq-default left-margin-width 1 right-margin-width 1)
 

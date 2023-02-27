@@ -317,3 +317,35 @@
       (-iota (/ (- end start) step) start step)
       (-iota (- end start) start))
     (-iota start)))
+
+;; trying terminal
+(add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
+
+(when-not window-system
+  (setq kitty-kbp-modifiers-alist
+
+    ;; original
+    ;; '((1 . shift) (2 . alt) (4 . control) (8 . super) (16 . hyper) (32 . meta))
+
+    ;; swap meta and alt (trying to get my meta to work at home -- not working)
+    '((1 . shift) (2 . meta) (4 . control) (8 . alt) (16 . hyper) (32 . super))
+    )
+  (setq kitty-kbp-delete-backspace-workaround t)
+  (require 'term/xterm-kitty)
+
+  ;; (defun ravi/get-rid-of-xterm-key-translations ()
+  ;;   (message "Getting rid of xterm key translations")
+  ;;   (mapcar (lambda (k) (define-key local-function-key-map (vector k) nil))
+  ;;     '(tab delete return escape))
+  ;;   ;; ??
+  ;;   (global-set-key (kbd "<delete>") #'delete-forward-char))
+
+  ;; (add-hook 'terminal-init-xterm-kitty-hook #'ravi/get-rid-of-xterm-key-translations)
+  ;; (add-hook 'terminal-init-xterm-kitty-hook #'kitty-rc-set-interprogram-cut-function)
+  ;; (add-hook 'terminal-init-xterm-kitty-hook #'xterm-kitty-add-select-frame-set-input-focus-advice)
+
+
+
+  (comment
+    ;; come back to this
+    (terminal-init-xterm-kitty)))

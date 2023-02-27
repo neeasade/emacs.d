@@ -298,22 +298,24 @@
 ;;     "E" 'org-agenda-priority-up
 ;;     )
 
-;;   (general-define-key
-;;     :states '(normal insert)
-;;     :keymaps 'org-mode-map
-;;     ;; should these be switched? I like carrying trees by default I think
-;;     (kbd "C-t") 'org-shiftmetaright
-;;     (kbd "C-d") 'org-shiftmetaleft
-;;     (kbd "C-S-T") 'org-metaright
-;;     (kbd "C-S-D") 'org-metaleft
-;;     (kbd "M-e") 'org-metaup
-;;     (kbd "M-n") 'org-metadown
-;;     )
+(general-define-key
+  :states '(normal insert)
+  :keymaps 'org-mode-map
+  ;; should these be switched? I like carrying trees by default I think
+  (kbd "C-t") 'org-shiftmetaright
+  (kbd "C-d") 'org-shiftmetaleft
+  (kbd "C-S-T") 'org-metaright
+  (kbd "C-S-D") 'org-metaleft
+  (kbd "M-e") 'org-metaup
+  (kbd "M-n") 'org-metadown
+  )
 
-;;   (general-define-key
-;;     :states 'normal
-;;     :keymaps 'org-mode-map
-;;     (kbd "E") 'org-toggle-heading))
+(general-define-key
+  :states 'normal
+  :keymaps 'org-mode-map
+  (kbd "E") 'org-toggle-heading)
+
+;; )
 
 (ns/use org-present
   (defun ns/org-present-init ()
