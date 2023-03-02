@@ -288,7 +288,6 @@
 
 (ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
   (ns/bind "ss" 'deadgrep)
-  (require 'deadgrep)
   (setq deadgrep-max-line-length 180)
   (general-nmap deadgrep-mode-map
     "RET" 'deadgrep-visit-result-other-window))

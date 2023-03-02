@@ -354,5 +354,8 @@
 
 (ns/bind "iq" (fn! (sh "qb_userscript paste_selected")))
 
+;; org-element updates cache on every buffer change (slow)
+(setq org-element-use-cache nil)
+
 (provide 'staging)
 ;;; staging.el ends here

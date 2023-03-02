@@ -5,16 +5,9 @@
 
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"))
 
-;; overriding to force truecolor in terminal
 (when (and (not window-system)
         (string= (getenv "TERM") "xterm-kitty"))
-  (defun base16-theme-transform-face (spec colors)
-    (let* ((face             (car spec))
-            (definition       (cdr spec)))
-      (list face `((((type graphic))   ,(base16-theme-transform-spec definition colors))
-                    (((min-colors 256)) ,(base16-theme-transform-spec definition colors))
-                    (t                  ,(base16-theme-transform-spec definition colors)))))))
-
+  (setq base16-theme-256-color-source 'colors))
 
 (defun ns/maybe-update-xrdb-font (key font)
   "Update the fallback font for xrdb value"
