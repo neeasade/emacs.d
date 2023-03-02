@@ -115,27 +115,12 @@
   (setq evil-goggles-duration 0.100)
   (setq evil-goggles-pulse t)
   ;; fun visual vim mode
-  (evil-goggles-mode 0)
-  )
+  (evil-goggles-mode 0))
 
 (ns/use evil-surround  (global-evil-surround-mode 1))
 
 (ns/use evil-embrace
-  (general-define-key
-    :states 'normal
-    "c" (general-key-dispatch 'evil-change "s" #'embrace-change)
-    "d" (general-key-dispatch 'evil-delete "s" #'embrace-delete))
-
-  (general-define-key
-    :states 'visual
-    ;; `evil-change' is not bound in `evil-visual-state-map' by default but
-    ;; inherited from `evil-normal-state-map'
-    ;; if you don't want "c" to be affected in visual state, you should add this
-    "c" #'evil-change
-    "d" #'evil-delete
-    "s" #'embrace-add
-    )
-
+  (setq evil-embrace-show-help-p nil)
   (evil-embrace-enable-evil-surround-integration))
 
 (ns/use evil-snipe
