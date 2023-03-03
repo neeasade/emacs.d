@@ -106,8 +106,7 @@
         (ns/pickup-shell (expand-file-name default-directory)))))
 
   ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
-  "q" 'previous-buffer
-  )
+  "q" 'ns/maybe-prev)
 
 (defun! ns/kill-current-buffer()
   (kill-buffer nil))
@@ -139,9 +138,9 @@
 
 (defun! ns/kill-other-buffers ()
   "Kill all other buffers."
-  (mapc 'kill-buffer
-    (delq (current-buffer)
-      (remove-if-not 'buffer-file-name (buffer-list)))))
+  (->> (buffer-list)
+    (-remove (lambda (b) (eq b (current-buffer))))
+    (-map 'kill-buffer)))
 
 ;; this multiply thing might be a dumb idea, maybe just prompt for desired font-size instead
 (defun! ns/font-multiply ()

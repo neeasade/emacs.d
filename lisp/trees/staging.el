@@ -175,7 +175,8 @@
     (->> (exec-path-from-shell-initialize)
       (second)
       (cdr)
-      (s-split ":"))))
+      (s-split ":")
+      (cons (~ ".nix-profile/bin/")))))
 
 ;; (ns/use frog-jump-buffer
 ;;   
@@ -356,6 +357,8 @@
 
 ;; org-element updates cache on every buffer change (slow)
 (setq org-element-use-cache nil)
+
+(ns/use dockerfile-mode)
 
 (provide 'staging)
 ;;; staging.el ends here

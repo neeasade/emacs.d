@@ -8,12 +8,19 @@
 
 ;; evil-collection
 (setq evil-want-keybinding nil)
+(setq evil-want-integration t)
+
+;; nope
+;; set it in the keymap
+;; https://github.com/emacs-evil/evil-collection/blob/master/modes/unimpaired/evil-collection-unimpaired.el#L271
+
+(setq evil-collection-want-unimpaired-p t) ; todo: consider this
+(setq evil-collection-want-find-usages-bindings t) ;; todo consider this
+(setq evil-collection-outline-bind-tab-p t)
 
 (general-evil-setup t)
 
 (ns/use evil
-  ;; evil-collection
-  (setq evil-want-integration t)
   (evil-select-search-module 'evil-search-module 'evil-search)
   (evil-mode 1)
   (general-nmap "N" 'evil-join))
@@ -21,6 +28,7 @@
 ;; disable: some of the binds get in the way of our colemak remappings.
 (ns/use evil-collection 
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
+    ;; (message "rotating!!")
     (evil-collection-translate-key 'normal mode-keymaps
       "e" "k"
       "k" "n"
@@ -45,7 +53,7 @@
     )
 
   (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
-
+  ;; todo: should this be called later
   (evil-collection-init))
 
 (defun ns/zz-scroll (&rest _)

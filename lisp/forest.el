@@ -78,10 +78,8 @@
   ;; use eslint with web-mode for jsx files
   (flycheck-add-mode 'javascript-eslint 'web-mode)
 
-  (general-nmap
-    "]e" 'flycheck-next-error
-    "[e" 'flycheck-previous-error
-    )
+  ;; evil-collection unimpaired givs us ]l for this same map
+  ;; (general-nmap "]e" 'flycheck-next-error "[e" 'flycheck-previous-error)
 
   (ns/use flycheck-pos-tip)
   (eval-after-load 'flycheck '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages)))
@@ -394,13 +392,18 @@
 
   (ns/use lsp-ui)
 
+  ;; (ns/use eglot)
+
   (defun ns/lsp-cleanup ()
     "lsp-format and imports on save"
     (add-hook 'before-save-hook #'lsp-format-buffer t t)
     (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
   (add-hook 'go-mode-hook #'lsp-deferred)
-  (add-hook 'go-mode-hook #'ns/lsp-cleanup))
+
+  (add-hook 'go-mode-hook #'ns/lsp-cleanup)
+
+  )
 
 (ns/defconfig search-engines
   (ns/use engine-mode
@@ -440,12 +443,11 @@
   (add-hook 'after-save-hook 'ns/cmd-after-saved-file))
 
 (ns/defconfig emoji
+  ;; nb: global-emojify-mode messes with input latency, so we prefer to toggle it conditionally
   (ns/use emojify
     (setq emojify-emoji-styles '(unicode)) ; only real emoji here thanks
-
-    ;; emojify-mode seems to mess with input, causing a character to
-    ;; occasionally skip, so disabling (global-emojify-mode)
-
+    (when ns/enable-mac-p
+      (setq emojify-download-emojis-p nil))
     (ns/bind
       "ie" 'emojify-insert-emoji
       "te" 'emojify-mode)))

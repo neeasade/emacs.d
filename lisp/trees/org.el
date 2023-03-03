@@ -1,6 +1,4 @@
 ;; -*- lexical-binding: t; -*-
-
-
 ;; note: org package is loaded in dirt
 
 (require 'org-fold)
@@ -437,20 +435,14 @@
 (defun ns/org-mode-hook ()
   (olivetti-mode)
   (git-gutter-mode 0)
-  (ns/set-buffer-face-variable)
-
   (flyspell-mode 0)
 
   (setq flyspell-generic-check-word-predicate
     (lambda ()
-      ;; are we in an org link? don't check it.
-      (if (-contains-p (let ((face (get-char-property (point) 'face)))
-                         (if (listp face) face (list face)))
-            'org-link)
-        nil
-        ;; not in an org link, do the usual thing:
-        (org-mode-flyspell-verify)
-        )))
+      ;; don't spellcheck links
+      (when-not (-contains-p (-list (get-char-property (point) 'face))
+                  'org-link)
+        (org-mode-flyspell-verify))))
 
   ;; (setq mode-line-format nil)
   )

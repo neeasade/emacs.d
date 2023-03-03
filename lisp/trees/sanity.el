@@ -194,6 +194,8 @@
         (save-some-buffers t))))
 
 (ns/bind
+  ;; todo: dated scratch buffer/dir
+  ;; todo: per-mode scratch? should text be org? ugh
   "ns" (fn! (ns/find-or-open (~e "lisp/scratch.el")))
   "nS" (fn! (ns/find-or-open (~e "lisp/scratch.txt")))
   "nm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
