@@ -6,10 +6,9 @@
 (when ns/enable-linux-p
   (setq explicit-shell-file-name (getenv "SHELL")))
 
-
 (when
   (and ns/enable-mac-p
-    (executable-find   "/run/current-system/sw/bin/bash"))
+    (executable-find "/run/current-system/sw/bin/bash"))
   (setq explicit-shell-file-name  "/run/current-system/sw/bin/bash"))
 
 (when ns/enable-windows-p
@@ -39,7 +38,10 @@
     "Open thing at point, or send input if no identifiable thing."
     (interactive)
     (when (shx-point-on-input-p)
-      (shx-send-input))))
+      (shx-send-input)))
+  (when-not window-system
+    (general-nmap shx-mode-map
+      "RET" #'shx-send-input-or-open-thing)))
 
 (ns/use shell-pop
   (setq-ns shell-pop
@@ -138,9 +140,17 @@
 (ns/stage-terminal)
 
 (defun! ns/spawn-terminal (&optional cwd)
-  (when window-system
-    (select-frame (make-frame))
-    (ns/pickup-shell cwd t))
+  (if window-system
+    (progn
+      (select-frame (make-frame))
+      (ns/pickup-shell cwd t))
+
+    (when (xterm-kitty-in-use)
+      ;; cf https://sw.kovidgoyal.net/kitty/remote-control/#kitty-launch
+      ;; lags really bad after window creation
+      ;; (kitty-rc-posted-command "launch" `(("type" . "os-window")
+      ;;                                      ("args" . ("emacsclient" "-t"))))
+      (sh (format "kitty --detach emacsclient -t -e '%s'" (pr-str `(ns/pickup-shell ,cwd t))))))
 
   ;; return t so that elisp ns/spawn-terminal call is true
   t)
@@ -170,9 +180,15 @@
                   (current-buffer)))
             (process-list))))))
 
-  (and terminal
-    (fboundp 'ns/toggle-modeline)
-    (ns/toggle-modeline))
+  (when terminal
+    (when (and (not window-system)
+            (string= (getenv "TERM") "kitty"))
+      ;; doesn't seem to be needed?
+      ;; (terminal-init-xterm-kitty)
+      )
+
+    (when (fboundp 'ns/toggle-modeline)
+      (ns/toggle-modeline)))
 
   (when cwd (shell-pop--cd-to-cwd-shell cwd))
 

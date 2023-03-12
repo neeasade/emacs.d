@@ -21,6 +21,9 @@ var
 
 lisp/scratch.el
 lisp/scratch.txt
+lisp/*.org
+eln-cache
+.cask
 
 straight/*
 !straight/versions

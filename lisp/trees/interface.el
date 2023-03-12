@@ -237,10 +237,12 @@
   "wd" 'evil-window-delete
   "ww" 'other-window
   "wb" 'balance-windows-area
+
+  ;; todo: a keybind to infer direction ala our external_rules bspwm scripts
   "ws" (fn! (split-window-horizontally)
          (evil-window-right 1))
-  "wS" (fn!
-         (split-window-vertically)
+
+  "wS" (fn! (split-window-vertically)
          (evil-window-down 1))
 
   "wf" 'ns/follow-mode

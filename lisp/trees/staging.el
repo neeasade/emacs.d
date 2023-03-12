@@ -358,5 +358,9 @@
 
 (ns/use dockerfile-mode)
 
+;; attempting to fix wandering undo paths
+(setq undo-tree-enable-undo-in-region nil)
+
+
 (provide 'staging)
 ;;; staging.el ends here

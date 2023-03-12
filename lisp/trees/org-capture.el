@@ -58,8 +58,8 @@
             (org-demote-subtree)
             (insert (-last-item path))))))))
 
-(ns/use (org-doct :host github :repo  "progfolio/doct")
-   (require 'doct))
+(ns/use (org-doct :host github :repo "progfolio/doct")
+  (require 'doct))
 
 (defun ns/make-project-capture (project &optional template-override key)
   `(,project
@@ -113,7 +113,7 @@
 ;; want: creating a new project should be easy
 ;; regen captures on save of notes file is ns/org-capture-project-list has updated
 (setq ns/org-capture-project-list
-  (if (f-exists-p org-default-notes-file)
+  (when (f-exists-p org-default-notes-file)
     (ns/with-notes
       (-some->> (org-find-property "projects")
         (org-ml-parse-subtree-at)
@@ -121,21 +121,25 @@
         cdr
         (-map 'org-ml-headline-get-path)
         (-map 'last)
-        -flatten))
-    ;; no notes file here
-    nil
-    ))
+        -flatten))))
 
 ;; ensure capture hierarchy exists for capture targets
 ;; TODO: presuppose this at time of capture
 
 ;; this is breaking things?
 
-;; (-map
-;;   (lambda (heading)
-;;     (-map (fn (ns/make-org-tree org-default-notes-file "projects" heading <>))
-;;       '("captures" "notes" "tasks")))
-;;   ns/org-capture-project-list)
+(ns/comment
+
+  ;; (-map
+  ;;   (lambda (heading)
+  ;;     (-map (fn (ns/make-org-tree org-default-notes-file "projects" heading <>))
+  ;;       '("captures" "notes" "tasks")))
+  ;;   ;; ns/org-capture-project-list
+  ;;   ;; '("yoga teacher training")
+
+  ;;   )
+
+  )
 
 (setq ns/linkmark-file (concat org-directory "/linkmarks.org"))
 

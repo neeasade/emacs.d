@@ -327,7 +327,7 @@
     ;; original
     ;; '((1 . shift) (2 . alt) (4 . control) (8 . super) (16 . hyper) (32 . meta))
 
-    ;; swap meta and alt (trying to get my meta to work at home -- not working)
+    ;; swap meta and alt (get my home keyboard to work)
     '((1 . shift) (2 . meta) (4 . control) (8 . alt) (16 . hyper) (32 . super))
     )
   (setq kitty-kbp-delete-backspace-workaround t)
@@ -345,7 +345,8 @@
   ;; (add-hook 'terminal-init-xterm-kitty-hook #'xterm-kitty-add-select-frame-set-input-focus-advice)
 
 
-
   (comment
     ;; come back to this
-    (terminal-init-xterm-kitty)))
+    (terminal-init-xterm-kitty)
+
+    ))
