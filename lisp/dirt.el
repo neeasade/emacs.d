@@ -298,6 +298,7 @@
   (set-text-properties 0 (length s) nil s) s)
 
 (defun -ht (&rest kvs)
+  "A builder for ht.el without pairs"
   (llet (table (ht-create))
     (-map (-applify (-partial 'ht-set table))
       (-partition 2 kvs))
@@ -309,14 +310,6 @@
     ((stringp val) val)
     ((keywordp val) (substring (pr-str val) 1))
     (t (pr-str val))))
-
-;; compat, do not use
-(defun range (start &optional end step)
-  (if end
-    (if step
-      (-iota (/ (- end start) step) start step)
-      (-iota (- end start) start))
-    (-iota start)))
 
 ;; trying terminal
 (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")

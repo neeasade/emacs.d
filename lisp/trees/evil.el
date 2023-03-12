@@ -129,7 +129,16 @@
 
 (ns/use evil-embrace
   (setq evil-embrace-show-help-p nil)
-  (evil-embrace-enable-evil-surround-integration))
+  (evil-embrace-enable-evil-surround-integration)
+  (general-define-key
+    :states 'visual
+    ;; `evil-change' is not bound in `evil-visual-state-map' by default but
+    ;; inherited from `evil-normal-state-map'
+    ;; if you don't want "c" to be affected in visual state, you should add this
+    "c" #'evil-change
+    "d" #'evil-delete
+    "s" #'embrace-add
+    ))
 
 (ns/use evil-snipe
   (setq evil-snipe-smart-case t)
@@ -201,22 +210,17 @@
 (advice-add #'previous-buffer :after #'ns/maybe-prev)
 
 (general-nmap
-  ;; this is not a thing.
-  ;; "[s" 'flyspell-goto-prev-error
+  ;; "[s" 'flyspell-goto-prev-error ; not a thing
   "]s" 'flyspell-goto-next-error
-  "[b" 'evil-prev-buffer
-  "]b" 'evil-next-buffer
-  )
-
-(general-nmap "s" 'avy-goto-char-timer)
+  "s" 'avy-goto-char-timer)
 
 ;; break a bad habit by nop'ing :b
-;; (evil-ex-define-cmd "b" nil)
+(evil-ex-define-cmd "b" nil)
 
 (ns/use better-jumper
   (with-eval-after-load 'evil-maps
     (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
-    (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))
+    (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward))
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window

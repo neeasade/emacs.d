@@ -12,7 +12,7 @@
 
   (general-define-key
     :keymaps 'ivy-minibuffer-map
-    (kbd "<C-return>") 'ivy-immediate-done)
+    (kbd "C-RET") 'ivy-immediate-done)
 
   (ivy-mode 1)
 
@@ -76,14 +76,14 @@
   "r" 'revert-buffer
   "h" 'dired-up-directory
   "l" 'dired-find-file
-  (kbd "<C-return>") (fn!
-                       (->>
-                         (dired-get-file-for-visit)
-                         ;; (format "setsid nohup xdg-open \"%s\" &")
-                         (format "xdg-open \"%s\"")
-                         (ns/shell-exec-dontcare))
-                       ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
-                       )
+  (kbd "C-RET") (fn!
+                  (->>
+                    (dired-get-file-for-visit)
+                    ;; (format "setsid nohup xdg-open \"%s\" &")
+                    (format "xdg-open \"%s\"")
+                    (ns/shell-exec-dontcare))
+                  ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
+                  )
 
   "s"
   (fn!
@@ -203,18 +203,23 @@
 (when-not window-system
   ;; (when running in a terminal)
 
-  ;; utility:
-  (xterm-mouse-mode 1)
+  ;; this doesn't work in kitty (might be related to new esc code things)
+  (comment
+    (xterm-mouse-mode 1)
+    )
+  ;; (xterm-mouse-mode nil)
 
-  (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
-  (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
-
-  (ns/use xclip  (xclip-mode t))
+  ;; these don't appear to be adding anything
+  ;; (ns/use xclip (xclip-mode nil))
+  ;; (ns/use clipetty (global-clipetty-mode t))
 
   ;; C-i and <tab> are equivalent in the terminal
   ;; (until kitty saves us all)
-  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
-  (evil-define-key 'normal org-mode-map (kbd "C-i") #'org-cycle))
+  (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
+
+  (comment (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))
+
+  )
 
 (winner-mode 1)
 
