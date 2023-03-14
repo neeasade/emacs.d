@@ -168,8 +168,7 @@
   (evil-normal-state)
   (evil-visual-restore))
 
-;; persist marks
-(add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+(ns/persist evil-markers-alist)
 
 ;; match qutebrowser fwd back
 (general-nmap

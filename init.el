@@ -133,7 +133,8 @@
       ;; Emacs is terribly slow on windows
       (ns/toggle-bloat-global (not ns/enable-windows-p))
 
-      (run-with-idle-timer 2 t 'garbage-collect)
+      (named-timer-idle-run :garbage-collect 2 t 'garbage-collect)
+
 
       (->> recentf-list
         (-filter (fn

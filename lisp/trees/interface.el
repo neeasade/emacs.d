@@ -14,6 +14,9 @@
   (general-define-key
     :keymaps 'ivy-minibuffer-map
     (kbd "C-RET") 'ivy-immediate-done)
+  (general-define-key
+    :keymaps 'ivy-minibuffer-map
+    (kbd "C-<return>") 'ivy-immediate-done)
 
   (ivy-mode 1))
 
@@ -36,12 +39,12 @@
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
       rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
 
+(ns/persist ns/cd-dirs (list))
+
 (defun ns/dired-init()
   (hl-line-mode)
 
   ;; accumulate directories
-  (when (not (boundp 'ns/cd-dirs))
-    (setq ns/cd-dirs (list)))
   (add-to-list 'ns/cd-dirs (expand-file-name default-directory)))
 
 ;; cf. https://endlessparentheses.com/auto-focus-a-relevant-file-in-dired-buffers.html
@@ -139,17 +142,11 @@
     (-map 'kill-buffer)))
 
 ;; this multiply thing might be a dumb idea, maybe just prompt for desired font-size instead
-(defun! ns/font-multiply ()
-  (let ((multiplier (string-to-number (read-string (format "font multiplier: ")))))
+(defun! ns/font-change ()
+  (llet [current-size (/ (face-attribute 'default :height) 10)
+          new-size (read-number (format "new size (current-size: %s): " current-size))]
     (set-face-attribute 'default nil
-      :height
-      (-> (get-resource "font.mono.spec")
-        (ns/parse-font)
-        (plist-get :height)
-        (/ 10)
-        (* multiplier)
-        (round)
-        (* 10)))))
+      :height (* 10 new-size))))
 
 (defun! ns/kill-buffers-missing-file ()
   "Kill buffers referencing a file that doesn't exist (EG, the file may have moved or been deleted)"
@@ -247,7 +244,7 @@
          (delete-other-windows)
          (evil-window-vsplit))
 
-  "wm" 'delete-other-windows ;; window-max
+  "wm" 'delete-other-windows ;; "window max"
 
   "wo" 'winner-undo
   "wi" 'winner-redo

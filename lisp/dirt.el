@@ -67,7 +67,7 @@
 (require 'cl-seq)
 (unload-feature 'man t)
 
-(ns/use named-timer  (require 'named-timer))
+(ns/use named-timer)
 
 ;; (lambda wow () (interactive) (message "wow"))
 
@@ -321,6 +321,14 @@
     ((keywordp val) (substring (pr-str val) 1))
     ((bufferp val) (buffer-name val))
     (t (pr-str val))))
+
+(ns/use persist
+  (defmacro ns/persist (symbol &optional initial)
+    `(persist-defvar ,symbol ,initial
+       ,(format "docstring value for %s" symbol)))
+
+  ;; the default is to only persist on quit
+  (named-timer-idle-run :persist-save (* 60 5) t 'persist--save-all))
 
 ;; trying terminal
 (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
