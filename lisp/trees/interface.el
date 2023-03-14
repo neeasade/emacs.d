@@ -1,4 +1,5 @@
 ;; -*- lexical-binding: t; -*-
+
 (global-set-key (kbd "C-e") 'previous-line)
 
 (ns/use ivy
@@ -14,23 +15,18 @@
     :keymaps 'ivy-minibuffer-map
     (kbd "C-RET") 'ivy-immediate-done)
 
-  (ivy-mode 1)
+  (ivy-mode 1))
 
-  (ns/use prescient)
-  (ns/use ivy-prescient 
-    (ivy-prescient-mode)
-    (prescient-persist-mode))
-
-  (ns/use company-prescient  (company-prescient-mode))
-
-  (prescient-persist-mode))
+(ns/use prescient)
+(ns/use ivy-prescient (ivy-prescient-mode))
+(ns/use company-prescient (company-prescient-mode))
+(prescient-persist-mode)
 
 (defun ns/pick (prompt candidates)
   (ivy-read prompt candidates))
 
 ;; counsel
 (ns/use counsel
-  (ns/use rg)
   (when (executable-find "rg")
     (setq-ns counsel
       grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
@@ -101,7 +97,8 @@
                              default-directory)))
               (first))))
 
-      (if existing-shell
+      (if (and existing-shell
+            (not (string= (buffer-name existing-shell) "*spawn-shell-staged*")))
         (switch-to-buffer existing-shell)
         (ns/pickup-shell (expand-file-name default-directory)))))
 
@@ -111,17 +108,12 @@
 (defun! ns/kill-current-buffer()
   (kill-buffer nil))
 
-(defun! ns/follow-mode ()
-  (follow-mode)
-  (delete-other-windows)
-  (evil-window-vsplit))
-
 (ns/use alert
-   (setq alert-default-style
-            (cond
-              (ns/enable-windows-p 'toaster)
-              (ns/enable-mac-p 'osx-notifier)
-              (t 'libnotify)))
+  (setq alert-default-style
+    (cond
+      (ns/enable-windows-p 'toaster)
+      (ns/enable-mac-p 'osx-notifier)
+      (t 'libnotify)))
 
   ;; I could not get the (alert :persistent t keyword to work)
   (defun alert! (&rest alert-args)
@@ -175,7 +167,7 @@
 
 (ns/bind
   "nd"
-  (fn!
+  (fn!! surf-dirs
     (ivy-read "directory: "
       (->> ns/cd-dirs
         (-uniq)
@@ -244,20 +236,22 @@
   "wb" 'balance-windows-area
 
   ;; todo: a keybind to infer direction ala our external_rules bspwm scripts
-  "ws" (fn! (split-window-horizontally)
+  "ws" (fn!! (split-window-horizontally)
          (evil-window-right 1))
 
-  "wS" (fn! (split-window-vertically)
+  "wS" (fn!! (split-window-vertically)
          (evil-window-down 1))
 
-  "wf" 'ns/follow-mode
+  "wf" (fn!! (follow-mode)
+         (delete-other-windows)
+         (evil-window-vsplit))
 
   "wm" 'delete-other-windows ;; window-max
 
   "wo" 'winner-undo
   "wi" 'winner-redo
 
-  "d" (fn!
+  "d" (fn!! dired
         ;; (setq ns/dired-last-file (buffer-file-name))
 
         (if (eq major-mode 'shell-mode)
@@ -273,15 +267,14 @@
 
   ;; "b" '(:ignore t :which-key "Buffers")
 
-  "bb" (fn! (ivy-read "file: "
-              (ns/jump-file-candidates :buffers-without-files)
-              :action 'counsel-switch-to-buffer-or-window))
+  "bb" (fn!! surf-buffers
+         (ivy-read "file: "
+           (ns/jump-file-candidates :buffers-without-files)
+           :action 'counsel-switch-to-buffer-or-window))
 
   ;;  todo: buffers by mode
   ;; "bm"
   ;; (fn! (ivy-read "file: " (ns/jump-file-candidates :buffers-without-files) :action 'counsel-switch-to-buffer-or-window))
-
-
 
   ;; "bd" 'ns/kill-current-buffer
   ;; "bK" 'ns/kill-other-buffers

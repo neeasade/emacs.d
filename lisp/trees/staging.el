@@ -47,7 +47,7 @@
 
 (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
 
-(ns/bind "nk" (fn! (find-file (executable-find "theme"))
+(ns/bind "nk" (fn!! goto-theme (find-file (executable-find "theme"))
                 (goto-line 0)
                 (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
                 (recenter)))
@@ -146,7 +146,7 @@
   (marker-buffer org-clock-marker))
 
 (ns/bind "it"
-  (fn!
+  (fn!! insert-theme-key
     (ivy-read "theme key: "
       (s-split "\n" (ns/shell-exec "theme -k"))
       :action #'insert)))

@@ -196,23 +196,24 @@
 (ns/bind
   ;; todo: dated scratch buffer/dir
   ;; todo: per-mode scratch? should text be org? ugh
-  "ns" (fn! (ns/find-or-open (~e "lisp/scratch.el")))
-  "nS" (fn! (ns/find-or-open (~e "lisp/scratch.txt")))
-  "nm" (fn! (counsel-switch-to-buffer-or-window  "*Messages*"))
+  "ns" (fn!! goto-scratch-elisp (ns/find-or-open (~e "lisp/scratch.el")))
+
+  "nS" (fn!! goto-scratch-text (ns/find-or-open (~e "lisp/scratch.txt")))
+  "nm" (fn!! goto-messages (counsel-switch-to-buffer-or-window  "*Messages*"))
   "nU" 'undo-tree-visualize
 
   "t" '(:ignore t :which-key "Toggle")
   "tw" 'whitespace-mode
-  "tn" (fn! (setq-local display-line-numbers (if display-line-numbers nil 'relative)))
+  "tn" (fn!! line-numbers-toggle (setq-local display-line-numbers (if display-line-numbers nil 'relative)))
   "tl" 'toggle-truncate-lines
   ;; "ts" 'ns/style
   "ts" 'ns/load-theme
-  "ti" (fn! (ns/reload-init) (ns/conf-style))
+  "ti" (fn!! (ns/reload-init) (ns/conf-style))
   "m" 'ns/toggle-modeline
   "tp" 'ns/toggle-report
 
   "i" '(:ignore t :which-key "Insert")
   "ic" 'insert-char
-  "if" (fn! (insert (buffer-file-name)))
-  "id" (fn! (org-time-stamp t))
-  "iD" (fn! (org-time-stamp nil)))
+  "if" (fn!! insert-file-name (insert (buffer-file-name)))
+  "id" (fn!! insert-time (org-time-stamp t))
+  "iD" (fn!! insert-date (org-time-stamp nil)))

@@ -38,11 +38,6 @@
        ;;   (float-time (time-since ns-use-time)))
        )))
 
-(defmacro ns/use-all (&rest pkg-defs)
-  `(progn
-     ,@(-map (lambda (p) `(ns/use ,p))
-         pkg-defs)))
-
 ;; load org early so that require's use the correct package
 (ns/use org)
 
@@ -74,6 +69,8 @@
 
 (ns/use named-timer  (require 'named-timer))
 
+;; (lambda wow () (interactive) (message "wow"))
+
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
 (defmacro comment (&rest body) nil)
@@ -100,6 +97,19 @@
 (defmacro defun! (label args &rest body)
   `(defun ,label ,args
      (interactive) ,@body))
+
+(defmacro fn!! (&rest body)
+  "Create an interactive function prefixed with ia/ and no arguments (optionally, infer name from first sexp)"
+  (let* ((has-name? (symbolp (first body)))
+          (fnname (intern (format "ia/%s" (prin1-to-string
+                                            (if has-name?
+                                              (first body)
+                                              (first (first body))))))))
+    `(defun ,fnname ()
+       (interactive)
+       ,@(if has-name?
+           (-drop 1 body)
+           body))))
 
 (defmacro setq-ns (namespace &rest pairs)
   (->> (-partition 2 pairs)

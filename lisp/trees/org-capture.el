@@ -166,7 +166,7 @@
 
 (ns/bind
   "nl" #'linkmark-select
-  "nL" (fn! (find-file ns/linkmark-file))
+  "nL" (fn!! linkmark (find-file ns/linkmark-file))
   )
 
 ;; context ideas (store in properties):

@@ -265,11 +265,12 @@
           results))))
 
   (ns/bind
-    "ne" (fn! (ivy-read "file: " (ns/jump-file-candidates)
-                :action 'find-file))
+    "ne" (fn!! surf-files (ivy-read "file: " (ns/jump-file-candidates)
+                            :action 'find-file))
 
-    "nE" (fn! (ivy-read "project file: " (ns/jump-file-candidates :project-files)
-                :action 'find-file))))
+    "nE" (fn!! surf-project-files
+           (ivy-read "project file: " (ns/jump-file-candidates :project-files)
+             :action 'find-file))))
 
 (ns/defconfig javascript
   ;; note: this is huge, takes a bit.
@@ -286,7 +287,6 @@
     (advice-add #'js-jsx-indent-line :after #'js-jsx-indent-line-align-closing-bracket))
 
   ;; use web-mode for .js files
-
 
   (ns/file-mode "js" 'web-mode)
   (ns/file-mode "tsx" 'web-mode)
@@ -539,9 +539,7 @@
                (fn (list (nth <> args)
                      (nth <> ns-args)))
                (number-sequence 0 (- (length args) 1))))
-       ,@content))
-
-  )
+       ,@content)))
 
 (ns/defconfig go
   (ns/use go-mode))

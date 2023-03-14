@@ -32,8 +32,9 @@
 (set-face-attribute 'mode-line-inactive nil :background
   (myron-get :background :weak))
 
-(set-face-attribute 'mode-line nil :height 100)
-(set-face-attribute 'mode-line-inactive nil :height 100)
+(llet [default-height (face-attribute 'default :height)]
+  (set-face-attribute 'mode-line nil :height default-height)
+  (set-face-attribute 'mode-line-inactive nil :height default-height))
 
 ;; some themes like to tweak the box
 (set-face-attribute 'mode-line nil :box nil)
@@ -221,7 +222,7 @@ Example:
   (ns/apply-frames (fn nil)))
 
 ;; refesh all mode lines based on the value of the modeline in the current buffer
-(ns/bind "tM" (fn! (ns/refresh-all-modeline (not mode-line-format))))
+(ns/bind "tM" (fn!! (ns/refresh-all-modeline (not mode-line-format))))
 
 (ns/refresh-all-modeline t)
 (ns/frame-set-parameter 'bottom-divider-width 0)

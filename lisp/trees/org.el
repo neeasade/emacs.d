@@ -390,15 +390,14 @@
 ;; <code to execute>
 ;; #+end_src
 (ns/bind-mode 'org "e"
-  (fn!
+  (fn!! org-eval
     (cond
       ((org-in-clocktable-p)
         (org-clock-report))
       ((org-in-src-block-p)
         ;; living dangerously
         (let ((org-confirm-babel-evaluate (fn nil)))
-          (org-babel-execute-src-block)))
-      )))
+          (org-babel-execute-src-block))))))
 
 ;; writing niceties:
 (ns/use olivetti
@@ -551,29 +550,30 @@
   (save-buffer))
 
 (ns/bind
-  "oo" (fn!  (let* ((buffer-file-name (buffer-file-name))
-                     (project-notes (if buffer-file-name
-                                      (concat (projectile-root-bottom-up buffer-file-name) "notes.org") org-default-notes-file)))
-               ;; todo: this doesn't work if the notes file isn't already open? what?
-               (ns/find-or-open (if (and (f-exists-p project-notes)
-                                      (not (string= buffer-file-name project-notes)))
-                                  project-notes org-default-notes-file))))
+  "oo" (fn!! goto-notes  (let* ((buffer-file-name (buffer-file-name))
+                                 (project-notes (if buffer-file-name
+                                                  (concat (projectile-root-bottom-up buffer-file-name) "notes.org") org-default-notes-file)))
+                           ;; todo: this doesn't work if the notes file isn't already open? what?
+                           (ns/find-or-open (if (and (f-exists-p project-notes)
+                                                  (not (string= buffer-file-name project-notes)))
+                                              project-notes org-default-notes-file))))
 
   "os" 'org-sort
   "of" 'ns/org-goto-active
-  "oF" (fn!
+  "oF" (fn!! org-goto-active
          (ns/org-clock-out)
          (ns/org-goto-active))
 
-  "oc" (fn! (if (use-region-p)
-              ;; todo: currently ns/capture-current-region is very opinionated it should maybe allow you
-              ;; to SEE what you are capturing instead of defaulting to refile-like behavior
-              (ns/capture-current-region)
-              (org-capture)))
+  "oc" (fn!! org-capture
+         (if (use-region-p)
+           ;; todo: currently ns/capture-current-region is very opinionated it should maybe allow you
+           ;; to SEE what you are capturing instead of defaulting to refile-like behavior
+           (ns/capture-current-region)
+           (org-capture)))
 
   "ol" 'ns/make-org-link-to-here
   ;; "om" 'ns/insert-mark-org-links
-  "ow" (fn! (widen) (recenter))
+  "ow" (fn!! org-widen (widen) (recenter))
   "on" 'org-narrow-to-subtree
   "oa" 'org-agenda
 
@@ -589,9 +589,10 @@
 
 
 (ns/bind-mode 'org
-  "or" (fn! (if (use-region-p)
-              (ns/capture-current-region)
-              (ns/capture-current-subtree)))
+  "or" (fn!! refile-headline-or-region
+         (if (use-region-p)
+           (ns/capture-current-region)
+           (ns/capture-current-subtree)))
 
   ;; "org move"
   "om" 'org-refile
@@ -599,7 +600,7 @@
   "op" 'org-pomodoro
 
   ;; query org element
-  "qo" (fn! (-> (point) org-ml-parse-element-at org-ml-get-type pr-str message)))
+  "qo" (fn!! org-query (-> (point) org-ml-parse-element-at org-ml-get-type pr-str message)))
 
 
 (ns/bind-leader-mode
@@ -610,11 +611,11 @@
   "v" 'org-mark-element
   "a" 'org-agenda
   "f" 'ns/org-set-unique-property
-  "F" (fn! (org-set-property (read-string "property name: ") (read-string "value: ")))
+  "F" (fn!! org-set-property (org-set-property (read-string "property name: ") (read-string "value: ")))
 
-  "b" (fn! (org-set-property "blog_slug" (read-string "slug: ")))
+  "b" (fn!! org-set-blog-slug (org-set-property "blog_slug" (read-string "slug: ")))
 
-  "s" (fn! (org-set-property "share" "t"))
+  "s" (fn!! org-set-share (org-set-property "share" "t"))
   )
 
 (add-to-list 'auto-mode-alist '("qutebrowser-editor-" . org-mode))

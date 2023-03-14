@@ -412,9 +412,10 @@
   ;; (setq-local case-fold-search nil)
   )
 
-(general-nmap :keymaps 'circe-highlight-mode-map
+(general-nmap
+  :keymaps 'circe-highlight-mode-map
   :prefix "SPC"
-  "nn" (fn!
+  "nn" (fn!! follow-highlight
          (->>
            (thing-at-point 'line)
            s-clean
@@ -644,11 +645,11 @@
   (irc-send-command (circe-server-process) "LIST"))
 
 (ns/bind
-  "ai" (fn!
+  "ai" (fn!!
          (ns/init-circe)
          (connect-all-irc))
   "ni" 'ns/jump-irc
-  "nI" (fn! (counsel-switch-to-buffer-or-window "*circe-highlight*"))
+  "nI" (fn!! goto-highlights (counsel-switch-to-buffer-or-window "*circe-highlight*"))
   ;; ehhh
   ;; "nr" 'ns/goto-last-highlight
   )
