@@ -22,8 +22,14 @@
 (ns/use company-prescient (company-prescient-mode))
 (prescient-persist-mode)
 
-(defun ns/pick (prompt candidates)
-  (ivy-read prompt candidates))
+(defun ns/pick (one &optional two)
+  "Pick something from a list. accepts (prompt candidates) or (candidates)"
+  (llet [(prompt candidates) (if two
+                               (list (format "%s: ")
+                                 two)
+                               (list "select: " one))]
+    (ivy-read prompt candidates)))
+
 
 ;; counsel
 (ns/use counsel
@@ -158,39 +164,36 @@
     (-map #'kill-buffer)))
 
 (defun! ns/kill-buffers-by-mode ()
-  (ivy-read "mode to kill: "
-    (->> (buffer-list)
-      (-map (-partial 'buffer-local-value 'major-mode))
-      (-uniq))
-    :action
-    (fn (-map #'kill-buffer (ns/buffers-by-mode (intern <>))))))
+  (->> (buffer-list)
+    (-map (-partial 'buffer-local-value 'major-mode))
+    (-uniq)
+    (ns/pick "mode to kill")
+    (intern)
+    (ns/buffers-by-mode)
+    (-map #'kill-buffer)))
 
 (ns/bind
   "nd"
   (fn!! surf-dirs
-    (ivy-read "directory: "
-      (->> ns/cd-dirs
-        (-uniq)
-        (-filter (fn (s-equals-p (file-remote-p <>)
-                       (file-remote-p default-directory)))))
-
-      :action
-      (lambda (dir)
-        (cond
-          ((eq major-mode 'dired-mode) (dired dir))
-          ((eq major-mode 'shell-mode)
-            (goto-char (point-max))
-            (insert (concat "cd \""
-                      (s-replace
-                        (or (file-remote-p dir) "")
-                        ""
-                        dir
-                        )
-                      "\""))
-            (comint-send-input))
-          ;; (t (insert dir))
-          (t (dired dir))
-          )))))
+    (llet [dir (ns/pick "directory: "
+                 (->> ns/cd-dirs
+                   (-uniq)
+                   (-filter (fn (s-equals-p (file-remote-p <>)
+                                  (file-remote-p default-directory))))))]
+      (cond
+        ((eq major-mode 'dired-mode) (dired dir))
+        ((eq major-mode 'shell-mode)
+          (goto-char (point-max))
+          (insert (concat "cd \""
+                    (s-replace
+                      (or (file-remote-p dir) "")
+                      ""
+                      dir
+                      )
+                    "\""))
+          (comint-send-input))
+        ;; (t (insert dir))
+        (t (dired dir))))))
 
 (when-not window-system
   ;; (when running in a terminal)
@@ -268,13 +271,15 @@
   ;; "b" '(:ignore t :which-key "Buffers")
 
   "bb" (fn!! surf-buffers
-         (ivy-read "file: "
-           (ns/jump-file-candidates :buffers-without-files)
-           :action 'counsel-switch-to-buffer-or-window))
+         (->> (ns/jump-file-candidates :buffers-without-files)
+           (ns/pick "buffer:")
+           (counsel-switch-to-buffer-or-window)))
 
-  ;;  todo: buffers by mode
-  ;; "bm"
-  ;; (fn! (ivy-read "file: " (ns/jump-file-candidates :buffers-without-files) :action 'counsel-switch-to-buffer-or-window))
+  "bm" (fn!! surf-buffers-mode
+         (->> (ns/buffers-by-mode major-mode)
+           (-map 'buffer-name)
+           (ns/pick "buffer")
+           (counsel-switch-to-buffer-or-window)))
 
   ;; "bd" 'ns/kill-current-buffer
   ;; "bK" 'ns/kill-other-buffers

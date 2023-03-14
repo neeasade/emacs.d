@@ -107,7 +107,7 @@
           (urls (s-match-strings-all rcirc-url-regexp window-text))
           (urls (-map 'car urls)))
     (if urls
-      (ivy-read "url: " urls :action 'browse-url)
+      (browse-url (ns/pick urls))
       (message "no urls!"))))
 
 (ns/bind "nu" 'ns/ivy-url-jump)
@@ -147,9 +147,10 @@
 
 (ns/bind "it"
   (fn!! insert-theme-key
-    (ivy-read "theme key: "
-      (s-split "\n" (ns/shell-exec "theme -k"))
-      :action #'insert)))
+    (->> (ns/shell-exec "theme -k")
+      (s-split "\n")
+      (ns/pick)
+      (insert))))
 
 (ns/use paren-face)
 

@@ -228,6 +228,7 @@
               :buffers-without-files
               (->> (buffer-list)
                 (--filter (not (buffer-file-name it)))
+                (--remove (eq 'dired-mode (buffer-local-value 'major-mode it)))
                 (-map 'buffer-name)
                 (-remove (-partial 's-starts-with-p "*spawn-shell-"))
                 ;; there appear to be "special buffers" in the buffers-without-files set
@@ -265,12 +266,8 @@
           results))))
 
   (ns/bind
-    "ne" (fn!! surf-files (ivy-read "file: " (ns/jump-file-candidates)
-                            :action 'find-file))
-
-    "nE" (fn!! surf-project-files
-           (ivy-read "project file: " (ns/jump-file-candidates :project-files)
-             :action 'find-file))))
+    "ne" (fn!! surf-files (find-file (ns/pick "file" (ns/jump-file-candidates))))
+    "nE" (fn!! surf-project-files (find-file (ns/pick "file" (ns/jump-file-candidates :project-files))))))
 
 (ns/defconfig javascript
   ;; note: this is huge, takes a bit.

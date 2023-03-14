@@ -2,8 +2,5 @@
 ;; elisp-eval: read_stdin=true
 
 (condition-case ()
-    (ivy-read
-     "fzf: "
-     (s-split "\n" (f-read *stdin-file*))
-     :action (lambda(option) option))
+    (ns/pick "fzf: " (s-split "\n" (f-read *stdin-file*)))
   (quit nil))

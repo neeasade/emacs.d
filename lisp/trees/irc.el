@@ -557,16 +557,14 @@
               '())))
     (if (eq (length irc-channels) 0)
       (message "connect to irc first!")
-      (ivy-read "channel: " (append irc-channels irc-nicks)
-        :action (lambda (option)
-                  (interactive)
-                  (if (-contains-p irc-nicks option)
-                    (circe-command-QUERY option)
-                    (when (get-buffer option)
-                      (counsel-switch-to-buffer-or-window option)
-                      (evil-goto-line)
-                      (evil-scroll-line-to-bottom nil) ; nil -> the current line
-                      )))))))
+      (llet [option (ns/pick "irc" (append irc-channels irc-nicks))]
+        (if (-contains-p irc-nicks option)
+          (circe-command-QUERY option)
+          (when (get-buffer option)
+            (counsel-switch-to-buffer-or-window option)
+            (evil-goto-line)
+            (evil-scroll-line-to-bottom nil) ; nil -> the current line
+            ))))))
 
 ;; emacs freezes completely while pulling in the image fuckkkk
 ;; (require 'circe-display-images)

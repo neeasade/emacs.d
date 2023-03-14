@@ -139,7 +139,7 @@
       ;; fun, but let's not do this for now:
       ;; (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
       ;;         (rg-result (if (s-contains-p "\n" rg-initial-result)
-      ;;                      (ivy-read "pickem: " (s-split "\n" rg-initial-result))
+      ;;                      (ns/pick (s-split "\n" rg-initial-result))
       ;;                      rg-initial-result)))
       ;;   (when (and (not (s-blank-p rg-result))
       ;;           (f-exists-p (or rg-result "nil doesn't exist don't  use me")))

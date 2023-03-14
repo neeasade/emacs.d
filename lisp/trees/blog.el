@@ -34,22 +34,20 @@
 (ns/bind
   ;; todo: jump by site title
   "nq" (fn!! surf-blog-posts
-         (ivy-read "post: "
-           (reverse
-             (f-entries (ns/blog-path "posts")
-               (fn (s-ends-with-p ".org" <>))))
-           :action 'find-file))
+         (find-file
+           (ns/pick "post"
+             (reverse
+               (f-entries (ns/blog-path "posts")
+                 (fn (s-ends-with-p ".org" <>)))))))
 
   "nQ" (fn!! surf-blog-drafts
-         (ivy-read "draft post: "
-           (reverse
-             (-filter
-               (fn
-                 (ns/blog-get-prop "draft")
-                 (f-read <>))
-               (f-entries (ns/blog-path "posts")
-                 (fn (s-ends-with-p ".org" <>)))))
-           :action 'find-file)))
+         (find-file
+           (ns/pick "draft post"
+             (reverse
+               (-filter (fn (ns/blog-get-prop "draft")
+                          (f-read <>))
+                 (f-entries (ns/blog-path "posts")
+                   (fn (s-ends-with-p ".org" <>)))))))))
 
 (defun ns/blog-get-properties (text)
   "org string to properties ht"

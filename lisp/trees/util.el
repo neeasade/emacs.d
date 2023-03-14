@@ -47,22 +47,19 @@
       (ns/get-functions))))
 
 (defun! ns/jump-config ()
-  (ivy-read "config: " (ns/get-functions)
-    :action
-    (lambda (f)
-      (interactive)
-      (cond
-        ((string= "dirt" f) (ns/find-or-open (~e "lisp/dirt.el")))
-        ((string= "forest" f) (ns/find-or-open (~e "lisp/forest.el")))
-        ((string= "init" f) (ns/find-or-open (~e "init.el")))
-        ((string= "follow-dwim" f) (ns/find-or-open (~e "lisp/trees/follow.el")))
-        ((f-exists-p (format (~e "lisp/trees/%s.el") f))
-          (ns/find-or-open (format (~e "lisp/trees/%s.el") f)))
-        (t
-          (ns/find-or-open (~e "lisp/forest.el"))
-          (goto-char (point-min))
-          (re-search-forward (format "defconfig %s\n" f))))
-      (recenter))))
+  (llet [f (ns/pick "config: " (ns/get-functions))]
+    (cond
+      ((string= "dirt" f) (ns/find-or-open (~e "lisp/dirt.el")))
+      ((string= "forest" f) (ns/find-or-open (~e "lisp/forest.el")))
+      ((string= "init" f) (ns/find-or-open (~e "init.el")))
+      ((string= "follow-dwim" f) (ns/find-or-open (~e "lisp/trees/follow.el")))
+      ((f-exists-p (format (~e "lisp/trees/%s.el") f))
+        (ns/find-or-open (format (~e "lisp/trees/%s.el") f)))
+      (t
+        (ns/find-or-open (~e "lisp/forest.el"))
+        (goto-char (point-min))
+        (re-search-forward (format "defconfig %s\n" f)))))
+  (recenter))
 
 (defun! ns/toggle-bloat()
   "toggle bloat in the current buffer"
@@ -162,37 +159,36 @@
             (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
             "bash"))
 
-         (ivy-prescient-enable-sorting nil))
+         (ivy-prescient-enable-sorting nil)
+         )
 
-    (ivy-read "history: "
-      (->>
-        (append
-          ;; current history across all open shells:
-          (-mapcat
-            (fn (with-current-buffer <>
-                  (when (boundp 'comint-input-ring)
-                    (when (> (ring-size comint-input-ring) 0)
-                      (mapc 's-clean (ring-elements comint-input-ring)
-                        )))))
-            (ns/buffers-by-mode 'shell-mode))
+    (llet [history-item (ns/pick "history"
+                          (->>
+                            (append
+                              ;; current history across all open shells:
+                              (-mapcat
+                                (fn (with-current-buffer <>
+                                      (when (boundp 'comint-input-ring)
+                                        (when (> (ring-size comint-input-ring) 0)
+                                          (mapc 's-clean (ring-elements comint-input-ring)
+                                            )))))
+                                (ns/buffers-by-mode 'shell-mode))
 
-          (->>
-            (~ (format ".%s_history" shell-name))
-            f-read
-            (s-split "\n")
-            reverse
-            (-map
-              (fn ;; shared history format: ': 1556747685:0;cmd'
-                (if (s-starts-with-p ":" <>)
-                  (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                  <>)))))
-        (-uniq)
-        (-remove (-partial #'s-starts-with-p " ")))
-
-      :action (fn (when (eq major-mode 'shell-mode)
-                    (goto-char (point-max)))
-                (insert <>)
-                ))))
+                              (->>
+                                (~ (format ".%s_history" shell-name))
+                                f-read
+                                (s-split "\n")
+                                reverse
+                                (-map
+                                  (fn ;; shared history format: ': 1556747685:0;cmd'
+                                    (if (s-starts-with-p ":" <>)
+                                      (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
+                                      <>)))))
+                            (-uniq)
+                            (-remove (-partial #'s-starts-with-p " "))))]
+      (when (eq major-mode 'shell-mode)
+        (goto-char (point-max)))
+      (insert history-item))))
 
 ;; update buffer local variables across all open buffers
 ;; notmodes are modes to ignore

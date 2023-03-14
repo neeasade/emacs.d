@@ -112,13 +112,10 @@ will also be the width of all other printable characters."
 
   (load-theme
     (or theme
-      (intern
-        (ivy-read "Load theme: "
-          ;; (mapcar 'symbol-name (custom-available-themes))
-          (-filter
-            (fn (s-starts-with-p "myron-" (pr-str <>)))
-            (custom-available-themes))
-          :action 'identity)))
+      (->> (custom-available-themes)
+        (-filter (fn (s-starts-with-p "myron-" (pr-str <>))))
+        (ns/pick "theme")
+        (intern)))
     t)
 
   (setq hl-todo-keyword-faces
