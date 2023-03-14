@@ -25,11 +25,9 @@
 (defun ns/pick (one &optional two)
   "Pick something from a list. accepts (prompt candidates) or (candidates)"
   (llet [(prompt candidates) (if two
-                               (list (format "%s: ")
-                                 two)
+                               (list (format "%s: " one) two)
                                (list "select: " one))]
     (ivy-read prompt candidates)))
-
 
 ;; counsel
 (ns/use counsel
@@ -272,7 +270,7 @@
 
   "bb" (fn!! surf-buffers
          (->> (ns/jump-file-candidates :buffers-without-files)
-           (ns/pick "buffer:")
+           (ns/pick "buffer")
            (counsel-switch-to-buffer-or-window)))
 
   "bm" (fn!! surf-buffers-mode

@@ -319,6 +319,7 @@
   (cond
     ((stringp val) val)
     ((keywordp val) (substring (pr-str val) 1))
+    ((bufferp val) (buffer-name val))
     (t (pr-str val))))
 
 ;; trying terminal
