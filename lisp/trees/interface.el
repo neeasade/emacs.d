@@ -79,7 +79,7 @@
   "r" 'revert-buffer
   "h" 'dired-up-directory
   "l" 'dired-find-file
-  (kbd "C-RET") (fn!
+  (kbd "C-RET") (fn!! xdg-open
                   (->>
                     (dired-get-file-for-visit)
                     ;; (format "setsid nohup xdg-open \"%s\" &")
@@ -88,26 +88,25 @@
                   ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
                   )
 
-  "s"
-  (fn!
-    (let ((existing-shell
-            ;; existing-shell = a shell with the same cwd as the dired buffer we are looking at
+  "s" (fn!! dired-shell
+        (let ((existing-shell
+                ;; existing-shell = a shell with the same cwd as the dired buffer we are looking at
 
-            ;; there's a silly issue here.
-            ;; when we call f-full tramp connections are realized but might not be connected, meaning lag/failure
-            ;; but we need f-full because sometimes '~' is used in default directory
-            ;; we can toss the tramp dirs before comparing with f-full/f-same-p to remove the delay
-            (->> (ns/buffers-by-mode 'shell-mode)
-              (-remove (fn (s-starts-with-p "*shell-" (buffer-name <>))))
-              (-remove (fn (file-remote-p (buffer-local-value 'default-directory <>))))
-              (-filter (fn (f-same-p (buffer-local-value 'default-directory <>)
-                             default-directory)))
-              (first))))
+                ;; there's a silly issue here.
+                ;; when we call f-full tramp connections are realized but might not be connected, meaning lag/failure
+                ;; but we need f-full because sometimes '~' is used in default directory
+                ;; we can toss the tramp dirs before comparing with f-full/f-same-p to remove the delay
+                (->> (ns/buffers-by-mode 'shell-mode)
+                  (-remove (fn (s-starts-with-p "*shell-" (buffer-name <>))))
+                  (-remove (fn (file-remote-p (buffer-local-value 'default-directory <>))))
+                  (-filter (fn (f-same-p (buffer-local-value 'default-directory <>)
+                                 default-directory)))
+                  (first))))
 
-      (if (and existing-shell
-            (not (string= (buffer-name existing-shell) "*spawn-shell-staged*")))
-        (switch-to-buffer existing-shell)
-        (ns/pickup-shell (expand-file-name default-directory)))))
+          (if (and existing-shell
+                (not (string= (buffer-name existing-shell) "*spawn-shell-staged*")))
+            (switch-to-buffer existing-shell)
+            (ns/pickup-shell (expand-file-name default-directory)))))
 
   ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
   "q" 'ns/maybe-prev)
@@ -141,7 +140,6 @@
     (-remove (lambda (b) (eq b (current-buffer))))
     (-map 'kill-buffer)))
 
-;; this multiply thing might be a dumb idea, maybe just prompt for desired font-size instead
 (defun! ns/font-change ()
   (llet [current-size (/ (face-attribute 'default :height) 10)
           new-size (read-number (format "new size (current-size: %s): " current-size))]

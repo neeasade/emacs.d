@@ -354,14 +354,25 @@
 
 (setq undo-tree-enable-undo-in-region t)
 
-(ns/bind "iq" (fn! (sh "qb_userscript paste_selected")))
+(ns/bind "iq" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
 
 
 (ns/use dockerfile-mode)
 
-;; attempting to fix wandering undo paths
-(setq undo-tree-enable-undo-in-region nil)
-
+(defun! ns/straight-check-sync-status ()
+  (let ((versions-alist (straight--lockfile-read-all))
+         (out-of-sync '()))
+    (straight--map-repos
+      ;; repo is eg (:type git :flavor melpa :host github :repo "spotify/dockerfile-mode" :package "dockerfile-mode" :local-repo "dockerfile-mode")
+      (-lambda ((&plist :package :local-repo :type))
+        (-when-let (recipe (ht-get straight--recipe-cache package))
+          (when (and local-repo
+                  (straight--repository-is-available-p recipe))
+            (-when-let (commit (cdr (assoc local-repo versions-alist)))
+              ;; todo: probably want to check if repo has unstaged changes too
+              (when-not (string= (straight-vc-get-commit type local-repo) commit)
+                (add-to-list 'out-of-sync package)))))))
+    (message "straight packages out of sync: %s" (length out-of-sync))))
 
 (provide 'staging)
 ;;; staging.el ends here

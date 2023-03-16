@@ -125,18 +125,15 @@ command was called, go to its unstaged changes section."
              (magit-section-forward)
              (error (cl-return (magit-status-goto-initial-section-1))))))))
 
-(defun! ns/git-status()
-  (setq ns/magit-before-display-layout (current-window-configuration))
-  (if ns/enable-windows-p (magit-staging)
-    (unpackaged/magit-status)))
+
 
 ;; todo: tryout this package
 (ns/use vdiff
   (evil-define-key 'normal vdiff-mode-map "," vdiff-mode-prefix-map)
 
   ;; todo: general-nmap this
-  (evil-define-minor-mode-key 'normal 'vdiff-mode "]c" 'vdiff-next-hunk)
-  (evil-define-minor-mode-key 'normal 'vdiff-mode "[c" 'vdiff-previous-hunk)
+  ;; (compare with evil-collection)
+
   (evil-define-minor-mode-key 'normal 'vdiff-mode "zc" 'vdiff-close-fold)
   (evil-define-minor-mode-key 'normal 'vdiff-mode "zM" 'vdiff-close-all-folds)
   (evil-define-minor-mode-key 'normal 'vdiff-mode "zo" 'vdiff-open-fold)
@@ -147,19 +144,20 @@ command was called, go to its unstaged changes section."
 
 (general-nmap
   "]g" 'git-gutter:next-hunk
-  "[g" 'git-gutter:previous-hunk
-  )
+  "[g" 'git-gutter:previous-hunk)
 
 ;; alias:
-
 (ns/bind
   "g" '(:ignore t :which-key "git")
   "gb" 'magit-blame-addition
   "gl" 'magit-log-buffer-file
   "gL" 'magit-log
   "gm" 'git-smerge-menu/body
-  "gd" 'vdiff-mode ; ,h for a hydra!
-  "gs" 'ns/git-status
+  "gd" 'vdiff-mode
+  "gs" (fn!! git-status
+         (setq ns/magit-before-display-layout (current-window-configuration))
+         (if ns/enable-windows-p (magit-staging)
+           (unpackaged/magit-status)))
+
   ;; open in place
-  "gS" 'magit-status
-  )
+  "gS" 'magit-status)

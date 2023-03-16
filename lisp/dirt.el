@@ -34,8 +34,10 @@
        (require ',pkg-mode nil t)
        ,@body
        (message ": ns/use: %s... done ." ',pkg)
-       ;; (message ": ns/use: %s... done (%.02fs)." ',pkg
-       ;;   (float-time (time-since ns-use-time)))
+       ;; (let ((time-passed (float-time (time-since ns-use-time))))
+       ;;   (if (> time-passed 2)
+       ;;     (message ": ns/use: %s... done (%.02fs) 🕑." ',pkg time-passed)
+       ;;     (message ": ns/use: %s... done ." ',pkg)))
        )))
 
 ;; load org early so that require's use the correct package
@@ -293,10 +295,14 @@
        (setq ,enabled-symbol nil)
        (defun ,function-name nil
          (interactive)
-         (let ((config-name ,conf-string))
+         (let ((config-name ,conf-string)
+                (config-start-time (current-time)))
            (message (format "::: %s..." ',function-name))
            ,@body
-           (message (format "::: %s... done." ',function-name)))))))
+           (let ((time-passed (float-time (time-since config-start-time))))
+             (if (> time-passed 2)
+               (message (format "::: %s... done (%.02fs) slow 🕑.." ',function-name time-passed))
+               (message (format "::: %s... done." ',function-name)))))))))
 
 (defun ns/file-mode (file-extension mode)
   (let ((pattern (format  "\\.%s\\'" file-extension)))

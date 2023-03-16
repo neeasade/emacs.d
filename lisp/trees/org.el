@@ -420,7 +420,6 @@
 
   ;; words are hard (spelling)
   (ns/use flyspell-correct-avy-menu
-    (require 'flyspell-correct-avy-menu)
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
 
     (defun! ns/spellcheck-at-point ()
