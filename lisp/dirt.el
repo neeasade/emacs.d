@@ -128,50 +128,58 @@
 (defun ~e (&rest args)
   (apply #'f-join (cons ns/emacs-directory args)))
 
-;; todo: consider conflict management/at the time of binding yell about the takeover
+(defun ns/check-bind-conflict (binding &optional keymap states)
+  (llet [keymap (or keymap 'general-override-mode-map)
+          states (or states '(normal))
+          keymap-bindings (->> general-keybindings
+                            (-first (-lambda ((keymap_ &rest _))
+                                      (eq keymap_ keymap)))
+                            (-drop 1))]
+    (-map
+      (lambda (evil-state)
+        (when-let (conflict (->> keymap-bindings
+                              (-first
+                                (-lambda ((evil-state_ &rest _))
+                                  (eq evil-state_ evil-state)))
+                              (-drop 1)
+                              (-first (-lambda ((binding_ &rest _))
+                                        (string= binding_ binding)))))
+          (message "conflicting keybind! '%s'" (first conflict))))
+      states)))
 
-(defun ns/general-definition (binding &optional keymap)
-  (llet [keymap (or keymap 'general-override-mode-map)]
-    (->> general-keybindings
-      (-first (-lambda ((keymap_ &rest bindings))
-                (eq keymap_ keymap)))
-      (-drop 1)
-      ;; assume normal mode
-      (-first (-lambda ((mode &rest bindings))
-                (eq mode 'normal)))
-      (-drop 1)
-      (-first (-lambda ((binding_ action))
-                (string= binding_ binding))))))
-
-(defun ns/bind (&rest binds)
-  (ns/comment
+(defun ns/check-conflicting-binds (binds keymap states &optional prefix)
+  (comment
     (->> binds
       (-partition 2)
-      (-map 'first)
-      (-map (lambda (bind)
-              (when (ns/general-definition (concat " " bind))
-                (message "ns/bind: already bound: %s" bind))))))
+      (-map (-lambda ((bind &rest _))
+              (ns/check-bind-conflict
+                (format "%s%s" (or prefix " ") bind) keymap states))))))
 
 
-  (apply 'general-define-key
-    :states '(normal visual)
-    ;; note: 'override means we squash anyone with overlapping keybinds
-    :keymaps 'override
-    :prefix "SPC"
-    binds))
+(defun ns/bind (&rest binds)
+  (llet [states '(normal visual)
+          keymap 'general-override-mode-map]
+    (ns/check-conflicting-binds binds keymap states)
+    (apply 'general-define-key
+      :states states
+      :keymaps keymap
+      :prefix "SPC"
+      binds)))
 
 (defun ns/bind-soft (&rest binds)
   "a version of ns/bind that will not be present via an override mode"
-  (apply 'general-define-key
-    :states '(normal visual)
-    :prefix "SPC"
-    binds))
+  (llet [states '(normal visual)
+          keymap 'global]
+    (ns/check-conflicting-binds binds keymap states)
+    (apply 'general-define-key
+      :states states
+      ;; :keymaps keymap
+      :prefix "SPC"
+      binds)))
 
 (defun ns/bind-mode (mode &rest binds)
-  ;; unbind anything that might be bound in ~mode~ already
+  ;; we should unbind anything that might be bound in ~mode~ already
   ;; todo: this better later
-
-  ;; (that is, allow local bindings to override global ones)
   (ns/comment
     (apply 'general-unbind
       `(
@@ -183,19 +191,24 @@
                   (-map 'car)
                   (-flatten))))))
 
-  (apply 'general-define-key
-    `(:prefix "SPC"
-       :states '(visual normal)
-       ;; note: this depends on modes playing nice wrt conventions
-       :keymaps ,(intern (format "%s-mode-map" (symbol-name mode)))
-       ,@binds)))
+  (llet [states '(normal visual)
+          keymap (intern (format "%s-mode-map" (symbol-name mode)))]
+    (ns/check-conflicting-binds binds keymap states)
+    (apply 'general-define-key
+      :states states
+      :keymaps keymap
+      :prefix "SPC"
+      binds)))
 
-(defmacro ns/bind-leader-mode (mode &rest binds)
-  `(general-define-key
-     :prefix ","
-     :states '(visual normal)
-     :keymaps (intern (concat (symbol-name ,mode) "-mode-map"))
-     ,@binds))
+(defun ns/bind-leader-mode (mode &rest binds)
+  (llet [states '(normal visual)
+          keymap (intern (format "%s-mode-map" (symbol-name mode)))]
+    (ns/check-conflicting-binds binds keymap states ",")
+    (apply 'general-define-key
+      :states states
+      :keymaps keymap
+      :prefix ","
+      binds)))
 
 ;; this was removed
 ;; cf https://github.com/abo-abo/swiper/pull/1570/files#diff-c7fad2f9905e642928fa92ae655e23d0L4500

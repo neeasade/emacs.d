@@ -374,5 +374,8 @@
                 (add-to-list 'out-of-sync package)))))))
     (message "straight packages out of sync: %s" (length out-of-sync))))
 
+
+(setq search-invisible t)
+
 (provide 'staging)
 ;;; staging.el ends here
