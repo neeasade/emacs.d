@@ -34,11 +34,11 @@
 (ns/bind
   ;; todo: jump by site title
   "nq" (fn!! surf-blog-posts
-         (find-file
-           (ns/pick "post"
-             (reverse
-               (f-entries (ns/blog-path "posts")
-                 (fn (s-ends-with-p ".org" <>)))))))
+         (->> (f-entries (ns/blog-path "posts")
+                (-partial 's-ends-with-p ".org"))
+           (reverse)
+           (ns/pick "post")
+           (find-file)))
 
   "nQ" (fn!! surf-blog-drafts
          (find-file

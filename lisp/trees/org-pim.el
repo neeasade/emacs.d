@@ -24,20 +24,19 @@
                                   filters)))
            all-nodes)))))
 
-(defun ns/org-scheduled-today (heading)
-  "Get headings scheduled from <now - 2hrs> --> end of day"
-  (-when-let (scheduled (ns/headline-date heading))
+(defun ns/org-scheduled-today (headline)
+  "Is a headline scheduled today?"
+  (-when-let (scheduled (ns/headline-date headline))
     (ts-in
-      (ts-adjust 'hour -2 (ts-now))
+      (ts-apply :hour 0 :minute 0 :second 0 (ts-now))
       (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
       (ts-parse-org scheduled))))
 
-(defun ns/org-scheduled-past-todo (heading)
-  "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
-  (llet [scheduled (ns/headline-date heading)
-          todo-state (org-ml-get-property :todo-keyword heading)]
-    (when (and scheduled
-            (string= todo-state "TODO"))
+(defun ns/org-scheduled-past-todo (headline)
+  "Is a headline scheduled in the past?"
+  (llet [scheduled (ns/headline-date headline)
+          todo-state (org-ml-get-property :todo-keyword headline)]
+    (when (and scheduled (not (string= todo-state "DONE")))
       (ts> (ts-now) (ts-parse-org scheduled)))))
 
 ;; track headlines to notification status

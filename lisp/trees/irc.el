@@ -15,7 +15,8 @@
 (setq ns/circe-highlights `(,ns/irc-nick "neesade" "neese" "nessie" "bspwm" "emacs " "clojure" " nix "))
 
 (setq-ns lui
-  logging-directory (~ ".ircnew")
+  logging-directory (~ ".ircnew2")
+  logging t
   time-stamp-position 'right-margin
   time-stamp-format "%H:%M"
   ;; fluid width windows
@@ -513,20 +514,21 @@
 (defun ns/set-circe-prompt ()
   (lui-set-prompt (ns/make-message (buffer-name) "")))
 
+
 (add-hook 'circe-chat-mode-hook 'ns/set-circe-prompt)
+(enable-lui-logging-globally)
+
 
 ;; (add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
 ;; (add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
 
 ;; prevent too long pastes/prompt on it:
 (require 'lui-autopaste)
-(add-hook 'circe-channel-mode-hook 'enable-lui-autopaste)
-(add-hook 'circe-query-mode-hook 'enable-lui-autopaste)
+(add-hook 'circe-chat-mode-hook 'enable-lui-autopaste)
 
 ;; paying this small cost a bunch of times means we don't have to
 ;; remember to call ns/style-circe later
-(add-hook 'circe-channel-mode-hook 'ns/style-circe)
-(add-hook 'circe-query-mode-hook 'ns/style-circe)
+(add-hook 'circe-chat-mode-hook 'ns/style-circe)
 
 (add-hook 'lui-mode-hook 'my-lui-setup)
 (defun my-lui-setup ()
@@ -544,13 +546,12 @@
 
 (mapcar 'buffer-name
   (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)
-
   )
 
 (defun! ns/jump-irc ()
   (let* ((irc-channels
            (mapcar 'buffer-name
-             (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)))
+             (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode 'circe-server-mode)))
           (irc-nicks
             (if (-contains-p irc-channels (buffer-name))
               ;; (circe-channel-nicks)
@@ -748,8 +749,7 @@
     "Get the list of buffers, grouped by their major mode."
     (->> (buffer-list)
       (--reject (eq ?\ (aref (buffer-name it) 0)))
-      (--group-by (buffer-local-value 'major-mode it)))
-    )
+      (--group-by (buffer-local-value 'major-mode it))))
 
   (defun showcase--get-buffer-groups ()
     "Get the list of buffers, grouped by their major mode."
@@ -770,17 +770,10 @@
               (lambda (message-buffer)
                 (eq server-buffer
                   (buffer-local-value 'circe-server-buffer message-buffer)))
-              message-buffers
-              ))
-          )
-        (ns/buffers-by-mode 'circe-server-mode)
-        )))
+              message-buffers)))
+        (ns/buffers-by-mode 'circe-server-mode))))
 
-  (first
-    (showcase--get-buffer-groups)
-
-    ;; #<buffer irc.rizon.net:6697>
-    )
+  (first (showcase--get-buffer-groups))
 
   (defun showcase-visit-buffer (&rest _)
     "Switch to the buffer saved in node at point."

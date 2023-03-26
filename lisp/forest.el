@@ -6,7 +6,6 @@
 
 (ns/defconfig elisp
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
-
   ;; 'common-lisp-indent-function
 
   (setq lisp-indent-function 'common-lisp-indent-function)
@@ -78,18 +77,13 @@
   ;; use eslint with web-mode for jsx files
   (flycheck-add-mode 'javascript-eslint 'web-mode)
 
-  ;; evil-collection unimpaired givs us ]l for this same map
-  ;; (general-nmap "]e" 'flycheck-next-error "[e" 'flycheck-previous-error)
-
-  (ns/use flycheck-pos-tip)
-  (eval-after-load 'flycheck '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages)))
+  (ns/use flycheck-pos-tip (flycheck-pos-tip-mode t)))
 
 (ns/defconfig company
   (ns/use company
     (setq-ns company
       idle-delay 0.5
       selection-wrap-around t
-      tooltip-align-annotations t
       dabbrev-downcase nil
       dabbrev-ignore-case t
       tooltip-align-annotations t
@@ -101,15 +95,14 @@
                       circe-channel-mode
                       circe-query-mode
                       )
-      tooltip-align-annotations t
       )
 
-    (define-key company-active-map [tab] 'company-complete)
-    )
+    (define-key company-active-map (kbd "C-e") 'company-select-previous)
+    (define-key company-active-map "\t" 'company-complete))
 
   (ns/use company-quickhelp
-    (company-quickhelp-mode 1)
-    (setq company-quickhelp-delay 0.3)))
+    (setq company-quickhelp-delay 0.3)
+    (company-quickhelp-mode 1)))
 
 (ns/defconfig dashdocs
   (ns/use counsel-dash)
@@ -397,10 +390,7 @@
     (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
   (add-hook 'go-mode-hook #'lsp-deferred)
-
-  (add-hook 'go-mode-hook #'ns/lsp-cleanup)
-
-  )
+  (add-hook 'go-mode-hook #'ns/lsp-cleanup))
 
 (ns/defconfig search-engines
   (ns/use engine-mode
@@ -438,16 +428,6 @@
       (-partition 2 ns/filename-cmd)))
 
   (add-hook 'after-save-hook 'ns/cmd-after-saved-file))
-
-(ns/defconfig emoji
-  ;; nb: global-emojify-mode messes with input latency, so we prefer to toggle it conditionally
-  (ns/use emojify
-    (setq emojify-emoji-styles '(unicode)) ; only real emoji here thanks
-    (when ns/enable-mac-p
-      (setq emojify-download-emojis-p nil))
-    (ns/bind
-      "ie" 'emojify-insert-emoji
-      "te" 'emojify-mode)))
 
 (ns/defconfig powershell
   (ns/use powershell))

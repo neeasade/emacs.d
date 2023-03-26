@@ -24,27 +24,6 @@
           `(defun ,fn-name (beg end) (interactive "r")
              (translate-region beg end ,char-table-name)))))))
 
-(defun ns/cleanup-shells ()
-  "Clean up shell-mode buffers that have no children"
-  (interactive)
-  (->> (ns/buffers-by-mode 'shell-mode)
-    (-filter
-      (lambda (b)
-        (llet [pid (process-id (get-buffer-process b))
-                children (sh (format "pgrep -P %s" pid))
-                visible? (get-buffer-window b)]
-          (and (s-blank? children)
-            (not visible?)))))
-    (-map 'kill-buffer)))
-
-(named-timer-run :maybe-cleanup-shells
-  t                                     ; do not run initially
-  ;; once a day I suppose?
-  (* 60 60 24)
-  (fn (when (> (org-user-idle-seconds)
-              (* 5 60))
-        (ns/cleanup-shells))))
-
 (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
 
 (ns/bind "nk" (fn!! goto-theme (find-file (executable-find "theme"))
@@ -62,7 +41,6 @@
 (ns/use rainbow-mode
   (setq rainbow-html-colors nil
     rainbow-x-colors nil)
-
   (ns/bind "tc" 'rainbow-mode))
 
 ;; M-x direnv-update-environment
@@ -374,6 +352,11 @@
                 (add-to-list 'out-of-sync package)))))))
     (message "straight packages out of sync: %s" (length out-of-sync))))
 
+(defhydra hydra-expand-region ()
+  ("n" er/expand-region "expand")
+  ("e" er/contract-region "contract"))
+
+(general-define-key :states 'visual "v" #'hydra-expand-region/body)
 
 (setq search-invisible t)
 

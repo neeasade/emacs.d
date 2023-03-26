@@ -4,38 +4,34 @@
 
 (setq-ns magit
   save-repository-buffers 'dontask
-  repository-directories (list (~ "git"))
-  )
+  repository-directories (list (~ "git")))
 
 ;; https://magit.vc/manual/magit/Performance.html
 (when ns/enable-windows-p
-  (setq-ns magit
-    ;; diff perf
-    diff-highlight-indentation nil
-    diff-highlight-trailing nil
-    diff-highlight-hunk-body nil
-    diff-paint-whitespace nil
-    diff-refine-hunk nil
-    refresh-status-buffer nil)
+  (setq-ns magit-diff
+    highlight-indentation nil
+    highlight-trailing nil
+    highlight-hunk-body nil
+    paint-whitespace nil
+    refine-hunk nil)
+
+  (setq magit-refresh-status-buffer nil)
 
   ;; don't show diff when committing --
   ;; means reviewing will have to be purposeful before
   (remove-hook 'server-switch-hook 'magit-commit-diff))
 
-(when (not ns/enable-windows-p)
-  (ns/use (magit-todos :host github :repo "alphapapa/magit-todos")
-    (setq magit-todos-nice ns/enable-linux-p)
-    (evil-define-key nil magit-todos-section-map "j" nil)
-    (evil-define-key nil magit-todos-section-map "e" nil)
-    (setq magit-todos-keywords-list
-      '("todo" "HOLD" "TODO" "NEXT" "THEM" "PROG" "OKAY" "DONT" "FAIL" "KLUDGE" "HACK" "TEMP" "FIXME" "XXX+"))
+(ns/use (magit-todos :host github :repo "alphapapa/magit-todos")
+  (setq magit-todos-nice ns/enable-linux-p
+    magit-todos-keywords-list (-mapcat (-juxt 's-upcase 's-downcase)
+                                '("todo" "fixme" "temp")))
 
-    (magit-todos-mode
-      ;; magit-todos-mode is sometimes not smart about scanning thicc files
-      (if ns/enable-work-p 0 t))))
+  (evil-define-key nil magit-todos-section-map "j" nil)
+  (evil-define-key nil magit-todos-section-map "e" nil)
 
-(defun ns/restore-magit-layout ()
-  (interactive)
+  (magit-todos-mode t))
+
+(defun! ns/restore-magit-layout ()
   (when ns/magit-before-display-layout
     (set-window-configuration ns/magit-before-display-layout)))
 
@@ -86,19 +82,17 @@
 
 ;; define a minimal staging mode for when we're on windows.
 (when ns/enable-windows-p
-  ;; WORKAROUND https://github.com/magit/magit/issues/2395
+  ;; https://github.com/magit/magit/wiki/Tips-and-Tricks#show-staged-and-unstaged-changes-but-nothing-else
   (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
     "Mode for showing staged and unstaged changes."
     :group 'magit-status)
   (defun magit-staging-refresh-buffer ()
     (magit-insert-section (status)
-      (magit-insert-untracked-files)
       (magit-insert-unstaged-changes)
       (magit-insert-staged-changes)))
   (defun magit-staging ()
     (interactive)
     (magit-mode-setup #'magit-staging-mode)))
-
 
 (defvar ns/magit-before-display-layout nil)
 

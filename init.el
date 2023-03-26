@@ -1,39 +1,12 @@
 ;; -*- lexical-binding: t; -*-
-;;; init.el --- this file has the knobs
+;;; init.el --- iykyk
 ;;; commentary:
 ;;; code:
 
-(setq
-  ns/enable-windows-p (eq system-type 'windows-nt)
-  ns/enable-linux-p (eq system-type 'gnu/linux)
-  ns/enable-mac-p (eq system-type 'darwin)
-  ns/enable-home-p (string= (getenv "USER") "neeasade")
-  ns/enable-work-p ns/enable-mac-p
-
-  ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
-  ns/emacs-directory user-emacs-directory
-
-  ;; maybe swap these when in a terminal term
-  mac-option-modifier 'meta
-  mac-command-modifier 'super
-  mac-control-modifier 'control
-
-  ;; for when we're away from $HOME.
-  ns/xrdb-fallback-values
-  `(("panel.height" . "24")
-     ("emacs.theme" . "myron-mcfay")
-     ("font.mono.spec" .
-       ,(when (stringp (face-attribute 'default :font))
-          (font-get (face-attribute 'default :font) :name)))
-     ("font.variable.spec" .
-       ,(when (stringp (face-attribute 'default :font))
-          (font-get (face-attribute 'default :font) :name)))))
-
-(setq load-prefer-newer t)
-(load (concat ns/emacs-directory "lisp/dirt.el"))
+(load (concat user-emacs-directory "lisp/dirt.el"))
 (shut-up-load (~e "lisp/forest.el"))
 
-(defun ns/call-conf (confs)
+(defun ns/summon (confs)
   (->> confs
     (-map '-list)
     (-remove
@@ -46,8 +19,8 @@
 ;; alias to signal intent -- layers I don't use but might be nice for reference later
 (setq ns/outdated nil)
 
-(ns/defconfig core
-  (ns/call-conf
+(defun ns/conf-core ()
+  (ns/summon
     `(
        sanity
        evil
@@ -56,15 +29,14 @@
        shell
        projectile
        util
-       ;; nb: git must happen before org
        git
        org org-capture org-pim
        server
        follow-dwim
        )))
 
-(ns/defconfig extra
-  (ns/call-conf
+(defun ns/conf-extra ()
+  (ns/summon
     `(
        company
        flycheck
@@ -78,13 +50,12 @@
        scripting
        (music ns/enable-home-p (executable-find "mpd"))
        (pdf ns/enable-linux-p)
-       (ledger ns/enable-home-p)
-       emoji
+       (ledger ns/outdated)
        (filehooks ns/enable-home-p)
        graphviz)))
 
-(ns/defconfig development
-  (ns/call-conf
+(defun ns/conf-development ()
+  (ns/summon
     `(
        (c ns/outdated)
        (common-lisp ns/outdated)
@@ -134,7 +105,6 @@
       (ns/toggle-bloat-global (not ns/enable-windows-p))
 
       (named-timer-idle-run :garbage-collect 2 t 'garbage-collect)
-
 
       (->> recentf-list
         (-filter (fn

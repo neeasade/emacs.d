@@ -5,6 +5,8 @@
 ;;; everywhere else.
 ;;; Code:
 
+(setq load-prefer-newer t)
+
 (defvar bootstrap-version)
 (let ((bootstrap-file
         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -22,6 +24,30 @@
 (require 'dash)
 (straight-use-package 's)
 (require 's)
+
+(setq
+  ns/enable-windows-p (eq system-type 'windows-nt)
+  ns/enable-linux-p (eq system-type 'gnu/linux)
+  ns/enable-mac-p (eq system-type 'darwin)
+  ns/enable-home-p (string= (getenv "USER") "neeasade")
+  ns/enable-work-p ns/enable-mac-p
+
+  ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
+  ns/emacs-directory user-emacs-directory
+
+  ;; maybe swap these when in a terminal term
+  mac-option-modifier 'meta
+  mac-command-modifier 'super
+  mac-control-modifier 'control
+
+  ;; for when we're away from $HOME.
+  ns/xrdb-fallback-values
+  (let ((default-font (when (stringp (face-attribute 'default :font))
+                        (font-get (face-attribute 'default :font) :name))))
+    `(("panel.height" . "24")
+       ("emacs.theme" . "myron-mcfay")
+       ("font.mono.spec" . ,default-font)
+       ("font.variable.spec" . ,default-font))))
 
 (defmacro ns/use (pkg-def &rest body)
   "Load a PKG-DEF with straight, require it, and then eval BODY."
@@ -58,20 +84,15 @@
 (ns/use hydra)
 (ns/use general (general-override-mode t))
 
-
 (ns/use request)
 (ns/use shut-up)
 
-(ns/use man)
-
+(require 'man)
 (require 'seq)
 (require 'cl-macs)
 (require 'cl-seq)
-(unload-feature 'man t)
 
 (ns/use named-timer)
-
-;; (lambda wow () (interactive) (message "wow"))
 
 (defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
@@ -155,7 +176,6 @@
               (ns/check-bind-conflict
                 (format "%s%s" (or prefix " ") bind) keymap states))))))
 
-
 (defun ns/bind (&rest binds)
   (llet [states '(normal visual)
           keymap 'general-override-mode-map]
@@ -180,17 +200,6 @@
 (defun ns/bind-mode (mode &rest binds)
   ;; we should unbind anything that might be bound in ~mode~ already
   ;; todo: this better later
-  (ns/comment
-    (apply 'general-unbind
-      `(
-         '(normal visual)
-         :with 'ignore
-         ,(intern (format "%s-mode-map" (symbol-name mode)))
-         ,(keys (->> binds
-                  (-partition 2)
-                  (-map 'car)
-                  (-flatten))))))
-
   (llet [states '(normal visual)
           keymap (intern (format "%s-mode-map" (symbol-name mode)))]
     (ns/check-conflicting-binds binds keymap states)

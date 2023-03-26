@@ -141,17 +141,13 @@
 (defun ns/make-lines (list)
   "Transform a LIST of things into something that can be newline iterated by a shell script."
   (->> list
-    (-map (fn (if (stringp <>) <>
-                (prin1-to-string <>))))
+    (-map 'ns/str)
     (-map 's-clean)
     (s-join "\n")))
 
 (defun ns/buffers-by-mode (&rest modes)
-  (cl-remove-if-not
-    (fn (-contains-p modes (buffer-local-value 'major-mode <>)))
-    (sort (buffer-list)
-      ;; sort by name to ensure same order
-      (lambda (&rest bs) (apply 'string> (-map 'pr-str bs))))))
+  (--filter (-contains-p modes (buffer-local-value 'major-mode it))
+    (buffer-list)))
 
 (defun! ns/insert-history ()
   (let ((shell-name

@@ -9,15 +9,16 @@
 (when
   (and ns/enable-mac-p
     (executable-find "/run/current-system/sw/bin/bash"))
-  (setq explicit-shell-file-name  "/run/current-system/sw/bin/bash"))
+  (setq explicit-shell-file-name "/run/current-system/sw/bin/bash"))
 
 (when ns/enable-windows-p
   (setenv "PATH"
     (format "%s;%s"
       (~ "scoop/apps/git-with-openssh/current/usr/bin/")
       (getenv "PATH")))
-  (setq explicit-shell-file-name (car (s-split "\n" (ns/shell-exec "where bash"))))
-  (setq explicit-bash.exe-args '("--login" "-i")))
+  (setq
+    explicit-shell-file-name (executable-find "bash")
+    explicit-bash.exe-args '("--login" "-i")))
 
 ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
 (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
@@ -30,7 +31,6 @@
   "<down>"    'comint-next-input
   (kbd "C-e") 'comint-previous-input
   (kbd "C-n") 'comint-next-input)
-
 
 (ns/use shx
   (shx-global-mode 1)
@@ -47,8 +47,7 @@
   (setq-ns shell-pop
     window-position "top"
     window-size 33 ;; percent
-    full-span t
-    )
+    full-span t)
 
   ;; interactive shell-pop bound to spc t index shell
   (defun ns/shell-pop (index)
@@ -98,8 +97,6 @@
           (setq cwd (concat cwd "/"))))
 
       ;; accumulate directories
-      (when (not (boundp 'ns/cd-dirs))
-        (setq ns/cd-dirs (list)))
       (add-to-list 'ns/cd-dirs default-directory)
 
       (replace-match "" t t string 0))
@@ -118,8 +115,7 @@
   (setq-local inhibit-field-text-motion nil)
   ;; weird colon highlighting thing
   (setq-local shell-font-lock-keywords
-    (-remove
-      (fn (s-ends-with-p "]+:.*" (car <>)))
+    (--remove (s-ends-with-p "]+:.*" (car it))
       shell-font-lock-keywords))
 
   (add-function :after
@@ -193,23 +189,16 @@
   (when cwd (shell-pop--cd-to-cwd-shell cwd))
 
   ;; we don't care about how long it takes to stage the terminal
-  (make-thread (fn (ns/stage-terminal)))
+  (make-thread 'ns/stage-terminal)
+
   ;; t
   nil
   )
 
-;; killing this for now -- maybe check if anything is running in the window
-(defun! ns/kill-spawned-shell (frame)
-  (let ((windows (window-list frame)))
-    (when (eq 1 (length windows))
-      (let ((buffer (window-buffer (car windows))))
-        (when (s-match "\*spawn-shell.*" (buffer-name buffer))
-          (kill-buffer buffer))))))
-
-;; (add-hook 'delete-frame-hook 'ns/kill-spawned-shell)
-;; (remove-hook 'delete-frame-hook 'ns/kill-spawned-shell)
-
-(ns/bind "at" 'ns/spawn-terminal)
+(ns/bind
+  "at" 'ns/spawn-terminal
+  "as" 'ns/pickup-shell
+  )
 
 ;; fix for term, ansi term
 ;; https://github.com/hlissner/emacs-doom-themes/issues/54
@@ -229,37 +218,46 @@
 (ns/use company-shell
   (setq company-shell-clean-manpage t)
   (add-to-list 'company-backends 'company-shell)
-  ;; possibly a weird one to add
-  (add-to-list 'company-backends 'company-shell-env)
-  )
+  (add-to-list 'company-backends 'company-shell-env))
 
-;; crude -- just inserts and sends
 (defun ns/shell-send (string)
-  (with-current-buffer
-    (format "*shell-%s*" shell-pop-last-shell-buffer-index)
-    (goto-char (point-max))
-    (insert string)
-    (comint-send-input)))
+  (llet [last-shell-buffer (first (ns/buffers-by-mode 'shell-mode))] ; last shell buffer visited
+    (with-current-buffer last-shell-buffer
+      (goto-char (point-max))
+      (insert (s-trim string))
+      (comint-send-input))
+    (set-window-point (get-buffer-window last-shell-buffer)
+      (point-max))))
 
-(defun! ns/shell-eval-in-popped ()
-  (if (use-region-p)
-    (ns/shell-send (buffer-substring (region-beginning) (region-end)))
+(defun! ns/smart-shell-eval ()
+  (ns/shell-send
+    (if (use-region-p)
+      (buffer-substring (region-beginning) (region-end))
+      (thing-at-point 'line))))
 
-    (if (s-blank-p (s-trim (thing-at-point 'line)))
-      ;; top level function definition
-      (ns/shell-send
-        ;; (save-excursion (forward-line -1)
-        ;;   (let ((last-line (s-clean (thing-at-point 'line))))
-        ;;     (if (string= last-line "}\n")
-        ;;       ;; search back/return entire function def
-        ;;       "todo"
-        ;;       )))
-        )
+(ns/bind-mode 'sh "e" 'ns/smart-shell-eval)
 
-      ;; (eros-eval-last-sexp nil)
-      ;; (eros-eval-defun nil)
-      ;; no notion of higher order thing
-      (ns/shell-send (thing-at-point 'line)))))
+(defun! ns/cleanup-shells ()
+  "Clean up shell-mode buffers that have no children"
+  (->> (ns/buffers-by-mode 'shell-mode)
+    (-filter
+      (lambda (b)
+        (llet [pid (process-id (get-buffer-process b))
+                ;; -P works on macos and linux
+                children (sh (format "pgrep -P %s" pid))
+                visible? (get-buffer-window b)]
+          (and (s-blank? children)
+            (not visible?)))))
+    (-map 'kill-buffer)))
+
+(named-timer-run :maybe-cleanup-shells
+  t                                     ; do not run initially
+  ;; once a day I suppose?
+  (* 60 60 24)
+  (fn (when (> (org-user-idle-seconds)
+              (* 5 60))
+        (ns/cleanup-shells))))
+
 
 (provide 'shell)
 ;;; shell.el ends here
