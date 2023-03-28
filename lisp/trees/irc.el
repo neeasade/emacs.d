@@ -35,7 +35,7 @@
     ;; reduce-lurker-spam nil ;; hide part, join, quit
     default-quit-message ""
     default-part-message ""
-    ;; todo: consider tracking channels somewhere else
+
     network-options
     `(
 

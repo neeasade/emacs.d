@@ -201,7 +201,6 @@
   (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play)
   (add-hook 'org-pomodoro-break-finished-hook 'ns/focus-mode-enter))
 
-;; todo: there's a bug in this -- if a heading is the last line of a file, we should insert a newline
 (defun ns/org-jump-to-element-content ()
   "Jump from a anywhere in a headline to the start of it's content"
   ;; org mode is cursed
@@ -243,7 +242,6 @@
           (evil-open-above 1)
           (evil-normal-state)))))
 
-  ;; todo: consider ensuring drawers are collapsed after this
   (recenter))
 
 (defun! ns/make-org-link-to-here ()
@@ -262,7 +260,7 @@
         (format "\n%s > ~%s~\n"
           (s-pad-right 20 " " org-link)
           line-content)))
-    (message "added link!")))
+    (message "saved link!")))
 
 ;; putting in this file to make sure it's after org mode
 ;; (when ns/enable-evil-p
@@ -406,9 +404,9 @@
 
   ;; words are hard (meaning)
   (ns/use mw-thesaurus
-    ;; this binding doesn't work -- org has some cycle agenda files meaning
-    ;; (global-set-key (kbd "C-'") #'mw-thesaurus-lookup-at-point)
-    )
+    (global-set-key (kbd "C-'") #'mw-thesaurus-lookup-at-point)
+    ;; override default binding
+    (define-key org-mode-map (kbd "C-'") #'mw-thesaurus-lookup-at-point))
 
   ;; words are hard (spelling)
   (ns/use flyspell-correct-avy-menu
@@ -417,15 +415,12 @@
     (defun! ns/spellcheck-at-point ()
       (when-not (and (boundp 'flyspell-mode)
                   flyspell-mode)
-        (flyspell-mode 1)
-        (flyspell-word))
+        (flyspell-mode 1))
       (flyspell-correct-at-point))
 
-    ;; todo: this is not bound, something overriding, correct it
+    (define-key flyspell-mode-map (kbd "C-;") 'ns/spellcheck-at-point)
     (global-set-key (kbd "C-;") 'ns/spellcheck-at-point)
-    (general-nmap "gs" 'ns/spellcheck-at-point)
-
-    ))
+    (general-nmap "gs" 'ns/spellcheck-at-point)))
 
 (defun ns/org-mode-hook ()
   (olivetti-mode)

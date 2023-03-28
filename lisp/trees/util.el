@@ -13,21 +13,14 @@
                 (get-char-property (point) 'face))))
     (if face (message "Face: %s" face) (message "No face at %d" pos))))
 
-(defun! ns/what-major-mode ()
-  "Reveal current major mode."
-  (message "%s" major-mode))
-
 (defun! ns/what-minor-modes ()
-  (message
-    (format "%s"
-      (delq nil
-        (mapcar
-          (lambda (x)
-            (let ((car-x (car x)))
-              (when (and (symbolp car-x) (symbol-value car-x))
-                x)))
-          minor-mode-alist))))
-  (ns/look-at-last-message))
+  "Show enabled minor modes"
+  (->> minor-mode-alist
+    (--keep (when-let (enabled (symbol-value (first it)))
+              (first it)))
+    (-map 'ns/str)
+    (s-join " ")
+    (message)))
 
 (defun ns/get-functions ()
   "Get all the defconfig entries in the forest."
@@ -272,11 +265,8 @@
 (ns/bind
   "qf" 'ns/what-face
   "qc" 'describe-char
-  "qm" 'ns/what-major-mode
+  "qm" (fn!! what-major-mode (message "%s" major-mode))
   "qi" 'ns/what-minor-modes
-  "qq" 'ns/look-at-last-message
-
-  ;; "qh" 'ns/insert-history
 
   "fE" 'crux-sudo-edit
   "nc" 'ns/jump-config

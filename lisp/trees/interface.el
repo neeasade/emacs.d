@@ -11,7 +11,6 @@
 (vertico-mode nil)
 
 
-
 (ns/use ivy
   (setq-ns ivy
     re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
@@ -46,8 +45,7 @@
                                (list (format "%s: " one) two)
                                (list "select: " one))]
     ;; (completing-read prompt candidates)
-    (ivy-read prompt candidates)
-    ))
+    (ivy-read prompt (-uniq candidates))))
 
 ;; counsel
 (ns/use counsel
@@ -238,8 +236,6 @@
 
 (ns/bind "nu" 'ns/ivy-url-jump)
 
-
-
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 
@@ -278,14 +274,11 @@
   "wi" 'winner-redo
 
   "d" (fn!! dired
-        ;; (setq ns/dired-last-file (buffer-file-name))
-
-        (if (eq major-mode 'shell-mode)
-          (progn
-            (-when-let (b (get-buffer "*spawn-shell-staged*"))
-              (kill-buffer b))
-            (rename-buffer "*spawn-shell-staged*"))
-          (setq ns/dired-last-file (buffer-file-name)))
+        (setq ns/dired-last-file (buffer-file-name))
+        (when (eq major-mode 'shell-mode)
+          (-when-let (b (get-buffer "*spawn-shell-staged*"))
+            (kill-buffer b))
+          (rename-buffer "*spawn-shell-staged*"))
         (dired "."))
 
   "a" '(:ignore t :which-key "Applications")

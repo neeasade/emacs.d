@@ -22,7 +22,6 @@
 
 (-map (-partial 'ns/maybe-update-xrdb-font "font.mono.spec")
   (list
-    ;; (or (font-get (face-attribute 'default :font) :name) "")
     "Dejavu Sans Mono-14"
     "DejaVu Sans Mono-14"
     "Lucida Console-14"
@@ -34,7 +33,6 @@
 
 (-map (-partial 'ns/maybe-update-xrdb-font "font.variable.spec")
   (list
-    ;; (or (font-get (face-attribute 'default :font) :name) "")
     "Menlo-14"
     "Dejavu Sans-14"
     "DejaVu Sans-14"
@@ -51,13 +49,13 @@
 
 ;; allow font effects in org mode faces, but not in other places
 (->> (face-list)
-  (-filter (fn (not (s-starts-with-p "org" (prin1-to-string <>)))))
-  (-map (fn (set-face-attribute <> nil
-              ;; :weight 'normal
-              :slant 'normal
-              ;; :underline nil
-              ;; :inherit nil
-              ))))
+  (--remove (s-starts-with-p "org" (ns/str it)))
+  (--map (set-face-attribute it nil
+           ;; :weight 'normal
+           :slant 'normal
+           ;; :underline nil
+           ;; :inherit nil
+           )))
 
 (set-face-attribute 'italic nil :slant 'italic)
 

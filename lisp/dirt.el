@@ -277,20 +277,14 @@
                        (ns/shell-exec (format "xrq '%s' 2>/dev/null" name)))
           theme-result (when (executable-find "theme")
                          (ns/shell-exec (format "theme -q '%s' 2>/dev/null" name)))]
-    (->> (list theme-result xrq-result default)
-      (-remove (fn (s-blank-p <>)))
-      (first))))
+    (--first (not (s-blank-p it))
+      (list theme-result xrq-result default))))
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."
   (message "Reloading init.el...")
   (load user-init-file nil 'nomessage)
   (message "Reloading init.el... done."))
-
-(defalias 'ns/init 'reload-init)
-
-;; a macro for when something is not on melpa yet (assumes github)
-(ns/use el-patch)
 
 (defun ns/inmap (keymap &rest key-func-pairs)
   "imap + nmap"
