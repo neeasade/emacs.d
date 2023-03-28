@@ -179,7 +179,7 @@
 (ns/bind
   "nd"
   (fn!! surf-dirs
-    (llet [dir (ns/pick "directory: "
+    (llet [dir (ns/pick "directory"
                  (->> ns/cd-dirs
                    (-uniq)
                    (-filter (fn (s-equals-p (file-remote-p <>)

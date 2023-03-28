@@ -24,17 +24,20 @@
 ;; disable: some of the binds get in the way of our colemak remappings.
 (ns/use evil-collection 
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
-    (evil-collection-translate-key 'normal mode-keymaps
-      "e" "k"
-      "k" "n"
-      "n" "j"
-      "j" "e"
+    ;; don't double rotate
+    (let* ((mode-keymaps (--remove (eq it 'magit-status-mode-map) mode-keymaps))
+            (mode-keymaps (--remove (eq it 'magit-log-mode-map) mode-keymaps)))
+      (evil-collection-translate-key 'normal mode-keymaps
+        ;; jekn
+        "e" "k"
+        "k" "n"
+        "n" "j"
+        "j" "e"
 
-      "E" "K"
-      "K" "N"
-      "N" "J"
-      "J" "E"
-      )
+        "E" "K"
+        "K" "N"
+        "N" "J"
+        "J" "E"))
 
     ;; todo: test diffing
     ;; I guess translate key doesn't work in control keybindings?

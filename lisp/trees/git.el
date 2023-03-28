@@ -37,20 +37,6 @@
 
 (advice-add #'magit-mode-bury-buffer :after #'ns/restore-magit-layout)
 
-;; todo: this has been merged into evil collection -- revisit, because these clearly aren't mapping/being rotated
-;; (use-package evil-magit
-;;   
-;;   ;; todo: these don't bind -- really weird.
-;;   (general-nmap magit-mode-map "n" 'evil-next-line)
-;;   (general-nmap magit-mode-map "e" 'evil-previous-line)
-;;   (general-vmap magit-mode-map "n" 'evil-next-line)
-;;   (general-vmap magit-mode-map "e" 'evil-previous-line)
-;;   (general-nmap magit-mode-map "k" 'evil-search-next)
-;;   (general-nmap magit-mode-map "K" 'evil-search-previous)
-;;   (general-nmap magit-mode-map "?" 'evil-search-backward)
-;;   (general-nmap magit-status-mode-map "e" 'evil-previous-line)
-;;   (general-nmap magit-status-mode-map "n" 'evil-next-line))
-
 (ns/use git-gutter-fringe
   (setq git-gutter-fr:side 'right-fringe))
 

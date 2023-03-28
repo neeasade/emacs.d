@@ -2,5 +2,5 @@
 ;; elisp-eval: read_stdin=true
 
 (condition-case ()
-    (ns/pick "fzf: " (s-split "\n" (f-read *stdin-file*)))
+    (ns/pick "fzf" (s-split "\n" (f-read *stdin-file*)))
   (quit nil))

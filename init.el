@@ -12,7 +12,7 @@
     (-remove
       (-lambda ((f . enables))
         (when enables
-          (-any-p (fn (null (eval <>))) enables))))
+          (-any-p (fn (null (symbol-value <>))) enables))))
     (--map (intern (format "ns/conf-%s" (first (-list it)))))
     (-map 'funcall)))
 

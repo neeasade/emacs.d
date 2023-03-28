@@ -40,7 +40,7 @@
       (ns/get-functions))))
 
 (defun! ns/jump-config ()
-  (llet [f (ns/pick "config: " (ns/get-functions))]
+  (llet [f (ns/pick "config" (ns/get-functions))]
     (cond
       ((string= "dirt" f) (ns/find-or-open (~e "lisp/dirt.el")))
       ((string= "forest" f) (ns/find-or-open (~e "lisp/forest.el")))
