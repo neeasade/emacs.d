@@ -85,10 +85,6 @@
 ;;       '/' to directories, etc.
 (setq dired-listing-switches "-aAlGhvF --group-directories-first") ; default: "-al"
 
-(when (and ns/enable-mac-p
-        (string= (executable-find "ls") "/bin/ls"))
-  (setq dired-listing-switches "-al")) ; default: "-al"
-
 (general-define-key
   :states '(normal)
   :keymaps 'dired-mode-map

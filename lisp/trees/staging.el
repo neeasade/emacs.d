@@ -45,17 +45,7 @@
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
 
-(when ns/enable-mac-p
-  (ns/frame-set-parameter 'inhibit-double-buffering t)
 
-  ;; adding the (t . emacs) so we don't open in textedit and stuff when using ns/follow
-  (setq org-file-apps
-    '((auto-mode . emacs)
-       (directory . emacs)
-       ("\\.mm\\'" . default)
-       ("\\.x?html?\\'" . default)
-       ("\\.pdf\\'" . default)
-       (t . emacs))))
 
 (ns/use org-ql)
 

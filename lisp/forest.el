@@ -540,6 +540,30 @@
   (defalias 'evil-window-east 'evil-window-right)
   (defalias 'evil-window-west 'evil-window-left))
 
+(ns/defconfig macos-integrations
+  (defun! ns/toggle-music-play ()
+    (ns/shell-exec-dontcare (format "macos-vol setvol %s" ns/macos-vol)))
+  (defun! ns/toggle-music-pause ()
+    (setq ns/macos-vol (ns/shell-exec "macos-vol get"))
+    (ns/shell-exec-dontcare "macos-vol setvol 0"))
+
+  (ns/frame-set-parameter 'inhibit-double-buffering t)
+
+  ;; adding the (t . emacs) so we don't open in textedit and stuff when using ns/follow
+  (setq org-file-apps
+    '((auto-mode . emacs)
+       (directory . emacs)
+       ("\\.mm\\'" . default)
+       ("\\.x?html?\\'" . default)
+       ("\\.pdf\\'" . default)
+       (t . emacs)))
+
+  (when (string= (executable-find "ls") "/bin/ls")
+    (setq dired-listing-switches "-al")) ; default
+
+  (when (executable-find "/run/current-system/sw/bin/bash")
+    (setq explicit-shell-file-name "/run/current-system/sw/bin/bash")))
+
 (ns/defconfig go (ns/use go-mode))
 (ns/defconfig pdf (ns/use pdf-tools))
 

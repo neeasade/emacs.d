@@ -53,6 +53,7 @@
        (pdf ns/enable-linux-p)
        (ledger ns/outdated)
        (filehooks ns/enable-home-p)
+       (macos-integrations ns/enable-mac-p)
        (irc ns/enable-home-p)
        graphviz)))
 
