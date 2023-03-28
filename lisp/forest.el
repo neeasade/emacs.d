@@ -166,36 +166,15 @@
     (ns/use flycheck-joker  (require 'flycheck-joker)))
 
   (when (executable-find "clj-kondo")
-    (ns/use flycheck-clj-kondo)))
+    (ns/use flycheck-clj-kondo))
 
-(ns/defconfig nix
-  ;; broken
-  ;; (ns/use nix-mode)
-  )
-
-(ns/defconfig music
-  (ns/use emms)
-
-  (defun emms-start()
-    (require 'emms-player-mpd)
-    (setq-ns emms-player-mpd
-      server-name "localhost"
-      server-port "6600"
-      music-directory (~ "Music")
-      ;; server-password "mypassword"
-      )
-
-    (add-to-list 'emms-info-functions 'emms-info-mpd)
-    (add-to-list 'emms-player-list 'emms-player-mpd)
-
-    ;; sync with mpd db, connect
-    (emms-cache-set-from-mpd-all)
-    (emms-player-mpd-connect))
-
-  (ns/bind "am" 'emms-start))
+  (defun! ns/babashka-default-connect ()
+    (cider-connect-clj '(:host "localhost" :port 1667))))
 
 (ns/defconfig projectile
   (ns/use projectile)
+
+  (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
 
   ;; still assuming git command, maybe lean on projectile for file listing
   (defun ns/get-project-files (project-root)
@@ -315,15 +294,6 @@
     ;; (add-hook 'before-save-hook 'tide-format-before-save)
     ))
 
-(ns/defconfig pdf
-  (ns/use pdf-tools))
-
-(ns/defconfig terraform
-  (ns/use terraform-mode))
-
-(ns/defconfig autohotkey
-  (ns/use xahk-mode))
-
 (ns/defconfig markdown
   (ns/use markdown-mode)
   (ns/file-mode "md" 'markdown-mode)
@@ -429,9 +399,6 @@
 
   (add-hook 'after-save-hook 'ns/cmd-after-saved-file))
 
-(ns/defconfig powershell
-  (ns/use powershell))
-
 (ns/defconfig c
   (ns/install-dashdoc "C" 'c-mode-hook)
 
@@ -475,9 +442,8 @@
   (require 'server)
 
   (when ns/enable-windows-p
-    (setq-ns server
-      auth-dir (~e "server")
-      name "emacs-server-file"))
+    (setq server-auth-dir (~e "server")
+      server-name "emacs-server-file"))
 
   (when-not (server-running-p)
     (server-start)))
@@ -518,8 +484,74 @@
                (number-sequence 0 (- (length args) 1))))
        ,@content)))
 
-(ns/defconfig go
-  (ns/use go-mode))
+(ns/defconfig funtext
+  (defun ns/make-char-table (name upper lower)
+    "Make a char table for a certain kind of character"
+    (set name
+      (let ((str (make-string 127 0)))
+        (dotimes (i 127)
+          (aset str i i))
+        (dotimes (i 26)
+          (aset str (+ i ?A) (+ i upper))
+          (aset str (+ i ?a) (+ i lower)))
+        str)))
+
+  (->> '((?𝙰 ?𝚊 monospace)
+          (?Ａ ?ａ widechar)
+          (?𝔄 ?𝔞 gothic)
+          (?𝓐 ?𝓪 cursive))
+    (-map
+      (-lambda ((upper lower label))
+        (llet [char-table-name (intern (format "ns/%s-char-table" label))
+                fn-name (intern (format "ns/text-to-%s" label))]
+          (ns/make-char-table char-table-name upper lower)
+          (eval
+            `(defun ,fn-name (beg end) (interactive "r")
+               (translate-region beg end ,char-table-name))))))))
+
+(ns/defconfig adoc
+  (ns/use adoc-mode)
+  (ns/file-mode "adoc" 'adoc-mode)
+  (ns/file-mode "asciidoc" 'adoc-mode)
+
+  (ns/use ox-asciidoc))
+
+(ns/defconfig rice-integrations
+  (defun ns/make-border-color (c)
+    "pass in myron theme label to get a border-style version of it"
+    (--> (myron-get c)
+      (ct-iterate it 'ct-pastel
+        (lambda (c)
+          (> (ct-distance it c) 20)))
+      (ct-iterate it 'ct-edit-lab-l-inc
+        (lambda (c) (ct-is-light-p c 75)))))
+
+  (ns/bind "iq" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
+  (ns/bind "it"
+    (fn!! insert-theme-key
+      (->> (sh "theme -k")
+        (s-split "\n")
+        (ns/pick)
+        (insert))))
+
+  ;; used in window move scripts
+  (defalias 'evil-window-north 'evil-window-up)
+  (defalias 'evil-window-south 'evil-window-down)
+  (defalias 'evil-window-east 'evil-window-right)
+  (defalias 'evil-window-west 'evil-window-left))
+
+(ns/defconfig go (ns/use go-mode))
+(ns/defconfig pdf (ns/use pdf-tools))
+
+(ns/defconfig minor-langs
+  ;; pulling in these modes for syntax highlighting basically
+  ;; they get grouped in a defconfig b/c minor/stable
+  (ns/use nix-mode)
+  (ns/use powershell)
+  (ns/use terraform-mode)
+  (ns/use yaml-mode)
+  (ns/use xahk-mode) ; autohotkey
+  (ns/use dockerfile-mode))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for

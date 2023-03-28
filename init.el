@@ -48,10 +48,12 @@
 
        (blog ns/enable-home-p)
        scripting
-       (music ns/enable-home-p (executable-find "mpd"))
+       funtext
+       rice-integrations
        (pdf ns/enable-linux-p)
        (ledger ns/outdated)
        (filehooks ns/enable-home-p)
+       (irc ns/enable-home-p)
        graphviz)))
 
 (defun ns/conf-development ()
@@ -60,20 +62,17 @@
        (c ns/outdated)
        (common-lisp ns/outdated)
 
-       (autohotkey ns/enable-windows-p)
        clojure
        elisp
-       nix
        (javascript ns/outdated)
        (typescript ns/outdated)
        markdown
-       (powershell ns/enable-windows-p)
-       terraform
+       adoc
        sql
        plantuml
        go
        (python ns/outdated)
-       (irc ns/enable-home-p)
+       minor-langs
 
        ;; keep after $langs on purpose
        ;; lsp
@@ -82,8 +81,8 @@
 (if (getenv "NS_EMACS_BATCH")
   ;; doing a batch job, eval some lisp, message the result
   (progn
-    (ns/scripting)
-    (-> "NS_EMACS_BATCH" getenv read eval pr-str)
+    (ns/conf-scripting)
+    (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
     ;; (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
     (kill-emacs))
 

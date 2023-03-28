@@ -1,31 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-(defun ns/make-char-table (name upper lower)
-  "Make a char table for a certain kind of character"
-  (set name
-    (let ((str (make-string 127 0)))
-      (dotimes (i 127)
-        (aset str i i))
-      (dotimes (i 26)
-        (aset str (+ i ?A) (+ i upper))
-        (aset str (+ i ?a) (+ i lower)))
-      str)))
-
-(->> '((?𝙰 ?𝚊 monospace)
-        (?Ａ ?ａ widechar)
-        (?𝔄 ?𝔞 gothic)
-        (?𝓐 ?𝓪 cursive))
-  (-map
-    (-lambda ((upper lower label))
-      (llet [char-table-name (intern (format "ns/%s-char-table" label))
-              fn-name (intern (format "ns/text-to-%s" label))]
-        (ns/make-char-table char-table-name upper lower)
-        (eval
-          `(defun ,fn-name (beg end) (interactive "r")
-             (translate-region beg end ,char-table-name)))))))
-
-(ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
-
 (ns/bind "nk" (fn!! goto-theme (find-file (executable-find "theme"))
                 (goto-line 0)
                 (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
@@ -67,35 +41,9 @@
 ;;         :title "*Reminder*"
 ;;         ))))
 
-;; automatic detection of indent settings (vim-sleuth)
-;; todo: doom does a thing where they blend the major mode w/ editor config
-;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
-(ns/use dtrt-indent  (dtrt-indent-global-mode 1))
-
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
-
-;; has a nice url regexp
-(require 'rcirc)
-
-;; jump to url in current window text:
-(defun! ns/ivy-url-jump ()
-  (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
-          (urls (s-match-strings-all rcirc-url-regexp window-text))
-          (urls (-map 'car urls)))
-    (if urls
-      (browse-url (ns/pick urls))
-      (message "no urls!"))))
-
-(ns/bind "nu" 'ns/ivy-url-jump)
-
-(ns/comment
-  (ns/use adoc-mode
-    (ns/file-mode "adoc" 'adoc-mode)
-    (ns/file-mode "asciidoc" 'adoc-mode)))
-
-(ns/use ox-asciidoc)
 
 (when ns/enable-mac-p
   (ns/frame-set-parameter 'inhibit-double-buffering t)
@@ -109,44 +57,11 @@
        ("\\.pdf\\'" . default)
        (t . emacs))))
 
-(ns/use yaml-mode)
-
 (ns/use org-ql)
 
 ;; (let ((org-super-agenda-groups
 ;;         '((:auto-group t))))
 ;;   (org-agenda-list))
-
-(ns/use ag)
-
-(defun org-clocking-buffer ()
-  "Return the clocking buffer if we are currently clocking a task or nil."
-  (marker-buffer org-clock-marker))
-
-(ns/bind "it"
-  (fn!! insert-theme-key
-    (->> (ns/shell-exec "theme -k")
-      (s-split "\n")
-      (ns/pick)
-      (insert))))
-
-(ns/use paren-face)
-
-;; used in window move scripts
-(defalias 'evil-window-north 'evil-window-up)
-(defalias 'evil-window-south 'evil-window-down)
-(defalias 'evil-window-east 'evil-window-right)
-(defalias 'evil-window-west 'evil-window-left)
-
-;; move to style?
-(defun ns/make-border-color (c)
-  "pass in myron theme label to get a border-style version of it"
-  (--> (myron-get c)
-    (ct-iterate it 'ct-pastel
-      (lambda (c)
-        (> (ct-distance it c) 20)))
-    (ct-iterate it 'ct-edit-lab-l-inc
-      (lambda (c) (ct-is-light-p c 75)))))
 
 (when ns/enable-work-p
   ;; somehow initialize is broken in macos at the moment
@@ -205,34 +120,6 @@
 ;; clean-buffer-list-kill-regexps
 ;; clean-buffer-list-kill-never-regexps
 
-(ns/comment
-  (defun ns/within (value tolerance anchor)
-    "return if a value is within a tolerance"
-    (>= (+ anchor tolerance)
-      value
-      (- anchor tolerance)))
-
-  (defun amp-value (v fn arg1 arg1-amp tolerance-fn)
-    (let ((next (funcall fn v arg1)))
-      (if (not (string= next v))
-        ;; we changed it!
-        next
-        (if (funcall tolerance-fn arg1)
-          (amp-value v fn (funcall arg1-amp arg1) arg1-amp tolerance-fn)
-          ;; we're out of tolerance, give up
-          v))))
-
-  (amp-value
-    "#cccccc"
-    (lambda (color amount)
-      (ct-edit-hsl-l color (-partial '+ amount)))
-    0.01
-    (-partial '+ 0.01)
-    (fn (ns/within <> 2 0.01)))
-
-
-  )
-
 ;; consider the current day to end at 3AM
 ;; (setq org-extend-today-until 0)
 
@@ -242,19 +129,6 @@
 ;; todo: I'm not sure why we set this
 (setq org-duration-format
   (quote h:mm))
-
-(defun! ns/babashka-default-connect ()
-  (cider-connect-clj '(:host "localhost" :port 1667)))
-
-(defun ns/re-search-forward (search-term)
-  "A version of re-search-forward that sets point to the beginning of the match, not the end"
-  ;; todo: try this out
-  (re-search-forward search-term)
-  (backward-char (count search-term)))
-
-;; ugh
-(setq mac-control-modifier 'super mac-command-modifier 'control)
-
 
 (defun! ns/toggle-modeline ()
   "toggle the modeline in the current buffer"
@@ -268,74 +142,11 @@
 
 (ns/bind "tm" 'ns/toggle-modeline)
 
-(defun ns/make-urlnote-funcs ()
-  (defun ns/urlnote-get-point (url)
-    (let ((url-plain
-            (when url
-              (if (s-contains-p "?" url)
-                (first (s-split "?" url)) url))))
-
-      (catch 'error
-        (condition-case msg
-          (marker-position
-            (org-find-olp
-              (if url-plain
-                (list org-default-notes-file "url notes" url-plain)
-                (list org-default-notes-file "url notes"))))
-          (error
-            ;; show what went wrong:
-            ;; (nth 1 msg)
-            nil)))))
-
-  (defun ns/urlnote-get-content (url)
-    (let ((url-point (ns/urlnote-get-point url)))
-      (when url-point
-        (with-current-buffer
-          (get-file-buffer org-default-notes-file)
-          (->> url-point org-ml-parse-subtree-at)))))
-
-  (defun ns/urlnote-jump (url)
-    (let ((url-point (ns/urlnote-get-point url)))
-      (when url-point
-        (find-file org-default-notes-file)
-        (goto-char (ns/urlnote-get-point url)))))
-
-  (defun ns/urlnote-make-and-jump (url)
-    (find-file org-default-notes-file)
-    (goto-char (ns/urlnote-get-point nil))
-    (next-line)
-    ;; (org-insert-subheading nil)
-    ;; (org-insert-heading-after-current)
-    (if (s-contains-p "?" url)
-      (first (s-split "?" url)) url)
-    (insert url)
-    (org-do-demote)
-    (newline)))
-
-(defun ns/org-headline-to-progress (headline)
-  "Convert headline completion to percentage"
-  (-when-let (status (-some->> headline
-                       (org-ml-headline-get-path)
-                       (-last-item)
-                       (s-match (rx "["
-                                  (group (+ digit)) "/"
-                                  (group (+ digit))
-                                  "]" eol))))
-    ;; now we have EG ("[0/1]" "0" "1")
-    (llet [(_ progress total) status
-            (progress total) (-map (-compose 'float 'string-to-number)
-                               (list progress total))]
-      (floor (* 100 (/ progress total))))))
-
 (ns/conf-style)
 (load-file (~e "straight/repos/myron-themes/myron.el"))
 
 (setq undo-tree-enable-undo-in-region t)
 
-(ns/bind "iq" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
-
-
-(ns/use dockerfile-mode)
 
 (defun! ns/straight-check-sync-status ()
   (let ((versions-alist (straight--lockfile-read-all))

@@ -2,6 +2,16 @@
 
 (global-set-key (kbd "C-e") 'previous-line)
 
+;; Do not allow the cursor in the minibuffer prompt
+(setq minibuffer-prompt-properties
+  '(read-only t cursor-intangible t face minibuffer-prompt))
+(add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+(ns/use vertico)
+(vertico-mode nil)
+
+
+
 (ns/use ivy
   (setq-ns ivy
     re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
@@ -18,19 +28,26 @@
     :keymaps 'ivy-minibuffer-map
     (kbd "C-<return>") 'ivy-immediate-done)
 
-  (ivy-mode 1))
+  (ivy-mode nil)
+
+  )
 
 (ns/use prescient)
 (ns/use ivy-prescient (ivy-prescient-mode))
 (ns/use company-prescient (company-prescient-mode))
+
+
 (prescient-persist-mode)
+
 
 (defun ns/pick (one &optional two)
   "Pick something from a list. accepts (prompt candidates) or (candidates)"
   (llet [(prompt candidates) (if two
                                (list (format "%s: " one) two)
                                (list "select: " one))]
-    (ivy-read prompt candidates)))
+    ;; (completing-read prompt candidates)
+    (ivy-read prompt candidates)
+    ))
 
 ;; counsel
 (ns/use counsel
@@ -211,6 +228,22 @@
 
 (winner-mode 1)
 
+;; has a nice url regexp
+(require 'rcirc)
+
+(defun! ns/ivy-url-jump ()
+  "jump to url in current window text"
+  (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
+          (urls (s-match-strings-all rcirc-url-regexp window-text))
+          (urls (-map 'car urls)))
+    (if urls
+      (browse-url (ns/pick urls))
+      (message "no urls!"))))
+
+(ns/bind "nu" 'ns/ivy-url-jump)
+
+
+
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 
@@ -220,6 +253,7 @@
         (fn! (counsel-git-grep nil default-directory)))
 
   "SPC" 'counsel-M-x
+  ;; "SPC" (fn !! (execute-extended-command nil))
 
   ;; windows
   "w" '(:ignore t :which-key "Windows")

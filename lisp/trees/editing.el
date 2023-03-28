@@ -1,5 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 
+;; automatic detection of indent settings (vim-sleuth)
+;; todo: doom does a thing where they blend the major mode w/ editor config
+;;       so for example sh-mode files if a *.sh rule is present, editorconfig takes precedence over this
+(ns/use dtrt-indent (dtrt-indent-global-mode 1))
+
 (ns/use editorconfig  (editorconfig-mode 1))
 
 (setq tab-width 4)

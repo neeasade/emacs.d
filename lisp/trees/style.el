@@ -9,6 +9,8 @@
         (string= (getenv "TERM") "xterm-kitty"))
   (setq base16-theme-256-color-source 'colors))
 
+(ns/use paren-face)
+
 (defun ns/maybe-update-xrdb-font (key font)
   "Update the fallback font for xrdb value"
   (when (find-font (font-spec :name (plist-get (ns/parse-font font) :family)))

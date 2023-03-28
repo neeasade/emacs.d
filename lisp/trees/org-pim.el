@@ -327,7 +327,6 @@
 
 (named-timer-cancel :harass-myself)
 
-
 ;; don't prompt when idle more than x minutes -- we auto-clock out
 (setq org-clock-idle-time nil)
 
@@ -343,3 +342,18 @@
       (ns/with-notes
         (goto-char position)
         (ns/org-clock-in)))))
+
+(defun ns/org-headline-to-progress (headline)
+  "Convert headline completion to percentage"
+  (-when-let (status (-some->> headline
+                       (org-ml-headline-get-path)
+                       (-last-item)
+                       (s-match (rx "["
+                                  (group (+ digit)) "/"
+                                  (group (+ digit))
+                                  "]" eol))))
+    ;; now we have EG ("[0/1]" "0" "1")
+    (llet [(_ progress total) status
+            (progress total) (-map (-compose 'float 'string-to-number)
+                               (list progress total))]
+      (floor (* 100 (/ progress total))))))

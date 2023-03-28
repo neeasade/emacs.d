@@ -9,7 +9,6 @@
 
 (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
 
-
 ;; org-element updates cache on every buffer change (slow)
 ;; having this early means we don't break on capture target setup
 (setq org-element-use-cache nil)
