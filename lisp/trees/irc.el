@@ -598,11 +598,13 @@
 
   (ns/set-faces-monospace '(circe-originator-face circe-prompt-face circe-originator-fade-face))
 
-  (dolist (b (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode))
-    (with-current-buffer b
-      (ns/set-buffer-face-variable)
-      ;; turn off quits and joins in high member count channels
-      (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100)))))
+  (llet [buffers (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)]
+    (ns/set-buffer-face-variable buffers)
+
+    (dolist (b buffers)
+      (with-current-buffer b
+        ;; turn off quits and joins in high member count channels
+        (setq-local circe-reduce-lurker-spam (> (ns/circe-count-nicks) 100))))))
 
 (defmacro ns/circe-bind (&rest binds)
   "Bind BINDS in normal/insert mode, in both channel and query buffers."

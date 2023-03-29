@@ -147,7 +147,7 @@ will also be the width of all other printable characters."
 
   (-map (fn (when (fboundp <>)
               (message (pr-str <>))
-              (funcall <>)))
+              (funcall-interactively <>)))
     ;; '()
     '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal))
 

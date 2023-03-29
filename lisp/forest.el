@@ -307,8 +307,8 @@
   (defun ns/style-markdown ()
     (ns/set-faces-monospace '(markdown-code-face))
 
-    (-map #'ns/set-buffer-face-variable
-      (ns/buffers-by-mode 'markdown-mode)))
+    (when (called-interactively-p 'any)
+      (ns/set-buffer-face-variable (ns/buffers-by-mode 'markdown-mode))))
 
   (defun ns/markdown-mode-hook ()
     (ns/set-buffer-face-variable))
