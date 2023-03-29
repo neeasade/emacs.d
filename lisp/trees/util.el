@@ -123,23 +123,25 @@
     (dolist (face faces)
       (apply 'set-face-attribute face nil font))))
 
-(defun! ns/set-buffer-face-variable (&optional b)
+(defun ns/set-buffers-face-variable (buffers)
   (llet [font (ns/parse-font (get-resource "font.variable.spec"))]
-    (-map
-      (lambda (buffer)
-        (with-current-buffer buffer
-          (setq-local buffer-face-mode-face font)
-          (buffer-face-mode t)))
-      (-list (or b (current-buffer))))))
+    (--map (with-current-buffer it
+             (setq-local buffer-face-mode-face font)
+             (buffer-face-mode t))
+      (buffers))))
 
-(defun! ns/set-buffer-face-monospace (&optional b)
+(defun ns/set-buffers-face-monospace (buffers)
   (llet [font (ns/parse-font (get-resource "font.mono.spec"))]
-    (-map
-      (lambda (buffer)
-        (with-current-buffer buffer
-          (setq-local buffer-face-mode-face font)
-          (buffer-face-mode t)))
-      (-list (or b (current-buffer))))))
+    (--map (with-current-buffer it
+             (setq-local buffer-face-mode-face font)
+             (buffer-face-mode t))
+      (buffers))))
+
+(defun! ns/set-buffer-face-variable (&optional buffer)
+  (ns/set-buffers-face-variable (list (or buffer (current-buffer)))))
+
+(defun! ns/set-buffer-face-monospace (&optional buffer)
+  (ns/set-buffers-face-monspace (list (or buffer (current-buffer)))))
 
 (defun ns/make-lines (list)
   "Transform a LIST of things into something that can be newline iterated by a shell script."
@@ -237,6 +239,7 @@
 (defmacro ns/install-dashdoc (docset mode-hook)
   "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."
   `(when (bound-and-true-p ns/enable-dashdocs-p)
+
      (when nil
        (message (format "Installing %s docset..." ,docset))
        (counsel-dash-install-docset (subst-char-in-string ?\s ?_ ,docset)))

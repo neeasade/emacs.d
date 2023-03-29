@@ -478,7 +478,7 @@
                 )))))
 
   (when (called-interactively-p 'any)
-    (ns/set-buffer-face-variable (ns/buffers-by-mode 'org-mode))))
+    (ns/set-buffers-face-variable (ns/buffers-by-mode 'org-mode))))
 
 (defun! ns/jump-to-notes-heading (&optional target-buffer handler)
   "jump to org headlines only within selected files"

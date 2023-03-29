@@ -135,6 +135,12 @@ will also be the width of all other printable characters."
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
+  (-map (fn (when (fboundp <>)
+              (message (pr-str <>))
+              (funcall-interactively <>)))
+    ;; '()
+    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal))
+
   (ns/conf-doomline)
 
   (let ((modeline-background (face-attribute 'mode-line-inactive :background)))
@@ -144,12 +150,6 @@ will also be the width of all other printable characters."
     (set-face-attribute 'window-divider nil :background modeline-background)
     (set-face-attribute 'window-divider-first-pixel nil :foreground modeline-background)
     (set-face-attribute 'window-divider-last-pixel nil :foreground modeline-background))
-
-  (-map (fn (when (fboundp <>)
-              (message (pr-str <>))
-              (funcall-interactively <>)))
-    ;; '()
-    '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal))
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

@@ -308,12 +308,9 @@
     (ns/set-faces-monospace '(markdown-code-face))
 
     (when (called-interactively-p 'any)
-      (ns/set-buffer-face-variable (ns/buffers-by-mode 'markdown-mode))))
+      (ns/set-buffers-face-variable (ns/buffers-by-mode 'markdown-mode))))
 
-  (defun ns/markdown-mode-hook ()
-    (ns/set-buffer-face-variable))
-
-  (add-hook 'markdown-mode-hook 'ns/markdown-mode-hook))
+  (add-hook 'markdown-mode-hook 'ns/set-buffer-face-variable))
 
 (ns/defconfig restclient
   (ns/use restclient
