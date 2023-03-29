@@ -257,7 +257,6 @@
   "ww" 'other-window
   "wb" 'balance-windows-area
 
-  ;; todo: a keybind to infer direction ala our external_rules bspwm scripts
   "ws" (fn!! (split-window-horizontally)
          (evil-window-right 1))
 

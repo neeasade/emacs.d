@@ -7,10 +7,6 @@
 (setq evil-want-keybinding nil)
 (setq evil-want-integration t)
 
-;; nope
-;; set it in the keymap
-;; https://github.com/emacs-evil/evil-collection/blob/master/modes/unimpaired/evil-collection-unimpaired.el#L271
-
 (setq evil-collection-outline-bind-tab-p t)
 
 (general-evil-setup t)
@@ -103,9 +99,10 @@
 
 (ns/use evil-commentary  (evil-commentary-mode))
 (ns/use evil-anzu 
-  (setq anzu-cons-mode-line-p nil) (global-anzu-mode 1))
+  (setq anzu-cons-mode-line-p nil)
+  (global-anzu-mode 1))
 
-(ns/use evil-matchit  (global-evil-matchit-mode 1))
+(ns/use evil-matchit (global-evil-matchit-mode 1))
 
 (ns/use (evil-numbers :host github :repo "janpath/evil-numbers")
   (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)

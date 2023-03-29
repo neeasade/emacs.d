@@ -1,9 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-;; todo:
-;; alerts on DMs as well as channel highlights
-;; don't alert on highlights if the window is focused and we are not idle
-
 (ns/use circe)
 
 (setq
@@ -261,8 +257,6 @@
 
   (setq-local circe-last-message body)
 
-  ;; todo: move highlight into it's own thing
-
   ;; highlight buffer
   (when (not (get-buffer "*circe-highlight*"))
     (generate-new-buffer "*circe-highlight*")
@@ -289,12 +283,15 @@
           (and (string= " nix " match) (string= "#nixos-chat@Libera" channel)))
 
         (with-current-buffer "*circe-highlight*"
-          (alert!
-            (format "[%s] %s" poster body)
-            ;; body
-            :severity 'normal
-            :title channel
-            )
+
+          ;; todo: check this condition/alerting
+          (when-not (eq (window-buffer) (current-buffer))
+            (alert!
+              (format "[%s] %s" poster body)
+              ;; body
+              :severity 'normal
+              :title channel
+              ))
 
           (save-restriction
             (widen)
@@ -689,13 +686,16 @@
   ;; (fset 'yes-or-no-p 'y-or-n-p)
   )
 
-;; todo: if this is region, quote the region rather than whole line
 (defun! ns/circe-quote ()
   "quote whoever spoke at point -- conflict potential in the first 7 chars of a nick"
 
-  (let* ((quote-start (+ 1 (ns/last-face (point) 'circe-originator-face)))
-          (quote-end (point-at-eol))
-          (quote-text (buffer-substring-no-properties quote-start quote-end))
+  (let* ((quote-text
+           (if (use-region-p)
+             (buffer-substring-no-properties
+               (region-beginning) (region-end))
+             (buffer-substring-no-properties
+               (+ 1 (ns/last-face (point) 'circe-originator-face))
+               (point-at-eol))))
           (sayer-display (ns/get-last-nick))
           (sayer
             (if (s-ends-with-p "…" sayer-display)

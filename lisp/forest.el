@@ -542,10 +542,10 @@
 
 (ns/defconfig macos-integrations
   (defun! ns/toggle-music-play ()
-    (ns/shell-exec-dontcare (format "macos-vol setvol %s" ns/macos-vol)))
+    (sh (format "macos-vol setvol %s" ns/macos-vol)))
   (defun! ns/toggle-music-pause ()
     (setq ns/macos-vol (ns/shell-exec "macos-vol get"))
-    (ns/shell-exec-dontcare "macos-vol setvol 0"))
+    (sh "macos-vol setvol 0"))
 
   (ns/frame-set-parameter 'inhibit-double-buffering t)
 

@@ -114,22 +114,32 @@
     `(:family ,family :height ,(* 10 (string-to-number size)))))
 
 (defun ns/set-faces-variable (faces)
-  (dolist (face faces)
-    (apply 'set-face-attribute face nil (ns/parse-font (get-resource "font.variable.spec")))))
+  (llet [font (ns/parse-font (get-resource "font.variable.spec"))]
+    (dolist (face faces)
+      (apply 'set-face-attribute face nil font))))
 
 (defun ns/set-faces-monospace (faces)
-  (dolist (face faces)
-    (apply 'set-face-attribute face nil (ns/parse-font (get-resource "font.mono.spec")))))
+  (llet [font (ns/parse-font (get-resource "font.mono.spec"))]
+    (dolist (face faces)
+      (apply 'set-face-attribute face nil font))))
 
 (defun! ns/set-buffer-face-variable (&optional b)
-  (with-current-buffer (or b (current-buffer))
-    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "font.variable.spec")))
-    (buffer-face-mode t)))
+  (llet [font (ns/parse-font (get-resource "font.variable.spec"))]
+    (-map
+      (lambda (buffer)
+        (with-current-buffer buffer
+          (setq-local buffer-face-mode-face font)
+          (buffer-face-mode t)))
+      (-list (or b (current-buffer))))))
 
 (defun! ns/set-buffer-face-monospace (&optional b)
-  (with-current-buffer (or b (current-buffer))
-    (setq-local buffer-face-mode-face (ns/parse-font (get-resource "font.mono.spec")))
-    (buffer-face-mode t)))
+  (llet [font (ns/parse-font (get-resource "font.mono.spec"))]
+    (-map
+      (lambda (buffer)
+        (with-current-buffer buffer
+          (setq-local buffer-face-mode-face font)
+          (buffer-face-mode t)))
+      (-list (or b (current-buffer))))))
 
 (defun ns/make-lines (list)
   "Transform a LIST of things into something that can be newline iterated by a shell script."

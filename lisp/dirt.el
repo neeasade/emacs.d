@@ -198,10 +198,8 @@
       binds)))
 
 (defun ns/bind-mode (mode &rest binds)
-  ;; we should unbind anything that might be bound in ~mode~ already
-  ;; todo: this better later
   (llet [states '(normal visual)
-          keymap (intern (format "%s-mode-map" (symbol-name mode)))]
+          keymap (intern (format "%s-mode-map" (symbol-name mode)))] ; convention
     (ns/check-conflicting-binds binds keymap states)
     (apply 'general-define-key
       :states states

@@ -69,7 +69,6 @@
   pomodoro-keep-killed-pomodoro-time t
   pomodoro-ask-upon-killing nil
 
-  ;; todo: consider note option here.
   log-done 'time
 
   ;; log state into drawer instead of inserting a list under the heading
@@ -183,15 +182,18 @@
       (ns/shell-exec-dontcare "qb_command :adblock-update")))
 
   (defun! ns/focus-mode-quit ()
-    ;; todo: prompt about are you SURE you want to quit
-    (ns/toggle-music-pause)
+    (when (or (not (called-interactively-p 'any))
+            (and (called-interactively-p 'any)
+              (y-or-n-p "are you SURE you want to quit focus mode?")))
 
-    (when ns/enable-home-p
-      (ns/shell-exec-dontcare "dunstctl set-paused false")
-      (ns/shell-exec-dontcare "panelt start"))
+      (ns/toggle-music-pause)
 
-    (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
-    (ns/shell-exec-dontcare "qb_command :adblock-update"))
+      (when ns/enable-home-p
+        (ns/shell-exec-dontcare "dunstctl set-paused false")
+        (ns/shell-exec-dontcare "panelt start"))
+
+      (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
+      (ns/shell-exec-dontcare "qb_command :adblock-update")))
 
   (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-enter)
   (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-enter)
@@ -262,11 +264,11 @@
           line-content)))
     (message "saved link!")))
 
+;; (ns/use evil-org (:host github :repo "Somelauw/evil-org-mode")
+;;   (require 'evil-org-agenda))
+
 ;; putting in this file to make sure it's after org mode
 ;; (when ns/enable-evil-p
-;;   (ns/use evil-org :straight (:host github :repo "Somelauw/evil-org-mode"))
-;;   (require 'evil-org-agenda)
-;;   (require 'evil-org)
 ;;   (add-hook 'org-mode-hook 'evil-org-mode)
 
 ;;   (setq evil-org-movement-bindings
@@ -276,11 +278,9 @@
 ;;        (right . "l")))
 
 ;;   ;; cf https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org
-;;   ;; todo: review textobjects https://github.com/Somelauw/evil-org-mode/blob/master/doc/keythemes.org#text-objects
 ;;   (setq org-special-ctrl-a/e t)
 ;;   (evil-org-set-key-theme '(textobjects navigation))
 
-;;   ;; todo: review these https://github.com/Somelauw/evil-org-mode/blob/master/evil-org-agenda.el
 ;;   (evil-org-agenda-set-keys)
 ;;   (evil-define-key 'motion org-agenda-mode-map
 ;;     "n" 'org-agenda-next-line
@@ -300,22 +300,15 @@
   (kbd "C-S-T") 'org-metaright
   (kbd "C-S-D") 'org-metaleft
   (kbd "M-e") 'org-metaup
-  (kbd "M-n") 'org-metadown
-  )
+  (kbd "M-n") 'org-metadown)
 
 (general-define-key
   :states 'normal
   :keymaps 'org-mode-map
   (kbd "E") 'org-toggle-heading)
 
-;; )
-
 (ns/use org-present
   (defun ns/org-present-init ()
-    (org-display-inline-images)
-    (org-present-hide-cursor)
-    (org-present-read-only)
-
     ;; remove the height tweaking we do in (ns/style) so that scaling works right
     (dolist (face '(org-level-1
                      org-level-2
@@ -331,12 +324,15 @@
                      company-tooltip-common
                      company-tooltip-selection
                      org-block-begin-line
-                     org-block-end-line
-                     ))
+                     org-block-end-line))
       (set-face-attribute face nil :height 1.0))
 
     (set-face-attribute 'org-block nil :height 0.7)
-    (org-present-big))
+
+    (org-present-big)
+    (org-present-hide-cursor)
+    (org-display-inline-images)
+    (org-present-read-only))
 
   (setq org-present-text-scale 5)
 
@@ -364,6 +360,7 @@
     (org-remove-inline-images)
     (org-present-show-cursor)
     (org-present-read-write)
+
     ;; restore our org mode font tweaks
     (ns/style-org))
 
@@ -423,6 +420,7 @@
     (general-nmap "gs" 'ns/spellcheck-at-point)))
 
 (defun ns/org-mode-hook ()
+  (ns/set-buffer-face-variable)
   (olivetti-mode)
   (git-gutter-mode 0)
   (flyspell-mode 0)
@@ -451,39 +449,34 @@
                              company-tooltip-common
                              company-tooltip-selection
                              org-block-begin-line
-                             org-block-end-line
-                             ))
+                             org-block-end-line))
 
-  ;; smol -- consider doing this in the tarp themes
+  ;; smol
   (set-face-attribute 'org-block-begin-line nil :height 65)
   (set-face-attribute 'org-block-end-line nil :height 65)
-
   (set-face-attribute 'org-ellipsis nil :underline nil)
 
-  (->>
-    `(
-       (1 2 3 4 5 6)
-       (15 10 5 0 0 0)
-       ;; ,(-repeat 6 0)
-       )
-    (apply #'-interleave)
-    (-partition 2)
-    (-map (-applify
-            (lambda (level height-mod)
-              `(set-face-attribute
-                 ',(intern (format "org-level-%s" level))
-                 nil
-                 :height ,(+
-                            (plist-get (ns/parse-font (get-resource "font.mono.spec")) :height)
-                            height-mod)
-                 :weight 'semi-bold
-                 ;; :weight 'normal
-                 ;; :underline t
-                 :underline nil
-                 ))))
-    (-map #'eval))
+  (llet [base-font-height (face-attribute 'default :height)
+          ;; (plist-get (ns/parse-font (get-resource "font.mono.spec")) :height)
+          ]
+    (->> `(
+            (1 2 3 4 5 6)
+            (15 10 5 0 0 0)
+            ;; ,(-repeat 6 0)
+            )
+      (apply #'-interleave)
+      (-partition 2)
+      (-map (-lambda ((level height-mod))
+              (set-face-attribute
+                (intern (format "org-level-%s" level))
+                nil
+                :height (+ base-font-height height-mod)
+                :weight 'semi-bold
+                ;; :weight 'normal
+                ;; :underline t
+                :underline nil
+                )))))
 
-  (-map #'ns/set-buffer-face-variable (ns/buffers-by-mode 'org-mode))
   )
 
 (defun! ns/jump-to-notes-heading (&optional target-buffer handler)

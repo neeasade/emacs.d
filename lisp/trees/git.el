@@ -40,19 +40,18 @@
 (ns/use git-gutter-fringe
   (setq git-gutter-fr:side 'right-fringe))
 
-;; todo: make this colemak
 (defhydra git-smerge-menu ()
   "
       movement^^^^               merge action^^           other
       ---------------------^^^^  -------------------^^    -----------
       [_n_]^^    next hunk       [_b_] keep base          [_u_] undo
-      [_N_/_p_]  prev hunk       [_m_] keep mine          [_r_] refine
+      [_N_/_e_]  prev hunk       [_m_] keep mine          [_r_] refine
       [_j_/_k_]  move up/down    [_a_] keep all           [_q_] quit
       ^^^^                       [_o_] keep other
       ^^^^                       [_c_] keep current
       ^^^^                       [_C_] combine with next"
   ("n" smerge-next)
-  ("p" smerge-prev)
+  ("e" smerge-prev)
   ("N" smerge-prev)
   ("j" evil-next-line)
   ("k" evil-previous-line)
@@ -108,19 +107,7 @@ command was called, go to its unstaged changes section."
 
 
 ;; todo: tryout this package
-(ns/use vdiff
-  (evil-define-key 'normal vdiff-mode-map "," vdiff-mode-prefix-map)
-
-  ;; todo: general-nmap this
-  ;; (compare with evil-collection)
-
-  (evil-define-minor-mode-key 'normal 'vdiff-mode "zc" 'vdiff-close-fold)
-  (evil-define-minor-mode-key 'normal 'vdiff-mode "zM" 'vdiff-close-all-folds)
-  (evil-define-minor-mode-key 'normal 'vdiff-mode "zo" 'vdiff-open-fold)
-  (evil-define-minor-mode-key 'normal 'vdiff-mode "zR" 'vdiff-open-all-folds)
-  (evil-define-minor-mode-key 'motion 'vdiff-mode "go" 'vdiff-receive-changes)
-  (evil-define-minor-mode-key 'motion 'vdiff-mode "gp" 'vdiff-send-changes)
-  )
+(ns/use vdiff)
 
 (general-nmap
   "]g" 'git-gutter:next-hunk
@@ -133,7 +120,7 @@ command was called, go to its unstaged changes section."
   "gl" 'magit-log-buffer-file
   "gL" 'magit-log
   "gm" 'git-smerge-menu/body
-  "gd" 'vdiff-mode
+  "gd" 'vdiff-current-file
   "gs" (fn!! git-status
          (setq ns/magit-before-display-layout (current-window-configuration))
          (if ns/enable-windows-p (magit-staging)

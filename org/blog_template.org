@@ -32,7 +32,6 @@
 #+MACRO:  hsep (eval (ns/blog-make-hsep))
 #+MACRO:  detail (eval (ns/blog-make-detail $1 $2 $3 $4 $5 $6 $7 $8 $9))
 
-# todo: resolv
 #+MACRO:  nav-strip (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
 #+MACRO:  center (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
 
