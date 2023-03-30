@@ -128,20 +128,20 @@
     (--map (with-current-buffer it
              (setq-local buffer-face-mode-face font)
              (buffer-face-mode t))
-      (buffers))))
+      buffers)))
 
 (defun ns/set-buffers-face-monospace (buffers)
   (llet [font (ns/parse-font (get-resource "font.mono.spec"))]
     (--map (with-current-buffer it
              (setq-local buffer-face-mode-face font)
              (buffer-face-mode t))
-      (buffers))))
+      buffers)))
 
 (defun! ns/set-buffer-face-variable (&optional buffer)
   (ns/set-buffers-face-variable (list (or buffer (current-buffer)))))
 
 (defun! ns/set-buffer-face-monospace (&optional buffer)
-  (ns/set-buffers-face-monspace (list (or buffer (current-buffer)))))
+  (ns/set-buffers-face-monospace (list (or buffer (current-buffer)))))
 
 (defun ns/make-lines (list)
   "Transform a LIST of things into something that can be newline iterated by a shell script."

@@ -122,12 +122,9 @@
 
 (defun! ns/toggle-modeline ()
   "toggle the modeline in the current buffer"
-  (make-local-variable 'ns/modeline)
-  (if mode-line-format
-    (progn
-      (setq ns/modeline mode-line-format)
-      (setq mode-line-format nil))
-    (setq mode-line-format '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
+  (setq mode-line-format
+    (if mode-line-format
+      nil '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
   (redraw-frame))
 
 (ns/bind "tm" 'ns/toggle-modeline)
@@ -136,7 +133,6 @@
 (load-file (~e "straight/repos/myron-themes/myron.el"))
 
 (setq undo-tree-enable-undo-in-region t)
-
 
 (defun! ns/straight-check-sync-status ()
   (let ((versions-alist (straight--lockfile-read-all))
