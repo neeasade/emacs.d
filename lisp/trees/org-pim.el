@@ -24,20 +24,46 @@
                                   filters)))
            all-nodes)))))
 
+(comment
+  (defun ns/org-scheduled-today-after-now (headline)
+    "Is a headline scheduled today, and not out of date?"
+    (-when-let (scheduled (ns/headline-date headline))
+      (ts-in
+        (ts-now)
+        (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
+        scheduled)))
+
+  (llet [nodes (-sort
+                 (lambda (&rest nodes)
+                   (llet [(d1 d2) (-map 'ns/headline-date nodes)]
+                     (ts< d1 d2)))
+                 (ns/get-notes-nodes 'ns/org-scheduled-today-after-now))
+          next-headline (first nodes)]
+
+    ;; to see everything scheduled ahead of time today:
+    (--map (-> it org-ml-headline-get-path -last-item) nodes)
+
+    (when (ts-in (ts-now)
+            (ts-adjust 'hour +1 (ts-now))
+            (ns/headline-date next-headline))
+      (format "next: %s" (-> next-headline org-ml-headline-get-path -last-item))))
+
+  )
+
 (defun ns/org-scheduled-today (headline)
   "Is a headline scheduled today?"
   (-when-let (scheduled (ns/headline-date headline))
     (ts-in
       (ts-apply :hour 0 :minute 0 :second 0 (ts-now))
       (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
-      (ts-parse-org scheduled))))
+      scheduled)))
 
 (defun ns/org-scheduled-past-todo (headline)
   "Is a headline scheduled in the past?"
   (llet [scheduled (ns/headline-date headline)
           todo-state (org-ml-get-property :todo-keyword headline)]
     (when (and scheduled (not (string= todo-state "DONE")))
-      (ts> (ts-now) (ts-parse-org scheduled)))))
+      (ts> (ts-now) scheduled))))
 
 ;; track headlines to notification status
 (when (not (boundp 'ns/org-notify-ht))
@@ -56,7 +82,7 @@
     ;; map headline text to scheduled timestamps
     (-map (fn (list
                 (-> <> org-ml-headline-get-path -last-item)
-                (ts-parse-org (ns/headline-date <>)))))
+                (ns/headline-date <>))))
 
     ;; process notifications
     (-map (-lambda ((headline timestamp))
@@ -115,7 +141,8 @@
   (-some->> headline-node
     (org-ml-headline-get-planning)
     (org-ml-get-property :scheduled)
-    (org-ml-get-property :raw-value)))
+    (org-ml-get-property :raw-value)
+    (ts-parse-org)))
 
 (defun! ns/org-rotate-outdated ()
   (ns/find-or-open org-default-notes-file)
