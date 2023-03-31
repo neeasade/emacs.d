@@ -599,7 +599,7 @@
   (ns/set-faces-monospace '(circe-originator-face circe-prompt-face circe-originator-fade-face))
 
   (llet [buffers (ns/buffers-by-mode 'circe-channel-mode 'circe-query-mode)]
-    (ns/set-buffer-face-variable buffers)
+    (ns/set-buffers-face-variable buffers)
 
     (dolist (b buffers)
       (with-current-buffer b

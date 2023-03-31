@@ -344,16 +344,10 @@
     ">" 'org-present-next
     "<" 'org-present-prev
     "n" 'org-present-next
-    "e" 'org-present-prev
-    "l" 'org-present-next
-    "h" 'org-present-prev
-    )
+    "e" 'org-present-prev)
 
   (general-imap :keymaps 'org-present-mode-keymap
     "q" 'org-present-quit)
-
-  ;; todo: a different binding
-  ;; (ns/bind "op" 'org-present)
 
   (defun ns/org-present-quit ()
     (org-present-small)
@@ -397,7 +391,6 @@
   ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
   ;; There is no need for "^" as the regexp is matched at the beginning of line.
   (setq paragraph-start "\f\\|[ \t]*$\\|[ \t]*[-+*] ")
-
 
   ;; words are hard (meaning)
   (ns/use mw-thesaurus
