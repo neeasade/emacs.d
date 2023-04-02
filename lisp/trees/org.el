@@ -445,9 +445,8 @@
                              org-block-end-line))
 
   ;; smol
-  (set-face-attribute 'org-block-begin-line nil :height 65)
-  (set-face-attribute 'org-block-end-line nil :height 65)
-  (set-face-attribute 'org-ellipsis nil :underline nil)
+  (ns/face '(org-block-begin-line org-block-end-line) :height 65)
+  (ns/face 'org-ellipsis :underline nil)
 
   (llet [base-font-height (face-attribute 'default :height)
           ;; (plist-get (ns/parse-font (get-resource "font.mono.spec")) :height)

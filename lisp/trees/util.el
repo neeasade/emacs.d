@@ -114,14 +114,12 @@
     `(:family ,family :height ,(* 10 (string-to-number size)))))
 
 (defun ns/set-faces-variable (faces)
-  (llet [font (ns/parse-font (get-resource "font.variable.spec"))]
-    (dolist (face faces)
-      (apply 'set-face-attribute face nil font))))
+  (apply 'ns/face faces
+    (ns/parse-font (get-resource "font.variable.spec"))))
 
 (defun ns/set-faces-monospace (faces)
-  (llet [font (ns/parse-font (get-resource "font.mono.spec"))]
-    (dolist (face faces)
-      (apply 'set-face-attribute face nil font))))
+  (apply 'ns/face faces
+    (ns/parse-font (get-resource "font.mono.spec"))))
 
 (defun ns/set-buffers-face-variable (buffers)
   (llet [font (ns/parse-font (get-resource "font.variable.spec"))]

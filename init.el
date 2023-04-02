@@ -30,7 +30,7 @@
        projectile
        util
        git
-       org org-capture org-pim
+       org org-capture org-pim org-pim-export
        server
        follow-dwim
        )))

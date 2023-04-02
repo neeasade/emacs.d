@@ -3,42 +3,24 @@
 (ns/use doom-modeline)
 
 (defface ns/mode-line-middle
-  '((t (:inherit (mode-line))))
+  `((t (:inherit (mode-line)
+         :background ,(myron-get :background :strong))))
   "middle mode line color" :group 'doom-modeline-faces)
 
-(defface ns/mode-line-sep
-  '((t (:inherit (mode-line))))
-  "sep" :group 'doom-modeline-faces)
+(ns/face 'mode-line
+  :background (myron-get :background :weak)
+  :foreground (myron-get :foreground :weak)
+  :height (face-attribute 'default :height)
+  :box nil)
 
-(set-face-attribute 'mode-line nil
-  :background (myron-get :background :weak))
+(ns/face 'mode-line-inactive
+  :background (myron-get :background :weak)
+  ;; :foreground (myron-get :foreground :weak)
+  :height (face-attribute 'default :height)
+  :box nil)
 
-(set-face-attribute 'mode-line nil
+(ns/face '(doom-modeline-buffer-file doom-modeline-buffer-modified)
   :foreground (myron-get :foreground))
-
-(set-face-attribute 'mode-line nil
-  :foreground (myron-get :foreground :weak))
-
-(set-face-attribute 'ns/mode-line-middle nil :background
-  (myron-get :background :strong))
-
-;; (face-attribute 'mode-line :foreground)
-(set-face-attribute 'doom-modeline-buffer-file nil :foreground (myron-get :foreground))
-(set-face-attribute 'doom-modeline-buffer-modified nil :foreground (myron-get :foreground))
-
-(set-face-attribute 'ns/mode-line-sep nil :background
-  (myron-get :background :strong))
-
-(set-face-attribute 'mode-line-inactive nil :background
-  (myron-get :background :weak))
-
-(llet [default-height (face-attribute 'default :height)]
-  (set-face-attribute 'mode-line nil :height default-height)
-  (set-face-attribute 'mode-line-inactive nil :height default-height))
-
-;; some themes like to tweak the box
-(set-face-attribute 'mode-line nil :box nil)
-(set-face-attribute 'mode-line-inactive nil :box nil)
 
 ;; upstream is really spacey
 (doom-modeline-def-segment buffer-position
@@ -111,11 +93,9 @@
 
 (doom-modeline-def-segment sep
   "Text style with whitespace."
-  (propertize
-    " "
-    'face (if (doom-modeline--active)
-            'ns/mode-line-sep
-            'mode-line-inactive)))
+  (propertize " " 'face (if (doom-modeline--active)
+                          'ns/mode-line-middle
+                          'mode-line-inactive)))
 
 (column-number-mode) ; give us column info in the modeline
 
@@ -179,28 +159,25 @@ Example:
      ;; remote-host
      buffer-info-neeasade
      sep
-     checker
      ;; bar
      selection-info
      matches
      lispy-indicator
      )
   '(
-     ;; bar
+
+     checker
+     sep
      ;; next-buffers
      ;; vcs ;; somehow this one makes the spacing off
      misc-info
-     matches
      ;; input-method
      ;; buffer-encoding
      ;; major-mode
      ;; process
      ;; sep
-     ;; sep-edge
-     sep
      buffer-position
      ;; battery
-     ;; " "
      )
   )
 

@@ -143,13 +143,10 @@ will also be the width of all other printable characters."
 
   (ns/conf-doomline)
 
-  (let ((modeline-background (face-attribute 'mode-line-inactive :background)))
-    (set-face-attribute 'vertical-border nil :foreground modeline-background)
-    (set-face-attribute 'vertical-border nil :background modeline-background)
-    (set-face-attribute 'window-divider nil :foreground modeline-background)
-    (set-face-attribute 'window-divider nil :background modeline-background)
-    (set-face-attribute 'window-divider-first-pixel nil :foreground modeline-background)
-    (set-face-attribute 'window-divider-last-pixel nil :foreground modeline-background))
+  (ns/face
+    '(vertical-border window-divider window-divider-first-pixel window-divider-last-pixel)
+    :foreground (face-attribute 'mode-line-inactive :background)
+    :background (face-attribute 'mode-line-inactive :background))
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

@@ -1,4 +1,5 @@
 ;; PIM = personal information management
+
 (named-timer-run :auto-clock-out
   "30 sec"
   60
@@ -24,46 +25,34 @@
                                   filters)))
            all-nodes)))))
 
-(comment
-  (defun ns/org-scheduled-today-after-now (headline)
-    "Is a headline scheduled today, and not out of date?"
-    (-when-let (scheduled (ns/headline-date headline))
-      (ts-in
-        (ts-now)
-        (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
-        scheduled)))
+(defun ns/headline-date (headline-node)
+  (-some->> headline-node
+    (org-ml-headline-get-planning)
+    (org-ml-get-property :scheduled)
+    (org-ml-get-property :raw-value)
+    (ts-parse-org)))
 
-  (llet [nodes (-sort
-                 (lambda (&rest nodes)
-                   (llet [(d1 d2) (-map 'ns/headline-date nodes)]
-                     (ts< d1 d2)))
-                 (ns/get-notes-nodes 'ns/org-scheduled-today-after-now))
-          next-headline (first nodes)]
-
-    ;; to see everything scheduled ahead of time today:
-    (--map (-> it org-ml-headline-get-path -last-item) nodes)
-
-    (when (ts-in (ts-now)
-            (ts-adjust 'hour +1 (ts-now))
-            (ns/headline-date next-headline))
-      (format "next: %s" (-> next-headline org-ml-headline-get-path -last-item))))
-
-  )
+(defun ns/org-match-scheduled-today-after-now (headline)
+  (-some->> (ns/headline-date headline)
+    (ts-in
+      (ts-now)
+      (ts-apply :hour 23 :minute 59 :second 59 (ts-now)))))
 
 (defun ns/org-scheduled-today (headline)
-  "Is a headline scheduled today?"
-  (-when-let (scheduled (ns/headline-date headline))
+  (-some->> (ns/headline-date headline)
     (ts-in
       (ts-apply :hour 0 :minute 0 :second 0 (ts-now))
-      (ts-apply :hour 23 :minute 59 :second 59 (ts-now))
-      scheduled)))
+      (ts-apply :hour 23 :minute 59 :second 59 (ts-now)))))
 
 (defun ns/org-scheduled-past-todo (headline)
-  "Is a headline scheduled in the past?"
   (llet [scheduled (ns/headline-date headline)
           todo-state (org-ml-get-property :todo-keyword headline)]
     (when (and scheduled (not (string= todo-state "DONE")))
       (ts> (ts-now) scheduled))))
+
+(comment
+
+  )
 
 ;; track headlines to notification status
 (when (not (boundp 'ns/org-notify-ht))
@@ -105,7 +94,8 @@
   (ns/org-notify))
 
 (named-timer-run :org-notify-scheduled t 60 'ns/org-notify)
-(named-timer-cancel :org-notify-scheduled)
+
+;; (named-timer-cancel :org-notify-scheduled)
 
 ;; lazy
 (defun ns/org-notify-reset () (setq ns/org-notify-ht (ht)))
@@ -122,6 +112,26 @@
           (format "OUTDATED: %s" outdated-next)
           (format "OUTDATED: %s (next: %s)" count outdated-next))))))
 
+(defun ns/org-status-scheduled ()
+  (llet [nodes (-sort
+                 (lambda (&rest nodes)
+                   (llet [(d1 d2) (-map 'ns/headline-date nodes)]
+                     (ts< d1 d2)))
+                 (ns/get-notes-nodes 'ns/org-match-scheduled-today-after-now))
+          next-headline (first nodes)]
+
+    ;; to see everything scheduled ahead of time today:
+    ;; (--map (-> it org-ml-headline-get-path -last-item) nodes)
+
+    (when (ts-in (ts-now)
+            (ts-adjust 'hour +1 (ts-now))
+            (ns/headline-date next-headline))
+      (format "%s in %im"
+        (-> next-headline org-ml-headline-get-path -last-item)
+        (/ (- (ts-unix (ns/headline-date next-headline))
+             (ts-unix (ts-now)))
+          60)))))
+
 (defun ns/org-rotate (points)
   "Rotate through org headings by points. Assumes you are already in an org file with said headings"
   (if-not points
@@ -136,13 +146,6 @@
         (goto-char (or (first (-filter (-partial '< (point)) points))
                      (first points))))
       (ns/org-jump-to-element-content))))
-
-(defun ns/headline-date (headline-node)
-  (-some->> headline-node
-    (org-ml-headline-get-planning)
-    (org-ml-get-property :scheduled)
-    (org-ml-get-property :raw-value)
-    (ts-parse-org)))
 
 (defun! ns/org-rotate-outdated ()
   (ns/find-or-open org-default-notes-file)
@@ -215,125 +218,27 @@
     (-map 'org-ml-to-string)
     (s-join "\n")))
 
-(defun ns/write-node-to-post (node)
-  "Org headline node to blog post. assumes the presence of blog_slug."
-  (let*
-    ((slug (org-ml-headline-get-node-property "blog_slug" node))
-      (dest (ns/blog-path (format "notes/%s.org" slug)))
-      (exists? (f-exists-p dest))
-      (old-content (if exists? (f-read dest) "")))
-
-    (f-mkdir (f-dirname dest))
-    (when exists? (f-delete dest))
-    (f-write
-      (format "
-#+title: %s
-#+title_extra: %s
-#+filetags: %s
-#+pubdate: %s
-#+post_type: note
-%s"
-        (or (ns/blog-get-prop "title" old-content) (-> node cadr cadr))
-        (or (ns/blog-get-prop "title_extra" old-content) "")
-        (or (ns/blog-get-prop "filetags" old-content) "")
-        (or (ns/blog-get-prop "pubdate" old-content) (ns/shell-exec "date '+<%Y-%m-%d>'"))
-        (->> node
-          (org-ml-headline-map-node-properties (lambda (_) nil))
-          (org-ml-to-trimmed-string)
-
-          ;; remove through the end of the PROPERTIES drawer:
-          (s-split "\n" )
-          (cdr)
-          (s-join "\n")))
-
-      'utf-8
-      dest)
-    ;; return the path:
-    dest))
-
-(defun ns/org-normalize (node)
-  "Move an org headline to be top level"
-  (let ((difference (- 1 (org-ml-get-property :level node))))
-    (->> node
-      (org-ml-map-children*
-        (if (eq (org-ml-get-type it) 'headline)
-          (org-ml-shift-property :level difference it)
-          it))
-      (org-ml-set-property :level 1))))
-
-(defun! ns/org-export-shared ()
-  (defun ns/org-note-share (heading)
-    (org-ml-headline-get-node-property "share" heading))
-  (let ((content (->> (ns/get-notes-nodes 'ns/org-note-share)
-                   (-map 'ns/org-normalize)
-                   (-map 'org-ml-to-string)
-                   (s-join "\n")))
-         (labs-folder (pass "labs-folder")))
-    (when (f-exists-p labs-folder)
-      (f-write (format "Exported on: %s\n\n %s" (ts-format (ts-now)) content)
-        'utf-8
-        (format "%s/notes.org" labs-folder)))))
-
-(defun! ns/export-blog-note-targets ()
-  (->> (ns/get-notes-nodes (-partial 'org-ml-headline-get-node-property "blog_slug"))
-    (-map 'ns/org-normalize)
-    (-map 'ns/write-node-to-post)
-    ((lambda (valid)
-       (dolist (file (ns/blog-get-org "notes"))
-         (when (not (-contains? valid file))
-           (f-delete file)))))))
-
-(defun ns/org-clock-sum-week ()
-  ;; get time clocked under an item and it's children for this week
+(defun! ns/org-clock-sum-week ()
+  "get time clocked under an item and it's children for this week"
   (org-clock-sum-current-item
-    (let ((now (ts-now)))
-      (->> now
-        (ts-adjust 'day (- (ts-dow now)))
-        (ts-apply :hour 0 :minute 0 :second 0)
-        (ts-unix)))))
+    (->> (ts-now)
+      (ts-adjust 'day (- (ts-dow (ts-now))))
+      (ts-apply :hour 0 :minute 0 :second 0)
+      (ts-unix))))
 
-(defun ns/org-clock-sum-day ()
-  ;; get time clocked under an item and it's children for today
+(defun! ns/org-clock-sum-day ()
+  "get time clocked under an item and it's children for today"
   (org-clock-sum-current-item
     (->> (ts-now)
       (ts-apply :hour 0 :minute 0 :second 0)
       (ts-unix))))
 
-;; this is measured in minutes
-(setq ns/org-casual-timelimit (* 60 30))
-
 (defun ns/org-get-path (&optional point)
   "Get the FULL path to an outline at a point within notes"
-  (when point
-    (goto-char point))
+  (when point (goto-char point))
   (-snoc
     (org-get-outline-path)
     (s-clean (org-get-heading))))
-
-(defun ns/org-check-casual-time-today (&optional notify)
-  ;; returns remaining casual minutes
-  ;; optionally notifies if you are out of them
-  ;; accounts for current clock if it is under a casual heading
-  (ns/with-notes
-    (goto-char (ns/org-get-active-point))
-    (let* ((clocked-casual-p (string= (first (ns/org-get-path)) "casual"))
-            (current-clock-time
-              (if clocked-casual-p (ns/org-get-current-clock-time) 0))
-            (casual-clocked-time
-              (progn
-                (goto-char (org-find-property "casual"))
-                (ns/org-clock-sum-day))))
-
-      (when (and (or notify nil)
-              clocked-casual-p
-              (> (+ casual-clocked-time current-clock-time)
-                ns/org-casual-timelimit))
-        (ns/shell-exec "dunstctl set-paused false")
-        (alert! (format "You are out of casual time for today.")
-          :severity 'normal
-          :title "TIME"))
-      (- ns/org-casual-timelimit
-        (+ casual-clocked-time current-clock-time)))))
 
 (named-timer-run :harass-myself
   t

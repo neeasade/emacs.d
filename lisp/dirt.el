@@ -118,8 +118,13 @@
   `(-let* ,(-partition 2 (append args nil)) ,@body))
 
 (defmacro defun! (label args &rest body)
-  `(defun ,label ,args
-     (interactive) ,@body))
+  (llet [docstring (when (stringp (first body))
+                     (first body))
+          body (if docstring (-drop 1 body) body)]
+    `(defun ,label ,args
+       ,docstring
+       (interactive)
+       ,@body)))
 
 (defmacro fn!! (&rest body)
   "Create an interactive function prefixed with ia/ and no arguments (optionally, infer name from first sexp)"
@@ -352,6 +357,13 @@
 
 ;; trying terminal
 (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
+
+(defun ns/face (faces &rest kvs)
+  (-map (-lambda ((k v))
+          (-map (lambda (face)
+                  (set-face-attribute face nil k v))
+            (-list faces)))
+    (-partition 2 kvs)))
 
 (when-not window-system
   (setq kitty-kbp-modifiers-alist
