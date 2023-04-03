@@ -46,8 +46,10 @@
         (error (message "Invalid expression")
           (insert (current-kill 0)))))
 
-    (ns/bind-mode 'emacs-lisp "e" 'ns/smart-elisp-eval)
-    (ns/bind-mode 'emacs-lisp "E" 'eval-print-last-sexp))
+    (ns/bind-mode 'emacs-lisp
+      "e" 'ns/smart-elisp-eval
+      "E" 'eval-print-last-sexp
+      ))
 
   ;; note: elsa needs cask to do anything:
   (when (executable-find "cask")
@@ -65,8 +67,7 @@
 
       idle-change-delay 1
       global-modes '(not circe-channel-mode circe-query-mode)
-      )
-    )
+      ))
 
   ;; disable jshint since we prefer eslint checking
   (setq-default
@@ -512,6 +513,51 @@
   (ns/file-mode "asciidoc" 'adoc-mode)
 
   (ns/use ox-asciidoc))
+
+(ns/defconfig resources
+  (setq ns/resource-table
+    (let ((default-font (-when-let (dfont (face-attribute 'default :font))
+                          (font-get dfont :name))))
+      (-ht
+        "panel.height" "24"
+        "emacs.theme" "myron-mcfay"
+        "font.mono.spec" default-font
+        "font.variable.spec" default-font)))
+
+  (defun get-resource (name)
+    (ht-get ns/resource-table name))
+
+  (defun ns/update-resource-font (key font)
+    "Update the fallback font for xrdb value"
+    (when (and font (not (s-blank-p font))
+            (find-font (font-spec :name font)))
+      (llet [default-size 14
+              font (if (s-contains? "-" font)
+                     font (format "%s-%s" font default-size))]
+        (ht-set ns/resource-table key font)
+        t)))
+
+  (defun ns/refresh-resources ()
+    (if (which "theme")
+      (--map (ht-set ns/resource-table it
+               (sh "theme -q '%s' 2>/dev/null" it))
+        (ht-keys ns/resource-table))
+      (progn
+        (-first (-partial 'ns/update-resource-font "font.mono.spec")
+          '("Go Mono"
+             "Menlo"
+             "Source Code Pro"
+             "Noto Sans Mono"
+             "Lucida Console"
+             "Dejavu Sans Mono"))
+        (-first (-partial 'ns/update-resource-font "font.variable.spec")
+          '("Charter"
+             "Noto Serif"
+             "Lucida Console"
+             "Dejavu Sans"
+             "Menlo")))))
+
+  (ns/refresh-resources))
 
 (ns/defconfig rice-integrations
   (defun ns/make-border-color (c)

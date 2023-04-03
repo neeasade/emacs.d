@@ -3,6 +3,7 @@
 
 (setq-default indicate-empty-lines nil)
 
+(ns/use doom-modeline)
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"))
 
 (when (and (not window-system)
@@ -10,35 +11,6 @@
   (setq base16-theme-256-color-source 'colors))
 
 (ns/use paren-face)
-
-(defun ns/maybe-update-xrdb-font (key font)
-  "Update the fallback font for xrdb value"
-  (when (find-font (font-spec :name (plist-get (ns/parse-font font) :family)))
-    (setq ns/xrdb-fallback-values
-      (delq (assoc key ns/xrdb-fallback-values) ns/xrdb-fallback-values))
-
-    (setq ns/xrdb-fallback-values
-      (cons `(,key . ,font) ns/xrdb-fallback-values))))
-
-(-map (-partial 'ns/maybe-update-xrdb-font "font.mono.spec")
-  (list
-    "Dejavu Sans Mono-14"
-    "DejaVu Sans Mono-14"
-    "Lucida Console-14"
-    "Noto Sans Mono-14"
-    "Source Code Pro-14"
-    "Menlo-14"
-    "Go Mono-14"
-    ))
-
-(-map (-partial 'ns/maybe-update-xrdb-font "font.variable.spec")
-  (list
-    "Menlo-14"
-    "Dejavu Sans-14"
-    "DejaVu Sans-14"
-    "Lucida Console-14"
-    "Noto Serif-14"
-    "Charter-14"))
 
 (ns/use hl-todo
   (general-nmap
@@ -51,7 +23,7 @@
 (->> (face-list)
   (--remove (s-starts-with-p "org" (ns/str it)))
   (--map (set-face-attribute it nil
-           ;; :weight 'normal
+           :weight 'normal
            :slant 'normal
            ;; :underline nil
            ;; :inherit nil
@@ -109,6 +81,7 @@ will also be the width of all other printable characters."
   (ns/kill-buffers-no-file)
 
   (-map 'disable-theme custom-enabled-themes)
+  (ns/refresh-resources)
 
   (load-theme
     (or theme

@@ -22,6 +22,7 @@
 (defun ns/conf-core ()
   (ns/summon
     `(
+       resources
        sanity
        evil
        interface

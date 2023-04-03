@@ -40,14 +40,7 @@
   mac-command-modifier 'super
   mac-control-modifier 'control
 
-  ;; for when we're away from $HOME.
-  ns/xrdb-fallback-values
-  (let ((default-font (when (stringp (face-attribute 'default :font))
-                        (font-get (face-attribute 'default :font) :name))))
-    `(("panel.height" . "24")
-       ("emacs.theme" . "myron-mcfay")
-       ("font.mono.spec" . ,default-font)
-       ("font.variable.spec" . ,default-font))))
+  )
 
 (defmacro ns/use (pkg-def &rest body)
   "Load a PKG-DEF with straight, require it, and then eval BODY."
@@ -251,10 +244,11 @@
         (find-file filepath)
         (message (format "no file found: %s" filepath))))))
 
-(defun sh (command)
+(defun sh (&rest args)
   "trim the newline from shell exec"
-  (replace-regexp-in-string "\n$" ""
-    (shell-command-to-string command)))
+  (let ((process-environment (cons "CALLED_FROM_EMACS=t" process-environment)))
+    (replace-regexp-in-string "\n$" ""
+      (shell-command-to-string (apply 'format args)))))
 
 (defmacro ns/shell-exec (command)
   "trim the newline from shell exec"
@@ -272,16 +266,6 @@
 (defun pass (key)
   (when (executable-find "pass")
     (sh (format "pass %s 2>/dev/null" key)) ""))
-
-(defun get-resource (name)
-  "Get X resource value, with a fallback value NAME."
-  (llet [default (cdr (assoc name ns/xrdb-fallback-values))
-          xrq-result (when (executable-find "xrq")
-                       (ns/shell-exec (format "xrq '%s' 2>/dev/null" name)))
-          theme-result (when (executable-find "theme")
-                         (ns/shell-exec (format "theme -q '%s' 2>/dev/null" name)))]
-    (--first (not (s-blank-p it))
-      (list theme-result xrq-result default))))
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."

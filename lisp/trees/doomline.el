@@ -1,7 +1,5 @@
 ;; -*- lexical-binding: t; -*-
 
-(ns/use doom-modeline)
-
 (defface ns/mode-line-middle
   `((t (:inherit (mode-line)
          :background ,(myron-get :background :strong))))
@@ -202,4 +200,3 @@ Example:
 (ns/bind "tM" (fn!! (ns/refresh-all-modeline (not mode-line-format))))
 
 (ns/refresh-all-modeline t)
-(ns/frame-set-parameter 'bottom-divider-width 0)
