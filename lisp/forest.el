@@ -517,7 +517,8 @@
 (ns/defconfig resources
   (setq ns/resource-table
     (let ((default-font (-when-let (dfont (face-attribute 'default :font))
-                          (font-get dfont :name))))
+                          (when-not (eq 'unspecified dfont)
+                            (font-get dfont :name)))))
       (-ht
         "panel.height" "24"
         "emacs.theme" "myron-mcfay"

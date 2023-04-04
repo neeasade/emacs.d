@@ -122,7 +122,9 @@
 
       (ns/load-theme (intern (get-resource "emacs.theme")))))
 
-  (add-hook 'emacs-startup-hook 'ns/initial-startup-hook))
+  ;; (add-hook 'emacs-startup-hook 'ns/initial-startup-hook)
+  (run-at-time 0.1 nil 'ns/initial-startup-hook)
+  )
 
 (provide 'init)
 ;;; init.el ends here

@@ -196,9 +196,11 @@
 (ns/bind
   ;; todo: dated scratch buffer/dir
   ;; todo: per-mode scratch? should text be org? ugh
-  "ns" (fn!! goto-scratch-elisp (ns/find-or-open (~e "lisp/scratch.el")))
+  "ns" '(:ignore t :which-key "Scratch")
+  "nss" (fn!! goto-scratch-elisp (ns/find-or-open (~e "lisp/scratch.el")))
+  "nst" (fn!! goto-scratch-text (ns/find-or-open (~e "lisp/scratch.txt")))
+  "nso" (fn!! goto-scratch-org (ns/find-or-open (~e "lisp/scratch.org")))
 
-  "nS" (fn!! goto-scratch-text (ns/find-or-open (~e "lisp/scratch.txt")))
   "nm" (fn!! goto-messages (counsel-switch-to-buffer-or-window  "*Messages*"))
   "nU" 'undo-tree-visualize
 

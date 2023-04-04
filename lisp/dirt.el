@@ -95,6 +95,7 @@
 (defalias 'second 'cadr)
 (defalias 'third 'caddr)
 (defalias 'when-not 'unless)
+(defalias 'which 'executable-find)
 
 (defmacro if-not (condition &rest body)
   `(if (not ,condition)
@@ -240,9 +241,7 @@
   (llet (filename (file-name-nondirectory filepath))
     (if (get-buffer filename)
       (counsel-switch-to-buffer-or-window filename)
-      (if (f-exists-p filepath)
-        (find-file filepath)
-        (message (format "no file found: %s" filepath))))))
+      (find-file filepath))))
 
 (defun sh (&rest args)
   "trim the newline from shell exec"
@@ -250,22 +249,17 @@
     (replace-regexp-in-string "\n$" ""
       (shell-command-to-string (apply 'format args)))))
 
-(defmacro ns/shell-exec (command)
-  "trim the newline from shell exec"
-  `(replace-regexp-in-string "\n$" ""
-     (shell-command-to-string ,command)))
+(defun sh-toss (command)
+  "start a process and throw it to the wind"
+  (start-process command nil "sh" "-c" command))
 
-(defun ns/shell-exec-dontcare (command)
-  (let* ((bufname (concat "*killme-shell-" (number-to-string (random)) "*"))
-          (junk-buffer (get-buffer-create bufname)))
-    (shut-up
-      (shell-command command junk-buffer)
-      (kill-buffer junk-buffer))))
+(defalias 'ns/shell-exec 'sh)
+(defalias 'ns/shell-exec-dontcare 'sh-toss)
 
 ;; wrap passwordstore
 (defun pass (key)
-  (when (executable-find "pass")
-    (sh (format "pass %s 2>/dev/null" key)) ""))
+  (when (which "pass")
+    (sh "pass %s 2>/dev/null" key)))
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."
@@ -311,7 +305,6 @@
   (let ((pattern (format  "\\.%s\\'" file-extension)))
     (add-to-list 'auto-mode-alist `(,pattern . ,mode))))
 
-;; extension to s.el
 (defun s-clean (s)
   "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
@@ -337,6 +330,8 @@
        ,(format "docstring value for %s" symbol)))
 
   ;; the default is to only persist on quit
+  ;; todo: this doesn't work with identifiers that have a slash?
+  ;; sometimes I find the ns dir empty
   (named-timer-idle-run :persist-save (* 60 5) t 'persist--save-all))
 
 ;; trying terminal

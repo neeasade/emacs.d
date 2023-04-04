@@ -44,6 +44,19 @@
       (ts-apply :hour 0 :minute 0 :second 0 (ts-now))
       (ts-apply :hour 23 :minute 59 :second 59 (ts-now)))))
 
+(defun ns/org-match-captures (headline)
+  "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
+  (when (eq 'headline (org-ml-get-type headline))
+    (and
+      (let ((path (org-ml-headline-get-path headline)))
+        (and (string= "projects" (nth 0 path))
+          (string= "captures" (nth 2 path))
+          (not (string= (-last-item path) "captures"))))
+      (-if-let (capture-date (org-ml-headline-get-node-property "captured" headline))
+        (ts< (ts-parse-org capture-date)
+          (ts-adjust 'day (- 14) (ts-now)))
+        t))))
+
 (defun ns/org-scheduled-past-todo (headline)
   (llet [scheduled (ns/headline-date headline)
           todo-state (org-ml-get-property :todo-keyword headline)]
@@ -175,25 +188,12 @@
       (-sort 'ns/org-outdated-sort-node)
       (-map (-partial 'org-ml-get-property :begin)))))
 
-(defun! ns/org-rotate-captures ()
-  (defun ns/org-captures-review (headline)
-    "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
-    (when (eq 'headline (org-ml-get-type headline))
-      (and
-        (let ((path (org-ml-headline-get-path headline)))
-          (and
-            (string= "projects" (nth 0 path))
-            (string= "captures" (nth 2 path))
-            (not (string= (-last-item path) "captures"))))
-        (-if-let (capture-date (org-ml-headline-get-node-property "captured" headline))
-          (ts< (ts-parse-org capture-date)
-            (ts-adjust 'day (- 14) (ts-now)))
-          t))))
 
+(defun! ns/org-rotate-captures ()
   (ns/find-or-open org-default-notes-file)
   (ns/org-rotate
     (-map (-partial 'org-ml-get-property :begin)
-      (ns/get-notes-nodes 'ns/org-captures-review))))
+      (ns/get-notes-nodes 'ns/org-match-captures))))
 
 (ns/bind "oq" 'ns/org-rotate-outdated)
 

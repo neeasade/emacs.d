@@ -34,11 +34,10 @@
 (ns/use theme-magic
   (defun ns/emacs-to-theme ()
     (parseedn-print-str
-      (ht
-        (:colors (apply 'vector (theme-magic--auto-extract-16-colors)))
-        (:color
-          (ht-merge myron-theme*
-            (ht (:cursor (first evil-insert-state-cursor)))))))))
+      (-ht
+        :colors (apply 'vector (theme-magic--auto-extract-16-colors))
+        :color (ht-merge myron-theme*
+                 (-ht :cursor (first evil-insert-state-cursor)))))))
 
 (defun default-font-width ()
   "Return the width in pixels of a character in the current
@@ -111,7 +110,6 @@ will also be the width of all other printable characters."
   (-map (fn (when (fboundp <>)
               (message (pr-str <>))
               (funcall-interactively <>)))
-    ;; '()
     '(ns/style-circe ns/style-org ns/style-markdown ns/style-terminal))
 
   (ns/conf-doomline)
@@ -120,6 +118,11 @@ will also be the width of all other printable characters."
     '(vertical-border window-divider window-divider-first-pixel window-divider-last-pixel)
     :foreground (face-attribute 'mode-line-inactive :background)
     :background (face-attribute 'mode-line-inactive :background))
+
+  (when (and (called-interactively-p 'any)
+          ns/enable-home-p)
+    (start-process "load-theme" nil "ltheme")
+    (start-process "bgtint" nil "bgtint"))
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

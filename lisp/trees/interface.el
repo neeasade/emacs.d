@@ -288,13 +288,13 @@
   "bb" (fn!! surf-buffers
          (->> (ns/jump-file-candidates :buffers-without-files)
            (ns/pick "buffer")
-           (counsel-switch-to-buffer-or-window)))
+           (ns/find-or-open)))
 
   "bm" (fn!! surf-buffers-mode
          (->> (ns/buffers-by-mode major-mode)
            (-map 'buffer-name)
            (ns/pick "buffer")
-           (counsel-switch-to-buffer-or-window)))
+           (ns/find-or-open)))
 
   ;; "bd" 'ns/kill-current-buffer
   ;; "bK" 'ns/kill-other-buffers
