@@ -29,7 +29,8 @@
            ;; :inherit nil
            )))
 
-(set-face-attribute 'italic nil :slant 'italic)
+(ns/face 'italic :slant 'italic)
+(ns/face 'region :weight nil)
 
 (ns/use theme-magic
   (defun ns/emacs-to-theme ()

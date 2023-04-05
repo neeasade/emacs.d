@@ -264,7 +264,6 @@
 
 (defun! ns/org-clock-into (&rest path)
   "Clock into a heading in the notes file. defaults to clock->misc"
-  (interactive)
   (llet [headline-path (or path '("clock" "misc"))
           position (->> `(,org-default-notes-file ,@headline-path)
                      ns/org-find-olp

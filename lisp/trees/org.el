@@ -556,9 +556,12 @@
   "oi" 'ns/org-clock-in
   "oI" 'ns/org-clock-out
 
-  ;; todo: jump to heading general markup as well (markdown, adoc)
-  "no" #'ns/jump-to-notes-heading)
-
+  "no" (fn!! org-ql-notes
+         (let ((completing-read-function #'completing-read-default))
+           (org-ql-find
+             (if (eq 'org-mode major-mode)
+               (list org-default-notes-file (current-buffer))
+               org-default-notes-file)))))
 
 (ns/bind-mode 'org
   "or" (fn!! refile-headline-or-region

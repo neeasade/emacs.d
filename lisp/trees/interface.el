@@ -27,14 +27,13 @@
     :keymaps 'ivy-minibuffer-map
     (kbd "C-<return>") 'ivy-immediate-done)
 
-  (ivy-mode nil)
+  (ivy-mode t)
 
   )
 
 (ns/use prescient)
-(ns/use ivy-prescient (ivy-prescient-mode))
+(ns/use ivy-prescient (ivy-prescient-mode t))
 (ns/use company-prescient (company-prescient-mode))
-
 
 (prescient-persist-mode)
 
