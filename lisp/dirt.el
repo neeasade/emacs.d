@@ -335,12 +335,8 @@
   (named-timer-idle-run :persist-save (* 60 5) t 'persist--save-all))
 
 (defun ns/face (faces &rest kvs)
-  (-map (-lambda ((k v))
-          (-map (lambda (face)
-                  (set-face-attribute face nil
-                    k (or v 'unspecified)))
-            (-list faces)))
-    (-partition 2 kvs)))
+  (--map (apply 'set-face-attribute it nil kvs)
+    (-list faces)))
 
 ;; trying terminal
 (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")

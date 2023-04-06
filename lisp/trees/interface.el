@@ -8,7 +8,7 @@
 (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
 (ns/use vertico)
-(vertico-mode nil)
+(vertico-mode 0)
 
 
 (ns/use ivy
@@ -153,8 +153,7 @@
 (defun! ns/font-change ()
   (llet [current-size (/ (face-attribute 'default :height) 10)
           new-size (read-number (format "new size (current-size: %s): " current-size))]
-    (set-face-attribute 'default nil
-      :height (* 10 new-size))))
+    (ns/face 'default :height (* 10 new-size))))
 
 (defun! ns/kill-buffers-missing-file ()
   "Kill buffers referencing a file that doesn't exist (EG, the file may have moved or been deleted)"

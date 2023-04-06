@@ -22,15 +22,14 @@
 ;; allow font effects in org mode faces, but not in other places
 (->> (face-list)
   (--remove (s-starts-with-p "org" (ns/str it)))
-  (--map (set-face-attribute it nil
+  (--map (ns/face it
            :weight 'normal
            :slant 'normal
            ;; :underline nil
-           ;; :inherit nil
            )))
 
 (ns/face 'italic :slant 'italic)
-(ns/face 'region :weight nil)
+(ns/face 'region :weight 'unspecified)
 
 (ns/use theme-magic
   (defun ns/emacs-to-theme ()
@@ -75,7 +74,10 @@ will also be the width of all other printable characters."
     (ns/windows-set-margins)
 
     (setq flycheck-indication-mode 'left-margin)
-    (set-face-attribute 'flycheck-error nil :underline nil)))
+    (ns/face 'flycheck-error :underline nil)
+    ;; (set-face-attribute 'flycheck-error nil :underline 'unspecified)
+
+    ))
 
 (defun! ns/load-theme (&optional theme)
   (ns/kill-buffers-no-file)

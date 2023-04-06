@@ -5,20 +5,16 @@
          :background ,(myron-get :background :strong))))
   "middle mode line color" :group 'doom-modeline-faces)
 
-(ns/face 'mode-line
+(ns/face '(mode-line mode-line-inactive)
   :background (myron-get :background :weak)
   :foreground (myron-get :foreground :weak)
   :height (face-attribute 'default :height)
   :box nil)
 
-(ns/face 'mode-line-inactive
-  :background (myron-get :background :weak)
-  ;; :foreground (myron-get :foreground :weak)
-  :height (face-attribute 'default :height)
-  :box nil)
+(ns/face 'mode-line-inactive :foreground (myron-get :faded :weak))
 
 (ns/face '(doom-modeline-buffer-file doom-modeline-buffer-modified)
-  :foreground (myron-get :foreground))
+  :foreground (myron-get :foreground :weak))
 
 ;; upstream is really spacey
 (doom-modeline-def-segment buffer-position

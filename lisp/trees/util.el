@@ -51,7 +51,7 @@
       (t
         (ns/find-or-open (~e "lisp/forest.el"))
         (goto-char (point-min))
-        (re-search-forward (format "defconfig %s\n" f)))))
+        (re-search-forward (format "defconfig %s" f)))))
   (recenter))
 
 (defun! ns/toggle-bloat()
@@ -245,7 +245,7 @@
 
 ;; using this package only for a tramp aware 'open file as root' function
 ;; initially went to steal but turned out to be many functions to steal
-(ns/use crux)
+(ns/use crux (crux-reopen-as-root-mode t))
 
 (defun! ns/insert-qute-url (&optional description-in)
   (llet [url (sh "qb_active_url")]

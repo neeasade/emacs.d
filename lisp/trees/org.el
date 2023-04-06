@@ -310,24 +310,24 @@
 (ns/use org-present
   (defun ns/org-present-init ()
     ;; remove the height tweaking we do in (ns/style) so that scaling works right
-    (dolist (face '(org-level-1
-                     org-level-2
-                     org-level-3
-                     org-level-4
-                     org-level-5
-                     org-level-6
-                     org-block
-                     org-code
-                     org-table
-                     org-verbatim
-                     company-tooltip
-                     company-tooltip-common
-                     company-tooltip-selection
-                     org-block-begin-line
-                     org-block-end-line))
-      (set-face-attribute face nil :height 1.0))
+    (ns/face '(org-level-1
+                org-level-2
+                org-level-3
+                org-level-4
+                org-level-5
+                org-level-6
+                org-block
+                org-code
+                org-table
+                org-verbatim
+                company-tooltip
+                company-tooltip-common
+                company-tooltip-selection
+                org-block-begin-line
+                org-block-end-line)
+      :height 1.0)
 
-    (set-face-attribute 'org-block nil :height 0.7)
+    (ns/face 'org-block :height 0.7)
 
     (org-present-big)
     (org-present-hide-cursor)
