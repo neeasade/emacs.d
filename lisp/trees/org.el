@@ -161,10 +161,10 @@
   (ns/org-jump-to-element-content))
 
 (ns/use org-pomodoro
-  (setq ns/macos-vol (if ns/enable-mac-p (ns/shell-exec "macos-vol get") 0))
+  (setq ns/macos-vol (if ns/enable-mac-p (sh "macos-vol get") 0))
   (defun ns/toggle-music (action)
     (let ((target (or (executable-find "player.sh") "mpc")))
-      (ns/shell-exec-dontcare (concat target " " action))))
+      (sh-toss (concat target " " action))))
 
   ;; named functions so we don't append lambdas on init reload
   (defun ns/toggle-music-play () (ns/toggle-music "play"))
@@ -174,12 +174,12 @@
     (ns/toggle-music-play)
 
     (when ns/enable-home-p
-      (ns/shell-exec-dontcare "dunstctl set-paused true")
-      (ns/shell-exec-dontcare "panelt stop")
+      (sh-toss "dunstctl set-paused true")
+      (sh-toss "panelt stop")
 
       (f-write (f-read (~ ".config/qutebrowser/adblock_bad.txt"))
         'utf-8 (~ ".config/qutebrowser/adblock.txt"))
-      (ns/shell-exec-dontcare "qb_command :adblock-update")))
+      (sh-toss "qb_command :adblock-update")))
 
   (defun! ns/focus-mode-quit ()
     (when (or (not (called-interactively-p 'any))
@@ -189,11 +189,11 @@
       (ns/toggle-music-pause)
 
       (when ns/enable-home-p
-        (ns/shell-exec-dontcare "dunstctl set-paused false")
-        (ns/shell-exec-dontcare "panelt start"))
+        (sh-toss "dunstctl set-paused false")
+        (sh-toss "panelt start"))
 
       (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
-      (ns/shell-exec-dontcare "qb_command :adblock-update")))
+      (sh-toss "qb_command :adblock-update")))
 
   (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-enter)
   (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-enter)
@@ -448,26 +448,17 @@
   (ns/face '(org-block-begin-line org-block-end-line) :height 65)
   (ns/face 'org-ellipsis :underline nil)
 
-  (llet [base-font-height (face-attribute 'default :height)
-          ;; (plist-get (ns/parse-font (get-resource "font.mono.spec")) :height)
-          ]
-    (->> `(
-            (1 2 3 4 5 6)
-            (15 10 5 0 0 0)
-            ;; ,(-repeat 6 0)
-            )
-      (apply #'-interleave)
-      (-partition 2)
-      (-map (-lambda ((level height-mod))
-              (set-face-attribute
-                (intern (format "org-level-%s" level))
-                nil
-                :height (+ base-font-height height-mod)
-                :weight 'semi-bold
-                ;; :weight 'normal
-                ;; :underline t
-                :underline nil
-                )))))
+  (->> `((1 2 3 4 5 6)
+          (15 10 5 0 0 0)
+          ;; ,(-repeat 6 0)
+          )
+    (apply #'-interleave)
+    (-partition 2)
+    (-map (-lambda ((level height-mod))
+            (ns/face (intern (format "org-level-%s" level))
+              :underline nil
+              :weight 'semi-bold
+              :height (+ (face-attribute 'default :height) height-mod)))))
 
   (when (called-interactively-p 'any)
     (ns/set-buffers-face-variable (ns/buffers-by-mode 'org-mode))))

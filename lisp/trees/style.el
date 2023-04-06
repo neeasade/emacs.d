@@ -119,13 +119,14 @@ will also be the width of all other printable characters."
 
   (ns/face
     '(vertical-border window-divider window-divider-first-pixel window-divider-last-pixel)
-    :foreground (face-attribute 'mode-line-inactive :background)
-    :background (face-attribute 'mode-line-inactive :background))
+    :background (face-attribute 'mode-line-inactive :background)
+    :foreground (face-attribute 'mode-line-inactive :background))
 
   (when (and (called-interactively-p 'any)
           ns/enable-home-p)
-    (start-process "load-theme" nil "ltheme")
-    (start-process "bgtint" nil "bgtint"))
+    (sh-toss "ltheme")
+    ;; (start-process "bgtint" nil "bgtint")
+    )
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

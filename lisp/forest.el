@@ -392,7 +392,7 @@
     "Execute a command after saved a specific file."
     (-map (-lambda ((file cmd))
             (when (equal (buffer-file-name) file)
-              (ns/shell-exec-dontcare cmd)))
+              (sh-toss cmd)))
       (-partition 2 ns/filename-cmd)))
 
   (add-hook 'after-save-hook 'ns/cmd-after-saved-file))
@@ -411,8 +411,7 @@
 
   (defun! ns/recompile ()
     (let ((compilation-directory (projectile-project-root)))
-      (ns/shell-exec-dontcare
-        (format "cd '%s' && make clean" compilation-directory))
+      (sh (format "cd '%s' && make clean" compilation-directory))
       (recompile))))
 
 (ns/defconfig graphviz
@@ -588,7 +587,7 @@
   (defun! ns/toggle-music-play ()
     (sh (format "macos-vol setvol %s" ns/macos-vol)))
   (defun! ns/toggle-music-pause ()
-    (setq ns/macos-vol (ns/shell-exec "macos-vol get"))
+    (setq ns/macos-vol (sh "macos-vol get"))
     (sh "macos-vol setvol 0"))
 
   (ns/frame-set-parameter 'inhibit-double-buffering t)

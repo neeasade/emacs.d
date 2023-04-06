@@ -148,10 +148,10 @@
                           (list (ht-get props "pubdate" "")
                             (f-base path))))
 
-      :edited-date (let ((git-query-result (ns/shell-exec (format "cd '%s'; git log --follow -1 --format=%%cI '%s'"
-                                                            ;; appease the shell.
-                                                            (s-replace "'" "'\\''" (f-dirname path))
-                                                            (s-replace "'" "'\\''" path)))))
+      :edited-date (let ((git-query-result (sh (format "cd '%s'; git log --follow -1 --format=%%cI '%s'"
+                                                 ;; appease the shell.
+                                                 (s-replace "'" "'\\''" (f-dirname path))
+                                                 (s-replace "'" "'\\''" path)))))
                      (when-not (s-blank-p git-query-result)
                        (substring git-query-result 0 10)))
       :url (format "https://notes.neeasade.net/%s.html" html-slug)
@@ -181,7 +181,7 @@
                        (-map
 	                       (fn (let* ((file-path (ns/blog-path (format "published/assets/css/%s.css" <>)))
 		                                 (include-path (format "/assets/css/%s.css" <>))
-		                                 (sum (ns/shell-exec (format "md5sum '%s' | awk '{print $1}'" file-path))))
+		                                 (sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path))))
 	                             (concat
 		                             (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
 		                             (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
@@ -207,8 +207,8 @@
     (ns/blog-publish-meta file-meta)
 
     (message post-html-file)
-    (if (string= (concat "file://" post-html-file) (ns/shell-exec "qb_active_url"))
-      (ns/shell-exec "qb_command :reload")
+    (if (string= (concat "file://" post-html-file) (sh "qb_active_url"))
+      (sh "qb_command :reload")
       (browse-url post-html-file))))
 
 (defun ns/blog-changed-files-metas ()
@@ -327,7 +327,7 @@
 #+pubdate: %s
  "
               title
-              (ns/shell-exec "date '+<%Y-%m-%d>'")))))
+              (sh "date '+<%Y-%m-%d>'")))))
 
 ;;;
 ;;; here down are content helpers -- many of these have correlating macros in the template

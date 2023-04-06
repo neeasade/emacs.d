@@ -50,7 +50,7 @@
       (ns/enable-linux-p "free -b | awk '/^Mem/{print $2}'")
       (ns/enable-mac-p "sysctl -a | awk '/memsize/{print $2}'")
       (ns/enable-windows-p "echo 8000000000"))
-    (ns/shell-exec)
+    (sh)
     (string-to-number)
     (* 0.70)
     (floor)))
@@ -100,11 +100,6 @@
 
 ;; don't ask to kill running processes when killing a buffer.
 (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
-
-;; don't popup buffers with output when launching things (ns/shell-exec-dontcare)
-(add-to-list 'display-buffer-alist
-  (cons "\\*Async Shell Command\\*.*"
-    (cons #'display-buffer-no-window nil)))
 
 ;; save recent files
 (recentf-mode 1)
@@ -156,7 +151,7 @@
 
 (defun ns/media-playing-p ()
   (defun ns/sh-has-content-p (cmd)
-    (-> cmd ns/shell-exec s-blank-p not))
+    (-> cmd sh s-blank-p not))
 
   ;; todo: this should detect if in zoom meeting
   (-any-p 'ns/sh-has-content-p

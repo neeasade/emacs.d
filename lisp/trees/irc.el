@@ -634,7 +634,7 @@
 
 (defun circe-command-EXEC (content)
   (->> content
-    ns/shell-exec
+    sh
     (s-split "\n")
     (cons (format "$ %s" content))
     (mapc 'circe-command-SAY)))

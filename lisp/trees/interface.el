@@ -94,7 +94,7 @@
                     (dired-get-file-for-visit)
                     ;; (format "setsid nohup xdg-open \"%s\" &")
                     (format "xdg-open \"%s\"")
-                    (ns/shell-exec-dontcare))
+                    (sh-toss))
                   ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
                   )
 

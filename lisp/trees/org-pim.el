@@ -96,7 +96,7 @@
                     (ts> (ts-now)
                       ;; get notified in advance
                       (ts-adjust 'minute -3 timestamp)))
-              (ns/shell-exec "dunstctl set-paused false")
+              (sh "dunstctl set-paused false")
               (alert! headline
                 :severity 'normal
                 :title (ts-format "%l:%M %p" timestamp))

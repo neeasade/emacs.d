@@ -271,7 +271,7 @@
             (t url)))))))
 
 (defun! ns/insert-qute-url-title ()
-  (ns/insert-qute-url (ns/shell-exec "qb_active_url .title")))
+  (ns/insert-qute-url (sh "qb_active_url .title")))
 
 (ns/bind
   "qf" 'ns/what-face

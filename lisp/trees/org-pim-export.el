@@ -30,7 +30,7 @@
         (or (ns/blog-get-prop "title" old-content) (-> node cadr cadr))
         (or (ns/blog-get-prop "title_extra" old-content) "")
         (or (ns/blog-get-prop "filetags" old-content) "")
-        (or (ns/blog-get-prop "pubdate" old-content) (ns/shell-exec "date '+<%Y-%m-%d>'"))
+        (or (ns/blog-get-prop "pubdate" old-content) (sh "date '+<%Y-%m-%d>'"))
         (->> node
           (org-ml-headline-map-node-properties (lambda (_) nil))
           (org-ml-to-trimmed-string)
