@@ -169,38 +169,18 @@
   "H" 'previous-buffer
   "L" 'next-buffer)
 
-(defun! ns/should-skip (buffername)
-  (or
-    ;; (member buffername '("scratch.el"))
-    (s-starts-with? "*" buffername)
-    (s-starts-with? "magit" buffername)
-    (with-current-buffer (get-buffer buffername) (eq major-mode 'dired-mode))
-    )
-  )
+(defun ns/should-skip (win buf _)
+  (let ((buffername (buffer-name buf)))
+    (or
+      (eq (current-buffer) buf)
+      (s-starts-with? "*" buffername)
+      (s-starts-with? " *" buffername)
+      (s-starts-with? "magit" buffername)
+      (eq 'dired-mode (buffer-local-value 'major-mode buf)))))
 
-;; (defun! ns/maybe-next ()
-;;   (when (ns/should-skip (buffer-name))
-;;     (next-buffer)))
-
-;; (defun! ns/maybe-prev ()
-;;   (when (ns/should-skip (buffer-name))
-;;     (previous-buffer)))
-
-;; fucking what -- why did I do the temp shit here
-(defun! ns/maybe-next ()
-  (when (ns/should-skip (buffer-name))
-    (let ((temp (window-next-buffers)))
-      (next-buffer)
-      (set-window-next-buffers nil temp))))
-
-(defun! ns/maybe-prev ()
-  (when (ns/should-skip (buffer-name))
-    (let ((temp (window-prev-buffers)))
-      (previous-buffer)
-      (set-window-prev-buffers nil temp))))
-
-(advice-add #'next-buffer :after #'ns/maybe-next)
-(advice-add #'previous-buffer :after #'ns/maybe-prev)
+(setq
+  switch-to-next-buffer-skip #'ns/should-skip
+  switch-to-prev-buffer-skip #'ns/should-skip)
 
 (general-nmap
   ;; "[s" 'flyspell-goto-prev-error ; not a thing

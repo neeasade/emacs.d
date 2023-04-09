@@ -119,7 +119,7 @@
             (ns/pickup-shell (expand-file-name default-directory)))))
 
   ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
-  "q" 'ns/maybe-prev)
+  "q" 'previous-buffer)
 
 (defun! ns/kill-current-buffer()
   (kill-buffer nil))

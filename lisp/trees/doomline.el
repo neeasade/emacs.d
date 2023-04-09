@@ -45,45 +45,18 @@
     ;; (doom-modeline--buffer-file-name)
     (doom-modeline--buffer-state-icon)))
 
-(defun ns/next-buffer-name ()
-  (->> (window-next-buffers)
-    ;; (-map 'first)
-    (-map 'buffer-name)
-    ;; (-drop 1)
-    (-filter (fn (not (string= (buffer-name (current-buffer)) <>))))
-    (-first (fn (not (ns/should-skip <>))))
-    ;; (current-buffer)
-    ))
-
-(defun ns/prev-buffer-name ()
-  (->> (window-prev-buffers)
-    ;; (reverse)
-    (-map 'first)
-    (-map 'buffer-name)
-    ;; (-drop 1)
-    (-filter (fn (not (string= (buffer-name (current-buffer)) <>))))
-    (-filter (fn (not (string= (ns/next-buffer-name) <>))))
-    (-first (fn (not (ns/should-skip <>))))
-    ;; (current-buffer)
-    ))
-
 (doom-modeline-def-segment lispy-indicator
   (if (lispyville--lispy-keybindings-active-p) "LISPY" ""))
 
 (doom-modeline-def-segment next-buffers
   (when (doom-modeline--active)
-    (propertize
-      (concat
-        doom-modeline-spc
-
-        (format "[%s:%s]"
-          (or (s-left 8 (ns/prev-buffer-name)) "<None>")
-          (or (s-left 8 (ns/next-buffer-name)) "<None>"))
-
-        doom-modeline-spc
-        )
-      'face 'mode-line
-      )))
+    ;; kinda gross
+    (cl-letf (((symbol-function 'set-window-buffer-start-and-point) (fn nil)))
+      (llet [next-buffer (buffer-name (switch-to-next-buffer))
+              prev-buffer (buffer-name (switch-to-prev-buffer))]
+        (propertize
+          (format "[%s:%s]" prev-buffer next-buffer)
+          'face 'mode-line)))))
 
 (doom-modeline-def-segment sep
   "Text style with whitespace."
@@ -162,7 +135,8 @@ Example:
 
      checker
      sep
-     ;; next-buffers
+     next-buffers
+     sep
      ;; vcs ;; somehow this one makes the spacing off
      misc-info
      ;; input-method
