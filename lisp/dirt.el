@@ -134,13 +134,19 @@
            body))))
 
 (defmacro setq-ns (namespace &rest pairs)
-  (->> (-partition 2 pairs)
-    (-mapcat (fn (list
-                   (intern (format "%s-%s"
-                             (prin1-to-string namespace)
-                             (car <>)))
-                   (cadr <>))))
-    (cons 'setq)))
+  `(setq ,@(->> (-partition 2 pairs)
+             (-mapcat (-lambda ((k v))
+                        (list (intern (format "%s-%s" namespace k)) v))))))
+
+(defun sh (&rest args)
+  "trim the newline from shell exec"
+  (let ((process-environment (cons "CALLED_FROM_EMACS=t" process-environment)))
+    (replace-regexp-in-string "\n$" ""
+      (shell-command-to-string (apply 'format args)))))
+
+(defun sh-toss (command)
+  "start a process and throw it to the wind"
+  (start-process command nil "sh" "-c" command))
 
 (defun ~ (&rest args)
   (apply #'f-join (cons ns/home-directory args)))
@@ -242,19 +248,6 @@
     (if (get-buffer filename)
       (counsel-switch-to-buffer-or-window filename)
       (find-file filepath))))
-
-(defun sh (&rest args)
-  "trim the newline from shell exec"
-  (let ((process-environment (cons "CALLED_FROM_EMACS=t" process-environment)))
-    (replace-regexp-in-string "\n$" ""
-      (shell-command-to-string (apply 'format args)))))
-
-(defun sh-toss (command)
-  "start a process and throw it to the wind"
-  (start-process command nil "sh" "-c" command))
-
-(defalias 'ns/shell-exec 'sh)
-(defalias 'ns/shell-exec-dontcare 'sh-toss)
 
 ;; wrap passwordstore
 (defun pass (key)

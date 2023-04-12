@@ -122,8 +122,8 @@
             count (length outdated)]
       (when (> count 0)
         (if (= count 1)
-          (format "OUTDATED: %s" outdated-next)
-          (format "OUTDATED: %s (next: %s)" count outdated-next))))))
+          (format "on deck: %s" outdated-next)
+          (format "[%s]on deck: %s" (make-string count ?!) outdated-next))))))
 
 (defun ns/org-status-scheduled ()
   (llet [nodes (-sort

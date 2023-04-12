@@ -50,12 +50,12 @@
   (evil-collection-init))
 
 (defun ns/zz-scroll (&rest _)
-  (when (not (-contains-p '(circe-channel-mode circe-query-mode shell-mode) major-mode))
+  (when (and (not (-contains-p '(circe-channel-mode circe-query-mode shell-mode) major-mode)))
     ;; lift the gaze a little
-    ;; ignore the error if we can't scroll
-    (condition-case nil
-      (scroll-up 6)
-      (error nil))))
+    (when (> (line-number-at-pos) 6)
+      (condition-case nil
+        (scroll-up 6)
+        (error nil)))))
 
 (advice-add #'recenter :after #'ns/zz-scroll)
 

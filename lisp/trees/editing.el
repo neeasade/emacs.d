@@ -104,55 +104,57 @@
 (add-hook 'sh-mode-hook 'ns/sh-mode-init-hook)
 
 ;; lisp stuff
-(ns/use lispy)
+(ns/use lispy
+  (setq-ns lispy
+    delete-backward-recenter nil
+    thread-last-macro "->>"
+    ;; little too magical
+    safe-actions-ignore-strings t)
 
-(setq lispy-thread-last-macro "->>")
+  (lispy-set-key-theme '(;; these are all possible options
+                          lispy
+                          c-digits
+                          special
+                          evilcp
+                          ;; c-digits
+                          ))
 
-;; allow "tn" pressing in lispy insert/special mode
-(define-key lispy-mode-map-special (kbd "t") nil)
+  ;; allow "tn" pressing in lispy insert/special mode
+  (define-key lispy-mode-map-special (kbd "t") nil)
 
-(lispy-set-key-theme '(;; these are all possible options
-                        lispy
-                        c-digits
-                        special
-                        evilcp
-                        ;; c-digits
-                        ))
+  ;; I don't like motion in insert mode that much
+  (define-key lispy-mode-map-lispy "[" nil)
+  (define-key lispy-mode-map-lispy "]" nil))
 
-;; I don't like motion in insert mode that much
-(define-key lispy-mode-map-lispy "[" nil)
-(define-key lispy-mode-map-lispy "]" nil)
+;; evil lispy integration
+(ns/use lispyville
 
-(ns/use lispyville)
 
-;; little too magical
-(setq lispy-safe-actions-ignore-strings t)
+  ;; others to look into:
+  ;; lispy-safe-threshold
+  ;; lispy-safe-actions-ignore-comments,
+  ;; lispy-safe-actions-no-pull-delimiters-into-comments
 
-;; others to look into:
-;; lispy-safe-threshold
-;; lispy-safe-actions-ignore-comments,
-;; lispy-safe-actions-no-pull-delimiters-into-comments
+  (lispyville-set-key-theme
+    '(operators
+       c-w
+       commentary
+       ;; to try later: text-objects: https://github.com/noctuid/lispyville#text-objects-key-theme
+       ;; arrows
 
-(lispyville-set-key-theme
-  '(operators
-     c-w
-     commentary
-     ;; to try later: text-objects: https://github.com/noctuid/lispyville#text-objects-key-theme
-     ;; arrows
+       ;; atom motions are cool but annoying - see https://github.com/noctuid/lispyville/issues/61
 
-     ;; atom motions are cool but annoying - see https://github.com/noctuid/lispyville/issues/61
+       ;; greedy motions: just atom-motions
+       (atom-motions t)
 
-     ;; greedy motions: just atom-motions
-     (atom-motions t)
+       ;; todo: these look cool -- remember, motions not movement
+       ;; EG d]
+       ;; additional-motions
 
-     ;; todo: these look cool -- remember, motions not movement
-     ;; EG d]
-     ;; additional-motions
-
-     ;; review me https://github.com/noctuid/lispyville#slurpbarf-key-themes
-     slurp/barf-cp
-     ;; slurp/barf-lispy
-     ))
+       ;; review me https://github.com/noctuid/lispyville#slurpbarf-key-themes
+       slurp/barf-cp
+       ;; slurp/barf-lispy
+       )))
 
 (ns/use aggressive-indent)
 

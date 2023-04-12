@@ -531,31 +531,31 @@
     "Update the fallback font for xrdb value"
     (when (and font (not (s-blank-p font))
             (find-font (font-spec :name font)))
-      (llet [default-size 14
-              font (if (s-contains? "-" font)
-                     font (format "%s-%s" font default-size))]
-        (ht-set ns/resource-table key font)
-        t)))
+      (ht-set ns/resource-table key font)
+      t))
 
   (defun ns/refresh-resources ()
+    (interactive)
     (if (which "theme")
       (--map (ht-set ns/resource-table it
                (sh "theme -q '%s' 2>/dev/null" it))
         (ht-keys ns/resource-table))
       (progn
         (-first (-partial 'ns/update-resource-font "font.mono.spec")
-          '("Go Mono"
-             "Menlo"
-             "Source Code Pro"
-             "Noto Sans Mono"
-             "Lucida Console"
-             "Dejavu Sans Mono"))
+          (--map (format "%s-14" it)
+            '("Go Mono"
+               "Menlo"
+               "Source Code Pro"
+               "Noto Sans Mono"
+               "Lucida Console"
+               "Dejavu Sans Mono")))
         (-first (-partial 'ns/update-resource-font "font.variable.spec")
-          '("Charter"
-             "Noto Serif"
-             "Lucida Console"
-             "Dejavu Sans"
-             "Menlo")))))
+          (--map (format "%s-14" it)
+            '("Charter"
+               "Noto Serif"
+               "Lucida Console"
+               "Dejavu Sans"
+               "Menlo"))))))
 
   (ns/refresh-resources))
 
