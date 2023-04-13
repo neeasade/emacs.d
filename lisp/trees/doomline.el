@@ -42,10 +42,10 @@
 (doom-modeline-def-segment buffer-info-neeasade
   (concat
     doom-modeline-spc
-    doom-modeline-spc
     (doom-modeline--buffer-name)
     ;; (doom-modeline--buffer-file-name)
-    (doom-modeline--buffer-state-icon)))
+    (doom-modeline--buffer-state-icon)
+    doom-modeline-spc))
 
 (doom-modeline-def-segment lispy-indicator
   (if (lispyville--lispy-keybindings-active-p) "LISPY" ""))
