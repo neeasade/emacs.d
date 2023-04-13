@@ -1,11 +1,13 @@
 ;; -*- lexical-binding: t; -*-
 
 (defface ns/mode-line-middle
-  `((t (:inherit (mode-line)
-         :background ,(myron-get :background :strong))))
+  `((t (:inherit (mode-line))))
   "middle mode line color" :group 'doom-modeline-faces)
 
-(ns/face '(mode-line mode-line-inactive)
+;; keep this out of the defface so ns/load-theme refreshes the face
+(ns/face 'ns/mode-line-middle :background (myron-get :background :strong))
+
+(ns/face 'mode-line
   :background (myron-get :background :weak)
   :foreground (myron-get :foreground :weak)
   :height (face-attribute 'default :height)
