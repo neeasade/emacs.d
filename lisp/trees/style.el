@@ -4,7 +4,7 @@
 (setq-default indicate-empty-lines nil)
 
 (ns/use doom-modeline)
-(ns/use (myron-themes :host github :repo "neeasade/myron-themes"))
+(ns/use (myron-themes :host github :repo "neeasade/myron-themes" :files ("*.el" "themes/*.el")))
 
 (when (and (not window-system)
         (string= (getenv "TERM") "xterm-kitty"))
@@ -29,7 +29,7 @@
            )))
 
 (ns/face 'italic :slant 'italic)
-(ns/face 'region :weight 'unspecified)
+(ns/face '(region isearch evil-ex-lazy-highlight) :weight 'unspecified)
 
 (ns/use theme-magic
   (defun ns/emacs-to-theme ()
@@ -124,7 +124,7 @@ will also be the width of all other printable characters."
 
   (when (and (called-interactively-p 'any)
           ns/enable-home-p)
-    (sh-toss "ltheme")
+    (sh-toss "ltheme wm")
     ;; (start-process "bgtint" nil "bgtint")
     )
 

@@ -121,9 +121,6 @@
   ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
   "q" 'previous-buffer)
 
-(defun! ns/kill-current-buffer()
-  (kill-buffer nil))
-
 (ns/use alert
   (setq alert-default-style
     (cond
@@ -294,7 +291,7 @@
            (ns/pick "buffer")
            (ns/find-or-open)))
 
-  ;; "bd" 'ns/kill-current-buffer
+  "bd" (fn!! (kill-buffer nil))
   ;; "bK" 'ns/kill-other-buffers
   ;; "bk" 'kill-matching-buffers
   ;; "bm" 'ns/kill-buffers-by-mode

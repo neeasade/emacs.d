@@ -52,7 +52,7 @@
       ))
 
   ;; note: elsa needs cask to do anything:
-  (when (executable-find "cask")
+  (when (which "cask")
     (ns/use elsa)
     (ns/use flycheck-elsa)
     (add-hook 'emacs-lisp-mode-hook #'flycheck-elsa-setup)))
@@ -127,7 +127,7 @@
 (ns/defconfig python
   (ns/install-dashdoc "Python 3" 'python-mode-hook)
   (ns/use elpy)
-  (when (executable-find "pyflakes")
+  (when (which "pyflakes")
     (ns/use flycheck-pyflakes)))
 
 (ns/defconfig clojure
@@ -163,10 +163,10 @@
   (add-to-list 'interpreter-mode-alist '("bb" . clojure-mode))
   (add-to-list 'interpreter-mode-alist '("joker" . clojure-mode))
 
-  (when (executable-find "joker")
+  (when (which "joker")
     (ns/use flycheck-joker  (require 'flycheck-joker)))
 
-  (when (executable-find "clj-kondo")
+  (when (which "clj-kondo")
     (ns/use flycheck-clj-kondo))
 
   (defun! ns/babashka-default-connect ()
@@ -601,10 +601,10 @@
        ("\\.pdf\\'" . default)
        (t . emacs)))
 
-  (when (string= (executable-find "ls") "/bin/ls")
+  (when (string= (which "ls") "/bin/ls")
     (setq dired-listing-switches "-al")) ; default
 
-  (when (executable-find "/run/current-system/sw/bin/bash")
+  (when (which "/run/current-system/sw/bin/bash")
     (setq explicit-shell-file-name "/run/current-system/sw/bin/bash")))
 
 (ns/defconfig go (ns/use go-mode))

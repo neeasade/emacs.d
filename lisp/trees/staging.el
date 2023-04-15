@@ -130,7 +130,6 @@
 (ns/bind "tm" 'ns/toggle-modeline)
 
 (ns/conf-style)
-(load-file (~e "straight/repos/myron-themes/myron.el"))
 
 (setq undo-tree-enable-undo-in-region t)
 

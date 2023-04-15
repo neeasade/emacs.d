@@ -191,14 +191,10 @@
 (evil-ex-define-cmd "b" nil)
 
 (ns/use better-jumper
-  (with-eval-after-load 'evil-maps
-    (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
-    (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
-    ;; (define-key evil-motion-state-map (kbd "H-i") 'better-jumper-jump-forward)
+  (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
+  (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
 
-    ;; (define-key evil-motion-state-map "\"\"" 'better-jumper-jump-forward)
-
-    )
+  ;; (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window
@@ -218,5 +214,4 @@
 
 ;; undo-tree seems to have a weird garbage collection thing going on
 ;; freezes emacs
-(ns/use undo-fu
-		(evil-set-undo-system 'undo-fu))
+;; (ns/use undo-fu (evil-set-undo-system 'undo-fu))
