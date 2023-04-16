@@ -10,7 +10,7 @@
         (string= (getenv "TERM") "xterm-kitty"))
   (setq base16-theme-256-color-source 'colors))
 
-(ns/use paren-face)
+(ns/use paren-face (global-paren-face-mode))
 
 (ns/use hl-todo
   (general-nmap
@@ -19,9 +19,10 @@
 
   (global-hl-todo-mode))
 
-;; allow font effects in org mode faces, but not in other places
+;; turn off bold in most places
 (->> (face-list)
   (--remove (s-starts-with-p "org" (ns/str it)))
+  (--remove (s-starts-with-p "magit" (ns/str it)))
   (--map (ns/face it
            :weight 'normal
            :slant 'normal
