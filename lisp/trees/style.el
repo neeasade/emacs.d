@@ -6,6 +6,8 @@
 (ns/use doom-modeline)
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes" :files ("*.el" "themes/*.el")))
 
+(when ns/enable-home-p (setq myron-use-cache nil))
+
 (when (and (not window-system)
         (string= (getenv "TERM") "xterm-kitty"))
   (setq base16-theme-256-color-source 'colors))
@@ -30,6 +32,7 @@
            )))
 
 (ns/face 'italic :slant 'italic)
+(ns/face 'bold :weight 'bold)
 (ns/face '(region isearch evil-ex-lazy-highlight) :weight 'unspecified)
 
 (ns/use theme-magic

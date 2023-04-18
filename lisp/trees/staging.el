@@ -156,5 +156,11 @@
 
 (setq search-invisible t)
 
+(defun studlify-string (s)
+  (with-temp-buffer
+    (insert s)
+    (studlify-buffer)
+    (buffer-string)))
+
 (provide 'staging)
 ;;; staging.el ends here
