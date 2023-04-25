@@ -240,6 +240,7 @@
 
   (ns/bind
     "ne" (fn!! surf-files (find-file (ns/pick "file" (ns/jump-file-candidates))))
+    ;; todo: fix this in dired/broken there
     "nE" (fn!! surf-project-files (find-file (ns/pick "file" (ns/jump-file-candidates :project-files))))))
 
 (ns/defconfig javascript
@@ -306,7 +307,7 @@
     (kbd "<tab>") 'markdown-cycle)
 
   (defun ns/style-markdown ()
-    (ns/set-faces-monospace '(markdown-code-face))
+    (ns/set-faces-monospace '(markdown-code-face markdown-comment-face))
 
     (when (called-interactively-p 'any)
       (ns/set-buffers-face-variable (ns/buffers-by-mode 'markdown-mode))))
@@ -482,6 +483,12 @@
        ,@content)))
 
 (ns/defconfig funtext
+  (defun studlify-string (s)
+    (with-temp-buffer
+      (insert s)
+      (studlify-buffer)
+      (buffer-string)))
+
   (defun ns/make-char-table (name upper lower)
     "Make a char table for a certain kind of character"
     (set name
@@ -508,10 +515,15 @@
 
 (ns/defconfig adoc
   (ns/use adoc-mode)
-  (ns/file-mode "adoc" 'adoc-mode)
-  (ns/file-mode "asciidoc" 'adoc-mode)
+  (ns/use ox-asciidoc)
 
-  (ns/use ox-asciidoc))
+  (defun ns/style-adoc ()
+    (ns/set-faces-monospace '(adoc-code-face adoc-comment-face))
+
+    (when (called-interactively-p 'any)
+      (ns/set-buffers-face-variable (ns/buffers-by-mode 'adoc-mode))))
+
+  (add-hook 'markdown-mode-hook 'ns/set-buffer-face-variable))
 
 (ns/defconfig resources
   (setq ns/resource-table
@@ -581,7 +593,18 @@
   (defalias 'evil-window-north 'evil-window-up)
   (defalias 'evil-window-south 'evil-window-down)
   (defalias 'evil-window-east 'evil-window-right)
-  (defalias 'evil-window-west 'evil-window-left))
+  (defalias 'evil-window-west 'evil-window-left)
+
+  ;; todo: delete these, check usage of the greaten/lessen scripts in dotfiles
+  (defun ct-greaten (c &optional percent)
+    "Make a light color C lighter, a dark color C darker (by PERCENT)."
+    (ct-edit-lab-l-inc c
+      (* percent (if (ct-light-p c) 1 -1))))
+
+  (defun ct-lessen (c &optional percent)
+    "Make a light color C darker, a dark color C lighter (by PERCENT)."
+    (ct-edit-lab-l-inc c
+      (* percent (if (ct-light-p c) -1 1)))))
 
 (ns/defconfig macos-integrations
   (defun! ns/toggle-music-play ()

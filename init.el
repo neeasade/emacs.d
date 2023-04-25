@@ -61,21 +61,21 @@
 (defun ns/conf-development ()
   (ns/summon
     `(
-       (c ns/outdated)
-       (common-lisp ns/outdated)
-
        clojure
        elisp
+       go
+       sql
+
+       (c ns/outdated)
+       (common-lisp ns/outdated)
        (javascript ns/outdated)
        (typescript ns/outdated)
-       markdown
-       adoc
-       sql
-       plantuml
-       go
        (python ns/outdated)
-       minor-langs
+       (plantuml ns/outdated)
 
+       markdown adoc
+
+       minor-langs
        ;; keep after $langs on purpose
        ;; lsp
        )))

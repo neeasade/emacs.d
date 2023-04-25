@@ -156,11 +156,21 @@
 
 (setq search-invisible t)
 
-(defun studlify-string (s)
-  (with-temp-buffer
-    (insert s)
-    (studlify-buffer)
-    (buffer-string)))
+(defun ns/browse-url-slack (original-browse &rest args)
+  (let* ((url (first args))
+          (slack? (string-match-p (regexp-quote "slack.com") url))
+          (original-url-generic-program browse-url-generic-program)
+          (return (if (and slack? ns/enable-mac-p (boundp 'ns/slack-map))
+                    (progn
+                      (setq browse-url-generic-program "open")
+                      (-let* (((_ domain channel-id message-id) (s-match (rx "https://" (group (+ any)) "/archives/" (group (+ any)) "/" (group (+ any)) eol) url))
+                               (slack-app-id (ht-get ns/slack-map domain)))
+                        (funcall original-browse (format "slack://channel?team=%s&id=%s&message=%s" slack-app-id channel-id message-id))))
+                    (apply original-browse args))))
+    (setq browse-url-generic-program original-url-generic-program)
+    return))
+
+(advice-add 'browse-url :around #'ns/browse-url-slack)
 
 (provide 'staging)
 ;;; staging.el ends here

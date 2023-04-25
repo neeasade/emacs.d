@@ -234,6 +234,8 @@
 (ns/bind
   "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
 
+  "th" 'hl-line-mode
+
   ;; from the current dir down
   "?" (if (executable-find "rg")
         (fn! (counsel-rg nil default-directory))
@@ -292,6 +294,13 @@
            (ns/find-or-open)))
 
   "bd" (fn!! (kill-buffer nil))
+  "bn" (fn!! buffer-same-name
+         (let ((current-filename (f-filename (buffer-file-name (current-buffer)))))
+           (->> (buffer-list)
+             (-map 'buffer-name)
+             (--filter (s-starts-with-p current-filename it))
+             (ns/pick)
+             (ns/find-or-open))))
   ;; "bK" 'ns/kill-other-buffers
   ;; "bk" 'kill-matching-buffers
   ;; "bm" 'ns/kill-buffers-by-mode

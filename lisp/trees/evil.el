@@ -21,6 +21,7 @@
 (ns/use evil-collection 
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
     ;; don't double rotate
+    ;; todo: visual mode magit?
     (let* ((mode-keymaps (--remove (eq it 'magit-status-mode-map) mode-keymaps))
             (mode-keymaps (--remove (eq it 'magit-log-mode-map) mode-keymaps)))
       (evil-collection-translate-key 'normal mode-keymaps
@@ -169,7 +170,7 @@
   "H" 'previous-buffer
   "L" 'next-buffer)
 
-(defun ns/should-skip (win buf _)
+(defun ns/should-skip (&optional win buf _)
   (let ((buffername (buffer-name buf)))
     (or
       (eq (current-buffer) buf)
