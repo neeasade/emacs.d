@@ -17,35 +17,33 @@
   (evil-mode 1)
   (general-nmap "N" 'evil-join))
 
-;; disable: some of the binds get in the way of our colemak remappings.
-(ns/use evil-collection 
+(ns/use evil-collection
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
-    ;; don't double rotate
-    ;; todo: visual mode magit?
-    (let* ((mode-keymaps (--remove (eq it 'magit-status-mode-map) mode-keymaps))
-            (mode-keymaps (--remove (eq it 'magit-log-mode-map) mode-keymaps)))
-      (evil-collection-translate-key 'normal mode-keymaps
-        ;; jekn
-        "e" "k"
-        "k" "n"
-        "n" "j"
-        "j" "e"
+    (let* ((keys `(;; jekn
+                    "e" "k"
+                    "k" "n"
+                    "n" "j"
+                    "j" "e"
 
-        "E" "K"
-        "K" "N"
-        "N" "J"
-        "J" "E"))
+                    "E" "K"
+                    "K" "N"
+                    "N" "J"
+                    "J" "E"
 
-    ;; todo: test diffing
-    ;; I guess translate key doesn't work in control keybindings?
-    (evil-collection-define-key 'motion 'diff-mode-map
-      (kbd "C-n") 'diff-hunk-next
-      (kbd "C-e") 'diff-hunk-prev)
+                    ,(kbd "C-e") ,(kbd "C-k")
+                    ,(kbd "C-k") ,(kbd "C-n")
+                    ,(kbd "C-n") ,(kbd "C-j")
+                    ,(kbd "C-j") ,(kbd "C-e"))))
 
-    (evil-collection-define-key 'normal 'diff-mode-map
-      (kbd "C-n") 'diff-hunk-next
-      (kbd "C-e") 'diff-hunk-prev)
-    )
+      (apply 'evil-collection-translate-key 'visual
+        '(magit-status-mode-map magit-log-mode-map)
+        keys)
+
+      (apply 'evil-collection-translate-key 'normal
+        (->> mode-keymaps
+          (--remove (eq it 'magit-status-mode-map))
+          (--remove (eq it 'magit-log-mode-map)))
+        keys)))
 
   (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
   (evil-collection-init))
@@ -171,15 +169,17 @@
   "L" 'next-buffer)
 
 (defun ns/should-skip (&optional win buf _)
-  (let ((buffername (buffer-name buf)))
+  (let ((buffername (buffer-name buf))
+         (file-name (buffer-file-name buf)))
     (or
       (eq (current-buffer) buf)
       (s-starts-with? "*" buffername)
       (s-starts-with? " *" buffername)
+      (s-ends-with? ".org_archive" file-name)
       (s-starts-with? "magit" buffername)
       (eq 'dired-mode (buffer-local-value 'major-mode buf)))))
 
-(setq
+(setq ; why does no one use this feature? it's so great
   switch-to-next-buffer-skip #'ns/should-skip
   switch-to-prev-buffer-skip #'ns/should-skip)
 
