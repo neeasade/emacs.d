@@ -36,7 +36,9 @@
 
 (ns/face 'italic :slant 'italic)
 (ns/face 'bold :weight 'bold)
-(ns/face '(region isearch evil-ex-lazy-highlight) :weight 'unspecified)
+
+;; todo: these should probably move into the theme
+(ns/face '(region evil-ex-search isearch evil-ex-lazy-highlight) :weight 'unspecified)
 
 (ns/use theme-magic
   (defun ns/emacs-to-theme ()

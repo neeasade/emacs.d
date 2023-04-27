@@ -7,11 +7,12 @@
   (eww url)
   (ns/zz-scroll))
 
-(defun ns/what-face (pos)
-  (interactive "d")
-  (let ((face (or (get-char-property (point) 'read-face-name)
-                (get-char-property (point) 'face))))
-    (if face (message "Face: %s" face) (message "No face at %d" pos))))
+(defun ns/what-face (&optional point)
+  (interactive)
+  (let* ((point (or point (point)))
+          (face (or (get-char-property point 'read-face-name)
+                  (get-char-property point 'face))))
+    (if face (message "Face: %s" face) (message "No face at %d" point))))
 
 (defun! ns/what-minor-modes ()
   "Show enabled minor modes"
