@@ -293,6 +293,8 @@
            (ns/pick "buffer")
            (ns/find-or-open)))
 
+  "br" 'revert-buffer
+
   "bd" (fn!! (kill-buffer nil))
   "bn" (fn!! buffer-same-name
          (let ((current-filename (f-filename (buffer-file-name (current-buffer)))))

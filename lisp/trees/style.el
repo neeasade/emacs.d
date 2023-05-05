@@ -38,15 +38,14 @@
 (ns/face 'bold :weight 'bold)
 
 ;; todo: these should probably move into the theme
-(ns/face '(region evil-ex-search isearch evil-ex-lazy-highlight) :weight 'unspecified)
+(ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)
 
-(ns/use theme-magic
-  (defun ns/emacs-to-theme ()
-    (parseedn-print-str
-      (-ht
-        :colors (apply 'vector (theme-magic--auto-extract-16-colors))
-        :color (ht-merge myron-theme*
-                 (-ht :cursor (first evil-insert-state-cursor)))))))
+(defun ns/emacs-to-theme ()
+  (parseedn-print-str
+    (-ht
+      :colors (apply 'vector (myron-termcolors))
+      :color (ht-merge myron-theme*
+               (-ht :cursor (first evil-insert-state-cursor))))))
 
 (defun default-font-width ()
   "Return the width in pixels of a character in the current

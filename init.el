@@ -77,7 +77,7 @@
 
        minor-langs
        ;; keep after $langs on purpose
-       ;; lsp
+       lsp
        )))
 
 (if (getenv "NS_EMACS_BATCH")
@@ -96,7 +96,7 @@
   (ns/conf-staging)
   (ns/check-for-orphans)
   (ns/conf-style)
-  (message "::: done! 🔥🔥🔥")
+  (message "🏁🏁🏁 init sequence complete 🏁🏁🏁")
 
   (defun! ns/initial-startup-hook ()
     (when (not (boundp 'ns/after-init-hook))
