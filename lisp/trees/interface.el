@@ -3,48 +3,27 @@
 (global-set-key (kbd "C-e") 'previous-line)
 
 ;; Do not allow the cursor in the minibuffer prompt
-(setq minibuffer-prompt-properties
-  '(read-only t cursor-intangible t face minibuffer-prompt))
+(setq minibuffer-prompt-properties '(read-only t cursor-intangible t face minibuffer-prompt))
 (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
-(ns/use vertico)
-(vertico-mode 0)
-
-
-(ns/use ivy
-  (setq-ns ivy
-    re-builders-alist '((ivy-switch-buffer . ivy--regex-plus)
-                         (t . ivy--regex-fuzzy))
-    height-alist '((t lambda (_caller) (/ (frame-height) 2)))
-    initial-inputs-alist nil
-    fixed-height-minibuffer t
-    count-format "%d/%d ")
-
+(ns/use prescient (prescient-persist-mode t))
+(ns/use vertico (vertico-mode t)
   (general-define-key
-    :keymaps 'ivy-minibuffer-map
-    (kbd "C-RET") 'ivy-immediate-done)
-  (general-define-key
-    :keymaps 'ivy-minibuffer-map
-    (kbd "C-<return>") 'ivy-immediate-done)
+    ;; todo
+    :keymaps 'vertico-map
+    (kbd "C-RET") 'minibuffer-force-complete-and-exit
+    (kbd "C-<return>") 'minibuffer-force-complete-and-exit))
+(ns/use vertico-prescient (vertico-prescient-mode t))
 
-  (ivy-mode t)
-
-  )
-
-(ns/use prescient)
-(ns/use ivy-prescient (ivy-prescient-mode t))
-(ns/use company-prescient (company-prescient-mode))
-
-(prescient-persist-mode)
-
+(ns/face 'vertico-current :extend nil)
 
 (defun ns/pick (one &optional two)
   "Pick something from a list. accepts (prompt candidates) or (candidates)"
   (llet [(prompt candidates) (if two
                                (list (format "%s: " one) two)
                                (list "select: " one))]
-    ;; (completing-read prompt candidates)
-    (ivy-read prompt (-uniq candidates))))
+    (setq vertico-count (/ (frame-height) 2))
+    (completing-read prompt (-uniq candidates))))
 
 ;; counsel
 (ns/use counsel
@@ -220,7 +199,7 @@
 ;; has a nice url regexp
 (require 'rcirc)
 
-(defun! ns/ivy-url-jump ()
+(defun! ns/surf-urls ()
   "jump to url in current window text"
   (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
           (urls (s-match-strings-all rcirc-url-regexp window-text))
@@ -229,10 +208,10 @@
       (browse-url (ns/pick urls))
       (message "no urls!"))))
 
-(ns/bind "nu" 'ns/ivy-url-jump)
+(ns/bind "nu" 'ns/surf-urls)
 
 (ns/bind
-  "/" (if (executable-find "rg") 'counsel-rg 'counsel-git-grep)
+  "/" (if (which "rg") 'counsel-rg 'counsel-git-grep)
 
   "th" 'hl-line-mode
 
@@ -241,8 +220,8 @@
         (fn! (counsel-rg nil default-directory))
         (fn! (counsel-git-grep nil default-directory)))
 
-  "SPC" 'counsel-M-x
-  ;; "SPC" (fn !! (execute-extended-command nil))
+  "SPC" (fn!! Mx (setq vertico-count (/ (frame-height) 2))
+          (execute-extended-command nil))
 
   ;; windows
   "w" '(:ignore t :which-key "Windows")

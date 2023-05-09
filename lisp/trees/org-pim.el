@@ -63,10 +63,6 @@
     (when (and scheduled (not (string= todo-state "DONE")))
       (ts> (ts-now) scheduled))))
 
-(comment
-
-  )
-
 ;; track headlines to notification status
 (when (not (boundp 'ns/org-notify-ht))
   (setq ns/org-notify-ht (ht)))
@@ -156,38 +152,44 @@
                                       0)))
       (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
         (goto-char (nth (+ 1 current-match) points))
-        (goto-char (or (first (-filter (-partial '< (point)) points))
-                     (first points))))
+        (goto-char (first points))
+        ;; unsure why I did this 
+        ;; (goto-char (or (first (-filter (-partial '< (point)) points))
+        ;;              (first points)))
+        )
       (ns/org-jump-to-element-content))))
 
 (defun! ns/org-rotate-outdated ()
-  (ns/find-or-open org-default-notes-file)
+  (llet [looking-at-notes? (string= (buffer-file-name) org-default-notes-file)]
+    (when-not looking-at-notes?
+      (ns/find-or-open org-default-notes-file)
+      (goto-line 0)))
 
-  (defun ns/org-outdated-sort-node (node1 node2)
-    ;; ideas
-    ;; anything for TODAY should come first
-    ;; then priority -> oldest
-    ;; also repeaters?
-
-    ;; (llet
-    ;;   [
-    ;;     today? (fn )
-    ;;     ]
-    ;;   )
-
-    ;; (-group-by 'identity '(1 1 2 ) )
-    ;; (org-ml-get-pr)
-
-    ;; everything that comes here WILL have a date
-    ;; t
-    nil
-    )
+  (defun ns/org-outdated-sort-node (&rest headlines)
+    (llet [(h1 h2) headlines
+            (p1 p2) (--map (or (org-ml-get-property :priority it) 0) headlines)
+            (d1 d2) (-map 'ns/headline-date headlines)
+            ;; is it a habit?
+            (h1 h2) (--map (-some->> it
+                             (org-ml-headline-get-planning)
+                             (org-ml-get-property :scheduled)
+                             (org-ml-get-property :raw-value)
+                             (s-contains-p "+"))
+                      headlines)]
+      (cond
+        ((not (= p1 p2)) (if (> p1 p2) t nil))
+        ((and h1 (not h2)) nil)
+        ((and h2 (not h1)) t)
+        ((-any 'ns/org-scheduled-today headlines)
+          (if (ts> d1 d2) t nil))
+        (t (if (ts> d1 d2) nil t)))))
 
   (ns/org-rotate
-    (->> (ns/get-notes-nodes 'ns/org-scheduled-past-todo 'ns/org-scheduled-today)
+    (->> (ns/get-notes-nodes 'ns/org-scheduled-past-todo
+           'ns/org-scheduled-today
+           )
       (-sort 'ns/org-outdated-sort-node)
       (-map (-partial 'org-ml-get-property :begin)))))
-
 
 (defun! ns/org-rotate-captures ()
   (ns/find-or-open org-default-notes-file)

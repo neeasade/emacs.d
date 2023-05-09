@@ -31,21 +31,21 @@
           (mouse-face 'mode-line-highlight)
           (local-map mode-line-column-line-number-mode-map))
     (concat
-      doom-modeline-spc
+      (doom-modeline-spc)
       (propertize (format-mode-line lc)
         'face face
         'help-echo "Buffer position - mouse-1: Display Line and Column Mode Menu"
         'mouse-face mouse-face
         'local-map local-map)
-      doom-modeline-spc)))
+      (doom-modeline-spc))))
 
 (doom-modeline-def-segment buffer-info-neeasade
   (concat
-    doom-modeline-spc
+    (doom-modeline-spc)
     (doom-modeline--buffer-name)
     ;; (doom-modeline--buffer-file-name)
     (doom-modeline--buffer-state-icon)
-    doom-modeline-spc))
+    (doom-modeline-spc)))
 
 (doom-modeline-def-segment lispy-indicator
   (if (lispyville--lispy-keybindings-active-p) "LISPY" ""))

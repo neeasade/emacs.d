@@ -159,8 +159,7 @@
             (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
             "bash"))
 
-         (ivy-prescient-enable-sorting nil)
-         )
+         (vertico-prescient-enable-sorting nil))
 
     (llet [history-item (ns/pick "history"
                           (->>

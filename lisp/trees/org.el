@@ -463,34 +463,6 @@
   (when (called-interactively-p 'any)
     (ns/set-buffers-face-variable (ns/buffers-by-mode 'org-mode))))
 
-(defun! ns/jump-to-notes-heading (&optional target-buffer handler)
-  "jump to org headlines only within selected files"
-  ;; extracted from counsel
-  (let* ((buffer-list
-           (if target-buffer
-             (list (find-file-noselect target-buffer))
-             (list
-               (when (not (string= org-default-notes-file (buffer-file-name)))
-                 (current-buffer))
-
-               (find-file-noselect org-default-notes-file))))
-          (entries))
-    (dolist (b buffer-list)
-      (when b
-        (with-current-buffer b
-          (when (derived-mode-p 'org-mode)
-            (setq entries
-              (nconc entries
-                (counsel-outline-candidates
-                  (cdr (assq 'org-mode counsel-outline-settings))
-                  (counsel-org-goto-all--outline-path-prefix))))))))
-    (ivy-read "org heading: " entries
-      :action (or handler
-                (lambda (x)
-                  (counsel-org-goto-action x)
-                  (ns/org-jump-to-element-content)))
-      :caller 'counsel-org-goto-all)))
-
 (defun! ns/org-clock-out ()
   "Clock out of pomodoro, or active clock"
   (when (org-clock-is-active)

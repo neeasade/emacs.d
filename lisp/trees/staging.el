@@ -172,5 +172,8 @@
 
 (advice-add 'browse-url :around #'ns/browse-url-slack)
 
+;; still used in emacs_dmenu currently
+(ns/use ivy)
+
 (provide 'staging)
 ;;; staging.el ends here

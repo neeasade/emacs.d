@@ -9,7 +9,6 @@
 
 ;; layer on top of dumb-jump
 (ns/use smart-jump
-  (setq dumb-jump-selector 'ivy)
   (setq dumb-jump-force-searcher 'rg)
   (smart-jump-setup-default-registers)
   (ns/bind

@@ -116,22 +116,24 @@ will also be the width of all other printable characters."
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
-  (-map (fn (when (fboundp <>)
-              (message (pr-str <>))
-              (funcall-interactively <>)))
-    '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc ns/style-terminal))
-
   (ns/conf-doomline)
 
   (ns/face '(vertical-border window-divider window-divider-first-pixel window-divider-last-pixel)
     :background (face-attribute 'mode-line-inactive :background)
     :foreground (face-attribute 'mode-line-inactive :background))
 
+  (-map (fn (when (fboundp <>)
+              (message (pr-str <>))
+              (funcall-interactively <>)))
+    '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc ns/style-terminal))
+
   (when (and (called-interactively-p 'any)
           ns/enable-home-p)
     (sh-toss "ltheme wm")
     ;; (start-process "bgtint" nil "bgtint")
     )
+
+
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit

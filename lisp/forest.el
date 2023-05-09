@@ -98,6 +98,8 @@
                       )
       )
 
+    (ns/use company-prescient (company-prescient-mode))
+
     (define-key company-active-map (kbd "C-e") 'company-select-previous)
     (define-key company-active-map "\t" 'company-complete))
 
