@@ -211,6 +211,7 @@
 
   "i" '(:ignore t :which-key "Insert")
   "ic" 'insert-char
+  "ie" 'emoji-search
   "if" (fn!! insert-file-name (insert (buffer-file-name)))
   "id" (fn!! insert-time (org-time-stamp t))
   "iD" (fn!! insert-date (org-time-stamp nil)))

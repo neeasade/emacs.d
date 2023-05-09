@@ -638,7 +638,7 @@
 (ns/defconfig minor-langs
   ;; pulling in these modes for syntax highlighting basically
   ;; they get grouped in a defconfig b/c minor/stable
-  ;; (ns/use nix-mode)
+  (ns/use nix-mode)
   (ns/use powershell)
   (ns/use terraform-mode)
   (ns/use yaml-mode)
