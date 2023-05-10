@@ -26,6 +26,7 @@
        sanity
        evil
        interface
+       dired
        editing
        shell
        projectile

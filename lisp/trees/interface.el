@@ -1,104 +1,86 @@
 ;; -*- lexical-binding: t; -*-
 
+(defun ns/pick (one &optional two)
+  "Pick something from a list. accepts (prompt candidates) or (candidates)"
+  (llet [(prompt candidates) (if two
+                               (list (format "%s: " one) two)
+                               (list "select: " one))]
+    (completing-read prompt (-uniq candidates))))
+
 (global-set-key (kbd "C-e") 'previous-line)
 
 ;; Do not allow the cursor in the minibuffer prompt
 (setq minibuffer-prompt-properties '(read-only t cursor-intangible t face minibuffer-prompt))
 (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
-(ns/use prescient (prescient-persist-mode t))
-(ns/use vertico (vertico-mode t)
+(ns/use vertico
+  (vertico-mode t)
+
+  (defun! ns/vertico-select-promptext ()
+    (vertico--goto -1)
+    (vertico-exit-input))
+
   (general-define-key
-    ;; todo
     :keymaps 'vertico-map
-    (kbd "C-RET") 'minibuffer-force-complete-and-exit
-    (kbd "C-<return>") 'minibuffer-force-complete-and-exit))
-(ns/use vertico-prescient (vertico-prescient-mode t))
+    (kbd "C-RET")  'ns/vertico-select-promptext
+    (kbd "C-<return>") 'ns/vertico-select-promptext)
 
-(ns/face 'vertico-current :extend nil)
+  (setq vertico-resize nil)             ; fixed-size
 
-(defun ns/pick (one &optional two)
-  "Pick something from a list. accepts (prompt candidates) or (candidates)"
-  (llet [(prompt candidates) (if two
-                               (list (format "%s: " one) two)
-                               (list "select: " one))]
-    (setq vertico-count (/ (frame-height) 2))
-    (completing-read prompt (-uniq candidates))))
+  (ns/face 'vertico-current :extend nil)
+  (defun ns/set-vertico-count (&rest _)
+    (setq vertico-count (/ (frame-height) 2)))
+  (advice-add 'completing-read :before 'ns/set-vertico-count))
 
-;; counsel
-(ns/use counsel
-  (when (executable-find "rg")
-    (setq-ns counsel
-      grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s"
-      rg-base-command "rg -i -M 120 --hidden --no-heading --line-number --color never %s .")))
+(ns/use marginalia (marginalia-mode t))
+(ns/use consult)
 
-(ns/persist ns/cd-dirs (list))
+(ns/use orderless
+  ;; stolen directly from:
+  ;; https://github.com/minad/consult/wiki#minads-orderless-configuration
+  (defun +orderless--consult-suffix ()
+    "Regexp which matches the end of string with Consult tofu support."
+    (if (and (boundp 'consult--tofu-char) (boundp 'consult--tofu-range))
+      (format "[%c-%c]*$"
+        consult--tofu-char
+        (+ consult--tofu-char consult--tofu-range -1))
+      "$"))
 
-(defun ns/dired-init()
-  (hl-line-mode)
+  ;; Recognizes the following patterns:
+  ;; * .ext (file extension)
+  ;; * regexp$ (regexp matching at end)
+  (defun +orderless-consult-dispatch (word _index _total)
+    (cond
+      ;; Ensure that $ works with Consult commands, which add disambiguation suffixes
+      ((string-suffix-p "$" word)
+        `(orderless-regexp . ,(concat (substring word 0 -1) (+orderless--consult-suffix))))
+      ;; File extensions
+      ((and (or minibuffer-completing-file-name
+              (derived-mode-p 'eshell-mode))
+         (string-match-p "\\`\\.." word))
+        `(orderless-regexp . ,(concat "\\." (substring word 1) (+orderless--consult-suffix))))))
 
-  ;; accumulate directories
-  (add-to-list 'ns/cd-dirs (expand-file-name default-directory)))
+  ;; Define orderless style with initialism by default
+  (orderless-define-completion-style +orderless-with-initialism
+    (orderless-matching-styles '(orderless-initialism orderless-literal orderless-regexp)))
 
-;; cf. https://endlessparentheses.com/auto-focus-a-relevant-file-in-dired-buffers.html
-(defun ns/dired-maybe-goto-file ()
-  "focus the current file in dired when it exists"
-  (when (and (bound-and-true-p ns/dired-last-file)
-          (f-exists-p ns/dired-last-file))
-    (dired-goto-file ns/dired-last-file)
-    (setq ns/dired-last-file nil)))
+  (setq completion-styles '(orderless basic)
+    completion-category-defaults nil
+    ;; Enable partial-completion for files.
+    ;; Either give orderless precedence or partial-completion.
+    ;; Note that completion-category-overrides is not really an override,
+    ;; but rather prepended to the default completion-styles.
+    ;; completion-category-overrides '((file (styles orderless partial-completion))) ;; orderless is tried first
+    completion-category-overrides '((file (styles partial-completion)) ;; partial-completion is tried first
+                                     ;; enable initialism by default for symbols
+                                     (command (styles +orderless-with-initialism))
+                                     (variable (styles +orderless-with-initialism))
+                                     (symbol (styles +orderless-with-initialism)))
+    orderless-component-separator #'orderless-escapable-split-on-space ;; allow escaping space with backslash!
+    orderless-style-dispatchers (list #'+orderless-consult-dispatch
+                                  #'orderless-affix-dispatch)))
 
-(add-hook 'dired-initial-position-hook 'ns/dired-maybe-goto-file 'append)
-(add-hook 'dired-mode-hook 'ns/dired-init)
-
-;; Dired listing switches
-;;  -a : Do not ignore entries starting with .
-;;  -l : Use long listing format.
-;;  -G : Do not print group names like 'users'
-;;  -h : Human-readable sizes like 1K, 234M, ..
-;;  -v : Do natural sort .. so the file names starting with . will show up first.
-;;  -F : Classify filenames by appending '*' to executables,
-;;       '/' to directories, etc.
-(setq dired-listing-switches "-aAlGhvF --group-directories-first") ; default: "-al"
-
-(general-define-key
-  :states '(normal)
-  :keymaps 'dired-mode-map
-  ;; the default 'r' only refreshes marked files. this gets everything
-  "r" 'revert-buffer
-  "h" 'dired-up-directory
-  "l" 'dired-find-file
-  (kbd "C-RET") (fn!! xdg-open
-                  (->>
-                    (dired-get-file-for-visit)
-                    ;; (format "setsid nohup xdg-open \"%s\" &")
-                    (format "xdg-open \"%s\"")
-                    (sh-toss))
-                  ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
-                  )
-
-  "s" (fn!! dired-shell
-        (let ((existing-shell
-                ;; existing-shell = a shell with the same cwd as the dired buffer we are looking at
-
-                ;; there's a silly issue here.
-                ;; when we call f-full tramp connections are realized but might not be connected, meaning lag/failure
-                ;; but we need f-full because sometimes '~' is used in default directory
-                ;; we can toss the tramp dirs before comparing with f-full/f-same-p to remove the delay
-                (->> (ns/buffers-by-mode 'shell-mode)
-                  (-remove (fn (s-starts-with-p "*shell-" (buffer-name <>))))
-                  (-remove (fn (file-remote-p (buffer-local-value 'default-directory <>))))
-                  (-filter (fn (f-same-p (buffer-local-value 'default-directory <>)
-                                 default-directory)))
-                  (first))))
-
-          (if (and existing-shell
-                (not (string= (buffer-name existing-shell) "*spawn-shell-staged*")))
-            (switch-to-buffer existing-shell)
-            (ns/pickup-shell (expand-file-name default-directory)))))
-
-  ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
-  "q" 'previous-buffer)
+(ns/use counsel)
 
 (ns/use alert
   (setq alert-default-style
@@ -150,36 +132,25 @@
     (ns/buffers-by-mode)
     (-map #'kill-buffer)))
 
-(ns/bind
-  "nd"
+(ns/bind "nd"
   (fn!! surf-dirs
     (llet [dir (ns/pick "directory"
                  (->> ns/cd-dirs
                    (-uniq)
                    (-filter (fn (s-equals-p (file-remote-p <>)
                                   (file-remote-p default-directory))))))]
-      (cond
-        ((eq major-mode 'dired-mode) (dired dir))
-        ((eq major-mode 'shell-mode)
+      (if-not (eq major-mode 'shell-mode)
+        (dired dir)
+        (progn
           (goto-char (point-max))
-          (insert (concat "cd \""
-                    (s-replace
-                      (or (file-remote-p dir) "")
-                      ""
-                      dir
-                      )
-                    "\""))
-          (comint-send-input))
-        ;; (t (insert dir))
-        (t (dired dir))))))
+          (insert (format "cd \"%s\"" (s-replace (or (file-remote-p dir) "") "" dir)))
+          (comint-send-input))))))
 
 (when-not window-system
   ;; (when running in a terminal)
 
   ;; this doesn't work in kitty (might be related to new esc code things)
-  (comment
-    (xterm-mouse-mode 1)
-    )
+  (comment (xterm-mouse-mode 1))
   ;; (xterm-mouse-mode nil)
 
   ;; these don't appear to be adding anything
@@ -190,17 +161,17 @@
   ;; (until kitty saves us all)
   (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
 
-  (comment (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))
-
-  )
+  (define-key evil-motion-state-map (kbd "C-i")
+    'better-jumper-jump-forward))
 
 (winner-mode 1)
 
-;; has a nice url regexp
-(require 'rcirc)
-
 (defun! ns/surf-urls ()
   "jump to url in current window text"
+
+  ;; has a nice url regexp
+  (require 'rcirc)
+
   (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
           (urls (s-match-strings-all rcirc-url-regexp window-text))
           (urls (-map 'car urls)))
@@ -211,7 +182,13 @@
 (ns/bind "nu" 'ns/surf-urls)
 
 (ns/bind
-  "/" (if (which "rg") 'counsel-rg 'counsel-git-grep)
+  ;; "/" (if (which "rg") 'counsel-rg 'counsel-git-grep)
+  "/" (if (which "rg")
+        'consult-ripgrep
+        'consult-grep
+        ;; 'counsel-rg 'counsel-git-grep
+        )
+
 
   "th" 'hl-line-mode
 
@@ -220,8 +197,7 @@
         (fn! (counsel-rg nil default-directory))
         (fn! (counsel-git-grep nil default-directory)))
 
-  "SPC" (fn!! Mx (setq vertico-count (/ (frame-height) 2))
-          (execute-extended-command nil))
+  "SPC" (fn!! (execute-extended-command nil))
 
   ;; windows
   "w" '(:ignore t :which-key "Windows")
@@ -247,14 +223,6 @@
 
   "wo" 'winner-undo
   "wi" 'winner-redo
-
-  "d" (fn!! dired
-        (setq ns/dired-last-file (buffer-file-name))
-        (when (eq major-mode 'shell-mode)
-          (-when-let (b (get-buffer "*spawn-shell-staged*"))
-            (kill-buffer b))
-          (rename-buffer "*spawn-shell-staged*"))
-        (dired "."))
 
   "a" '(:ignore t :which-key "Applications")
   "q" '(:ignore t :which-key "Query")
@@ -287,11 +255,11 @@
   ;; "bm" 'ns/kill-buffers-by-mode
 
   "n" '(:ignore t :which-key "Jump")
-  "nh" 'counsel-imenu
+  ;; "nh" 'counsel-imenu
   )
 
 (ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
-  (ns/bind "ss" 'deadgrep)
   (setq deadgrep-max-line-length 180)
+  (ns/bind "ss" 'deadgrep)
   (general-nmap deadgrep-mode-map
     "RET" 'deadgrep-visit-result-other-window))

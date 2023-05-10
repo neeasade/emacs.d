@@ -256,9 +256,7 @@
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."
-  (message "Reloading init.el...")
-  (load user-init-file nil 'nomessage)
-  (message "Reloading init.el... done."))
+  (load user-init-file nil 'nomessage))
 
 (defun ns/inmap (keymap &rest key-func-pairs)
   "imap + nmap"

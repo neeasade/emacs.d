@@ -95,8 +95,7 @@
                       circe-chat-mode
                       circe-channel-mode
                       circe-query-mode
-                      )
-      )
+                      ))
 
     (ns/use company-prescient (company-prescient-mode))
 
@@ -655,6 +654,7 @@
 (ns/defconfig git         (shut-up-load (~e "lisp/trees/git.el")))
 (ns/defconfig interface   (shut-up-load (~e "lisp/trees/interface.el")))
 (ns/defconfig irc         (shut-up-load (~e "lisp/trees/irc.el")))
+(ns/defconfig dired       (shut-up-load (~e "lisp/trees/dired.el")))
 (ns/defconfig org         (shut-up-load (~e "lisp/trees/org.el")))
 (ns/defconfig org-capture (shut-up-load (~e "lisp/trees/org-capture.el")))
 (ns/defconfig org-pim     (shut-up-load (~e "lisp/trees/org-pim.el")))
