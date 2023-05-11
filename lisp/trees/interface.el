@@ -1,13 +1,14 @@
 ;; -*- lexical-binding: t; -*-
 
+
+(global-set-key (kbd "C-e") 'previous-line)
+
 (defun ns/pick (one &optional two)
   "Pick something from a list. accepts (prompt candidates) or (candidates)"
   (llet [(prompt candidates) (if two
                                (list (format "%s: " one) two)
                                (list "select: " one))]
     (completing-read prompt (-uniq candidates))))
-
-(global-set-key (kbd "C-e") 'previous-line)
 
 ;; Do not allow the cursor in the minibuffer prompt
 (setq minibuffer-prompt-properties '(read-only t cursor-intangible t face minibuffer-prompt))
@@ -253,7 +254,7 @@
   ;; "bm" 'ns/kill-buffers-by-mode
 
   "n" '(:ignore t :which-key "Jump")
-  "nh" 'counsel-imenu
+  "nh" 'consult-imenu
   )
 
 (ns/use (deadgrep :host github :repo "Wilfred/deadgrep")

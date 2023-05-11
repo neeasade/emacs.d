@@ -40,7 +40,7 @@
 (defun ns/conf-extra ()
   (ns/summon
     `(
-       company
+       (company nil)
        flycheck
        (dashdocs nil)
 

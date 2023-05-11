@@ -175,5 +175,25 @@
 ;; still used in emacs_dmenu currently
 (ns/use ivy)
 
+
+(ns/use (corfu :host github :repo "minad/corfu" :files ("*.el" "extensions/*.el"))
+  (setq tab-always-indent 'complete)
+
+  (setq
+    corfu-quit-no-match 'separator
+    corfu-auto t
+    corfu-auto-delay 0.1)
+
+  (apply 'evil-collection-translate-key
+    'insert '(corfu-map)
+    ns/evil-collection-keys)
+
+  (require 'corfu-popupinfo)
+  (corfu-popupinfo-mode)
+  (setq corfu-popupinfo-delay '(0.2 . 0.1)))
+
+;; todo: check this out
+(ns/use cape)
+
 (provide 'staging)
 ;;; staging.el ends here

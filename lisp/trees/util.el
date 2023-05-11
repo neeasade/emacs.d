@@ -57,33 +57,33 @@
 
 (defun! ns/toggle-bloat()
   "toggle bloat in the current buffer"
-  (if (not (bound-and-true-p company-mode))
+  (if (not (bound-and-true-p font-lock-mode))
     (progn
       (message "bloat-local: enabled")
-      (company-mode)
+      (corfu-mode)
       (flycheck-mode)
       (font-lock-mode)
       (git-gutter-mode))
     (progn
       (message "bloat-local: disabled")
-      (company-mode -1)
+      (corfu-mode -1)
       (flycheck-mode -1)
       (font-lock-mode 0)
       (git-gutter-mode 0))))
 
 (defun! ns/toggle-bloat-global (&optional toggle)
   "Toggle global bloat"
-  (if (or toggle (not global-company-mode))
+  (if (or toggle (not global-font-lock-mode))
     (progn
       (message "bloat-global: enabled")
-      (global-company-mode)
+      (global-corfu-mode)
       (global-flycheck-mode)
       (global-font-lock-mode)
       (global-git-gutter-mode (if ns/enable-windows-p 0 t)))
 
     (progn
       (message "bloat-global: disabled")
-      (global-company-mode -1)
+      (global-corfu-mode -1)
       (global-flycheck-mode -1)
       (global-font-lock-mode 0)
       (global-git-gutter-mode 0))))

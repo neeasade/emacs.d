@@ -18,32 +18,34 @@
   (general-nmap "N" 'evil-join))
 
 (ns/use evil-collection
+
+  (setq ns/evil-collection-keys
+    `(;; jekn
+       "e" "k"
+       "k" "n"
+       "n" "j"
+       "j" "e"
+
+       "E" "K"
+       "K" "N"
+       "N" "J"
+       "J" "E"
+
+       ,(kbd "C-e") ,(kbd "C-k")
+       ,(kbd "C-k") ,(kbd "C-n")
+       ,(kbd "C-n") ,(kbd "C-j")
+       ,(kbd "C-j") ,(kbd "C-e")))
+
   (defun ns/nek-rotation (_mode mode-keymaps &rest _rest)
-    (let* ((keys `(;; jekn
-                    "e" "k"
-                    "k" "n"
-                    "n" "j"
-                    "j" "e"
+    (apply 'evil-collection-translate-key 'visual
+      '(magit-status-mode-map magit-log-mode-map)
+      ns/evil-collection-keys)
 
-                    "E" "K"
-                    "K" "N"
-                    "N" "J"
-                    "J" "E"
-
-                    ,(kbd "C-e") ,(kbd "C-k")
-                    ,(kbd "C-k") ,(kbd "C-n")
-                    ,(kbd "C-n") ,(kbd "C-j")
-                    ,(kbd "C-j") ,(kbd "C-e"))))
-
-      (apply 'evil-collection-translate-key 'visual
-        '(magit-status-mode-map magit-log-mode-map)
-        keys)
-
-      (apply 'evil-collection-translate-key 'normal
-        (->> mode-keymaps
-          (--remove (eq it 'magit-status-mode-map))
-          (--remove (eq it 'magit-log-mode-map)))
-        keys)))
+    (apply 'evil-collection-translate-key 'normal
+      (->> mode-keymaps
+        (--remove (eq it 'magit-status-mode-map))
+        (--remove (eq it 'magit-log-mode-map)))
+      ns/evil-collection-keys))
 
   (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
   (evil-collection-init))
