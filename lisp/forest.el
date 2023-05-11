@@ -13,18 +13,7 @@
   (ns/use helpful
     (global-set-key (kbd "C-h f") #'helpful-callable)
     (global-set-key (kbd "C-h v") #'helpful-variable)
-    (global-set-key (kbd "C-h k") #'helpful-key)
-    (global-set-key (kbd "C-h i") #'counsel-info-lookup-symbol)
-
-    (defun! ns/helpful-or-dashdoc ()
-      (cond
-        ((eq 'emacs-lisp-mode major-mode)
-          (helpful-callable (helpful--symbol-at-point)))
-        ((eq 'clojure-mode major-mode) (cider-apropos-documentation))
-        (ns/enable-dashdocs-p (ns/counsel-dash-word))
-        (t (message "no doc option available!"))))
-
-    (ns/bind "nh" 'ns/helpful-or-dashdoc))
+    (global-set-key (kbd "C-h k") #'helpful-key))
 
   (ns/use eros
     (setq eros-eval-result-duration 20)
@@ -210,19 +199,19 @@
                 ;; (derived from the completion used for evil's :b)
                 (-intersection (internal-complete-buffer "" nil t)))
 
-              :buffers-with-files
-              ;; remove nils
-              (-remove 'not
-                (-map 'buffer-file-name (buffer-list)))
+              :buffers-with-files (->> (buffer-list)
+                                    (-map 'buffer-file-name)
+                                    (-remove 'not) ; remove nils
+                                    (-map #'consult--fast-abbreviate-file-name))
 
-              :project-files
-              (-when-let (current-file-name (buffer-file-name (current-buffer)))
-                (ns/all-project-files (list current-file-name)))
+              :project-files (-when-let (current-file-name (buffer-file-name (current-buffer)))
+                               (-map #'consult--fast-abbreviate-file-name
+                                 (ns/all-project-files (list current-file-name))))
 
               ;; (ns/get-project-files (current-file))
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/get-project-files (current-file)))
 
-              :recentf recentf-list))
+              :recentf (-map #'consult--fast-abbreviate-file-name recentf-list)))
 
       (llet [selected (or wants '(:recentf :project-files :buffers-with-files))
               results (->> selected

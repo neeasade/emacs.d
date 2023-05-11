@@ -33,7 +33,10 @@
   (advice-add 'completing-read :before 'ns/set-vertico-count))
 
 (ns/use marginalia (marginalia-mode t))
-(ns/use consult)
+
+(ns/use consult
+  (setq-ns consult-async-input-throttle 0.04
+    consult-async-input-debounce 0.02))
 
 (ns/use orderless
   ;; stolen directly from:
@@ -182,20 +185,15 @@
 (ns/bind "nu" 'ns/surf-urls)
 
 (ns/bind
-  ;; "/" (if (which "rg") 'counsel-rg 'counsel-git-grep)
-  "/" (if (which "rg")
-        'consult-ripgrep
-        'consult-grep
-        ;; 'counsel-rg 'counsel-git-grep
-        )
+  "/" (if (which "rg") 'consult-ripgrep 'consult-grep)
 
 
   "th" 'hl-line-mode
 
   ;; from the current dir down
-  "?" (if (executable-find "rg")
-        (fn! (counsel-rg nil default-directory))
-        (fn! (counsel-git-grep nil default-directory)))
+  "?" (fn!! grep-here
+        (funcall (if (which "rg") 'consult-ripgrep 'consult-grep)
+          default-directory))
 
   "SPC" (fn!! (execute-extended-command nil))
 
@@ -255,7 +253,7 @@
   ;; "bm" 'ns/kill-buffers-by-mode
 
   "n" '(:ignore t :which-key "Jump")
-  ;; "nh" 'counsel-imenu
+  "nh" 'counsel-imenu
   )
 
 (ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
@@ -263,3 +261,13 @@
   (ns/bind "ss" 'deadgrep)
   (general-nmap deadgrep-mode-map
     "RET" 'deadgrep-visit-result-other-window))
+
+(defun! ns/helpful-or-dashdoc ()
+  (cond
+    ((eq 'emacs-lisp-mode major-mode)
+      (helpful-callable (helpful--symbol-at-point)))
+    ((eq 'clojure-mode major-mode) (cider-apropos-documentation))
+    (ns/enable-dashdocs-p (ns/counsel-dash-word))
+    (t (message "no doc option available!"))))
+
+(ns/bind "nH" 'ns/helpful-or-dashdoc)

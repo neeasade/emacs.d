@@ -196,7 +196,7 @@
   "nst" (fn!! goto-scratch-text (ns/find-or-open (~e "lisp/scratch.txt")))
   "nso" (fn!! goto-scratch-org (ns/find-or-open (~e "lisp/scratch.org")))
 
-  "nm" (fn!! goto-messages (counsel-switch-to-buffer-or-window  "*Messages*"))
+  "nm" (fn!! goto-messages (ns/find-or-open  "*Messages*"))
   "nU" 'undo-tree-visualize
 
   "t" '(:ignore t :which-key "Toggle")

@@ -385,7 +385,7 @@
   (let ((buf (nth 0 (s-split ":" input)))
          (op (nth 1 (s-split ":" input)))
          (message (s-join ":" (cdr (cdr (s-split ":" input))))))
-    (counsel-switch-to-buffer-or-window buf)
+    (ns/find-or-open buf)
     (goto-char (point-max))
     (search-backward message)))
 
@@ -559,7 +559,7 @@
         (if (-contains-p irc-nicks option)
           (circe-command-QUERY option)
           (when (get-buffer option)
-            (counsel-switch-to-buffer-or-window option)
+            (ns/find-or-open option)
             (evil-goto-line)
             (evil-scroll-line-to-bottom nil) ; nil -> the current line
             ))))))
@@ -647,7 +647,7 @@
          (ns/init-circe)
          (connect-all-irc))
   "ni" 'ns/jump-irc
-  "nI" (fn!! goto-highlights (counsel-switch-to-buffer-or-window "*circe-highlight*"))
+  "nI" (fn!! goto-highlights (ns/find-or-open "*circe-highlight*"))
   ;; ehhh
   ;; "nr" 'ns/goto-last-highlight
   )
