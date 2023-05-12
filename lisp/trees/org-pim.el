@@ -14,7 +14,8 @@
           (ns/org-clock-out)))))
 
 (defun ns/get-notes-nodes (&rest filters)
-  "Retrieve headline nodes from notes file for read-only operations. Can be called with symbols or quoted lambdas to filter results."
+  "Retrieve headline nodes from notes file for read-only operations. Can be
+called with symbols or quoted lambdas to filter results."
   (llet [all-nodes (ns/with-notes (org-ml-parse-headlines 'all))]
     (cond
       ((not filters) all-nodes)

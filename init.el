@@ -28,6 +28,7 @@
 
        minibuffer
        interface
+       buffers-and-windows
        dired
 
        editing

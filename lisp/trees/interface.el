@@ -1,19 +1,6 @@
 ;; -*- lexical-binding: t; -*-
-
-;; used for counsel-git-command
-(ns/use counsel)
-
-(ns/use alert
-  (setq alert-default-style
-    (cond
-      (ns/enable-windows-p 'toaster)
-      (ns/enable-mac-p 'osx-notifier)
-      (t 'libnotify)))
-
-  ;; I could not get the (alert :persistent t keyword to work)
-  (defun alert! (&rest alert-args)
-    (let ((alert-fade-time 0))
-      (apply 'alert alert-args))))
+;; queries, inserts, surfers/jumpers
+;; and some misc
 
 (ns/use which-key
   (setq-ns which-key
@@ -23,35 +10,56 @@
   (which-key-setup-side-window-right-bottom)
   (which-key-mode))
 
-(defun! ns/kill-other-buffers ()
-  "Kill all other buffers."
-  (->> (buffer-list)
-    (-remove (lambda (b) (eq b (current-buffer))))
-    (-map 'kill-buffer)))
+;; used for counsel-git-command
+(ns/use counsel)
 
-(defun! ns/font-change ()
-  (llet [current-size (/ (face-attribute 'default :height) 10)
-          new-size (read-number (format "new size (current-size: %s): " current-size))]
-    (ns/face 'default :height (* 10 new-size))))
+(defun ns/get-functions ()
+  "Get all the defconfig entries in the forest."
+  (->> (~e "lisp/forest.el")
+    f-read
+    (s-match-strings-all  "^(ns/defconfig [^ \(\)]+")
+    (mapcar (fn (->> (car <>) (s-chop-prefix "(ns/defconfig ") (s-chomp))))
+    (append '("dirt" "init" "forest"))))
 
-(defun! ns/kill-buffers-missing-file ()
-  "Kill buffers referencing a file that doesn't exist (EG, the file may have moved or been deleted)"
-  (->> (buffer-list)
-    (-keep
-      (fn (llet [filename (buffer-local-value 'buffer-file-truename <>)]
-            (when (and filename
-                    (not (f-exists-p filename)))
-              <>))))
-    (-map #'kill-buffer)))
+(defun! ns/check-for-orphans ()
+  "Check to see if any defconfigs are missing from init."
+  (let ((initfile (f-read (~e "init.el"))))
+    (-map
+      (lambda (conf)
+        (when (not (s-contains? conf initfile))
+          (message (concat "orphaned function!: " conf))))
+      (ns/get-functions))))
 
-(defun! ns/kill-buffers-by-mode ()
-  (->> (buffer-list)
-    (-map (-partial 'buffer-local-value 'major-mode))
-    (-uniq)
-    (ns/pick "mode to kill")
-    (intern)
-    (ns/buffers-by-mode)
-    (-map #'kill-buffer)))
+(defun! ns/jump-config ()
+  (llet [f (ns/pick "config" (ns/get-functions))]
+    (cond
+      ((string= "dirt" f) (ns/find-or-open (~e "lisp/dirt.el")))
+      ((string= "forest" f) (ns/find-or-open (~e "lisp/forest.el")))
+      ((string= "init" f) (ns/find-or-open (~e "init.el")))
+      ((string= "follow-dwim" f) (ns/find-or-open (~e "lisp/trees/follow.el")))
+      ((f-exists-p (format (~e "lisp/trees/%s.el") f))
+        (ns/find-or-open (format (~e "lisp/trees/%s.el") f)))
+      (t
+        (ns/find-or-open (~e "lisp/forest.el"))
+        (goto-char (point-min))
+        (re-search-forward (format "defconfig %s" f)))))
+  (recenter))
+
+(defun ns/what-face (&optional point)
+  (interactive)
+  (let* ((point (or point (point)))
+          (face (or (get-char-property point 'read-face-name)
+                  (get-char-property point 'face))))
+    (if face (message "Face: %s" face) (message "No face at %d" point))))
+
+(defun! ns/what-minor-modes ()
+  "Show enabled minor modes"
+  (->> minor-mode-alist
+    (--keep (when-let (enabled (symbol-value (first it)))
+              (first it)))
+    (-map 'ns/str)
+    (s-join " ")
+    (message)))
 
 (ns/bind "nd"
   (fn!! surf-dirs
@@ -67,6 +75,60 @@
           (insert (format "cd \"%s\"" (s-replace (or (file-remote-p dir) "") "" dir)))
           (comint-send-input))))))
 
+(defun! ns/surf-urls ()
+  "jump to url in current window text"
+  ;; has a nice url regexp
+  (require 'rcirc)
+
+  (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
+          (urls (s-match-strings-all rcirc-url-regexp window-text))
+          (urls (-map 'car urls)))
+    (if urls
+      (browse-url (ns/pick urls))
+      (message "no urls!"))))
+
+(ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
+  (setq deadgrep-max-line-length 180))
+
+(ns/bind
+  "SPC" (fn!! (execute-extended-command nil))
+
+  "t" '(:ignore t :which-key "Toggle")
+  "th" 'hl-line-mode
+
+  "/" (if (which "rg") 'consult-ripgrep 'consult-grep)
+  "?" (fn!! grep-here
+        (funcall (if (which "rg") 'consult-ripgrep 'consult-grep)
+          default-directory))
+
+  "s" '(:ignore t :which-key "Search")
+  "ss" 'deadgrep
+
+  "a" '(:ignore t :which-key "Applications")
+
+  "q" '(:ignore t :which-key "Query")
+  "qf" 'ns/what-face
+  "qc" 'describe-char
+  "qm" (fn!! what-major-mode (message "%s" major-mode))
+  "qM" 'ns/what-minor-modes
+
+  "n" '(:ignore t :which-key "Jump")
+  "nc" 'ns/jump-config
+  "nh" 'consult-imenu
+  "nu" 'ns/surf-urls)
+
+(defun! ns/helpful-or-dashdoc ()
+  (cond
+    ((eq 'emacs-lisp-mode major-mode)
+      (helpful-callable (helpful--symbol-at-point)))
+    ((eq 'clojure-mode major-mode) (cider-apropos-documentation))
+    (ns/enable-dashdocs-p (ns/counsel-dash-word))
+    (t (message "no doc option available!"))))
+
+(ns/bind "nH" 'ns/helpful-or-dashdoc)
+
+
+;; where should this go
 (when-not window-system
   ;; (when running in a terminal)
 
@@ -84,105 +146,3 @@
 
   (define-key evil-motion-state-map (kbd "C-i")
     'better-jumper-jump-forward))
-
-(winner-mode 1)
-
-(defun! ns/surf-urls ()
-  "jump to url in current window text"
-
-  ;; has a nice url regexp
-  (require 'rcirc)
-
-  (let* ((window-text (s-clean (buffer-substring (window-start) (window-end))))
-          (urls (s-match-strings-all rcirc-url-regexp window-text))
-          (urls (-map 'car urls)))
-    (if urls
-      (browse-url (ns/pick urls))
-      (message "no urls!"))))
-
-(ns/bind "nu" 'ns/surf-urls)
-
-(ns/bind
-  "th" 'hl-line-mode
-
-  "/" (if (which "rg") 'consult-ripgrep 'consult-grep)
-  "?" (fn!! grep-here
-        (funcall (if (which "rg") 'consult-ripgrep 'consult-grep)
-          default-directory))
-
-  "SPC" (fn!! (execute-extended-command nil))
-
-  ;; windows
-  "w" '(:ignore t :which-key "Windows")
-  "wh" 'evil-window-left
-  "wn" 'evil-window-down
-  "we" 'evil-window-up
-  "wl" 'evil-window-right
-  "wd" 'evil-window-delete
-  "ww" 'other-window
-  "wb" 'balance-windows-area
-
-  "ws" (fn!! (split-window-horizontally)
-         (evil-window-right 1))
-
-  "wS" (fn!! (split-window-vertically)
-         (evil-window-down 1))
-
-  "wf" (fn!! (follow-mode)
-         (delete-other-windows)
-         (evil-window-vsplit))
-
-  "wm" 'delete-other-windows ;; "window max"
-
-  "wo" 'winner-undo
-  "wi" 'winner-redo
-
-  "a" '(:ignore t :which-key "Applications")
-  "q" '(:ignore t :which-key "Query")
-
-  "b" '(:ignore t :which-key "Buffers")
-
-  "bb" (fn!! surf-buffers
-         (->> (ns/jump-file-candidates :buffers-without-files)
-           (ns/pick "buffer")
-           (ns/find-or-open)))
-
-  "bm" (fn!! surf-buffers-mode
-         (->> (ns/buffers-by-mode major-mode)
-           (-map 'buffer-name)
-           (ns/pick "buffer")
-           (ns/find-or-open)))
-
-  "br" 'revert-buffer
-
-  "bd" (fn!! (kill-buffer nil))
-  "bn" (fn!! buffer-same-name
-         (let ((current-filename (f-filename (buffer-file-name (current-buffer)))))
-           (->> (buffer-list)
-             (-map 'buffer-name)
-             (--filter (s-starts-with-p current-filename it))
-             (ns/pick)
-             (ns/find-or-open))))
-  ;; "bK" 'ns/kill-other-buffers
-  ;; "bk" 'kill-matching-buffers
-  ;; "bm" 'ns/kill-buffers-by-mode
-
-  "n" '(:ignore t :which-key "Jump")
-  "nh" 'consult-imenu
-  )
-
-(ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
-  (setq deadgrep-max-line-length 180)
-  (ns/bind "ss" 'deadgrep)
-  (general-nmap deadgrep-mode-map
-    "RET" 'deadgrep-visit-result-other-window))
-
-(defun! ns/helpful-or-dashdoc ()
-  (cond
-    ((eq 'emacs-lisp-mode major-mode)
-      (helpful-callable (helpful--symbol-at-point)))
-    ((eq 'clojure-mode major-mode) (cider-apropos-documentation))
-    (ns/enable-dashdocs-p (ns/counsel-dash-word))
-    (t (message "no doc option available!"))))
-
-(ns/bind "nH" 'ns/helpful-or-dashdoc)

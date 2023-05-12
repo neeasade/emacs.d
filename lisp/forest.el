@@ -95,8 +95,7 @@
 
   (setq-ns counsel-dash
     min-length 0
-    docsets-path (~ ".local/share/Zeal/Zeal/docsets")
-    browser-func 'ns/eww-browse-existing-or-new)
+    docsets-path (~ ".local/share/Zeal/Zeal/docsets"))
 
   (make-directory counsel-dash-docsets-path t)
 
@@ -642,6 +641,7 @@
 (ns/defconfig interface   (shut-up-load (~e "lisp/trees/interface.el")))
 (ns/defconfig irc         (shut-up-load (~e "lisp/trees/irc.el")))
 (ns/defconfig minibuffer         (shut-up-load (~e "lisp/trees/minibuffer.el")))
+(ns/defconfig buffers-and-windows         (shut-up-load (~e "lisp/trees/buffers-and-windows.el")))
 (ns/defconfig dired       (shut-up-load (~e "lisp/trees/dired.el")))
 (ns/defconfig org         (shut-up-load (~e "lisp/trees/org.el")))
 (ns/defconfig org-capture (shut-up-load (~e "lisp/trees/org-capture.el")))

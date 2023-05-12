@@ -335,6 +335,18 @@
   (--map (apply 'set-face-attribute it nil kvs)
     (-list faces)))
 
+(ns/use alert
+  (setq alert-default-style
+    (cond
+      (ns/enable-windows-p 'toaster)
+      (ns/enable-mac-p 'osx-notifier)
+      (t 'libnotify)))
+
+  ;; I could not get the (alert :persistent t keyword to work)
+  (defun alert! (&rest alert-args)
+    (let ((alert-fade-time 0))
+      (apply 'alert alert-args))))
+
 ;; trying terminal
 (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
 

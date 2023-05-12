@@ -4,13 +4,10 @@
 (setq-default indicate-empty-lines nil)
 
 (ns/use doom-modeline)
-(ns/use (myron-themes :host github :repo "neeasade/myron-themes" :files ("*.el" "themes/*.el")))
+(ns/use (myron-themes :host github :repo "neeasade/myron-themes" :files ("*.el" "themes/*.el"))
+  (setq base16-theme-256-color-source 'colors))
 
 (when ns/enable-home-p (setq myron-use-cache nil))
-
-(when (and (not window-system)
-        (string= (getenv "TERM") "xterm-kitty"))
-  (setq base16-theme-256-color-source 'colors))
 
 (ns/use paren-face (global-paren-face-mode))
 
@@ -18,34 +15,83 @@
   (general-nmap
     "]t" 'hl-todo-next
     "[t" 'hl-todo-previous)
-
   (global-hl-todo-mode))
-
-;; turn off bold in most places
-(->> (face-list)
-  (--remove (s-starts-with-p "org" (ns/str it)))
-  (--remove (s-starts-with-p "magit" (ns/str it)))
-  (--map (ns/face it
-           ;; :weight 'normal
-           :weight (if (or (eq (face-attribute it :weight) 'unspecified)
-                         (not (face-attribute it :weight)))
-                     'unspecified 'normal)
-           :slant 'normal
-           ;; :underline nil
-           )))
-
-(ns/face 'italic :slant 'italic)
-(ns/face 'bold :weight 'bold)
-
-;; todo: these should probably move into the theme
-(ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)
 
 (defun ns/emacs-to-theme ()
   (parseedn-print-str
-    (-ht
-      :colors (apply 'vector (myron-termcolors))
+    (-ht :colors (apply 'vector (myron-termcolors))
       :color (ht-merge myron-theme*
                (-ht :cursor (first evil-insert-state-cursor))))))
+
+;; update buffer local variables across all open buffers
+;; notmodes are modes to ignore
+(defun ns/setq-local-all (symbol value &optional notmodes)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (if notmodes
+        (when (not (-contains-p notmodes major-mode))
+          ;; don't remove these evals
+          (eval `(setq-local ,symbol ,value)))
+        (eval `(setq-local ,symbol ,value)))))
+  (eval `(setq-default ,symbol ,value)))
+
+;; callback on all open frames
+(defun! ns/apply-frames (action)
+  (mapc (lambda (frame)
+          (funcall action frame)
+          (redraw-frame frame))
+    (frame-list)))
+
+(defun! ns/frame-set-parameter (key value)
+  "set a value on all current and future frames"
+  ;; current:
+  (ns/apply-frames (fn (set-frame-parameter <> key value)))
+
+  ;; future:
+  (setq default-frame-alist
+    (assq-delete-all key default-frame-alist))
+
+  (add-to-list 'default-frame-alist `(,key . ,value)))
+
+(defun! ns/font-change ()
+  (llet [current-size (/ (face-attribute 'default :height) 10)
+          new-size (read-number (format "new size (current-size: %s): " current-size))]
+    (ns/face 'default :height (* 10 new-size))))
+
+(defun ns/parse-font (font)
+  "translate 'Font Family-10' into emacs font information"
+  (llet [font (s-replace "-" " " font)
+          size (first (s-match (pcre-to-elisp " [0-9]+") font))
+          family (s-replace size "" font)]
+    `(:family ,family :height ,(* 10 (string-to-number size)))))
+
+(defun ns/set-faces-variable (faces)
+  (apply 'ns/face faces
+    (ns/parse-font (get-resource "font.variable.spec"))))
+
+(defun ns/set-faces-monospace (faces)
+  (apply 'ns/face faces
+    (ns/parse-font (get-resource "font.mono.spec"))))
+
+(defun ns/set-buffers-face-variable (buffers)
+  (llet [font (ns/parse-font (get-resource "font.variable.spec"))]
+    (--map (with-current-buffer it
+             (setq-local buffer-face-mode-face font)
+             (buffer-face-mode t))
+      buffers)))
+
+(defun! ns/set-buffer-face-variable (&optional buffer)
+  (ns/set-buffers-face-variable (list (or buffer (current-buffer)))))
+
+(defun! ns/set-buffer-face-monospace (&optional buffer)
+  (ns/set-buffers-face-monospace (list (or buffer (current-buffer)))))
+
+(defun ns/set-buffers-face-monospace (buffers)
+  (llet [font (ns/parse-font (get-resource "font.mono.spec"))]
+    (--map (with-current-buffer it
+             (setq-local buffer-face-mode-face font)
+             (buffer-face-mode t))
+      buffers)))
 
 (defun default-font-width ()
   "Return the width in pixels of a character in the current
@@ -98,6 +144,25 @@ will also be the width of all other printable characters."
         (intern)))
     t)
 
+  ;; turn off bold in most places
+  (->> (face-list)
+    (--remove (s-starts-with-p "org" (ns/str it)))
+    (--remove (s-starts-with-p "magit" (ns/str it)))
+    (--map (ns/face it
+             ;; :weight 'normal
+             :weight (if (or (eq (face-attribute it :weight) 'unspecified)
+                           (not (face-attribute it :weight)))
+                       'unspecified 'normal)
+             :slant 'normal
+             ;; :underline nil
+             )))
+
+  (ns/face 'italic :slant 'italic)
+  (ns/face 'bold :weight 'bold)
+
+  ;; todo: these should probably move into the theme
+  (ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)
+
   (setq hl-todo-keyword-faces
     `(("TODO" . ,(myron-get :faded))
        ("todo" . ,(myron-get :faded))))
@@ -131,8 +196,6 @@ will also be the width of all other printable characters."
     (sh-toss "ltheme wm")
     ;; (start-process "bgtint" nil "bgtint")
     )
-
-
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit
