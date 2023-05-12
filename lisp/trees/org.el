@@ -320,9 +320,6 @@
                 org-code
                 org-table
                 org-verbatim
-                company-tooltip
-                company-tooltip-common
-                company-tooltip-selection
                 org-block-begin-line
                 org-block-end-line)
       :height 1.0)
@@ -438,9 +435,6 @@
                              org-macro
                              org-formula
                              org-verbatim
-                             company-tooltip
-                             company-tooltip-common
-                             company-tooltip-selection
                              org-block-begin-line
                              org-block-end-line))
 

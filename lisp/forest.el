@@ -69,33 +69,28 @@
 
   (ns/use flycheck-pos-tip (flycheck-pos-tip-mode t)))
 
-(ns/defconfig company
-  (ns/use company
-    (setq-ns company
-      idle-delay 0.5
-      selection-wrap-around t
-      dabbrev-downcase nil
-      dabbrev-ignore-case t
-      tooltip-align-annotations t
-      tooltip-margin 2
-      global-modes '(not
-                      org-mode
-                      shell-mode
-                      circe-chat-mode
-                      circe-channel-mode
-                      circe-query-mode
-                      ))
+(ns/defconfig corfu
+  (ns/use (corfu :host github :repo "minad/corfu" :files ("*.el" "extensions/*.el"))
+    (setq tab-always-indent 'complete)
 
-    (ns/use company-prescient (company-prescient-mode))
+    (setq
+      corfu-quit-no-match 'separator
+      corfu-auto t
+      corfu-auto-delay 0.1)
 
-    (define-key company-active-map (kbd "C-e") 'company-select-previous)
-    (define-key company-active-map "\t" 'company-complete))
+    (apply 'evil-collection-translate-key
+      'insert '(corfu-map)
+      ns/evil-collection-keys)
 
-  (ns/use company-quickhelp
-    (setq company-quickhelp-delay 0.3)
-    (company-quickhelp-mode 1)))
+    (require 'corfu-popupinfo)
+    (corfu-popupinfo-mode)
+    (setq corfu-popupinfo-delay '(0.2 . 0.1)))
+
+  ;; todo: check this out
+  (ns/use cape))
 
 (ns/defconfig dashdocs
+  ;; todo: checkout consult-dash
   (ns/use counsel-dash)
 
   (setq-ns counsel-dash
@@ -308,9 +303,7 @@
   (ns/use restclient
     (ns/bind-leader-mode
       'restclient
-      "ei" 'restclient-http-send-current-stay-in-window))
-
-  (ns/use company-restclient))
+      "ei" 'restclient-http-send-current-stay-in-window)))
 
 (ns/defconfig sql
   (ns/install-dashdoc "SQLite" 'sql-mode)
@@ -323,8 +316,7 @@
   )
 
 (ns/defconfig latex
-  (ns/install-dashdoc "LaTeX" 'latex-mode-hook)
-  (ns/use company-auctex))
+  (ns/install-dashdoc "LaTeX" 'latex-mode-hook))
 
 (ns/defconfig plantuml
   (ns/use plantuml-mode)
@@ -338,7 +330,6 @@
 
 (ns/defconfig lsp
   (ns/use lsp-mode)
-
   (ns/use lsp-ui)
 
   ;; (ns/use eglot)
@@ -470,7 +461,14 @@
                (fn (list (nth <> args)
                      (nth <> ns-args)))
                (number-sequence 0 (- (length args) 1))))
-       ,@content)))
+       ,@content))
+
+  (defun ns/make-lines (list)
+    "Transform a LIST of things into something that can be newline iterated by a shell script."
+    (->> list
+      (-map 'ns/str)
+      (-map 's-clean)
+      (s-join "\n"))))
 
 (ns/defconfig funtext
   (defun studlify-string (s)
@@ -643,6 +641,7 @@
 (ns/defconfig git         (shut-up-load (~e "lisp/trees/git.el")))
 (ns/defconfig interface   (shut-up-load (~e "lisp/trees/interface.el")))
 (ns/defconfig irc         (shut-up-load (~e "lisp/trees/irc.el")))
+(ns/defconfig minibuffer         (shut-up-load (~e "lisp/trees/minibuffer.el")))
 (ns/defconfig dired       (shut-up-load (~e "lisp/trees/dired.el")))
 (ns/defconfig org         (shut-up-load (~e "lisp/trees/org.el")))
 (ns/defconfig org-capture (shut-up-load (~e "lisp/trees/org-capture.el")))

@@ -57,36 +57,23 @@
 
 (defun! ns/toggle-bloat()
   "toggle bloat in the current buffer"
-  (if (not (bound-and-true-p font-lock-mode))
-    (progn
-      (message "bloat-local: enabled")
-      (corfu-mode)
-      (flycheck-mode)
-      (font-lock-mode)
-      (git-gutter-mode))
-    (progn
-      (message "bloat-local: disabled")
-      (corfu-mode -1)
-      (flycheck-mode -1)
-      (font-lock-mode 0)
-      (git-gutter-mode 0))))
+  (llet [toggle (not (bound-and-true-p font-lock-mode))]
+    (message "setting bloat-local: %s" (if toggle "enabled" "disabled"))
+    (--map (funcall it (if toggle t 0))
+      '(corfu-mode
+         flycheck-mode
+         font-lock-mode
+         git-gutter-mode))))
 
 (defun! ns/toggle-bloat-global (&optional toggle)
   "Toggle global bloat"
-  (if (or toggle (not global-font-lock-mode))
-    (progn
-      (message "bloat-global: enabled")
-      (global-corfu-mode)
-      (global-flycheck-mode)
-      (global-font-lock-mode)
-      (global-git-gutter-mode (if ns/enable-windows-p 0 t)))
-
-    (progn
-      (message "bloat-global: disabled")
-      (global-corfu-mode -1)
-      (global-flycheck-mode -1)
-      (global-font-lock-mode 0)
-      (global-git-gutter-mode 0))))
+  (llet [toggle (or toggle (not global-font-lock-mode))]
+    (message "setting bloat-global: %s" (if toggle "enabled" "disabled"))
+    (--map (funcall it (if toggle t 0))
+      '(global-corfu-mode
+         global-flycheck-mode
+         global-font-lock-mode
+         global-git-gutter-mode))))
 
 (ns/use simpleclip)
 
@@ -111,7 +98,6 @@
   (llet [font (s-replace "-" " " font)
           size (first (s-match (pcre-to-elisp " [0-9]+") font))
           family (s-replace size "" font)]
-
     `(:family ,family :height ,(* 10 (string-to-number size)))))
 
 (defun ns/set-faces-variable (faces)
@@ -141,13 +127,6 @@
 
 (defun! ns/set-buffer-face-monospace (&optional buffer)
   (ns/set-buffers-face-monospace (list (or buffer (current-buffer)))))
-
-(defun ns/make-lines (list)
-  "Transform a LIST of things into something that can be newline iterated by a shell script."
-  (->> list
-    (-map 'ns/str)
-    (-map 's-clean)
-    (s-join "\n")))
 
 (defun ns/buffers-by-mode (&rest modes)
   (--filter (-contains-p modes (buffer-local-value 'major-mode it))
@@ -200,8 +179,7 @@
           (eval `(setq-local ,symbol ,value)))
         (eval `(setq-local ,symbol ,value)))))
 
-  (eval `(setq-default ,symbol ,value))
-  )
+  (eval `(setq-default ,symbol ,value)))
 
 ;; callback on all open frames
 (defun! ns/apply-frames (action)
@@ -227,12 +205,6 @@
     (-filter (fn (let ((file (buffer-file-name <>)))
                    (if file (not (f-exists-p file)) nil)))
       (buffer-list))))
-
-(defmacro measure-time (&rest body)
-  "Measure the time (in seconds) it takes to evaluate BODY."
-  `(let ((time (current-time)))
-     ,@body
-     (message "%.06f" (float-time (time-since time)))))
 
 (defmacro ns/install-dashdoc (docset mode-hook)
   "Install dash DOCSET if dashdocs enabled, add mode hook to narrow dash search targets."

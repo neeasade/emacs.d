@@ -25,8 +25,11 @@
        resources
        sanity
        evil
+
+       minibuffer
        interface
        dired
+
        editing
        shell
        projectile
@@ -40,7 +43,7 @@
 (defun ns/conf-extra ()
   (ns/summon
     `(
-       (company nil)
+       corfu
        flycheck
        (dashdocs nil)
 

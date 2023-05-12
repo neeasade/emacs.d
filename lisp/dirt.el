@@ -107,6 +107,12 @@
 (defun prn (&rest sexp)
   (message "%s" (s-join " " (-map 'pr-str sexp))) nil)
 
+(defmacro measure-time (&rest body)
+  "Measure the time (in seconds) it takes to evaluate BODY."
+  `(let ((time (current-time)))
+     ,@body
+     (message "%.06f" (float-time (time-since time)))))
+
 (defmacro llet (args &rest body)
   ;; the append is to convert [vectors] to lists
   `(-let* ,(-partition 2 (append args nil)) ,@body))
@@ -224,7 +230,7 @@
 
 ;; this was removed
 ;; cf https://github.com/abo-abo/swiper/pull/1570/files#diff-c7fad2f9905e642928fa92ae655e23d0L4500
-(defun counsel-switch-to-buffer-or-window (buffer-name)
+(defun ns/switch-to-buffer-or-window (buffer-name)
   "Display buffer BUFFER-NAME and select its window.
 
  This behaves as `switch-to-buffer', except when the buffer is
@@ -246,7 +252,7 @@
   "If FILEPATH is open in a buffer, switch to that."
   (llet (filename (file-name-nondirectory filepath))
     (if (get-buffer filename)
-      (counsel-switch-to-buffer-or-window filename)
+      (ns/switch-to-buffer-or-window filename)
       (find-file filepath))))
 
 ;; wrap passwordstore
