@@ -181,5 +181,16 @@
 ;; still used in emacs_dmenu currently
 (ns/use ivy)
 
+;; fun
+(defmacro ns/let-setqs (kvs sexp)
+  (llet [syms (-map 'first (-partition 2 kvs))
+          syms-old (--map (intern (format "%s-old" it)) syms)]
+    `(llet [,@(-interleave syms-old syms)
+             ret nil]
+       (setq ,@kvs
+         ret ,sexp
+         ,@(-interleave syms syms-old))
+       ret)))
+
 (provide 'staging)
 ;;; staging.el ends here

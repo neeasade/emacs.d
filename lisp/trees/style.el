@@ -93,22 +93,6 @@
              (buffer-face-mode t))
       buffers)))
 
-(defun default-font-width ()
-  "Return the width in pixels of a character in the current
-window's default font.  More precisely, this returns the
-width of the letter ‘m’.  If the font is mono-spaced, this
-will also be the width of all other printable characters."
-  (if-not window-system
-    1                                   ; seems to not matter
-    (let ((window (selected-window))
-           (remapping face-remapping-alist))
-      (with-temp-buffer
-        (make-local-variable 'face-remapping-alist)
-        (setq face-remapping-alist remapping)
-        (set-window-buffer window (current-buffer))
-        (insert "m")
-        (aref (aref (font-get-glyphs (font-at 1) 1 2) 0) 4)))))
-
 (defun ns/style-terminal ()
   (when-not window-system
     (ns/use evil-terminal-cursor-changer
