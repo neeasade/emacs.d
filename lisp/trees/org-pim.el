@@ -114,7 +114,8 @@ called with symbols or quoted lambdas to filter results."
 (defun ns/org-status-outdated ()
   (when-not (and (boundp 'org-pomodoro-state)
               (eq org-pomodoro-state :pomodoro))
-    (llet [outdated (ns/get-notes-nodes 'ns/org-scheduled-past-todo)
+    (llet [outdated (-sort 'ns/org-outdated-sort-node
+                      (ns/get-notes-nodes 'ns/org-scheduled-past-todo))
             outdated-next (-> outdated first org-ml-headline-get-path -last-item)
             count (length outdated)]
       (when (> count 0)
@@ -160,35 +161,33 @@ called with symbols or quoted lambdas to filter results."
         )
       (ns/org-jump-to-element-content))))
 
+(defun ns/org-outdated-sort-node (&rest headlines)
+  (llet [(h1 h2) headlines
+          (p1 p2) (--map (or (org-ml-get-property :priority it) 0) headlines)
+          (d1 d2) (-map 'ns/headline-date headlines)
+          ;; is it a habit?
+          (h1 h2) (--map (-some->> it
+                           (org-ml-headline-get-planning)
+                           (org-ml-get-property :scheduled)
+                           (org-ml-get-property :raw-value)
+                           (s-contains-p "+"))
+                    headlines)]
+    (cond
+      ((not (= p1 p2)) (if (> p1 p2) t nil))
+      ((and h1 (not h2)) nil)
+      ((and h2 (not h1)) t)
+      ((-any 'ns/org-scheduled-today headlines)
+        (if (ts> d1 d2) t nil))
+      (t (if (ts> d1 d2) nil t)))))
+
 (defun! ns/org-rotate-outdated ()
   (llet [looking-at-notes? (string= (buffer-file-name) org-default-notes-file)]
     (when-not looking-at-notes?
       (ns/find-or-open org-default-notes-file)
       (goto-line 0)))
 
-  (defun ns/org-outdated-sort-node (&rest headlines)
-    (llet [(h1 h2) headlines
-            (p1 p2) (--map (or (org-ml-get-property :priority it) 0) headlines)
-            (d1 d2) (-map 'ns/headline-date headlines)
-            ;; is it a habit?
-            (h1 h2) (--map (-some->> it
-                             (org-ml-headline-get-planning)
-                             (org-ml-get-property :scheduled)
-                             (org-ml-get-property :raw-value)
-                             (s-contains-p "+"))
-                      headlines)]
-      (cond
-        ((not (= p1 p2)) (if (> p1 p2) t nil))
-        ((and h1 (not h2)) nil)
-        ((and h2 (not h1)) t)
-        ((-any 'ns/org-scheduled-today headlines)
-          (if (ts> d1 d2) t nil))
-        (t (if (ts> d1 d2) nil t)))))
-
   (ns/org-rotate
-    (->> (ns/get-notes-nodes 'ns/org-scheduled-past-todo
-           'ns/org-scheduled-today
-           )
+    (->> (ns/get-notes-nodes 'ns/org-scheduled-past-todo 'ns/org-scheduled-today)
       (-sort 'ns/org-outdated-sort-node)
       (-map (-partial 'org-ml-get-property :begin)))))
 
