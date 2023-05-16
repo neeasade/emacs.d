@@ -165,11 +165,6 @@
 
 (ns/persist evil-markers-alist)
 
-;; match qutebrowser fwd back
-(general-nmap
-  "H" 'previous-buffer
-  "L" 'next-buffer)
-
 (defun ns/should-skip (&optional win buf _)
   (let ((buffername (buffer-name buf))
          (file-name (buffer-file-name buf)))
@@ -181,9 +176,28 @@
       (s-starts-with? "magit" buffername)
       (eq 'dired-mode (buffer-local-value 'major-mode buf)))))
 
-(setq ; why does no one use this feature? it's so great
-  switch-to-next-buffer-skip #'ns/should-skip
-  switch-to-prev-buffer-skip #'ns/should-skip)
+(setq switch-to-next-buffer-skip nil
+  switch-to-prev-buffer-skip nil)
+
+;; this is a hack, because prev-buffer is triggered by corfu(?), and that means
+;; we switch away from buffers affected by ns/should-skip when completion is
+;; triggered
+(defmacro ns/let-setqs (kvs sexp)
+  (llet [syms (-map 'first (-partition 2 kvs))
+          syms-old (--map (intern (format "%s-old" it)) syms)]
+    `(llet [,@(-interleave syms-old syms)
+             ret nil]
+       (setq ,@kvs
+         ret ,sexp
+         ,@(-interleave syms syms-old))
+       ret)))
+
+(general-nmap
+  "H" (fn!! prev-buffer (ns/let-setq (switch-to-prev-buffer-skip 'ns/should-skip)
+                          (previous-buffer)))
+
+  "L" (fn!! next-buffer (ns/let-setq (switch-to-next-buffer-skip 'ns/should-skip)
+                          (next-buffer))))
 
 (general-nmap
   ;; "[s" 'flyspell-goto-prev-error ; not a thing

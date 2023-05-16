@@ -53,12 +53,14 @@
 (doom-modeline-def-segment next-buffers
   (when (doom-modeline--active)
     ;; kinda gross
-    (cl-letf (((symbol-function 'set-window-buffer-start-and-point) (fn nil)))
-      (llet [next-buffer (buffer-name (switch-to-next-buffer))
-              prev-buffer (buffer-name (switch-to-prev-buffer))]
-        (propertize
-          (format "[%s:%s]" prev-buffer next-buffer)
-          'face 'mode-line)))))
+    (ns/let-setq (switch-to-prev-buffer-skip 'ns/should-skip
+                   switch-to-next-buffer-skip 'ns/should-skip)
+      (cl-letf (((symbol-function 'set-window-buffer-start-and-point) (fn nil)))
+        (llet [next-buffer (buffer-name (switch-to-next-buffer))
+                prev-buffer (buffer-name (switch-to-prev-buffer))]
+          (propertize
+            (format "[%s:%s]" prev-buffer next-buffer)
+            'face 'mode-line))))))
 
 (doom-modeline-def-segment sep
   "Text style with whitespace."
