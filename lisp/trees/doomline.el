@@ -18,6 +18,18 @@
 (ns/face '(doom-modeline-buffer-file doom-modeline-buffer-modified)
   :foreground (myron-get :foreground :weak))
 
+
+(when (eq 'myron-kobo (first custom-enabled-themes))
+  ;; swap
+  (ns/face 'ns/mode-line-middle :background (myron-get :background :weak))
+  (ns/face 'mode-line
+    :background (myron-get :background :strong)
+    :foreground (myron-get :foreground :strong))
+
+  (ns/face 'mode-line-inactive
+    :foreground (myron-get :faded :strong)
+    :background (myron-get :background :strong)))
+
 ;; upstream is really spacey
 (doom-modeline-def-segment buffer-position
   "The buffer position information."

@@ -28,7 +28,8 @@
   (kbd "C-n") 'comint-next-input)
 
 (ns/use shx
-  (shx-global-mode 1)
+  ;; todo: this breaks corfu/our ret binding
+  (shx-global-mode 0)
   (defun shx-send-input-or-open-thing ()
     "Open thing at point, or send input if no identifiable thing."
     (interactive)
@@ -237,12 +238,13 @@
   (->> (ns/buffers-by-mode 'shell-mode)
     (-filter
       (lambda (b)
-        (llet [pid (process-id (get-buffer-process b))
-                ;; -P works on macos and linux
-                children (sh (format "pgrep -P %s" pid))
-                visible? (get-buffer-window b)]
-          (and (s-blank? children)
-            (not visible?)))))
+        (when (get-buffer-process b)
+          (llet [pid (process-id (get-buffer-process b))
+                  ;; -P works on macos and linux
+                  children (sh (format "pgrep -P %s" pid))
+                  visible? (get-buffer-window b)]
+            (and (s-blank? children)
+              (not visible?))))))
     (-map 'kill-buffer)))
 
 (named-timer-run :maybe-cleanup-shells

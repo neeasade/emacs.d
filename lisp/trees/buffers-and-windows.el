@@ -14,7 +14,10 @@
   "Kill buffers pointing to a file when that file doesn't exist"
   (-map 'kill-buffer
     (-filter (fn (let ((file (buffer-file-name <>)))
-                   (if file (not (f-exists-p file)) nil)))
+                   ;; don't worry about remote files (tramp password check)
+                   (if file (when (not (file-remote-p file))
+                              (not (f-exists-p file)))
+                     nil)))
       (buffer-list))))
 
 (defun! ns/kill-buffers-by-mode ()
