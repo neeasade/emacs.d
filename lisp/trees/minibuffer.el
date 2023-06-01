@@ -35,8 +35,13 @@
 (ns/use marginalia (marginalia-mode t))
 
 (ns/use consult
-  (setq-ns consult-async-input-throttle 0.04
-    consult-async-input-debounce 0.02))
+  (setq
+    consult-async-input-throttle 0.04
+    consult-async-input-debounce 0.02)
+
+  (setq consult-ripgrep-args
+    ;; add "--hidden"
+    "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number --search-zip --hidden"))
 
 (ns/use orderless
   ;; stolen directly from:
