@@ -1,5 +1,32 @@
 #+OPTIONS: html-style:nil
 
+#+html_head: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#+html_head: <meta property="og:title" content="{{title}}">
+#+html_head: <meta property="og:description" content="{{og-description}}">
+#+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/warm.png">
+#+html_head: <meta property="og:url" content="{{url}}">
+#+html_head: <meta property="description" content="{{og-description}}">
+#+html_head: <meta name="twitter:card" content="summary">
+
+#+html_head: <script src="/assets/js/linktext.js" defer></script>
+#+html_head: <script data-goatcounter="https://neeasade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+#+html_head: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
+
+# cf https://orgmode.org/manual/Macro-Replacement.html
+#+MACRO:  image [[file:./assets/posts/$1][file:./assets/posts/$1]]
+#+MACRO:  detail (eval (ns/blog-make-detail $1 $2 $3 $4 $5 $6 $7 $8 $9))
+#+MACRO:  nav-strip (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
+#+MACRO:  center (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
+#+MACRO:  color (eval (ns/blog-make-color-preview $1 $2))
+
+# cf: https://emacs.stackexchange.com/questions/7792/can-i-make-links-in-org-mode-that-contain-brackets-or/7793#7793
+# Square Bracket Open [
+#+MACRO: BO @@latex:\char91@@@@html:&#91;@@
+# Square Bracket Close ]
+#+MACRO: BC @@latex:\char93@@@@html:&#93;@@
+
+{{csslinks}}
+
 #+BEGIN_EXPORT html
 <div style="float: left">
     {{up}}
@@ -10,63 +37,23 @@
 </div>
 #+end_export
 
-#+html_head: <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-#+html_head: <meta property="og:title" content="{{title}}">
-#+html_head: <meta property="og:description" content="{{og-description}}">
-#+html_head: <meta property="description" content="{{og-description}}">
-#+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/warm.png">
-#+html_head: <meta property="og:url" content="{{url}}">
-#+html_head: <meta name="twitter:card" content="summary">
-
-#+html_head: <script src="/assets/js/linktext.js" defer></script>
-
-#+html_head: <script data-goatcounter="https://neeasade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-#+html_head: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
-
-# cf https://orgmode.org/manual/Macro-Replacement.html
-
-# link images from the post assets folder for the site:
-#+MACRO:  image [[file:./assets/posts/$1][file:./assets/posts/$1]]
-
-#+MACRO:  hsep (eval (ns/blog-make-hsep))
-#+MACRO:  detail (eval (ns/blog-make-detail $1 $2 $3 $4 $5 $6 $7 $8 $9))
-
-#+MACRO:  nav-strip (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
-#+MACRO:  center (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
-
-#+MACRO: newline @@latex:\newline@@@@html:<br/>@@
-
-#+MACRO:  color (eval (ns/blog-make-color-preview $1 $2))
-#+MACRO:  color-ext (eval (ns/blog-make-color-preview-extended $1 $2 $3))
-#+MACRO:  colorblock (eval (ns/blog-make-color-block $1 $2 $3 $4 $5))
-
-# cf: https://emacs.stackexchange.com/questions/7792/can-i-make-links-in-org-mode-that-contain-brackets-or/7793#7793
-# Square Bracket Open [
-#+MACRO: BO @@latex:\char91@@@@html:&#91;@@
-# Square Bracket Close ]
-#+MACRO: BC @@latex:\char93@@@@html:&#93;@@
-
-{{csslinks}}
-
 @@html:<h1 class=title>{{title}}</h1>@@
 {{subtitle}}
 
 -----
 
 {{content}}
-
 {{flair}}
 
 #+BEGIN_EXPORT html
-<div class='footer-left'>
+<div class="footer-left">
     {{footer-left}}
 </div>
-#+end_export
 
-{{footer-center}}
+<div class="footer-center">
+    {{footer-center}}
+</div>
 
-#+BEGIN_EXPORT html
 <div class="footer-right">
     <a href="{{page-markup-link}}">Page Markup</a>
 </div>

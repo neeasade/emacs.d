@@ -177,8 +177,9 @@
       (sh-toss "dunstctl set-paused true")
       (sh-toss "panelt stop")
 
-      (f-write (f-read (~ ".config/qutebrowser/adblock_bad.txt"))
-        'utf-8 (~ ".config/qutebrowser/adblock.txt"))
+      (spit (~ ".config/qutebrowser/adblock.txt")
+        (slurp (~ ".config/qutebrowser/adblock_bad.txt")))
+
       (sh-toss "qb_command :adblock-update")))
 
   (defun! ns/focus-mode-quit ()
@@ -192,7 +193,7 @@
         (sh-toss "dunstctl set-paused false")
         (sh-toss "panelt start"))
 
-      (f-write "" 'utf-8 (~ ".config/qutebrowser/adblock.txt"))
+      (spit (~ ".config/qutebrowser/adblock.txt") "")
       (sh-toss "qb_command :adblock-update")))
 
   (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-enter)
@@ -414,6 +415,8 @@
   (olivetti-mode)
   (git-gutter-mode 0)
   (flyspell-mode 0)
+  (setq-local comment-auto-fill-only-comments nil)
+  (auto-fill-mode t)
 
   (setq flyspell-generic-check-word-predicate
     (lambda ()

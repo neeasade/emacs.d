@@ -19,7 +19,7 @@
 
     (f-mkdir (f-dirname dest))
     (when exists? (f-delete dest))
-    (f-write
+    (spit dest
       (format "
 #+title: %s
 #+title_extra: %s
@@ -38,10 +38,7 @@
           ;; remove through the end of the PROPERTIES drawer:
           (s-split "\n" )
           (cdr)
-          (s-join "\n")))
-
-      'utf-8
-      dest)
+          (s-join "\n"))))
     ;; return the path:
     dest))
 

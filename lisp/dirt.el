@@ -148,7 +148,10 @@
   "trim the newline from shell exec"
   (let ((process-environment (cons "CALLED_FROM_EMACS=t" process-environment)))
     (replace-regexp-in-string "\n$" ""
-      (shell-command-to-string (apply 'format args)))))
+      (shell-command-to-string
+        (if (= 1 (length args))
+          (first args)
+          (apply 'format args))))))
 
 (defun sh-toss (command)
   "start a process and throw it to the wind"
@@ -312,6 +315,11 @@
     (-map (-applify (-partial 'ht-set table))
       (-partition 2 kvs))
     table))
+
+(defalias 'slurp 'f-read)
+
+(defun spit (f content)
+  (f-write content 'utf-8 f))
 
 (defun ns/str (val)
   "Coerce VAL to string. nil is empty string."
