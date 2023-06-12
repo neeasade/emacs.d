@@ -33,6 +33,7 @@
 </div>
 
 <div style="float: right">
+    {{sitemap-link}}
     <a href="{{page-markup-link}}">source</a>
 </div>
 <h1 class=title>{{title}}</h1>
@@ -41,13 +42,10 @@
 {{subtitle}}
 #+END_CENTER
 #+BEGIN_EXPORT html
-<div class=pubinfo>
-Published {{published-date}}, last edit <a href="{{page-history-link}}">{{edited-date}}</a>
-</div>
+{{pubinfo}}
 #+end_export
 -----
 {{content}}
-
 #+BEGIN_EXPORT html
 <div class="footer-center">
     {{footer-center}}

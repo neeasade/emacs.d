@@ -90,7 +90,7 @@
           :blog-title ns/blog-title
 
           :up (llet [(dest label)
-                      (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
+                      (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "splash"))
                         ((and (string= type "page") (not (string= (f-base path) "sitemap")))
                           '("/sitemap.html" "sitemap"))
                         (t `("/index.html" ,ns/blog-title)))]
@@ -106,6 +106,12 @@
           :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
                                type (f-filename path))
 
+          :sitemap-link (when (s-starts-with-p "index" (f-filename path))
+                          "<a href='/sitemap.html'>sitemap</a>")
+          :pubinfo (when (string= type "post")
+                     "<div class=pubinfo>
+Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edited-date}}</a>
+</div>")
           :footer-center (when (s-starts-with-p "index" (f-filename path))
                            "<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
   <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
