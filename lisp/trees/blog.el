@@ -22,7 +22,7 @@
           :host github
           :repo "emacsmirror/ox-rss"))
 
-(setq ns/blog-title "⯨𝓟𝓸𝓬𝓴𝓮𝓽 𝓟𝓪𝓻𝓬𝓮𝓵𝓼 ⯩")
+(setq ns/blog-title "𝚂𝚃𝚇")
 
 (defun ns/blog-set-htmlize-colors ()
   ;; this is for weak emphasis in code blocks
@@ -75,11 +75,7 @@
     (apply '-ht)))
 
 (defun ns/blog-make-nav-strip (&rest items)
-  ;; ??????????????????????????
-  (apply 'concat
-    (list "\n#+BEGIN_CENTER\n"
-      (->> (-remove 'not items) (s-join " "))
-      "\n#+END_CENTER\n")))
+  (->> (-remove 'not items) (s-join " ")))
 
 (defun ns/blog-render-org (post-table)
   (ns/mustache
@@ -96,10 +92,9 @@
           :up (llet [(dest label)
                       (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "Splash"))
                         ((and (string= type "page") (not (string= (f-base path) "sitemap")))
-                          '("/sitemap.html" "Sitemap"))
+                          '("/sitemap.html" "sitemap"))
                         (t `("/index.html" ,ns/blog-title)))]
-                (format "<a href='%s'>Up: %s</a>" dest label))
-
+                (format "<a href='%s'>../%s</a>" dest label))
 
           :og-description (->> (or subtitle "")
                             (s-replace-regexp "{{{.*(" "")
@@ -110,11 +105,6 @@
 
           :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
                                type (f-filename path))
-
-          :footer-left (apply 'format "<a href='/%s.html'>%s</a>"
-                         (if (s-starts-with-p "index" (f-filename path))
-                           '("sitemap" "Sitemap")
-                           `("index" ,ns/blog-title)))
 
           :footer-center (when (s-starts-with-p "index" (f-filename path))
                            "<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>

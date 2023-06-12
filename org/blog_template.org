@@ -33,28 +33,23 @@
 </div>
 
 <div style="float: right">
-    <a href="{{page-history-link}}">Last edit: <{{edited-date}}></a>
+    <a href="{{page-markup-link}}">source</a>
+</div>
+<h1 class=title>{{title}}</h1>
+#+end_export
+#+BEGIN_CENTER
+{{subtitle}}
+#+END_CENTER
+#+BEGIN_EXPORT html
+<div class=pubinfo>
+Published {{published-date}}, last edit <a href="{{page-history-link}}">{{edited-date}}</a>
 </div>
 #+end_export
-
-@@html:<h1 class=title>{{title}}</h1>@@
-{{subtitle}}
-
 -----
-
 {{content}}
-{{flair}}
 
 #+BEGIN_EXPORT html
-<div class="footer-left">
-    {{footer-left}}
-</div>
-
 <div class="footer-center">
     {{footer-center}}
-</div>
-
-<div class="footer-right">
-    <a href="{{page-markup-link}}">Page Markup</a>
 </div>
 #+end_export
