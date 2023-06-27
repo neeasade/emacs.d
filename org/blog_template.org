@@ -1,14 +1,24 @@
 #+OPTIONS: html-style:nil
 
+#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+
 #+html_head: <meta name="viewport" content="width=device-width, initial-scale=1.0">
 #+html_head: <meta property="og:title" content="{{title}}">
 #+html_head: <meta property="og:description" content="{{og-description}}">
-#+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/warm.png">
-#+html_head: <meta property="og:url" content="{{url}}">
+#+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/newfeather.png">
+#+html_head: <meta property="og:url" content="{{og-url}}">
 #+html_head: <meta property="description" content="{{og-description}}">
 #+html_head: <meta name="twitter:card" content="summary">
 
 #+html_head: <script src="/assets/js/linktext.js" defer></script>
+#+html_head: <script src="/assets/js/copy.js" defer></script>
+#+html_head: <script src="../published/assets/js/linktext.js" defer></script>
+#+html_head: <script src="../published/assets/js/copy.js" defer></script>
 #+html_head: <script data-goatcounter="https://neeasade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 #+html_head: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
 

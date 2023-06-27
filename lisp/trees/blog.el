@@ -24,47 +24,16 @@
 
 (setq ns/blog-title "𝚂𝚃𝚇")
 
-(defun ns/blog-set-htmlize-colors ()
-  ;; this is for weak emphasis in code blocks
-  (llet [theme-colors (append
-                        (myron-theme-to-base16 :weak)
-
-                        (ht-to-plist (ht-get myron-theme* :weak)))]
-    (setq htmlize-face-overrides
-      (->> (tarp/theme-make-faces theme-colors)
-        (-mapcat
-          (-lambda ((face . spec))
-            (list face (base16-theme-transform-spec spec theme-colors))))))))
-
 (defun ns/blog-path (ext)
   (format (~ "git/neeasade.github.io/%s") ext))
 
 (defun ns/mustache (text table)
   "Basic mustache templating."
   (llet [replace-map (ht-amap `(,(format "{{%s}}" (ns/str key)) . ,(or value "")) table)]
-    ;; doing this twice is what enables a #+title: of {{blog-title}}
+    ;; 2x for inline templates
     (->> text
       (s-replace-all replace-map)
       (s-replace-all replace-map))))
-
-(ns/bind
-  "nq" (fn!! surf-blog-posts
-         (llet [posts (->> (f-entries (ns/blog-path "posts")
-                             (-partial 's-ends-with-p ".org"))
-                        (reverse)
-                        (--mapcat (list (or (ht-get (ns/blog-get-properties (f-read it)) "title") it)
-                                    it))
-                        (apply '-ht))]
-           (find-file (ht-get posts (ns/pick (ht-keys posts))))))
-
-  "nQ" (fn!! surf-blog-drafts
-         (find-file
-           (ns/pick "draft post"
-             (reverse
-               (--filter
-                 (ht-get (ns/blog-get-properties (f-read it)) "draft")
-                 (f-entries (ns/blog-path "posts")
-                   (fn (s-ends-with-p ".org" <>)))))))))
 
 (defun ns/blog-get-properties (text)
   "org string to properties ht"
@@ -78,12 +47,7 @@
   (->> (-remove 'not items) (s-join " ")))
 
 (defun ns/blog-render-org (post-table)
-  (ns/mustache
-    (->> (f-read (~e "org/blog_template.org"))
-      (s-replace "{{content}}"
-        (->> (ht-get post-table :text)
-          (s-replace-regexp "^-----$" (ns/blog-make-hsep)))))
-
+  (ns/mustache (f-read (~e "org/blog_template.org"))
     (ht-merge post-table
       (llet ((&hash :type :path :subtitle) post-table)
         (-ht
@@ -135,9 +99,12 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                                   (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))]
     (-ht
       :path path
-      :text org-file-content
+      :content (s-replace-regexp "^-----$" (ns/blog-make-hsep) org-file-content)
+
       :draft-p (not (s-blank-p (ht-get props "draft")))
+      ;; hack for index pages {{blog-title}}
       :title (ht-get props "title" "(untitled)")
+
       :rss-title (ht-get props "rss_title")
       :subtitle (ht-get props "title_extra")
       :type (llet [parent-dir (->> path f-parent f-base)]
@@ -154,23 +121,9 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                                              (s-replace "'" "'\\''" path))))
                      (when-not (s-blank-p git-query-result)
                        (substring git-query-result 0 10)))
-      :url (format "https://notes.neeasade.net/%s.html" html-slug)
+      :og-url (format "https://notes.neeasade.net/%s.html" html-slug)
       :html-dest (format "%s/%s.html" (ns/blog-path "published") html-slug)
       :csslinks (ns/blog-get-csslinks))))
-
-(setq ns/blog-csslinks nil)
-(defun ns/blog-get-csslinks ()
-  (if ns/blog-csslinks ns/blog-csslinks
-    (setq ns/blog-csslinks
-      (s-join "\n"
-        (-map
-	        (fn (let* ((file-path (ns/blog-path (format "published/assets/css/%s.css" <>)))
-		                  (include-path (format "/assets/css/%s.css" <>))
-		                  (sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path))))
-	              (concat
-		              (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
-		              (format "\n#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-	        '("colors" "new" "org" "notes"))))))
 
 (defun! ns/blog-publish-meta (org-meta)
   (let ((default-directory (ns/blog-path "published"))
@@ -185,7 +138,6 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
          (org-html-doctype "html5")
 
          ;; affects timestamp export format
-         ;; (org-time-stamp-custom-formats '("%Y-%m-%d" . "%Y-%m-%d %I:%M %p"))
          (org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %I:%M %p>"))
          (org-display-custom-times t)
 
@@ -193,11 +145,12 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
          (org-confirm-babel-evaluate (fn nil)))
 
     (with-temp-buffer
-      (llet ((&hash :text :path :html-dest :org-content) org-meta)
+      (llet ((&hash :path :html-dest) org-meta)
         (message "BLOG: making %s " path)
         (insert (ns/blog-render-org org-meta))
         (ns/blog-make-anchors)
-        (org-export-to-file 'html html-dest)))))
+        ;; (org-export-to-file 'html html-dest)
+        ))))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
@@ -229,31 +182,45 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
       (-uniq)
       (-map 'ns/blog-file-to-meta))))
 
-(setq ns/blog-metas nil)
+(setq ns/blog-csslinks nil)
 
+(defun ns/blog-get-csslinks ()
+  (if ns/blog-csslinks ns/blog-csslinks
+    (setq ns/blog-csslinks
+      (->> '("colors" "new" "org" "notes")
+	      (--mapcat (llet [file-path (ns/blog-path (format "published/assets/css/%s.css" it))
+		                      include-path (format "/assets/css/%s.css" it)
+		                      sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path)) ]
+	                  (list
+		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
+		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
+        (s-join "\n")))))
+
+(setq ns/blog-metas nil)
 (defun ns/blog-get-metas ()
   (if ns/blog-metas ns/blog-metas
     (setq ns/blog-metas
       (->> '("posts" "pages" "notes")
-        (--mapcat
-          (f-entries (ns/blog-path it)
-            (-partial #'s-ends-with-p ".org")))
+        (--mapcat (f-entries (ns/blog-path it)
+                    (-partial #'s-ends-with-p ".org")))
         (-map 'ns/blog-file-to-meta)))))
 
 (defun! ns/blog-generate ()
-  (setq ns/theme (ht-get myron-theme* :normal)) ; compat
-  (setq ns/blog-metas nil)                      ; cache bust
-  (setq ns/blog-csslinks nil)                   ; cache bust
+  (setq
+    ns/theme (ht-get myron-theme* :normal) ; compat
+    ns/blog-metas nil                      ; cache bust
+    ns/blog-csslinks nil)                  ; cache bust
 
   ;; need to define these here for index listings and rss:
-  (llet (;; don't ask about generation when exporting
-          org-confirm-babel-evaluate (fn nil))
+  (message "BLOG: making pages!")
 
-    (message "BLOG: making pages!")
-    (llet [;; metas (ns/blog-changed-files-metas)
-            metas (ns/blog-get-metas)]
-      ;; todo here: check conflicting html-dest
-      (-map #'ns/blog-publish-meta metas))
+  (llet (;; don't ask about generation when exporting
+          org-confirm-babel-evaluate (fn nil)
+          ;; metas (ns/blog-changed-files-metas)
+          metas (ns/blog-get-metas)
+          )
+    ;; todo here: check conflicting html-dest
+    (-map #'ns/blog-publish-meta metas)
 
     (message "BLOG: making site rss!")
 
@@ -274,6 +241,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 (advice-add 'ns/blog-generate :around #'org-publish-ignore-mode-hooks)
 
 (defun ns/blog-make-anchors ()
+  ;; nb: this is also used in the rice.org file
   "turn headlines into anchor links within a string org-content."
   (org-ml-update-headlines 'all
     (lambda (headline)
@@ -355,25 +323,43 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
 (defun ns/blog-make-color-strip (colors &optional labels)
   (s-join "\n"
-    `(
-       "@@html: <div style='display: flex; flex-wrap: wrap; justify-content: center;'>  @@"
+    `("@@html: <div style='display: flex; flex-wrap: wrap; justify-content: center;'>  @@"
        ,@(-map
            (lambda (c)
              (ns/blog-make-color-block
                (/ 100.0 (length colors))
                (first c)
                (cdr c)))
-
            (-zip
              (-map (lambda (c)
                      (if (listp c)
                        (-map 'ct-shorten c)
                        (ct-shorten c))) colors)
              (or labels (-map (lambda (_) "") (-iota (length colors))))))
-
-       "@@html: </div>@@"
-       )))
+       "@@html: </div>@@")))
 
 (defun ns/blog-make-hsep ()
   (format "@@html:<div class=separator>@@%s@@html:</div>@@"
     "∗ ∗ ∗"))
+
+(ns/bind
+  "nq" (fn!! surf-blog-posts
+         (llet [posts (->> (f-entries (ns/blog-path "posts")
+                             (-partial 's-ends-with-p ".org"))
+                        (reverse)
+                        (--mapcat (list (or (ht-get (ns/blog-get-properties (f-read it)) "title") it)
+                                    it))
+                        (apply '-ht))]
+           (find-file (ht-get posts (ns/pick (ht-keys posts))))))
+
+  "nQ" (fn!! surf-blog-posts-draft
+         (llet [posts (->> (f-entries (ns/blog-path "posts")
+                             (-partial 's-ends-with-p ".org"))
+                        (reverse)
+                        (--keep (llet [props (ns/blog-get-properties (f-read it))]
+                                  (when (ht-get props "draft")
+                                    (list (or (ht-get props "title") it) it))))
+                        (-flatten)
+                        (apply '-ht))]
+           (find-file (ht-get posts (ns/pick (ht-keys posts)))))))
+
