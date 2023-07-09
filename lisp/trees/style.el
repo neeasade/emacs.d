@@ -143,6 +143,7 @@
 
   (ns/face 'italic :slant 'italic)
   (ns/face 'bold :weight 'bold)
+  (ns/face 'region :slant 'unspecified)
 
   ;; todo: these should probably move into the theme
   (ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)

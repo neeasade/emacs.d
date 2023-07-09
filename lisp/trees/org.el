@@ -400,6 +400,7 @@
   (ns/use flyspell-correct-avy-menu
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
 
+    ;; todo: I think think this should include a "jump to next spelling err as well"
     (defun! ns/spellcheck-at-point ()
       (when-not (and (boundp 'flyspell-mode)
                   flyspell-mode)

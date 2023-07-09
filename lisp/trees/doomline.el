@@ -14,10 +14,10 @@
   :box nil)
 
 (ns/face 'mode-line-inactive :foreground (myron-get :faded :weak))
+(ns/face 'mode-line-inactive :background (myron-get :background :weak))
 
 (ns/face '(doom-modeline-buffer-file doom-modeline-buffer-modified)
   :foreground (myron-get :foreground :weak))
-
 
 (when (eq 'myron-kobo (first custom-enabled-themes))
   ;; swap

@@ -149,7 +149,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
         (message "BLOG: making %s " path)
         (insert (ns/blog-render-org org-meta))
         (ns/blog-make-anchors)
-        ;; (org-export-to-file 'html html-dest)
+        (org-export-to-file 'html html-dest)
         ))))
 
 ;; idea: auto refresh on save or on change might be nice

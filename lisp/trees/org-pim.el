@@ -154,10 +154,10 @@ called with symbols or quoted lambdas to filter results."
                                       0)))
       (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
         (goto-char (nth (+ 1 current-match) points))
-        (goto-char (first points))
+        ;; (goto-char (first points))
         ;; unsure why I did this 
-        ;; (goto-char (or (first (-filter (-partial '< (point)) points))
-        ;;              (first points)))
+        (goto-char (or (first (-filter (-partial '< (point)) points))
+                     (first points)))
         )
       (ns/org-jump-to-element-content))))
 
@@ -188,7 +188,7 @@ called with symbols or quoted lambdas to filter results."
 
   (ns/org-rotate
     (->> (ns/get-notes-nodes 'ns/org-scheduled-past-todo 'ns/org-scheduled-today)
-      (-sort 'ns/org-outdated-sort-node)
+      ;; (-sort 'ns/org-outdated-sort-node)
       (-map (-partial 'org-ml-get-property :begin)))))
 
 (defun! ns/org-rotate-captures ()
