@@ -55,7 +55,7 @@
                                    '(save mode-enabled idle-change new-line))
 
       idle-change-delay 1
-      global-modes '(not circe-channel-mode circe-query-mode)
+      global-modes '(not circe-channel-mode circe-query-mode emacs-lisp-mode)
       ))
 
   ;; disable jshint since we prefer eslint checking
@@ -561,12 +561,21 @@
 (ns/defconfig rice-integrations
   (defun ns/make-border-color (c)
     "pass in myron theme label to get a border-style version of it"
-    (--> (myron-get c)
+    (--> c
       (ct-iterate it 'ct-pastel
         (lambda (c)
           (> (ct-distance it c) 20)))
       (ct-iterate it 'ct-edit-lab-l-inc
         (lambda (c) (ct-is-light-p c 75)))))
+
+  (defun ns/set-btag-colors ()
+    (->> (if (eq 'myron-kobo (first custom-enabled-themes))
+           (list "#c6007f" "#007c00" "#0065c8" "#6a6d6e") ; from mcfay
+           (-map 'myron-get (list :primary :strings :assumed :faded)))
+      (-map 'ns/make-border-color)
+      (--map (substring it 1))
+      (-map-indexed (lambda (i c) (sh (format "btags set ^%s color %s" (+ 1 i) c)))))
+    nil)
 
   (ns/bind "iq" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
   (ns/bind "it"

@@ -25,7 +25,7 @@
 (setq ns/blog-title "𝚂𝚃𝚇")
 
 (defun ns/blog-path (ext)
-  (format (~ "git/neeasade.github.io/%s") ext))
+  (format (~ "code/neeasade.github.io/%s") ext))
 
 (defun ns/mustache (text table)
   "Basic mustache templating."
@@ -268,7 +268,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
 (defun! ns/blog-new-post ()
   (let* ((title (read-from-minibuffer "new blog post title: "))
-          (file (format (~ "git/neeasade.github.io/posts/%s.org")
+          (file (format (~ "code/neeasade.github.io/posts/%s.org")
                   (s-replace " " "-" title))))
     (find-file file)
     (insert (format "

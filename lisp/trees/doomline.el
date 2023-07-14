@@ -13,8 +13,14 @@
   :height (face-attribute 'default :height)
   :box nil)
 
-(ns/face 'mode-line-inactive :foreground (myron-get :faded :weak))
-(ns/face 'mode-line-inactive :background (myron-get :background :weak))
+(ns/face 'mode-line-inactive
+  :foreground (myron-get :faded :weak)
+  :background (myron-get :background :weak))
+
+(ns/face '(window-divider
+            window-divider-first-pixel
+            window-divider-last-pixel)
+  :foreground (myron-get :background :weak))
 
 (ns/face '(doom-modeline-buffer-file doom-modeline-buffer-modified)
   :foreground (myron-get :foreground :weak))
