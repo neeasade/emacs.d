@@ -331,12 +331,13 @@
 
 (ns/use persist
   (defmacro ns/persist (symbol &optional initial)
+    "Persist symbol between emacs sessions"
+    ;; ensure the cache dir exists (upstream bug)
+    (f-mkdir-full-path (f-parent (persist--file-location symbol)))
     `(persist-defvar ,symbol ,initial
        ,(format "docstring value for %s" symbol)))
 
   ;; the default is to only persist on quit
-  ;; todo: this doesn't work with identifiers that have a slash?
-  ;; sometimes I find the ns dir empty
   (named-timer-idle-run :persist-save (* 60 5) t 'persist--save-all))
 
 (defun ns/face (faces &rest kvs)
