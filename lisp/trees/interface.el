@@ -88,7 +88,13 @@
       (message "no urls!"))))
 
 (ns/use (deadgrep :host github :repo "Wilfred/deadgrep")
-  (setq deadgrep-max-line-length 180))
+  (setq deadgrep-max-line-length 180)
+
+  (defun deadgrep--include-args (rg-args)
+    (push "--hidden" rg-args) ;; consider hidden folders/files
+    (push "--follow" rg-args)) ;; follow symlink
+
+  (advice-add 'deadgrep--arguments :filter-return #'deadgrep--include-args))
 
 (ns/bind
   "SPC" (fn!! (execute-extended-command nil))

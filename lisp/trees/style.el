@@ -176,6 +176,10 @@
               (funcall-interactively <>)))
     '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc ns/style-terminal))
 
+  (f-mkdir-full-path (~ ".cache/rice/"))
+  (spit (~ ".cache/rice/emacs-theme-cache")
+    (ns/emacs-to-theme))
+
   (when (and (called-interactively-p 'any)
           ns/enable-home-p)
     (sh-toss "ltheme wm")

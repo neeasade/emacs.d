@@ -560,7 +560,6 @@
 
 (ns/defconfig rice-integrations
   (defun ns/make-border-color (c)
-    "pass in myron theme label to get a border-style version of it"
     (--> c
       (ct-iterate it 'ct-pastel
         (lambda (c)
