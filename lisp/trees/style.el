@@ -134,10 +134,10 @@
     (--remove (s-starts-with-p "magit" (ns/str it)))
     (--map (ns/face it
              ;; :weight 'normal
-             :weight (if (or (eq (face-attribute it :weight) 'unspecified)
-                           (not (face-attribute it :weight)))
-                       'unspecified 'normal)
-             :slant 'normal
+             :weight (llet [already-unspecified? (or (eq (face-attribute it :weight) 'unspecified)
+                                                   (not (face-attribute it :weight)))]
+                       (if already-unspecified? 'unspecified 'normal))
+             ;; :slant 'normal
              ;; :underline nil
              )))
 
