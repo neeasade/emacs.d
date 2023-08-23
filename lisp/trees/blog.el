@@ -344,8 +344,10 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
 (ns/bind
   "nq" (fn!! surf-blog-posts
-         (llet [posts (->> (f-entries (ns/blog-path "posts")
-                             (-partial 's-ends-with-p ".org"))
+         (llet [posts (->>
+                        (f-entries (ns/blog-path "posts")
+                          (-partial 's-ends-with-p ".org"))
+                        (--remove (s-starts-with? ".#" (f-base it)))
                         (reverse)
                         (--mapcat (list (or (ht-get (ns/blog-get-properties (f-read it)) "title") it)
                                     it))
@@ -363,3 +365,8 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                         (apply '-ht))]
            (find-file (ht-get posts (ns/pick (ht-keys posts)))))))
 
+;; for demo theme post
+(defun myron-cache-get (theme-name label &optional emphasis)
+  (llet [theme (plist-get myron--cache theme-name)]
+    (or (ht-get* theme (or emphasis :normal) label)
+      (when (not emphasis) (ht-get* theme :meta label)))))

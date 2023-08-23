@@ -588,18 +588,7 @@
   (defalias 'evil-window-north 'evil-window-up)
   (defalias 'evil-window-south 'evil-window-down)
   (defalias 'evil-window-east 'evil-window-right)
-  (defalias 'evil-window-west 'evil-window-left)
-
-  ;; todo: delete these, check usage of the greaten/lessen scripts in dotfiles
-  (defun ct-greaten (c &optional percent)
-    "Make a light color C lighter, a dark color C darker (by PERCENT)."
-    (ct-edit-lab-l-inc c
-      (* percent (if (ct-light-p c) 1 -1))))
-
-  (defun ct-lessen (c &optional percent)
-    "Make a light color C darker, a dark color C lighter (by PERCENT)."
-    (ct-edit-lab-l-inc c
-      (* percent (if (ct-light-p c) -1 1)))))
+  (defalias 'evil-window-west 'evil-window-left))
 
 (ns/defconfig macos-integrations
   (defun! ns/toggle-music-play ()

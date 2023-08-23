@@ -89,7 +89,11 @@
   ;; doing a batch job, eval some lisp, message the result
   (progn
     (ns/conf-scripting)
-    (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
+
+    (let ((result (-> "NS_EMACS_BATCH" getenv read eval pr-str)))
+      (message "COOL_DELIMITER")
+      (message result))
+
     ;; (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
     (kill-emacs))
 

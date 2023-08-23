@@ -179,9 +179,6 @@
               (* 5 60))
         (garbage-collect)
 
-        (when (not (ns/media-playing-p))
-          (ns/org-clock-out))
-
         ;; auto revert any who have changed on disk
         (auto-revert-buffers)
 
