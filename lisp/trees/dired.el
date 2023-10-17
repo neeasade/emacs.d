@@ -44,6 +44,7 @@
                     (sh-toss))
                   ;; (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode))
                   )
+  (kbd "C-<return>") 'ia/xdg-open
 
   "s" (fn!! dired-shell
         (let ((existing-shell

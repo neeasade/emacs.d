@@ -21,7 +21,8 @@
 ;; sync from the pov of the current file
 (ns/use direnv)
 
-(ns/use git-link (setq git-link-open-in-browser t))
+(ns/use git-link (setq git-link-open-in-browser t)
+  (ns/bind "ng" 'git-link))
 
 ;; this seems to be a little nicer:
 ;; (ns/use browse-at-remote)
@@ -44,8 +45,6 @@
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
-
-
 
 (defalias 'byte-run--set-speed
   #'(lambda (f _args val)
@@ -104,7 +103,6 @@
 
 ;; (frog-menu-type)
 
-;; todo: spc n g -> browse git repo
 ;; want a shortcut to open:
 ;; associated PR
 ;; or just git repo generally

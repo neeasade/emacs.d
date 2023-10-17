@@ -4,7 +4,9 @@
   "30 sec"
   60
   (fn (when (> (org-user-idle-seconds)
-              (* 10 60))
+              ;; 1 hour
+              ;; the long time is because we'll use this for measuring pomodoros on anothre computer/kvm style
+              (* 60 60))
         (when (not (ns/media-playing-p))
           (ns/org-clock-out))
 
@@ -131,17 +133,13 @@ called with symbols or quoted lambdas to filter results."
                  (ns/get-notes-nodes 'ns/org-match-scheduled-today-after-now))
           next-headline (first nodes)]
 
-    ;; to see everything scheduled ahead of time today:
-    ;; (--map (-> it org-ml-headline-get-path -last-item) nodes)
-
-    (when (ts-in (ts-now)
-            (ts-adjust 'hour +1 (ts-now))
-            (ns/headline-date next-headline))
-      (format "%s in %im"
-        (-> next-headline org-ml-headline-get-path -last-item)
-        (/ (- (ts-unix (ns/headline-date next-headline))
-             (ts-unix (ts-now)))
-          60)))))
+    (-when-let (next-ts (ns/headline-date next-headline))
+      (when (ts-in (ts-now) (ts-adjust 'hour +1 (ts-now)) next-ts)
+        (format "%s in %im"
+          (-> next-headline org-ml-headline-get-path -last-item)
+          (/ (- (ts-unix next-ts)
+               (ts-unix (ts-now)))
+            60))))))
 
 (defun ns/org-rotate (points)
   "Rotate through org headings by points. Assumes you are already in an org file with said headings"
@@ -242,6 +240,7 @@ called with symbols or quoted lambdas to filter results."
     (org-get-outline-path)
     (s-clean (org-get-heading))))
 
+;; todo make ~10 min reminder if wandering that says hey btw you have outdated tasks
 (named-timer-run :harass-myself
   t
   20

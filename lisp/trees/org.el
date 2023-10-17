@@ -174,7 +174,6 @@
     (ns/toggle-music-play)
 
     (when ns/enable-home-p
-      (sh-toss "dunstctl set-paused true")
       (sh-toss "panelt stop")
 
       (spit (~ ".config/qutebrowser/adblock.txt")
@@ -190,7 +189,6 @@
       (ns/toggle-music-pause)
 
       (when ns/enable-home-p
-        (sh-toss "dunstctl set-paused false")
         (sh-toss "panelt start"))
 
       (spit (~ ".config/qutebrowser/adblock.txt") "")

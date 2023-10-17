@@ -55,6 +55,10 @@
     (* 0.70)
     (floor)))
 
+(llet [eight-gb 8000000000]
+  (when (> gc-cons-threshold eight-gb)
+    (setq gc-cons-threshold eight-gb)))
+
 ;; trim gui
 (menu-bar-mode -1)
 (tool-bar-mode -1)

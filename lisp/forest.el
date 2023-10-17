@@ -568,7 +568,7 @@
         (lambda (c) (ct-is-light-p c 75)))))
 
   (defun ns/set-btag-colors ()
-    (->> (if (eq 'myron-kobo (first custom-enabled-themes))
+    (->> (if (-contains-p '(myron-kobo myron-grayscale) (first custom-enabled-themes))
            (list "#c6007f" "#007c00" "#0065c8" "#6a6d6e") ; from mcfay
            (-map 'myron-get (list :primary :strings :assumed :faded)))
       (-map 'ns/make-border-color)

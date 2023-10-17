@@ -67,7 +67,8 @@
                  (->> ns/cd-dirs
                    (-uniq)
                    (-filter (fn (s-equals-p (file-remote-p <>)
-                                  (file-remote-p default-directory))))))]
+                                  (file-remote-p default-directory))))
+                   (-filter 'f-exists-p)))]
       (if-not (eq major-mode 'shell-mode)
         (dired dir)
         (progn
