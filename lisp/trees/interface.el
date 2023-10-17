@@ -32,17 +32,17 @@
 
 (defun! ns/jump-config ()
   (llet [f (ns/pick "config" (ns/get-functions))]
-    (cond
-      ((string= "dirt" f) (ns/find-or-open (~e "lisp/dirt.el")))
-      ((string= "forest" f) (ns/find-or-open (~e "lisp/forest.el")))
-      ((string= "init" f) (ns/find-or-open (~e "init.el")))
-      ((string= "follow-dwim" f) (ns/find-or-open (~e "lisp/trees/follow.el")))
-      ((f-exists-p (format (~e "lisp/trees/%s.el") f))
-        (ns/find-or-open (format (~e "lisp/trees/%s.el") f)))
-      (t
-        (ns/find-or-open (~e "lisp/forest.el"))
-        (goto-char (point-min))
-        (re-search-forward (format "defconfig %s" f)))))
+    (condp string= f
+      "dirt" (ns/find-or-open (~e "lisp/dirt.el"))
+      "forest" (ns/find-or-open (~e "lisp/forest.el"))
+      "init" (ns/find-or-open (~e "init.el"))
+      "follow-dwim" (ns/find-or-open (~e "lisp/trees/follow.el"))
+      (if (f-exists-p (format (~e "lisp/trees/%s.el") f))
+        (ns/find-or-open (format (~e "lisp/trees/%s.el") f))
+        (progn
+          (ns/find-or-open (~e "lisp/forest.el"))
+          (goto-char (point-min))
+          (re-search-forward (format "defconfig %s" f))))))
   (recenter))
 
 (defun ns/what-face (&optional point)

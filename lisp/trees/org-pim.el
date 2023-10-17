@@ -4,15 +4,14 @@
   "30 sec"
   60
   (fn (when (> (org-user-idle-seconds)
-              ;; 1 hour
               ;; the long time is because we'll use this for measuring pomodoros on anothre computer/kvm style
-              (* 60 60))
+              (ns/t 1h))
         (when (not (ns/media-playing-p))
           (ns/org-clock-out))
 
         ;; assume we are on a hanging clock
         (when (> (org-user-idle-seconds)
-                (* 60 60 5))
+                (ns/t 5h))
           (ns/org-clock-out)))))
 
 (defun ns/get-notes-nodes (&rest filters)
@@ -111,7 +110,7 @@ called with symbols or quoted lambdas to filter results."
 
 ;; lazy
 (defun ns/org-notify-reset () (setq ns/org-notify-ht (ht)))
-(named-timer-run :org-notify-scheduled-reset t (* 60 60 24) 'ns/org-notify-reset)
+(named-timer-run :org-notify-scheduled-reset t (ns/t 1d) 'ns/org-notify-reset)
 
 (defun ns/org-status-outdated ()
   (when-not (and (boundp 'org-pomodoro-state)
@@ -240,25 +239,38 @@ called with symbols or quoted lambdas to filter results."
     (org-get-outline-path)
     (s-clean (org-get-heading))))
 
+(defun ns/org-pim-wandering?
+  (llet [pomo-break? (-contains-p '(:short-break :long-break) org-pomodoro-state)
+          org-recently-clocked-out? (< (- (ts-unix (ts-now))
+                                         (if org-clock-out-time
+                                           (time-to-seconds org-clock-out-time)
+                                           10000
+                                           ))
+                                      120)
+          idle? (> (org-user-idle-seconds) 20)]
+    (-all-p 'null (list idle? pomo-break? org-recently-clocked-out? (org-clocking-p)))))
+
 ;; todo make ~10 min reminder if wandering that says hey btw you have outdated tasks
+
 (named-timer-run :harass-myself
-  t
-  20
-  (fn (llet [pomo-break? (-contains-p '(:short-break :long-break) org-pomodoro-state)
-              org-recently-clocked-out? (< (- (ts-unix (ts-now))
-                                             (if org-clock-out-time
-                                               (time-to-seconds org-clock-out-time)
-                                               10000))
-                                          120)
-              idle? (> (org-user-idle-seconds) 20)
-              wandering? (-all-p 'null (list idle? pomo-break? org-recently-clocked-out? (org-clocking-p)))]
-        (when wandering?
-          (alert! (format "Hey! you should be clocked into something. %s"
-                    (if ns/enable-linux-p (random) ""))
-            :severity 'normal
-            :title "BE INTENTIONAL")))))
+  t 20
+  (fn (when (ns/org-pim-wandering?)
+        (alert! (format "Hey! you should be clocked into something. %s"
+                  (if ns/enable-linux-p (random) ""))
+          :severity 'normal
+          :title "BE INTENTIONAL"))))
 
 (named-timer-cancel :harass-myself)
+
+(ns/comment
+  (named-timer-run :outdated-task-nudge
+    t
+    (ns/t 10m)
+    (fn (when (ns/org-pim-wandering?)
+          ns/org-status-outdated
+          (alert! (ns/org-status-outdated)
+            :severity 'normal
+            :title "Outstanding tasks")))))
 
 ;; don't prompt when idle more than x minutes -- we auto-clock out
 (setq org-clock-idle-time nil)

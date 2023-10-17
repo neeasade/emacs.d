@@ -84,6 +84,7 @@
 (require 'seq)
 (require 'cl-macs)
 (require 'cl-seq)
+(require 'cl-lib)
 
 (ns/use named-timer)
 
@@ -321,13 +322,46 @@
 (defun spit (f content)
   (f-write content 'utf-8 f))
 
-(defun ns/str (val)
+(defun ns/str (&rest vals)
   "Coerce VAL to string. nil is empty string."
-  (cond
-    ((stringp val) val)
-    ((keywordp val) (substring (pr-str val) 1))
-    ((bufferp val) (buffer-name val))
-    (t (pr-str val))))
+  (s-join ""
+    (-map (lambda (val)
+            (cond
+              ((stringp val) val)
+              ((keywordp val) (substring (pr-str val) 1))
+              ((bufferp val) (buffer-name val))
+              ;; ((listp val) (ns/make-lines val))
+              ;; ((numberp val) (number-to-string val))
+              ((eq val nil) "")
+              (t (pr-str val))))        ; ?
+      vals)))
+
+(defmacro condp (pred expr &rest clauses)
+  `(cond
+     ,@(-map (-lambda ((p1 p2))
+               `((,pred ,expr ,p1) ,p2))
+         (-partition 2 clauses))
+     (t ,(when (cl-oddp (length clauses))
+           (-last-item clauses)))))
+
+(defmacro ns/t (time-in)
+  "Get value as seconds Such as: 30m, 2h45m, 2d, 10s"
+  (->> (ns/str time-in)
+    (s-match-strings-all (pcre-to-elisp "(([^0-9]|^)([0-9]+)([a-zA-Z]{1}))+"))
+    (-map (-lambda ((_ _ _ count type))
+            (llet [count (string-to-number count)
+                    type (string-to-char type)]
+              (* count (condp = type
+                         ?s 1
+                         ?m 60
+                         ?h (* 60 60)
+                         ?d (* 60 60 24))))))
+    (apply '+)))
+
+(ns/comment
+  (ns/t 10m)   ;; => 600
+  (ns/t 1d)    ;; => 86400
+  (ns/t 1h30m)) ;; => 5400
 
 (ns/use persist
   (defmacro ns/persist (symbol &optional initial)
@@ -358,6 +392,30 @@
 
 ;; trying terminal
 (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
+
+;; in anticipation of it existing one day
+;; https://github.com/magnars/dash.el/pull/404
+(when-not (fboundp '-shuffle)
+  (defun -to-head (n list)
+    "Return a new list that move the element at Nth to the head of old LIST."
+    (declare (pure t) (side-effect-free t))
+    (if (> n (1- (length list)))
+      (error "Index %d out of the range of list %S" n list))
+    (let* ((head (-take n list))
+            (rest (-drop n list))
+            (target (pop rest)))
+      (cons target (nconc head rest))))
+
+  (defun -shuffle (list &optional rng)
+    "Return a new shuffled LIST, shuffling using RNG. "
+    (declare (pure t) (side-effect-free t))
+    (let* ((len (length list))
+            (random-nums (-map (or rng #'random) (number-sequence len 1 -1)))
+            result)
+      (--each random-nums
+        (setq list (-to-head it list))
+        (push (pop list) result))
+      (nreverse result))))
 
 (when-not window-system
   (setq kitty-kbp-modifiers-alist

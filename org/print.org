@@ -1,0 +1,19 @@
+# #+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+# #+LATEX_HEADER: \usepackage[margin=0.75in]{geometry}
+#+LATEX_HEADER: \usepackage[margin=0.5in]{geometry}
+#+LATEX_HEADER: \renewcommand\labelitemi{{\boldmath$\cdot$}}
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setitemize{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+#+LATEX_HEADER: \pagenumbering{gobble}
+
+#+latex_header: \usepackage{setspace}
+# #+latex_header: \onehalfspacing
+
+#+LATEX_HEADER: \usepackage{parskip}
+#+LATEX_HEADER: \setlength{\parindent}{12pt}
+
+# font:
+#+LATEX_HEADER: \usepackage{times}
+#+LATEX_HEADER: \usepackage[fontsize=12pt]{scrextend}
+
+{{content}}

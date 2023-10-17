@@ -111,7 +111,7 @@
 (setq recentf-max-saved-items 1000)
 
 (named-timer-run :sync-recentf-list
-  t (* 5 60)
+  t (ns/t 5m)
   (fn (when
         ;; don't interrupt me.
         ;; recentf-list normally syncs on a graceful exit, but we don't always have that luxury
@@ -178,9 +178,9 @@
   ;; run the first time in 30 seconds
   ;; relative times are.. strings? cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Timers.html
   "30 sec"
-  (* 5 60)
+  (ns/t 5m)
   (fn (when (> (org-user-idle-seconds)
-              (* 5 60))
+              (ns/t 5m))
         (garbage-collect)
 
         ;; auto revert any who have changed on disk

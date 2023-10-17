@@ -29,7 +29,7 @@
 
 ;; (named-timer-run :show-periodic-reminder
 ;;   t
-;;   (* 60 60 2)
+;;   (ns/t 2h)
 ;;   (fn
 ;;     (when (< (second (current-idle-time)) 120)
 ;;       (alert (let ((reminders
