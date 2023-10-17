@@ -239,7 +239,7 @@ called with symbols or quoted lambdas to filter results."
     (org-get-outline-path)
     (s-clean (org-get-heading))))
 
-(defun ns/org-pim-wandering?
+(defun ns/org-pim-wandering? ()
   (llet [pomo-break? (-contains-p '(:short-break :long-break) org-pomodoro-state)
           org-recently-clocked-out? (< (- (ts-unix (ts-now))
                                          (if org-clock-out-time
