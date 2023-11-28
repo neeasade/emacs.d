@@ -597,8 +597,6 @@
     (setq ns/macos-vol (sh "macos-vol get"))
     (sh "macos-vol setvol 0"))
 
-  (ns/frame-set-parameter 'inhibit-double-buffering t)
-
   ;; adding the (t . emacs) so we don't open in textedit and stuff when using ns/follow
   (setq org-file-apps
     '((auto-mode . emacs)

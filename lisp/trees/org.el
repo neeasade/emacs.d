@@ -410,6 +410,7 @@
     (general-nmap "gs" 'ns/spellcheck-at-point)))
 
 (defun ns/org-mode-hook ()
+  (interactive)
   (ns/set-buffer-face-variable)
   (olivetti-mode)
   (git-gutter-mode 0)
@@ -517,11 +518,10 @@
   "oI" 'ns/org-clock-out
 
   "no" (fn!! org-ql-notes
-         (let ((completing-read-function #'completing-read-default))
-           (org-ql-find
-             (if (eq 'org-mode major-mode)
-               (list org-default-notes-file (current-buffer))
-               org-default-notes-file)))))
+         (org-ql-find
+           (-concat org-agenda-files
+             (when (eq 'org-mode major-mode)
+               (buffer-file-name (current-buffer)))))))
 
 (ns/bind-mode 'org
   "or" (fn!! refile-headline-or-region

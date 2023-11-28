@@ -95,6 +95,11 @@
 
 (defun ns/style-terminal ()
   (when-not window-system
+    ;; bold monospace headings in org look gross
+    (->> (face-list)
+      (--filter (s-starts-with-p "org" (ns/str it)))
+      (--map (ns/face it :weight 'normal)))
+
     (ns/use evil-terminal-cursor-changer
       
       (defun etcc--in-xterm? ()

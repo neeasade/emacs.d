@@ -17,7 +17,7 @@
   "Get all the defconfig entries in the forest."
   (->> (~e "lisp/forest.el")
     f-read
-    (s-match-strings-all  "^(ns/defconfig [^ \(\)]+")
+    (s-match-strings-all "^(ns/defconfig [^ \(\)]+")
     (mapcar (fn (->> (car <>) (s-chop-prefix "(ns/defconfig ") (s-chomp))))
     (append '("dirt" "init" "forest"))))
 

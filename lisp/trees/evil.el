@@ -190,8 +190,9 @@
   "]s" 'flyspell-goto-next-error
   "s" 'avy-goto-char-timer)
 
-;; break a bad habit by nop'ing :b
-(evil-ex-define-cmd "b" nil)
+;; break a bad habit by nop'ing :b - we have a mapping to "bb" elsewhere
+;; update: habit broken, but occasionally still a legit need for this
+;; (evil-ex-define-cmd "b" nil)
 
 (ns/use better-jumper
   (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)

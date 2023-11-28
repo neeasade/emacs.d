@@ -46,10 +46,12 @@
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
 
-(defalias 'byte-run--set-speed
-  #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-        ''speed (list 'quote val))))
+;; for emacs <28 org-ql
+(when-not (fboundp 'byte-run--set-speed)
+  (defalias 'byte-run--set-speed
+    #'(lambda (f _args val)
+        (list 'function-put (list 'quote f)
+          ''speed (list 'quote val)))))
 
 (ns/use org-ql)
 
@@ -60,12 +62,15 @@
 (when ns/enable-work-p
   ;; somehow initialize is broken in macos at the moment
   (setq exec-path
-    (->> (exec-path-from-shell-initialize)
-      (second)
-      (cdr)
-      (s-split ":")
-      (cons (~ ".nix-profile/bin/"))
-      (cons "/run/current-system/sw/bin"))))
+    (--> (exec-path-from-shell-initialize)
+      (second it)
+      (cdr it)
+      (s-split ":" it)
+      (-snoc it (~ ".nix-profile/bin/"))
+      (-snoc it "/run/current-system/sw/bin")))
+
+
+  (setenv "PATH" (s-join ":" exec-path)))
 
 ;; (ns/use frog-jump-buffer
 ;;   
@@ -189,6 +194,17 @@
          ret ,sexp
          ,@(-interleave syms syms-old))
        ret)))
+
+;; 10x the default, enable fat copy
+(setq xterm-max-cut-length (* 10 100000))
+
+(ns/use (kkp :host github :repo "benjaminor/kkp")
+  (when-not window-system
+    (global-kkp-mode +1)))
+
+;; idea: a function for jumping to shell-modes with cwd (ie find where a lein run or docker something is held etc)
+
+;; todo: revert all file buffers interactive fn
 
 (provide 'staging)
 ;;; staging.el ends here
