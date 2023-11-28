@@ -2,6 +2,17 @@
 
 (global-set-key (kbd "C-e") 'previous-line)
 
+(defun ns/find-files (prompt files)
+  "Light wrapper around consult read with file set (history based on prompt)"
+  (find-file
+    (consult--read files
+      :prompt (format "%s: " prompt)
+      :sort nil
+      :require-match t
+      :category 'file
+      :state (consult--file-preview)
+      :history 'file-name-history)))
+
 (defun ns/pick (one &optional two)
   "Pick something from a list. accepts (prompt candidates) or (candidates)"
   (llet [(prompt candidates) (if two

@@ -182,50 +182,46 @@
     (llet (sources
             (list
               ;; XXX these keys are used in dmenu_switcher
-              :buffers-without-files
-              (->> (buffer-list)
-                (--filter (not (buffer-file-name it)))
-                (--remove (eq 'dired-mode (buffer-local-value 'major-mode it)))
-                (-map 'buffer-name)
-                (-remove (-partial 's-starts-with-p "*spawn-shell-"))
-                ;; there appear to be "special buffers" in the buffers-without-files set
-                ;; using this hack to get the "right" special buffers
-                ;; (derived from the completion used for evil's :b)
-                (-intersection (internal-complete-buffer "" nil t)))
+              :buffers-without-files (fn (->> (buffer-list)
+                                           (--filter (not (buffer-file-name it)))
+                                           (--remove (eq 'dired-mode (buffer-local-value 'major-mode it)))
+                                           (-map 'buffer-name)
+                                           (-remove (-partial 's-starts-with-p "*spawn-shell-"))
+                                           ;; there appear to be "special buffers" in the buffers-without-files set
+                                           ;; using this hack to get the "right" special buffers
+                                           ;; (derived from the completion used for evil's :b)
+                                           (-intersection (internal-complete-buffer "" nil t))))
 
-              :buffers-with-files (->> (buffer-list)
-                                    (-map 'buffer-file-name)
-                                    (-remove 'not) ; remove nils
-                                    (-map #'consult--fast-abbreviate-file-name))
-
-              :project-files (-when-let (current-file-name (buffer-file-name (current-buffer)))
-                               (-map #'consult--fast-abbreviate-file-name
-                                 (ns/all-project-files (list current-file-name))))
-
+              :buffers-with-files (fn (->> (buffer-list)
+                                        (-keep 'buffer-file-name)
+                                        (-map #'consult--fast-abbreviate-file-name)))
+              :project-files (fn (-map #'consult--fast-abbreviate-file-name
+                                   (ns/all-project-files (list default-directory))))
+              :project-files-all (fn (-map #'consult--fast-abbreviate-file-name
+                                       (ns/all-project-files (list default-directory))))
               ;; (ns/get-project-files (current-file))
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/get-project-files (current-file)))
 
-              :recentf (-map #'consult--fast-abbreviate-file-name recentf-list)))
+              :recentf (fn (-map #'consult--fast-abbreviate-file-name recentf-list))))
 
       (llet [selected (or wants '(:recentf :project-files :buffers-with-files))
               results (->> selected
-                        (-map (-partial #'plist-get sources))
-                        (-flatten)
+                        (-mapcat
+                          (lambda (type) (funcall (plist-get sources type)))
+                          ;; (-partial #'plist-get sources)
+                          )
                         (-uniq)
                         (--filter
                           ;; if a file is not remote, ensure it exists
                           ;; (f-exists-p is slow on remote files)
                           (or (file-remote-p it)
                             (f-exists-p it))))]
-
         (if (-contains-p selected :buffers-without-files)
           (append results (plist-get sources :buffers-without-files))
           results))))
-
   (ns/bind
-    "ne" (fn!! surf-files (find-file (ns/pick "file" (ns/jump-file-candidates))))
-    ;; todo: fix this in dired/broken there
-    "nE" (fn!! surf-project-files (find-file (ns/pick "file" (ns/jump-file-candidates :project-files))))))
+    "ne" (fn!! surf-files (ns/find-files "file" (ns/jump-file-candidates)))
+    "nE" (fn!! surf-project-files (ns/find-files "file" (ns/jump-file-candidates :project-files)))))
 
 (ns/defconfig javascript
   ;; note: this is huge, takes a bit.
@@ -364,7 +360,7 @@
        ,(~ ".Xresources") "xrdb -merge ~/.Xresources"
        ,(~ ".Xmodmap") "xmodmap ~/.Xmodmap"
        ,(~ "bin/theme") "theme -c"
-       ;; eventually
+       ;; bit aggressive
        ;; ,@(->> (f-files (~ ".dotfiles/wm/.templates"))
        ;;     (-mapcat (fn (list <> (format "ltheme %s" (f-base <>))))))
        ))

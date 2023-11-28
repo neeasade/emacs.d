@@ -35,12 +35,9 @@
   ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
   ns/emacs-directory user-emacs-directory
 
-  ;; maybe swap these when in a terminal term
   mac-option-modifier 'meta
   mac-command-modifier 'super
-  mac-control-modifier 'control
-
-  )
+  mac-control-modifier 'control)
 
 (defmacro ns/use (pkg-def &rest body)
   "Load a PKG-DEF with straight, require it, and then eval BODY."
