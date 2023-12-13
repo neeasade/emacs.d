@@ -17,8 +17,7 @@
 
   (setq magit-refresh-status-buffer nil)
 
-  ;; don't show diff when committing --
-  ;; means reviewing will have to be purposeful before
+  ;; don't show diff when committing
   (remove-hook 'server-switch-hook 'magit-commit-diff))
 
 (ns/use (magit-todos :host github :repo "alphapapa/magit-todos")
@@ -29,7 +28,7 @@
   (evil-define-key nil magit-todos-section-map "j" nil)
   (evil-define-key nil magit-todos-section-map "e" nil)
 
-  (magit-todos-mode t))
+  (magit-todos-mode (not ns/enable-windows-p)))
 
 (defun! ns/restore-magit-layout ()
   (when ns/magit-before-display-layout
@@ -65,20 +64,6 @@
   ("u" undo-tree-undo)
   ("q" nil :exit t))
 
-;; define a minimal staging mode for when we're on windows.
-(when ns/enable-windows-p
-  ;; https://github.com/magit/magit/wiki/Tips-and-Tricks#show-staged-and-unstaged-changes-but-nothing-else
-  (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
-    "Mode for showing staged and unstaged changes."
-    :group 'magit-status)
-  (defun magit-staging-refresh-buffer ()
-    (magit-insert-section (status)
-      (magit-insert-unstaged-changes)
-      (magit-insert-staged-changes)))
-  (defun magit-staging ()
-    (interactive)
-    (magit-mode-setup #'magit-staging-mode)))
-
 (defvar ns/magit-before-display-layout nil)
 
 ;; cf https://github.com/alphapapa/unpackaged.el#improved-magit-status-command
@@ -92,7 +77,7 @@ command was called, go to its unstaged changes section."
                              (file-relative-name buffer-file-name
                                (locate-dominating-file buffer-file-name ".git"))))
           (section-ident `((file . ,buffer-file-path) (unstaged) (status))))
-    (magit-status)
+    (call-interactively #'magit-status)
     (delete-other-windows)
     (when buffer-file-path
       (goto-char (point-min))
@@ -103,8 +88,6 @@ command was called, go to its unstaged changes section."
         do (condition-case nil
              (magit-section-forward)
              (error (cl-return (magit-status-goto-initial-section-1))))))))
-
-
 
 ;; todo: tryout this package
 (ns/use vdiff)
@@ -123,8 +106,7 @@ command was called, go to its unstaged changes section."
   "gd" 'vdiff-current-file
   "gs" (fn!! git-status
          (setq ns/magit-before-display-layout (current-window-configuration))
-         (if ns/enable-windows-p (magit-staging)
-           (unpackaged/magit-status)))
+         (unpackaged/magit-status))
 
   ;; open in place
   "gS" 'magit-status)

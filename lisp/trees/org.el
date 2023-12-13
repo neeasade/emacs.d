@@ -174,7 +174,11 @@
     (ns/toggle-music-play)
 
     (when ns/enable-home-p
-      (sh-toss "panelt stop")
+      (sh-toss "pkill telegram-desktop")
+      (sh-toss "pkill signal-desktop")
+      (sh-toss "pkill Discord")
+
+      (sh-toss "bash -ic 'scu-restart panel'")
 
       (spit (~ ".config/qutebrowser/adblock.txt")
         (slurp (~ ".config/qutebrowser/adblock_bad.txt")))
@@ -189,7 +193,7 @@
       (ns/toggle-music-pause)
 
       (when ns/enable-home-p
-        (sh-toss "panelt start"))
+        (sh-toss "bash -ic 'scu-restart panel'"))
 
       (spit (~ ".config/qutebrowser/adblock.txt") "")
       (sh-toss "qb_command :adblock-update")))
@@ -199,8 +203,12 @@
   (add-hook 'org-pomodoro-finished-hook 'ns/focus-mode-quit)
   (add-hook 'org-pomodoro-killed-hook 'ns/focus-mode-quit)
 
-  (add-hook 'org-pomodoro-break-finished-hook 'ns/toggle-music-play)
-  (add-hook 'org-pomodoro-break-finished-hook 'ns/focus-mode-enter))
+  (defun ns/org-pomodoro-break-finished ()
+    ;; this seems to not always actually run (in fn 'ns/org-pomodoro-short-break)
+    (ns/toggle-music "toggle")
+    (ns/focus-mode-enter))
+
+  (add-hook 'org-pomodoro-break-finished-hook 'ns/org-pomodoro-break-finished))
 
 (defun ns/org-jump-to-element-content ()
   "Jump from a anywhere in a headline to the start of it's content"
@@ -521,7 +529,7 @@
          (org-ql-find
            (-concat org-agenda-files
              (when (eq 'org-mode major-mode)
-               (buffer-file-name (current-buffer)))))))
+               (list (buffer-file-name (current-buffer))))))))
 
 (ns/bind-mode 'org
   "or" (fn!! refile-headline-or-region

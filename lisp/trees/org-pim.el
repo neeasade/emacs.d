@@ -4,7 +4,7 @@
   "30 sec"
   60
   (fn (when (> (org-user-idle-seconds)
-              ;; the long time is because we'll use this for measuring pomodoros on anothre computer/kvm style
+              ;; the long time is because we'll use this for measuring pomodoros on another computer/kvm style
               (ns/t 1h))
         (when (not (ns/media-playing-p))
           (ns/org-clock-out))
@@ -122,7 +122,7 @@ called with symbols or quoted lambdas to filter results."
       (when (> count 0)
         (if (= count 1)
           (format "on deck: %s" outdated-next)
-          (format "[%s]on deck: %s" (make-string count ?!) outdated-next))))))
+          (format "[%s]on deck: %s" (make-string count ?@) outdated-next))))))
 
 (defun ns/org-status-scheduled ()
   (llet [nodes (-sort
@@ -160,7 +160,7 @@ called with symbols or quoted lambdas to filter results."
 
 (defun ns/org-outdated-sort-node (&rest headlines)
   (llet [(h1 h2) headlines
-          (p1 p2) (--map (or (org-ml-get-property :priority it) 0) headlines)
+          (p1 p2) (--map (or (org-ml-get-property :priority it) 1000) headlines)
           (d1 d2) (-map 'ns/headline-date headlines)
           ;; is it a habit?
           (h1 h2) (--map (-some->> it
@@ -170,7 +170,7 @@ called with symbols or quoted lambdas to filter results."
                            (s-contains-p "+"))
                     headlines)]
     (cond
-      ((not (= p1 p2)) (if (> p1 p2) t nil))
+      ((not (= p1 p2)) (if (< p1 p2) t nil))
       ((and h1 (not h2)) nil)
       ((and h2 (not h1)) t)
       ((-any 'ns/org-scheduled-today headlines)

@@ -138,8 +138,6 @@
 
 (ns/bind "tm" 'ns/toggle-modeline)
 
-(ns/conf-style)
-
 (setq undo-tree-enable-undo-in-region t)
 
 (defun! ns/straight-check-sync-status ()

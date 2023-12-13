@@ -250,11 +250,10 @@
 (named-timer-run :maybe-cleanup-shells
   t                                     ; do not run initially
   ;; once a day I suppose?
-  (* 60 60 24)
+  (ns/t 1d)
   (fn (when (> (org-user-idle-seconds)
-              (* 5 60))
+              (ns/t 5m))
         (ns/cleanup-shells))))
-
 
 (provide 'shell)
 ;;; shell.el ends here

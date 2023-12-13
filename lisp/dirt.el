@@ -308,7 +308,7 @@
   (set-text-properties 0 (length s) nil s) s)
 
 (defun -ht (&rest kvs)
-  "A builder for ht.el without pairs"
+  "A builder for ht.el with less parentheses"
   (llet (table (ht-create))
     (-map (-applify (-partial 'ht-set table))
       (-partition 2 kvs))
@@ -342,7 +342,7 @@
            (-last-item clauses)))))
 
 (defmacro ns/t (time-in)
-  "Get value as seconds Such as: 30m, 2h45m, 2d, 10s"
+  "Get value as seconds such as: 30m, 2h45m, 2d, 10s"
   (->> (ns/str time-in)
     (s-match-strings-all (pcre-to-elisp "(([^0-9]|^)([0-9]+)([a-zA-Z]{1}))+"))
     (-map (-lambda ((_ _ _ count type))
@@ -413,6 +413,10 @@
         (setq list (-to-head it list))
         (push (pop list) result))
       (nreverse result))))
+
+(defun ns/random-list (list)
+  "pick random item from list"
+  (first (-shuffle list)))
 
 (when-not window-system
   (setq kitty-kbp-modifiers-alist
