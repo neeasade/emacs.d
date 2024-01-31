@@ -9,6 +9,8 @@
 
 (when ns/enable-home-p (setq myron-use-cache nil))
 
+(setq myron-use-cache t)
+
 (ns/use paren-face (global-paren-face-mode))
 
 (ns/use hl-todo
@@ -101,11 +103,7 @@
       (--map (ns/face it :weight 'normal)))
 
     (ns/use evil-terminal-cursor-changer
-      
-      (defun etcc--in-xterm? ()
-        "Runing in xterm."
-        (or (string= (getenv "TERM") "xterm-kitty")
-          (getenv "XTERM_VERSION")))
+      (setq etcc-term-type-override 'kitty)
       (evil-terminal-cursor-changer-activate))
 
     (setq-default left-margin-width 1 right-margin-width 1)
@@ -147,8 +145,11 @@
              )))
 
   (ns/face 'italic :slant 'italic)
-  (ns/face 'bold :weight 'bold)
   (ns/face 'region :slant 'unspecified)
+
+  ;; turn off bold everywhere
+  ;; (ns/face 'bold :weight 'bold)
+  (ns/face 'bold :weight 'normal)
 
   ;; todo: these should probably move into the theme
   (ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)

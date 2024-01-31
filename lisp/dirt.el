@@ -323,14 +323,15 @@
   "Coerce VAL to string. nil is empty string."
   (s-join ""
     (-map (lambda (val)
-            (cond
-              ((stringp val) val)
-              ((keywordp val) (substring (pr-str val) 1))
-              ((bufferp val) (buffer-name val))
-              ;; ((listp val) (ns/make-lines val))
-              ;; ((numberp val) (number-to-string val))
-              ((eq val nil) "")
-              (t (pr-str val))))        ; ?
+            (s-clean
+              (cond
+                ((stringp val) val)
+                ((keywordp val) (substring (pr-str val) 1))
+                ((bufferp val) (buffer-name val))
+                ;; ((listp val) (ns/make-lines val))
+                ;; ((numberp val) (number-to-string val))
+                ((eq val nil) "")
+                (t (pr-str val)))))        ; ?
       vals)))
 
 (defmacro condp (pred expr &rest clauses)
@@ -369,7 +370,9 @@
        ,(format "docstring value for %s" symbol)))
 
   ;; the default is to only persist on quit
-  (named-timer-idle-run :persist-save (* 60 5) t 'persist--save-all))
+  ;; todo: does this never run? ns/dirs between sessions
+  ;; maybe idle detection is broken on mac, or the sec lockout prevents us from ever getting here
+  (named-timer-idle-run :persist-save (ns/t 4m) t 'persist--save-all))
 
 (defun ns/face (faces &rest kvs)
   (--map (apply 'set-face-attribute it nil kvs)
@@ -388,7 +391,7 @@
       (apply 'alert alert-args))))
 
 ;; trying terminal
-(add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
+;; (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
 
 ;; in anticipation of it existing one day
 ;; https://github.com/magnars/dash.el/pull/404
@@ -415,16 +418,16 @@
       (nreverse result))))
 
 (when-not window-system
-  (setq kitty-kbp-modifiers-alist
+  ;; (setq kitty-kbp-modifiers-alist
 
-    ;; original
-    ;; '((1 . shift) (2 . alt) (4 . control) (8 . super) (16 . hyper) (32 . meta))
+  ;;   ;; original
+  ;;   ;; '((1 . shift) (2 . alt) (4 . control) (8 . super) (16 . hyper) (32 . meta))
 
-    ;; swap meta and alt (get my home keyboard to work)
-    '((1 . shift) (2 . meta) (4 . control) (8 . alt) (16 . hyper) (32 . super))
-    )
-  (setq kitty-kbp-delete-backspace-workaround t)
-  (require 'term/xterm-kitty)
+  ;;   ;; swap meta and alt (get my home keyboard to work)
+  ;;   '((1 . shift) (2 . meta) (4 . control) (8 . alt) (16 . hyper) (32 . super))
+  ;;   )
+  ;; (setq kitty-kbp-delete-backspace-workaround t)
+  ;; (require 'term/xterm-kitty)
 
   ;; (defun ravi/get-rid-of-xterm-key-translations ()
   ;;   (message "Getting rid of xterm key translations")

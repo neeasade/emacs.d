@@ -31,7 +31,7 @@
 
   (magit-todos-mode t))
 
-(defun! ns/restore-magit-layout ()
+(defun! ns/restore-magit-layout (&rest args)
   (when ns/magit-before-display-layout
     (set-window-configuration ns/magit-before-display-layout)))
 

@@ -381,8 +381,9 @@
   (ns/bind "tf" 'olivetti-mode)
   (setq-default fill-column 80)
 
-  (setq olivetti-body-width 0.4)
-  (setq olivetti-body-width nil)
+  (setq olivetti-body-width .4)
+
+  ;; (setq olivetti-body-width nil)
 
   ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
   ;; There is no need for "^" as the regexp is matched at the beginning of line.

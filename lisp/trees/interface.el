@@ -139,17 +139,19 @@
 (when-not window-system
   ;; (when running in a terminal)
 
-  ;; this doesn't work in kitty (might be related to new esc code things)
-  (comment (xterm-mouse-mode 1))
+  (xterm-mouse-mode 1)
   ;; (xterm-mouse-mode nil)
 
   ;; these don't appear to be adding anything
-  ;; (ns/use xclip (xclip-mode nil))
-  ;; (ns/use clipetty (global-clipetty-mode t))
+  (ns/use xclip
+    ;; fucking hate modes that do -t instead of nil punning
+    (xclip-mode -1))
+
+  (ns/use clipetty (global-clipetty-mode t))
 
   ;; C-i and <tab> are equivalent in the terminal
   ;; (until kitty saves us all)
   (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
+  (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
 
-  (define-key evil-motion-state-map (kbd "C-i")
-    'better-jumper-jump-forward))
+  )

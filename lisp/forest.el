@@ -118,6 +118,8 @@
   (ns/use clojure-mode)
   (ns/use cider)
 
+  (setq lisp-indent-offset nil)
+
   ;; (ns/use clj-refactor)
 
   (setq cider-eval-result-duration 20)
@@ -206,10 +208,7 @@
 
       (llet [selected (or wants '(:recentf :project-files :buffers-with-files))
               results (->> selected
-                        (-mapcat
-                          (lambda (type) (funcall (plist-get sources type)))
-                          ;; (-partial #'plist-get sources)
-                          )
+                        (-mapcat (lambda (type) (funcall (plist-get sources type))))
                         (-uniq)
                         (--filter
                           ;; if a file is not remote, ensure it exists
@@ -221,6 +220,7 @@
           results))))
   (ns/bind
     "ne" (fn!! surf-files (ns/find-files "file" (ns/jump-file-candidates)))
+    ;; todo: nE should not include dired
     "nE" (fn!! surf-project-files (ns/find-files "file" (ns/jump-file-candidates :project-files)))))
 
 (ns/defconfig javascript
@@ -614,11 +614,11 @@
 (ns/defconfig minor-langs
   ;; pulling in these modes for syntax highlighting basically
   ;; they get grouped in a defconfig b/c minor/stable
-  (ns/use nix-mode)
+  ;; (ns/use nix-mode)
   (ns/use powershell)
   (ns/use terraform-mode)
   (ns/use yaml-mode)
-  (ns/use ahk-mode) ; autohotkey
+  (ns/use ahk-mode)                     ; autohotkey
   (ns/use dockerfile-mode))
 
 ;; big bois

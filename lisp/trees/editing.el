@@ -159,7 +159,8 @@
 (ns/use aggressive-indent)
 
 (defun! ns/lisp-editing-init ()
-  (aggressive-indent-mode)
+  (when (eq major-mode 'emacs-lisp-mode)
+    (aggressive-indent-mode))
   (lispy-mode)
   (lispyville-mode))
 

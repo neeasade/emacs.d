@@ -137,12 +137,13 @@
       (select-frame (make-frame))
       (ns/pickup-shell cwd t))
 
-    (when (xterm-kitty-in-use)
-      ;; cf https://sw.kovidgoyal.net/kitty/remote-control/#kitty-launch
-      ;; lags really bad after window creation
-      ;; (kitty-rc-posted-command "launch" `(("type" . "os-window")
-      ;;                                      ("args" . ("emacsclient" "-t"))))
-      (sh (format "kitty --detach emacsclient -t -e '%s'" (pr-str `(ns/pickup-shell ,cwd t))))))
+    ;; (when (xterm-kitty-in-use)
+    ;;   ;; cf https://sw.kovidgoyal.net/kitty/remote-control/#kitty-launch
+    ;;   ;; lags really bad after window creation
+    ;;   ;; (kitty-rc-posted-command "launch" `(("type" . "os-window")
+    ;;   ;;                                      ("args" . ("emacsclient" "-t"))))
+    ;;   (sh (format "kitty --detach emacsclient -t -e '%s'" (pr-str `(ns/pickup-shell ,cwd t)))))
+    )
 
   ;; return t so that elisp ns/spawn-terminal call is true
   t)
@@ -193,7 +194,7 @@
 
 (ns/bind
   "at" 'ns/spawn-terminal
-  "as" 'ns/pickup-shell
+  "as" (fn!! pickup-shell-here (ns/pickup-shell default-directory))
   )
 
 ;; fix for term, ansi term

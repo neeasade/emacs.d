@@ -61,7 +61,7 @@
   "bb" (fn!! surf-buffers
          (->> (ns/jump-file-candidates :buffers-without-files)
            (ns/pick "buffer")
-           (ns/find-or-open)))
+           (ns/switch-to-buffer-or-window))) ; purposeful
 
   "bm" (fn!! surf-buffers-mode
          (->> (ns/buffers-by-mode major-mode)

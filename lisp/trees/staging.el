@@ -5,6 +5,8 @@
                 (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
                 (recenter)))
 
+;; todo: checkout eat
+
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs
 ;; testing out [Fri Dec 20 15:13:58 2019]
@@ -68,7 +70,6 @@
       (s-split ":" it)
       (-snoc it (~ ".nix-profile/bin/"))
       (-snoc it "/run/current-system/sw/bin")))
-
 
   (setenv "PATH" (s-join ":" exec-path)))
 
@@ -137,8 +138,7 @@
   (redraw-frame))
 
 (ns/bind "tm" 'ns/toggle-modeline)
-
-(ns/conf-style)
+(ns/conf-style)                        
 
 (setq undo-tree-enable-undo-in-region t)
 
@@ -171,6 +171,7 @@
           (original-url-generic-program browse-url-generic-program)
           (return (if (and slack? ns/enable-mac-p (boundp 'ns/slack-map))
                     (progn
+                      ;; todo: macos-centric for sure
                       (setq browse-url-generic-program "open")
                       (-let* (((_ domain channel-id message-id) (s-match (rx "https://" (group (+ any)) "/archives/" (group (+ any)) "/" (group (+ any)) eol) url))
                                (slack-app-id (ht-get ns/slack-map domain)))
@@ -204,7 +205,28 @@
 
 ;; idea: a function for jumping to shell-modes with cwd (ie find where a lein run or docker something is held etc)
 
-;; todo: revert all file buffers interactive fn
+(when-not window-system
+  (defun s-clean (s)
+    "Remove text properies from S."
+    (set-text-properties 0 (length s) nil s) s)
+
+  (add-function :after after-focus-change-function #'ns/xclip-mode-sync)
+
+  (defun ns/xclip-mode-sync ()
+    (interactive)
+    ;; assumption: there should only be one frame when operating this way
+    (if (frame-focus-state (first (frame-list)))
+      ;; on enter, grab external
+      (kill-new (xclip-get-selection 'clipboard))
+      ;; on exit, sync clipboard
+      (xclip-set-selection 'clipboard (s-clean (first kill-ring))))))
+
+;; allow bgsync
+(defun! ns/save-bg-color ()
+  (spit (~ ".emacs_background")
+    (myron-get :background)))
+
+(advice-add 'suspend-frame :before 'ns/save-bg-color)
 
 (provide 'staging)
 ;;; staging.el ends here

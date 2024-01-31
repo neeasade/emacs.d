@@ -4,7 +4,7 @@
   "30 sec"
   60
   (fn (when (> (org-user-idle-seconds)
-              ;; the long time is because we'll use this for measuring pomodoros on anothre computer/kvm style
+              ;; the long time is because we'll use this for measuring pomodoros on another computer/kvm style
               (ns/t 1h))
         (when (not (ns/media-playing-p))
           (ns/org-clock-out))

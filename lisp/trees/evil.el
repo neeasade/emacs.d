@@ -178,6 +178,7 @@
       (s-starts-with? "*" buffername)
       (s-starts-with? " *" buffername)
       (s-ends-with? ".org_archive" file-name)
+      (s-starts-with? "extend.sh" file-name)
       (s-starts-with? "magit" buffername)
       (eq 'dired-mode (buffer-local-value 'major-mode buf)))))
 

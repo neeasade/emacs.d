@@ -240,6 +240,8 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
 (advice-add 'ns/blog-generate :around #'org-publish-ignore-mode-hooks)
 
+(advice-add 'ns/blog-generate :around #'org-publish-ignore-mode-hooks)
+
 (defun ns/blog-make-anchors ()
   ;; nb: this is also used in the rice.org file
   "turn headlines into anchor links within a string org-content."
