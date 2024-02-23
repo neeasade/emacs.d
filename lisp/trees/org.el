@@ -170,13 +170,14 @@
   (defun ns/toggle-music-play () (ns/toggle-music "play"))
   (defun ns/toggle-music-pause () (ns/toggle-music "pause"))
 
-  (defun! ns/focus-mode-enter ()
-    (ns/toggle-music-play)
+  (defun! ns/focus-mode-enter (&optional ignore-music-state)
+    (when-not ignore-music-state
+      (ns/toggle-music-play))
 
     (when ns/enable-home-p
       (sh-toss "pkill telegram-desktop")
       (sh-toss "pkill signal-desktop")
-      (sh-toss "pkill Discord")
+      ;; (sh-toss "pkill Discord")
 
       (sh-toss "bash -ic 'scu-restart panel'")
 
@@ -204,9 +205,8 @@
   (add-hook 'org-pomodoro-killed-hook 'ns/focus-mode-quit)
 
   (defun ns/org-pomodoro-break-finished ()
-    ;; this seems to not always actually run (in fn 'ns/org-pomodoro-short-break)
     (ns/toggle-music "toggle")
-    (ns/focus-mode-enter))
+    (ns/focus-mode-enter t))
 
   (add-hook 'org-pomodoro-break-finished-hook 'ns/org-pomodoro-break-finished))
 
