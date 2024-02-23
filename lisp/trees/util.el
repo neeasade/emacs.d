@@ -62,27 +62,24 @@
                                 ;; current history across all open shells:
                                 (-mapcat
                                   (fn (with-current-buffer <>
-                                        (when (boundp 'comint-input-ring)
-                                          (when (> (ring-size comint-input-ring) 0)
-                                            (mapc 's-clean (ring-elements comint-input-ring)
-                                              )))))
+                                        (and
+                                          (boundp 'comint-input-ring)
+                                          (> (ring-size comint-input-ring) 0)
+                                          (-map 's-clean (ring-elements comint-input-ring)))))
                                   (ns/buffers-by-mode 'shell-mode))
 
                                 (->> (~ (format ".%s_history" shell-name))
                                   (f-read)
                                   (s-split "\n")
                                   (reverse)
-                                  (-map
-                                    (fn ;; shared history format: ': 1556747685:0;cmd'
-                                      (if (s-starts-with-p ":" <>)
-                                        (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                                        <>)))))
+                                  (-map (fn ;; shared history format: ': 1556747685:0;cmd'
+                                          (if (s-starts-with-p ":" <>)
+                                            (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
+                                            <>)))))
                            (-uniq)
                            (-remove (-partial #'s-starts-with-p " "))))]
-
     (when (eq major-mode 'shell-mode)
       (goto-char (point-max)))
-
     (insert history-item)))
 
 (defun! ns/insert-qute-url (&optional description-in)
