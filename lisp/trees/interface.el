@@ -120,6 +120,7 @@
   "qM" 'ns/what-minor-modes
 
   "n" '(:ignore t :which-key "Jump")
+  ;; todo: idea, make jump-config preview location like consult does with files, would be cool
   "nc" 'ns/jump-config
   "nh" 'consult-imenu
   "nu" 'ns/surf-urls)
@@ -133,7 +134,6 @@
     (t (message "no doc option available!"))))
 
 (ns/bind "nH" 'ns/helpful-or-dashdoc)
-
 
 ;; where should this go
 (when-not window-system

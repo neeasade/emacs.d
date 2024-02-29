@@ -78,7 +78,10 @@
 
   (or
     ;; first try to open with org handling (includes urls)
-    (when (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
+    (when (and (eq major-mode 'org-mode)
+            ;; todo it feels like we should be able to resolve org links from anywhere
+            ;; should we shovethis into a temp org-mode buffer or use hyperbole?
+            (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail)))))
       (ns/follow-log "resolved with org-open-at-point")
       t)
 

@@ -105,7 +105,20 @@
   after-update-env-hook nil
   )
 
+;; removed upstream
+(defvar doom-modeline--font-width-cache nil)
+(defun doom-modeline--font-width ()
+  "Cache the font width for better performance."
+  (if (display-graphic-p)
+    (let ((attributes (face-all-attributes 'mode-line)))
+      (or (cdr (assoc attributes doom-modeline--font-width-cache))
+        (let ((width (window-font-width nil 'mode-line)))
+          (push (cons attributes width) doom-modeline--font-width-cache)
+          width)))
+    1))
+
 ;; fork is to define a 'mode-line-middle face for the center of the modeline
+;; todo: review current upstream def
 (defun ns/doom-modeline-def-modeline (name lhs &optional rhs)
   "Defines a modeline format and byte-compiles it.
 NAME is a symbol to identify it (used by `doom-modeline' for retrieval).

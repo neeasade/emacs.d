@@ -184,7 +184,10 @@
       (spit (~ ".config/qutebrowser/adblock.txt")
         (slurp (~ ".config/qutebrowser/adblock_bad.txt")))
 
-      (sh-toss "qb_command :adblock-update")))
+      (sh-toss "qb_command :adblock-update")
+      ;; todo: reload is annoying if eg we are actively typing something into a box on qutebrowser
+      ;; is there a way to prompt or ask instead of the rude boot
+      (sh-toss "qb_command :reload")))
 
   (defun! ns/focus-mode-quit ()
     (when (or (not (called-interactively-p 'any))
@@ -254,6 +257,7 @@
   (recenter))
 
 (defun! ns/make-org-link-to-here ()
+  ;; todo: this appears to ignore org headline properties/disrupts them
   "Insert a link to the current cursor location in the active headline"
   (let* ((line-content (s-trim (thing-at-point 'line)))
           (line (number-to-string (line-number-at-pos)))

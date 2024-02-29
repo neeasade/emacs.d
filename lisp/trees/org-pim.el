@@ -150,12 +150,13 @@ called with symbols or quoted lambdas to filter results."
                                       (-> current-headline second (plist-get :begin))
                                       0)))
       (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
-        (goto-char (nth (+ 1 current-match) points))
+        (progn
+          (goto-char (nth (+ 1 current-match) points)))
         ;; (goto-char (first points))
-        ;; unsure why I did this 
-        (goto-char (or (first (-filter (-partial '< (point)) points))
-                     (first points)))
-        )
+        ;; unsure why I did this
+        (progn
+          (goto-char (or (first (-filter (-partial '< (point)) points))
+                       (first points)))))
       (ns/org-jump-to-element-content))))
 
 (defun ns/org-outdated-sort-node (&rest headlines)
@@ -244,8 +245,7 @@ called with symbols or quoted lambdas to filter results."
           org-recently-clocked-out? (< (- (ts-unix (ts-now))
                                          (if org-clock-out-time
                                            (time-to-seconds org-clock-out-time)
-                                           10000
-                                           ))
+                                           10000))
                                       120)
           idle? (> (org-user-idle-seconds) 20)]
     (-all-p 'null (list idle? pomo-break? org-recently-clocked-out? (org-clocking-p)))))

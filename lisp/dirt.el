@@ -30,7 +30,8 @@
   ns/enable-linux-p (eq system-type 'gnu/linux)
   ns/enable-mac-p (eq system-type 'darwin)
   ns/enable-home-p (string= (getenv "USER") "neeasade")
-  ns/enable-work-p ns/enable-mac-p
+  ;; ns/enable-work-p ns/enable-mac-p
+  ns/enable-work-p nil
 
   ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
   ns/emacs-directory user-emacs-directory
@@ -126,6 +127,7 @@
 
 (defmacro fn!! (&rest body)
   "Create an interactive function prefixed with ia/ and no arguments (optionally, infer name from first sexp)"
+  ;; todo: should this yell if there's a naming conflict?
   (let* ((has-name? (symbolp (first body)))
           (fnname (intern (format "ia/%s" (prin1-to-string
                                             (if has-name?
@@ -156,10 +158,16 @@
   (start-process command nil "sh" "-c" command))
 
 (defun ~ (&rest args)
-  (apply #'f-join (cons ns/home-directory args)))
+  (llet [parts (if (s-starts-with? "/" (first args))
+                 (-non-nil `(,(substring (first args) 1) ,(cdr args)))
+                 args)]
+    (apply #'f-join (cons ns/home-directory parts))))
 
 (defun ~e (&rest args)
-  (apply #'f-join (cons ns/emacs-directory args)))
+  (llet [parts (if (s-starts-with? "/" (first args))
+                 (-non-nil `(,(substring (first args) 1) ,(cdr args)))
+                 args)]
+    (apply #'f-join (cons ns/emacs-directory parts))))
 
 (defun ns/check-bind-conflict (binding &optional keymap states)
   (llet [keymap (or keymap 'general-override-mode-map)

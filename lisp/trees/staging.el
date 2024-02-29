@@ -101,10 +101,10 @@
 
 (defun frog-menu-type ()
   "Return variable `frog-menu-type' to use."
-  (cond ((display-graphic-p)
-          'avy-posframe)
-    (t
-      'avy-side-window)))
+  (cond
+    ((display-graphic-p)
+      'avy-posframe)
+    (t 'avy-side-window)))
 
 ;; (frog-menu-type)
 
@@ -153,6 +153,7 @@
               ;; todo: probably want to check if repo has unstaged changes too
               (when-not (string= (straight-vc-get-commit type local-repo) commit)
                 (add-to-list 'out-of-sync package)))))))
+    (-map 'message out-of-sync)
     (message "straight packages out of sync: %s" (length out-of-sync))))
 
 (defhydra hydra-expand-region ()
@@ -203,6 +204,67 @@
 ;; idea: a function for jumping to shell-modes with cwd (ie find where a lein run or docker something is held etc)
 
 ;; todo: revert all file buffers interactive fn
+
+;; doesn't feel quite right to turn off warnings AND errors, but it's really annoying
+(setq native-comp-async-report-warnings-errors nil)
+
+(defadvice flycheck-error-list-refresh (around shrink-error-list activate)
+  ;; ?
+  ;; ad-do-it
+  (-when-let (window (flycheck-get-error-list-window t))
+    (with-selected-window window
+      (fit-window-to-buffer window 30))))
+
+(setq server-window 'pop-to-buffer)
+
+(defun ns/org-open-region-as-pdf ()
+  ;; render region with org defaults, open in pdf program to consider printing
+  (ns/mustache (slurp (~e "org/print.org"))
+    (-ht :content (if (region-active-p)
+                    (buffer-substring (region-beginning) (region-end))
+                    (buffer-string)))))
+
+(defun! ns/org-pomodoro-short-break ()
+  (ns/org-clock-out)
+  (run-hooks 'org-pomodoro-finished-hook)
+  (org-pomodoro-start :short-break))
+
+(defun! ns/org-pomodoro-long-break ()
+  (ns/org-clock-out)
+  (run-hooks 'org-pomodoro-finished-hook)
+  (org-pomodoro-start :long-break))
+
+;; one day
+;; (ns/use org-roam)
+
+(named-timer-run :angy-self
+  0 5
+  (fn (when (org-clock-is-active)
+        (llet [work-pomo? (and (s-contains? "pomo" org-clock-heading)
+                            (s-contains? "work" org-clock-heading))
+                active? (< (org-user-idle-seconds) 10)]
+          (when (and work-pomo? active?)
+            (--map (alert (ns/str "😠" it))
+              (-iota 15)))))))
+
+(defun! ns/generate-myron-cache ()
+  (llet [cache (--mapcat
+                 (progn
+                   (ns/load-theme (intern (format "myron-%s" it)))
+                   (list (intern (format "myron-%s" it))
+                     (myron--create-meta-colors (funcall (intern (format "myron-%s-create" it))))))
+                 '(dogman grayscale kobo mcfay room storm struan))
+          cache-def `(defcustom myron--cache ,cache
+                       "Cache value for the themes. Internal use only."
+                       :type 'sexp
+                       :group 'myron)]
+    (spit (~e "straight/repos/myron-themes/myron-cache.el")
+      (with-temp-buffer
+        (insert (ns/str cache-def))
+        (insert (ns/str '(provide 'myron-cache)))
+        (emacs-lisp-mode)
+        (pp-buffer)
+        (buffer-string)))))
 
 (provide 'staging)
 ;;; staging.el ends here

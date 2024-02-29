@@ -187,7 +187,7 @@
 
   (when (and (called-interactively-p 'any)
           ns/enable-home-p)
-    (sh-toss "ltheme wm")
+    (sh-toss "ltheme wm qutebrowser")
     ;; (start-process "bgtint" nil "bgtint")
     )
 

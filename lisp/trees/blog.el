@@ -36,11 +36,13 @@
       (s-replace-all replace-map))))
 
 (defun ns/blog-get-properties (text)
-  "org string to properties ht"
+  "org string to properties ht. if a value is blank it is not included"
   (->> (org-ml--from-string text)
     (org-ml-match '(keyword))
-    (-mapcat (-lambda ((_ (&plist :key :value)))
-               (list (downcase key) value)))
+    (-keep (-lambda ((_ (&plist :key :value)))
+             (when-not (s-blank? value)
+               (list (downcase key) value))))
+    (apply '-concat)
     (apply '-ht)))
 
 (defun ns/blog-make-nav-strip (&rest items)

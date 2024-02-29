@@ -43,13 +43,13 @@
   calc-multiplication-has-precedence nil
   )
 
+
 ;; (see below for when we garbage collect)
 (setq gc-cons-threshold
-  (->>
-    (cond
-      (ns/enable-linux-p "free -b | awk '/^Mem/{print $2}'")
-      (ns/enable-mac-p "sysctl -a | awk '/memsize/{print $2}'")
-      (ns/enable-windows-p "echo 8000000000"))
+  (->> (cond
+         (ns/enable-linux-p "free -b | awk '/^Mem/{print $2}'")
+         (ns/enable-mac-p "sysctl -a | awk '/memsize/{print $2}'")
+         (ns/enable-windows-p "echo 8000000000"))
     (sh)
     (string-to-number)
     (* 0.70)

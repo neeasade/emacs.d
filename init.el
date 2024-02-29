@@ -36,8 +36,8 @@
        projectile
        util
        git
-       org org-capture org-pim org-pim-export
        server
+       org org-capture org-pim org-pim-export
        follow-dwim
        )))
 
@@ -114,6 +114,7 @@
       ;; Emacs is terribly slow on windows
       (ns/toggle-bloat-global (not ns/enable-windows-p))
 
+      ;; todo: sometimes this is annoying
       (named-timer-idle-run :garbage-collect 2 t 'garbage-collect)
 
       (->> recentf-list
@@ -129,7 +130,7 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      (ns/load-theme (intern (get-resource "emacs.theme")))))
+      (funcall-interactively 'ns/load-theme (intern (get-resource "emacs.theme")))))
 
   ;; (add-hook 'emacs-startup-hook 'ns/initial-startup-hook)
   (run-at-time 0.1 nil 'ns/initial-startup-hook)

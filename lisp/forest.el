@@ -220,6 +220,7 @@
           (append results (plist-get sources :buffers-without-files))
           results))))
   (ns/bind
+    ;; todo: comething to consider: mixing in org headings here
     "ne" (fn!! surf-files (ns/find-files "file" (ns/jump-file-candidates)))
     "nE" (fn!! surf-project-files (ns/find-files "file" (ns/jump-file-candidates :project-files)))))
 

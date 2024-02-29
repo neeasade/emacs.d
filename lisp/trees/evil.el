@@ -58,6 +58,8 @@
         (scroll-up 6)
         (error nil)))))
 
+;; (defun ns/zz-scroll (&rest _))
+
 (advice-add #'recenter :after #'ns/zz-scroll)
 
 ;; for reference, alteratively tried:
