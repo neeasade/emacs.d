@@ -22,7 +22,7 @@
           :host github
           :repo "emacsmirror/ox-rss"))
 
-(setq ns/blog-title "𝚂𝚃𝚇")
+(setq ns/blog-title "🌳ＧＲＯＶＥ🌳")
 
 (defun ns/blog-path (ext)
   (format (~ "code/neeasade.github.io/%s") ext))
@@ -54,9 +54,9 @@
       (llet ((&hash :type :path :subtitle) post-table)
         (-ht
           :blog-title ns/blog-title
-
           :up (llet [(dest label)
-                      (cond ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "splash"))
+                      (cond
+                        ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "splash"))
                         ((and (string= type "page") (not (string= (f-base path) "sitemap")))
                           '("/sitemap.html" "sitemap"))
                         (t `("/index.html" ,ns/blog-title)))]
@@ -87,44 +87,41 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                          (string= type "note"))
                    "@@html:<div class='flair'></div>@@"))))))
 
+(defun ns/path-to-slug (path)
+  "File path to html slug (basename)"
+  (->> (--reduce-from (s-replace it "" acc)
+         (f-base path)
+         (s-split "" ";/?:@&=+$,'"))
+    (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
+    (s-downcase)))
+
 (defun ns/blog-file-to-meta (path)
-  "File path to meta. Does not do anything that might need file processing."
+  "File path to metadata ."
   ;; (message (format "BLOG: generating meta for %s" path))
   (llet [org-file-content (f-read path)
-          props (ns/blog-get-properties org-file-content)
-          html-slug (->> (f-base path)
-                      (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
-                      ;; remove forbidden characters from url
-                      (funcall
-                        (apply '-compose
-                          (-map (lambda (char)
-                                  (lambda (s) (s-replace (char-to-string char) "" s))) ";/?:@&=+$,'"))))]
+          props (ns/blog-get-properties org-file-content)]
     (-ht
       :path path
       :content (s-replace-regexp "^-----$" (ns/blog-make-hsep) org-file-content)
-
-      :draft-p (not (s-blank-p (ht-get props "draft")))
-      ;; hack for index pages {{blog-title}}
+      :draft-p (ht-get props "draft")
       :title (ht-get props "title" "(untitled)")
 
       :rss-title (ht-get props "rss_title")
       :subtitle (ht-get props "title_extra")
       :type (llet [parent-dir (->> path f-parent f-base)]
               (substring parent-dir 0 (1- (length parent-dir))))
-
       :published-date (first
                         (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
                           (list (ht-get props "pubdate" "")
                             (f-base path))))
-
       :edited-date (let ((git-query-result (sh "cd '%s'; git log --follow -1 --format=%%cI '%s'"
                                              ;; appease the shell.
                                              (s-replace "'" "'\\''" (f-dirname path))
                                              (s-replace "'" "'\\''" path))))
                      (when-not (s-blank-p git-query-result)
                        (substring git-query-result 0 10)))
-      :og-url (format "https://notes.neeasade.net/%s.html" html-slug)
-      :html-dest (format "%s/%s.html" (ns/blog-path "published") html-slug)
+      :og-url (format "https://notes.neeasade.net/%s.html" (ns/path-to-slug path))
+      :html-dest (format "%s/%s.html" (ns/blog-path "published") (ns/path-to-slug path))
       :csslinks (ns/blog-get-csslinks))))
 
 (defun! ns/blog-publish-meta (org-meta)
@@ -151,8 +148,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
         (message "BLOG: making %s " path)
         (insert (ns/blog-render-org org-meta))
         (ns/blog-make-anchors)
-        (org-export-to-file 'html html-dest)
-        ))))
+        (org-export-to-file 'html html-dest)))))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
@@ -218,17 +214,18 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
   (llet (;; don't ask about generation when exporting
           org-confirm-babel-evaluate (fn nil)
-          ;; metas (ns/blog-changed-files-metas)
-          metas (ns/blog-get-metas)
+
+          metas (ns/blog-changed-files-metas)
+
+          ;; metas (ns/blog-get-metas)
           )
+
     ;; todo here: check conflicting html-dest
     (-map #'ns/blog-publish-meta metas)
 
     (message "BLOG: making site rss!")
-
     (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss.org"))
       (org-export-to-file 'rss (ns/blog-path "published/rss.xml")))
-
     (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss_full.org"))
       (org-export-to-file 'rss (ns/blog-path "published/rss_full.xml"))))
 
@@ -344,25 +341,34 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
   (format "@@html:<div class=separator>@@%s@@html:</div>@@"
     "∗ ∗ ∗"))
 
+(defun ns/get-blog-files ()
+  "title to filepath"
+  (->> `(,@(f-entries (ns/blog-path "posts") (-partial 's-ends-with-p ".org"))
+          ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org")))
+    (--remove (s-starts-with? ".#" (f-base it)))
+    (reverse)
+    (--mapcat (list (ht-get (ns/blog-get-properties (slurp it)) "title" "untitled") it))
+    (-flatten)
+    (apply '-ht)))
+
 (ns/bind
+  "iq" (fn!! insert-blog-link
+         (llet [posts (ns/get-blog-files)
+                 title (ns/pick (ht-keys posts))]
+           (insert (format "[[./%s.org][%s]]"
+                     (f-base (ht-get posts title))
+                     title))))
   "nq" (fn!! surf-blog-posts
-         (llet [posts (->>
-                        (f-entries (ns/blog-path "posts")
-                          (-partial 's-ends-with-p ".org"))
-                        (--remove (s-starts-with? ".#" (f-base it)))
-                        (reverse)
-                        (--mapcat (list (or (ht-get (ns/blog-get-properties (f-read it)) "title") it)
-                                    it))
-                        (apply '-ht))]
+         (llet [posts (ns/get-blog-files)]
            (find-file (ht-get posts (ns/pick (ht-keys posts))))))
 
   "nQ" (fn!! surf-blog-posts-draft
-         (llet [posts (->> (f-entries (ns/blog-path "posts")
-                             (-partial 's-ends-with-p ".org"))
-                        (reverse)
-                        (--keep (llet [props (ns/blog-get-properties (f-read it))]
-                                  (when (ht-get props "draft")
-                                    (list (or (ht-get props "title") it) it))))
+         (llet [posts (->> (ns/get-blog-files)
+                        (ht-map (lambda (k v)
+                                  (when (ht-get (ns/blog-get-properties (slurp v)) "draft")
+                                    (list k v))))
+                        ;; munge
+                        (-non-nil)
                         (-flatten)
                         (apply '-ht))]
            (find-file (ht-get posts (ns/pick (ht-keys posts)))))))

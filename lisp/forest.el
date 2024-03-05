@@ -573,7 +573,9 @@
       (-map-indexed (lambda (i c) (sh (format "btags set ^%s color %s" (+ 1 i) c)))))
     nil)
 
-  (ns/bind "iq" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
+  ;; conflict with blog iq
+  ;; (ns/bind "iq" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
+
   (ns/bind "it"
     (fn!! insert-theme-key
       (->> (sh "theme -k")

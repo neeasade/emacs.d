@@ -14,6 +14,37 @@
                 (ns/t 5h))
           (ns/org-clock-out)))))
 
+(defun ns/get-notes-nodes-new (&rest filters)
+  "Retrieve headline nodes from notes file for read-only operations. Can be
+called with symbols or quoted lambdas to filter results."
+  (llet [nodes (--map
+                 (with-current-buffer (find-file-noselect it)
+                   (save-excursion
+                     (list it (org-ml-parse-headlines 'all))))
+                 org-agenda-files)]
+    (cond
+      ((not filters) (apply '-ht (apply '-concat nodes)))
+      ((-any-p (-not 'symbolp) filters)
+        (error (message "called ns/get-notes-nodes with non-symbol filter")))
+      (t (apply '-ht
+           (-mapcat
+             (-lambda ((file file-nodes))
+               (list file (org-ml-match `((:or ,@(-map (lambda (f)
+                                                         `(:pred ,f))
+                                                   filters)))
+                            file-nodes)))
+             nodes))))))
+
+;; idfk what to name this
+(defun ns/notes-nodes-to-markers (notes-nodes)
+  (ht-map
+    (lambda (k v)
+      (llet [buffer (find-file-noselect k)]
+        (--map (set-marker (make-marker)
+                 (-> it second (plist-get :begin))
+                 buffer)
+          v))) notes-nodes))
+
 (defun ns/get-notes-nodes (&rest filters)
   "Retrieve headline nodes from notes file for read-only operations. Can be
 called with symbols or quoted lambdas to filter results."
