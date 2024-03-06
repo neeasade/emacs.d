@@ -5,12 +5,11 @@
 
 (ns/use no-littering
   (require 'recentf)
+  (no-littering-theme-backups)
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory))
 
 (setq
-  auto-save-file-name-transforms `((".*" ,(~e "auto-save-list/") t))
-  backup-directory-alist `(("." . ,(~e "backups")))
   coding-system-for-read 'utf-8
   coding-system-for-write 'utf-8
   delete-old-versions -1

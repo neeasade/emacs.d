@@ -24,3 +24,9 @@
 ;; in this file and can conflict with later config (particularly where the
 ;; cursor color is concerned).
 (advice-add #'x-apply-session-resources :override #'ignore)
+
+;; https://github.com/emacscollective/no-littering?tab=readme-ov-file#native-compilation-cache
+(when (fboundp 'startup-redirect-eln-cache)
+  (startup-redirect-eln-cache
+    (convert-standard-filename
+      (expand-file-name  "var/eln-cache/" user-emacs-directory))))
