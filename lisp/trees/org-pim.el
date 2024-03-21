@@ -178,7 +178,8 @@ called with symbols or quoted lambdas to filter results."
     (let* ((points (-uniq points))
             (points (-snoc points (first points)))
             (current-headline-point (-if-let (current-headline (org-ml-parse-headline-at (point)))
-                                      (-> current-headline second (plist-get :begin))
+                                      (org-ml-get-property :begin current-headline)
+                                      ;; (-> current-headline second (plist-get :begin))
                                       0)))
       (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
         (progn
@@ -188,6 +189,7 @@ called with symbols or quoted lambdas to filter results."
         (progn
           (goto-char (or (first (-filter (-partial '< (point)) points))
                        (first points)))))
+
       (ns/org-jump-to-element-content))))
 
 (defun ns/org-outdated-sort-node (&rest headlines)

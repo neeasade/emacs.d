@@ -275,8 +275,13 @@
           line-content)))
     (message "saved link!")))
 
-;; (ns/use evil-org (:host github :repo "Somelauw/evil-org-mode")
-;;   (require 'evil-org-agenda))
+;; dunno about this one
+(ns/use (evil-org :host github :repo "hlissner/evil-org-mode"
+          ;; "Somelauw/evil-org-mode"
+          )
+  ;; (require 'evil-org-agenda)
+  )
+
 
 ;; putting in this file to make sure it's after org mode
 ;; (when ns/enable-evil-p
