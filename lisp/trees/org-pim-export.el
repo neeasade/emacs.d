@@ -1,14 +1,3 @@
-
-(defun ns/org-normalize (node)
-  "Move an org headline to be top level"
-  (let ((difference (- 1 (org-ml-get-property :level node))))
-    (->> node
-      (org-ml-map-children*
-        (if (eq (org-ml-get-type it) 'headline)
-          (org-ml-shift-property :level difference it)
-          it))
-      (org-ml-set-property :level 1))))
-
 (defun ns/write-node-to-post (node)
   "Org headline node to blog post. assumes the presence of blog_slug."
   (let*
@@ -42,23 +31,18 @@
     ;; return the path:
     dest))
 
-(defun! ns/org-export-shared ()
-  (defun ns/org-match-note-share (heading)
-    (org-ml-headline-get-node-property "share" heading))
-  (let ((content (->> (ns/get-notes-nodes 'ns/org-match-note-share)
-                   (-map 'ns/org-normalize)
-                   (-map 'org-ml-to-string)
-                   (s-join "\n")))
-         (labs-folder (pass "labs-folder")))
-    (when (f-exists-p labs-folder)
-      (f-write (format "Exported on: %s\n\n %s" (ts-format (ts-now)) content)
-        'utf-8
-        (format "%s/notes.org" labs-folder)))))
+(defun ns/org-normalize (node)
+  "Move an org headline to be top level"
+  (let ((difference (- 1 (org-ml-get-property :level node))))
+    (->> node
+      (org-ml-map-children*
+        (if (eq (org-ml-get-type it) 'headline)
+          (org-ml-shift-property :level difference it)
+          it))
+      (org-ml-set-property :level 1))))
 
 (defun! ns/export-blog-note-targets ()
-  (defun ns/org-match-blog (headline)
-    (org-ml-headline-get-node-property "blog_slug" headline))
-  (->> (ns/get-notes-nodes 'ns/org-match-blog)
+  (->> (ns/get-notes-nodes '(property "blog_slug"))
     (-map 'ns/org-normalize)
     (-map 'ns/write-node-to-post)
     ((lambda (valid)

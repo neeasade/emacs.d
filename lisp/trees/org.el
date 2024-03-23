@@ -103,21 +103,6 @@
   (and (eq (org-ml-get-type node) 'headline)
     (not (org-ml-headline-is-done node))))
 
-(defun ns/notes-current-standup-task (parent-headline)
-  "Get a TODO underneath a headline that is passed in."
-  (let ((standup-point
-          (->> parent-headline
-            cdr car
-            ((lambda (props) (plist-get props :begin))))))
-    (or
-      (with-current-buffer (get-file-buffer org-default-notes-file)
-        (->> (org-ml-parse-element-at standup-point)
-          (org-ml-get-children)
-          (org-ml-match '(:any * (:pred ns/org-ml-not-done)))
-          first))
-
-      parent-headline)))
-
 (defun ns/org-get-clock-marker ()
   ;; snippet extracted from org-clock-goto
   (cond
@@ -129,31 +114,16 @@
       (car org-clock-history))
     (t (user-error "No active or recent clock task"))))
 
-;; todo: rethink this
 (defun! ns/org-get-active-point (&optional property)
-  "Resolves to a point in my big notes files to either:
-- currently clocked in org headline
-- the first TODO under the headline with a 'focus' property
-- if no TODO is found, just go to the headline with a 'focus' property directly
-(nb: the 'focus' property target may be overridden with an argument)
-"
-  (ns/with-notes
-    (save-window-excursion
-      (if (and org-clock-current-task
-            (not (string= org-clock-current-task "misc")))
-        ;; org clock goto does handle some niceties for us
-        (let ((m (ns/org-get-clock-marker)))
-          (with-current-buffer (marker-buffer m)
-            (goto-char (marker-position m))))
-        (->> (org-find-property (or property "focus"))
-          (org-ml-parse-headline-at)
-          (ns/notes-current-standup-task)
-          cadr
-          ((lambda (props)
-             (or (plist-get props :contents-begin)
-               (plist-get props :begin))))
-          (goto-char)))
-      (point))))
+  (cond
+    ;; todo: return headline? sync with org_task_elisp
+    ((org-clocking-p)
+      (org-goto-marker-or-bmk org-clock-marker))
+    ((ns/get-notes-nodes '(property "focus"))
+      ;; todo: uniq prop setting across agenda-files
+      (org-goto-marker-or-bmk
+        (ns/headline-marker (first (ns/get-notes-nodes '(property "focus"))))))
+    (t (message "nothing found!"))))
 
 (defun! ns/org-goto-active (&optional property)
   (find-file org-default-notes-file)

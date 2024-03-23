@@ -14,49 +14,30 @@
                 (ns/t 5h))
           (ns/org-clock-out)))))
 
-(defun ns/get-notes-nodes-new (&rest filters)
-  "Retrieve headline nodes from notes file for read-only operations. Can be
-called with symbols or quoted lambdas to filter results."
-  (llet [nodes (--map
-                 (with-current-buffer (find-file-noselect it)
-                   (save-excursion
-                     (list it (org-ml-parse-headlines 'all))))
-                 org-agenda-files)]
-    (cond
-      ((not filters) (apply '-ht (apply '-concat nodes)))
-      ((-any-p (-not 'symbolp) filters)
-        (error (message "called ns/get-notes-nodes with non-symbol filter")))
-      (t (apply '-ht
-           (-mapcat
-             (-lambda ((file file-nodes))
-               (list file (org-ml-match `((:or ,@(-map (lambda (f)
-                                                         `(:pred ,f))
-                                                   filters)))
-                            file-nodes)))
-             nodes))))))
+(defun ns/parse-headline-at-point ()
+  (-when-let (headline (org-ml-parse-this-headline))
+    (org-ml-headline-set-node-property
+      "internal_filepath" (buffer-file-name)
+      headline)))
 
-;; idfk what to name this
-(defun ns/notes-nodes-to-markers (notes-nodes)
-  (ht-map
-    (lambda (k v)
-      (llet [buffer (find-file-noselect k)]
-        (--map (set-marker (make-marker)
-                 (-> it second (plist-get :begin))
-                 buffer)
-          v))) notes-nodes))
+(defun ns/headline-marker (headline)
+  (when headline
+    (set-marker (make-marker)
+      (org-ml-get-property :begin headline)
+      (get-file-buffer (org-ml-headline-get-node-property "internal_filepath" headline)))))
 
-(defun ns/get-notes-nodes (&rest filters)
-  "Retrieve headline nodes from notes file for read-only operations. Can be
-called with symbols or quoted lambdas to filter results."
-  (llet [all-nodes (ns/with-notes (org-ml-parse-headlines 'all))]
-    (cond
-      ((not filters) all-nodes)
-      ((-any-p (-not 'symbolp) filters)
-        (error (message "called ns/get-notes-nodes with non-symbol filter")))
-      (t (org-ml-match `((:or ,@(-map (lambda (f)
-                                        `(:pred ,f))
-                                  filters)))
-           all-nodes)))))
+(defun ns/get-notes-nodes (org-ql-query &rest args)
+  "get headlines with org-ql. returns parse results of org-ml"
+  (apply 'org-ql-select org-agenda-files
+    org-ql-query :action
+    'ns/parse-headline-at-point args))
+
+(defun ns/org-ml-filter (filters headlines)
+  "filter headlines by nameds filter functions"
+  (org-ml-match `((:or ,@(-map (lambda (f)
+                                 `(:pred ,f))
+                           (-list filters))))
+    headlines))
 
 (defun ns/headline-date (headline-node)
   (-some->> headline-node
@@ -64,37 +45,6 @@ called with symbols or quoted lambdas to filter results."
     (org-ml-get-property :scheduled)
     (org-ml-get-property :raw-value)
     (ts-parse-org)))
-
-(defun ns/org-match-scheduled-today-after-now (headline)
-  (-some->> (ns/headline-date headline)
-    (ts-in
-      (ts-now)
-      (ts-apply :hour 23 :minute 59 :second 59 (ts-now)))))
-
-(defun ns/org-scheduled-today (headline)
-  (-some->> (ns/headline-date headline)
-    (ts-in
-      (ts-apply :hour 0 :minute 0 :second 0 (ts-now))
-      (ts-apply :hour 23 :minute 59 :second 59 (ts-now)))))
-
-(defun ns/org-match-captures (headline)
-  "Get TODO items that are scheduled in the past. incidentally, this will also get out of date habits."
-  (when (eq 'headline (org-ml-get-type headline))
-    (and
-      (let ((path (org-ml-headline-get-path headline)))
-        (and (string= "projects" (nth 0 path))
-          (string= "captures" (nth 2 path))
-          (not (string= (-last-item path) "captures"))))
-      (-if-let (capture-date (org-ml-headline-get-node-property "captured" headline))
-        (ts< (ts-parse-org capture-date)
-          (ts-adjust 'day (- 14) (ts-now)))
-        t))))
-
-(defun ns/org-scheduled-past-todo (headline)
-  (llet [scheduled (ns/headline-date headline)
-          todo-state (org-ml-get-property :todo-keyword headline)]
-    (when (and scheduled (not (string= todo-state "DONE")))
-      (ts> (ts-now) scheduled))))
 
 ;; track headlines to notification status
 (when (not (boundp 'ns/org-notify-ht))
@@ -108,7 +58,7 @@ called with symbols or quoted lambdas to filter results."
 ;; <2021-08-17 Tue 10:48> I have since decoupled getting the nodes and processing headlines and the
 ;; lag on the notes buffer is greatly reduced (~0.2s)
 (defun ns/org-notify ()
-  (->> (ns/get-notes-nodes 'ns/org-scheduled-today)
+  (->> (ns/get-notes-nodes '(scheduled :to today))
 
     ;; map headline text to scheduled timestamps
     (-map (fn (list
@@ -137,6 +87,8 @@ called with symbols or quoted lambdas to filter results."
 
 (named-timer-run :org-notify-scheduled t 60 'ns/org-notify)
 
+(named-timer-cancel :org-notify-scheduled)
+
 ;; (named-timer-cancel :org-notify-scheduled)
 
 ;; lazy
@@ -147,7 +99,7 @@ called with symbols or quoted lambdas to filter results."
   (when-not (and (boundp 'org-pomodoro-state)
               (eq org-pomodoro-state :pomodoro))
     (llet [outdated (-sort 'ns/org-outdated-sort-node
-                      (ns/get-notes-nodes 'ns/org-scheduled-past-todo))
+                      (ns/get-notes-nodes `(and (scheduled :to ,(ts-now)) (not (todo "DONE")))))
             outdated-next (-> outdated first org-ml-headline-get-path -last-item)
             count (length outdated)]
       (when (> count 0)
@@ -156,13 +108,9 @@ called with symbols or quoted lambdas to filter results."
           (format "[%s]on deck: %s" (make-string count ?@) outdated-next))))))
 
 (defun ns/org-status-scheduled ()
-  (llet [nodes (-sort
-                 (lambda (&rest nodes)
-                   (llet [(d1 d2) (-map 'ns/headline-date nodes)]
-                     (ts< d1 d2)))
-                 (ns/get-notes-nodes 'ns/org-match-scheduled-today-after-now))
+  (llet [nodes (ns/get-notes-nodes `(scheduled :from ,(ts-now) :to today) ; now through eod
+                 :sort 'scheduled)
           next-headline (first nodes)]
-
     (-when-let (next-ts (ns/headline-date next-headline))
       (when (ts-in (ts-now) (ts-adjust 'hour +1 (ts-now)) next-ts)
         (format "%s in %im"
@@ -171,25 +119,22 @@ called with symbols or quoted lambdas to filter results."
                (ts-unix (ts-now)))
             60))))))
 
-(defun ns/org-rotate (points)
-  "Rotate through org headings by points. Assumes you are already in an org file with said headings"
-  (if-not points
+(defun ns/org-rotate (headlines)
+  "Rotate through org headings by markers."
+  (if-not headlines
     (message "Nothing to jump to!")
-    (let* ((points (-uniq points))
-            (points (-snoc points (first points)))
-            (current-headline-point (-if-let (current-headline (org-ml-parse-headline-at (point)))
-                                      (org-ml-get-property :begin current-headline)
-                                      ;; (-> current-headline second (plist-get :begin))
-                                      0)))
-      (-if-let (current-match (-find-index (-partial '= current-headline-point) points))
-        (progn
-          (goto-char (nth (+ 1 current-match) points)))
-        ;; (goto-char (first points))
-        ;; unsure why I did this
-        (progn
-          (goto-char (or (first (-filter (-partial '< (point)) points))
-                       (first points)))))
+    (let* ((markers (-map 'ns/headline-marker headlines))
+            (markers (-uniq markers))
+            (markers (-snoc markers (first markers)))
+            (target (-if-let (marker (ns/headline-marker (ns/parse-headline-at-point)))
+                      ;; we're looking at a headline, is it in the list?
+                      (-if-let (index (-find-index (-partial '= marker) markers))
+                        (nth (+ 1 index) markers)
+                        (first markers))
+                      (first markers))))
 
+      ;; todo: org-goto-marker is not very smart, will open buffer in current window, want to re-use open one
+      (org-goto-marker-or-bmk target)
       (ns/org-jump-to-element-content))))
 
 (defun ns/org-outdated-sort-node (&rest headlines)
@@ -212,27 +157,22 @@ called with symbols or quoted lambdas to filter results."
       (t (if (ts> d1 d2) nil t)))))
 
 (defun! ns/org-rotate-outdated ()
-  (llet [looking-at-notes? (string= (buffer-file-name) org-default-notes-file)]
-    (when-not looking-at-notes?
-      (ns/find-or-open org-default-notes-file)
-      (goto-line 0)))
-
   (ns/org-rotate
-    (->> (ns/get-notes-nodes 'ns/org-scheduled-past-todo 'ns/org-scheduled-today)
+    (->> (ns/get-notes-nodes '(and (scheduled :to today) (not (todo "DONE"))))
       ;; (-sort 'ns/org-outdated-sort-node)
-      (-map (-partial 'org-ml-get-property :begin)))))
+      )))
 
 (defun! ns/org-rotate-captures ()
   (ns/find-or-open org-default-notes-file)
   (ns/org-rotate
     (-map (-partial 'org-ml-get-property :begin)
-      (ns/get-notes-nodes 'ns/org-match-captures))))
+      (ns/get-notes-nodes '(and (outline-path-segment "captures")
+                             (not (regexp "captures")))))))
 
 (ns/bind "oq" 'ns/org-rotate-outdated)
 
 (ns/comment
   (ns/bind "oq" 'ns/org-rotate-captures)
-
   )
 
 (defun ns/org-get-current-clock-time ()
@@ -247,7 +187,14 @@ called with symbols or quoted lambdas to filter results."
     (-when-let (scheduled (ns/headline-date heading))
       (ts< (ts-now) (ts-parse-org scheduled))))
 
-  (->> (ns/get-notes-nodes 'ns/org-scheduled-future)
+  (->>
+    (length
+      (ns/get-notes-nodes
+        ;; todo: not quite the same
+        ;; '(scheduled :from today)
+        'ns/org-scheduled-future
+        ))
+
     (-map 'org-ml-to-string)
     (s-join "\n")))
 
