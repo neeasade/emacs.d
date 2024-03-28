@@ -197,9 +197,9 @@
 ;; 10x the default, enable fat copy
 (setq xterm-max-cut-length (* 10 100000))
 
-(ns/use (kkp :host github :repo "benjaminor/kkp")
-  (when-not window-system
-    (global-kkp-mode +1)))
+;; (ns/use (kkp :host github :repo "benjaminor/kkp")
+;;   (when-not window-system
+;;     (global-kkp-mode +1)))
 
 ;; idea: a function for jumping to shell-modes with cwd (ie find where a lein run or docker something is held etc)
 

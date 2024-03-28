@@ -211,10 +211,11 @@
 
 ;; completions when editing shell scripts:
 ;; works by spawning a subshell in the background, kinda weird
-(ns/use company-shell
-  (setq company-shell-clean-manpage t)
-  (add-to-list 'company-backends 'company-shell)
-  (add-to-list 'company-backends 'company-shell-env))
+;; todo: can we do this with corfu
+;; (ns/use company-shell
+;;   (setq company-shell-clean-manpage t)
+;;   (add-to-list 'company-backends 'company-shell)
+;;   (add-to-list 'company-backends 'company-shell-env))
 
 (defun ns/shell-send (string)
   (llet [last-shell-buffer (first (ns/buffers-by-mode 'shell-mode))] ; last shell buffer visited

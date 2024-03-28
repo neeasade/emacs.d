@@ -13,19 +13,33 @@
 ;; having this early means we don't break on capture target setup
 (setq org-element-use-cache nil)
 
+(setq org-directory
+  (if (f-exists-p (~ "sync/main/notes"))
+    (~ "sync/main/notes")
+    (~ "notes")))
+
+(setq
+  org-default-notes-file (concat org-directory "/notes.org")
+  org-default-diary-file (concat org-directory "/journal.org"))
+
+(defun ns/refresh-org-files ()
+  (setq org-agenda-files
+    (f-entries org-directory
+      (lambda (f)
+        (and
+          (s-ends-with-p ".org" f)
+          (not (string= f org-default-diary-file))
+          (not (or
+                 (s-starts-with-p (ns/str org-directory "/private") f)
+                 (s-starts-with-p (ns/str org-directory "/archive") f)))))
+      t)))
+
+(add-hook 'after-save-hook 'ns/refresh-org-files)
+
+(ns/refresh-org-files)
+
 ;; config
 (setq-ns org
-  directory (if (f-exists-p (~ "sync/main/notes"))
-              (~ "sync/main/notes")
-              (~ "notes"))
-
-  default-notes-file  (concat org-directory "/notes.org")
-  default-diary-file  (concat org-directory "/journal.org")
-  default-habits-file (concat org-directory "/habits.org")
-
-  ;; one really big notes file
-  agenda-files (list org-default-notes-file)
-
   ;; weeks start on mondays
   agenda-start-on-weekday 1
 
@@ -249,9 +263,7 @@
 (ns/use (evil-org :host github :repo "hlissner/evil-org-mode"
           ;; "Somelauw/evil-org-mode"
           )
-  ;; (require 'evil-org-agenda)
-  )
-
+  (require 'evil-org-agenda))
 
 ;; putting in this file to make sure it's after org mode
 ;; (when ns/enable-evil-p

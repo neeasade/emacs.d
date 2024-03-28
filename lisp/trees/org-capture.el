@@ -126,43 +126,20 @@
 ;; ensure capture hierarchy exists for capture targets
 ;; TODO: presuppose this at time of capture
 
-;; this is breaking things?
-
-(ns/comment
-
-  ;; (-map
-  ;;   (lambda (heading)
-  ;;     (-map (fn (ns/make-org-tree org-default-notes-file "projects" heading <>))
-  ;;       '("captures" "notes" "tasks")))
-  ;;   ;; ns/org-capture-project-list
-  ;;   ;; '("yoga teacher training")
-
-  ;;   )
-
-  )
-
 (setq ns/linkmark-file (concat org-directory "/linkmarks.org"))
 
 (defun! linkmark-select ()
-  (ns/jump-to-notes-heading
-    ns/linkmark-file
-    (lambda (heading-and-mark)
-      ;; it returns like ("heading" . <mark>)
-      (with-current-buffer (marker-buffer (cdr heading-and-mark))
-        (->> (cdr heading-and-mark)
-          (marker-position)
-          (org-ml-parse-element-at)
-          (org-ml-headline-map-node-properties (lambda (_) nil))
-          (org-ml-to-trimmed-string)
-          (s-split "\n")
-          (cdr)
-          (-first (fn (not (s-blank-p <>))))
-          (s-clean)
-          ((lambda (link)
-             (with-temp-buffer
-               (insert link)
-               (beginning-of-line)
-               (ns/follow)))))))))
+  (llet [link-label (ns/pick (-map 'org-ml-headline-get-path
+                               (ns/get-notes-nodes t (list ns/linkmark-file))))
+          link-headline (first (ns/get-notes-nodes `(outline-path ,link-label) (list ns/linkmark-file)))
+          link (first
+                 (-keep 'org-ml-to-trimmed-string
+                   (org-ml-headline-get-contents nil link-headline)))]
+    (with-temp-buffer
+      (insert link)
+      (beginning-of-line)
+      ;; (org-mode)
+      (ns/follow))))
 
 (ns/bind
   "nl" #'linkmark-select

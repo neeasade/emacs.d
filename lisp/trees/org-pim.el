@@ -26,14 +26,13 @@
       (org-ml-get-property :begin headline)
       (get-file-buffer (org-ml-headline-get-node-property "internal_filepath" headline)))))
 
-(defun ns/get-notes-nodes (org-ql-query &rest args)
+(defun ns/get-notes-nodes (org-ql-query &optional paths)
   "get headlines with org-ql. returns parse results of org-ml"
-  (apply 'org-ql-select org-agenda-files
-    org-ql-query :action
-    'ns/parse-headline-at-point args))
+  (org-ql-select (or paths org-agenda-files)
+    org-ql-query :action 'ns/parse-headline-at-point))
 
 (defun ns/org-ml-filter (filters headlines)
-  "filter headlines by nameds filter functions"
+  "filter headlines by named filter functions"
   (org-ml-match `((:or ,@(-map (lambda (f)
                                  `(:pred ,f))
                            (-list filters))))
@@ -119,22 +118,21 @@
                (ts-unix (ts-now)))
             60))))))
 
+(defun ns/goto-marker (marker)
+  (ns/switch-to-buffer-or-window (marker-buffer marker))
+  (goto-char (marker-position marker)))
+
 (defun ns/org-rotate (headlines)
   "Rotate through org headings by markers."
   (if-not headlines
     (message "Nothing to jump to!")
-    (let* ((markers (-map 'ns/headline-marker headlines))
-            (markers (-uniq markers))
-            (markers (-snoc markers (first markers)))
-            (target (-if-let (marker (ns/headline-marker (ns/parse-headline-at-point)))
-                      ;; we're looking at a headline, is it in the list?
-                      (-if-let (index (-find-index (-partial '= marker) markers))
-                        (nth (+ 1 index) markers)
-                        (first markers))
-                      (first markers))))
-
-      ;; todo: org-goto-marker is not very smart, will open buffer in current window, want to re-use open one
-      (org-goto-marker-or-bmk target)
+    (llet [markers (-uniq (-map 'ns/headline-marker headlines))
+            markers (-snoc markers (first markers))
+            target (-when-let (marker (ns/headline-marker (ns/parse-headline-at-point)))
+                     ;; we're looking at a headline, is it in the list?
+                     (-when-let (index (-find-index (-partial '= marker) markers))
+                       (nth (+ 1 index) markers)))]
+      (ns/goto-marker (or target (first markers)))
       (ns/org-jump-to-element-content))))
 
 (defun ns/org-outdated-sort-node (&rest headlines)
