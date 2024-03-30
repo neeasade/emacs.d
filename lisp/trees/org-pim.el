@@ -136,6 +136,12 @@
       (ns/goto-marker (or target (first markers)))
       (ns/org-jump-to-element-content))))
 
+(defun ns/org-scheduled-today (headline)
+  (-some->> (ns/headline-date headline)
+    (ts-in
+      (ts-apply :hour 0 :minute 0 :second 0 (ts-now))
+      (ts-apply :hour 23 :minute 59 :second 59 (ts-now)))))
+
 (defun ns/org-outdated-sort-node (&rest headlines)
   (llet [(h1 h2) headlines
           (p1 p2) (--map (or (org-ml-get-property :priority it) 1000) headlines)
