@@ -128,6 +128,7 @@
     (message "Nothing to jump to!")
     (llet [markers (-uniq (-map 'ns/headline-marker headlines))
             markers (-snoc markers (first markers))
+            ;; todo: should probably sort the markers by buffer -> point or something
             target (-when-let (marker (ns/headline-marker (ns/parse-headline-at-point)))
                      ;; we're looking at a headline, is it in the list?
                      (-when-let (index (-find-index (-partial '= marker) markers))

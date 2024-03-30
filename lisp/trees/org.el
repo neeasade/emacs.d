@@ -518,9 +518,10 @@
 
   "no" (fn!! org-ql-notes
          (org-ql-find
-           (-concat org-agenda-files
-             (when (eq 'org-mode major-mode)
-               (list (buffer-file-name (current-buffer))))))))
+           (-uniq
+             (-concat org-agenda-files
+               (when (eq 'org-mode major-mode)
+                 (list (buffer-file-name (current-buffer)))))))))
 
 (ns/bind-mode 'org
   "or" (fn!! refile-headline-or-region
