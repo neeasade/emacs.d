@@ -1,5 +1,8 @@
 ;; PIM = personal information management
 
+
+(ns/use org-ql)
+
 (named-timer-run :auto-clock-out
   "30 sec"
   60
@@ -107,8 +110,8 @@
           (format "[%s]on deck: %s" (make-string count ?@) outdated-next))))))
 
 (defun ns/org-status-scheduled ()
-  (llet [nodes (ns/get-notes-nodes `(scheduled :from ,(ts-now) :to today) ; now through eod
-                 :sort 'scheduled)
+  (llet [nodes (ns/get-notes-nodes `(scheduled :from ,(ts-now) :to today)) ; now through eod
+          ;; nodes (-sort 'ts> (-map 'ns/headline-date nodes))
           next-headline (first nodes)]
     (-when-let (next-ts (ns/headline-date next-headline))
       (when (ts-in (ts-now) (ts-adjust 'hour +1 (ts-now)) next-ts)
@@ -126,13 +129,16 @@
   "Rotate through org headings by markers."
   (if-not headlines
     (message "Nothing to jump to!")
-    (llet [markers (-uniq (-map 'ns/headline-marker headlines))
+    (llet [headlines (-sort 'ns/org-outdated-sort-node headlines)
+            markers (-uniq (-map 'ns/headline-marker headlines))
             markers (-snoc markers (first markers))
             ;; todo: should probably sort the markers by buffer -> point or something
             target (-when-let (marker (ns/headline-marker (ns/parse-headline-at-point)))
                      ;; we're looking at a headline, is it in the list?
-                     (-when-let (index (-find-index (-partial '= marker) markers))
-                       (nth (+ 1 index) markers)))]
+                     (-if-let (index (-find-index (-partial '= marker) markers))
+                       (nth (+ 1 index) markers)
+                       ;; skip previous markers
+                       (--first (> it marker) markers)))]
       (ns/goto-marker (or target (first markers)))
       (ns/org-jump-to-element-content))))
 

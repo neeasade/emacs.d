@@ -53,8 +53,6 @@
         (list 'function-put (list 'quote f)
           ''speed (list 'quote val)))))
 
-(ns/use org-ql)
-
 ;; (let ((org-super-agenda-groups
 ;;         '((:auto-group t))))
 ;;   (org-agenda-list))
