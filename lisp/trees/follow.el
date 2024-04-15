@@ -85,6 +85,12 @@
       (ns/follow-log "resolved with org-open-at-point")
       t)
 
+    (when (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
+      (ns/follow-log "resolved with org-open-at-point")
+      t)
+
+    (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
+
     ;; note: ffap-string-at-point is region if one is selected
     (let* ((candidate (ffap-string-at-point))
             (fallback-candidates

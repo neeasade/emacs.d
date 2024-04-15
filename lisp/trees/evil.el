@@ -98,7 +98,9 @@
 
   (evil-define-key 'visual prog-mode-map
     (kbd "g l") 'evil-lion-left
-    (kbd "g L") 'evil-lion-right))
+    (kbd "g L") 'evil-lion-right)
+
+  (evil-lion-mode))
 
 (ns/use evil-commentary  (evil-commentary-mode))
 (ns/use evil-anzu 
@@ -187,10 +189,19 @@
   switch-to-next-buffer-skip #'ns/should-skip
   switch-to-prev-buffer-skip #'ns/should-skip)
 
+(ns/use avy
+  ;; (setq avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
+  (setq avy-keys '(?a ?r ?s ?t ?n ?e ?i ?o)))
+
 (general-nmap
   ;; "[s" 'flyspell-goto-prev-error ; not a thing
   "]s" 'flyspell-goto-next-error
-  "s" 'avy-goto-char-timer)
+  ;; "s" 'avy-goto-char-timer
+  "s" 'avy-goto-char-2
+
+  ;; evil motion
+  ;; "s" 'evil-avy-goto-char-2
+  )
 
 ;; break a bad habit by nop'ing :b - we have a mapping to "bb" elsewhere
 ;; update: habit broken, but occasionally still a legit need for this

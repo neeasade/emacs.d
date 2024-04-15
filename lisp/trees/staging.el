@@ -67,7 +67,6 @@
       (-snoc it (~ ".nix-profile/bin/"))
       (-snoc it "/run/current-system/sw/bin")))
 
-
   (setenv "PATH" (s-join ":" exec-path)))
 
 ;; (ns/use frog-jump-buffer

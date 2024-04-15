@@ -1,6 +1,5 @@
 ;; PIM = personal information management
 
-
 (ns/use org-ql)
 
 (named-timer-run :auto-clock-out
@@ -132,7 +131,6 @@
     (llet [headlines (-sort 'ns/org-outdated-sort-node headlines)
             markers (-uniq (-map 'ns/headline-marker headlines))
             markers (-snoc markers (first markers))
-            ;; todo: should probably sort the markers by buffer -> point or something
             target (-when-let (marker (ns/headline-marker (ns/parse-headline-at-point)))
                      ;; we're looking at a headline, is it in the list?
                      (-if-let (index (-find-index (-partial '= marker) markers))
@@ -241,8 +239,6 @@
           idle? (> (org-user-idle-seconds) 20)]
     (-all-p 'null (list idle? pomo-break? org-recently-clocked-out? (org-clocking-p)))))
 
-;; todo make ~10 min reminder if wandering that says hey btw you have outdated tasks
-
 (named-timer-run :harass-myself
   t 20
   (fn (when (ns/org-pim-wandering?)
@@ -258,10 +254,12 @@
     t
     (ns/t 10m)
     (fn (when (ns/org-pim-wandering?)
-          ns/org-status-outdated
-          (alert! (ns/org-status-outdated)
-            :severity 'normal
-            :title "Outstanding tasks")))))
+          (--when-let (ns/org-status-outdated)
+            (alert! it
+              :severity 'normal
+              :title "Outstanding tasks")))))
+
+  (named-timer-cancel :outdated-task-nudge))
 
 ;; don't prompt when idle more than x minutes -- we auto-clock out
 (setq org-clock-idle-time nil)

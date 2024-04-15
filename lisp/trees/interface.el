@@ -143,8 +143,8 @@
   (comment (xterm-mouse-mode 1))
   ;; (xterm-mouse-mode nil)
 
-  ;; these don't appear to be adding anything
-  ;; (ns/use xclip (xclip-mode nil))
+  (ns/use xclip)
+
   ;; (ns/use clipetty (global-clipetty-mode t))
 
   ;; C-i and <tab> are equivalent in the terminal
