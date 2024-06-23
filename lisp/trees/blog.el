@@ -1,5 +1,12 @@
 ;; -*- lexical-binding: t; -*-
 
+(ns/comment
+  (measure-time
+    (ns/blog-generate-all-files)
+    )
+
+  )
+
 ;; compat
 (defalias 'tarp/get 'myron-get)
 (defalias 'ns/shell-exec 'sh)
@@ -93,7 +100,8 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
          (f-base path)
          (s-split "" ";/?:@&=+$,'"))
     (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
-    (s-downcase)))
+    ;; (s-downcase)
+    ))
 
 (defun ns/blog-file-to-meta (path)
   "File path to metadata ."
@@ -146,6 +154,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
     (with-temp-buffer
       (llet ((&hash :path :html-dest) org-meta)
         (message "BLOG: making %s " path)
+        (org-mode)
         (insert (ns/blog-render-org org-meta))
         (ns/blog-make-anchors)
         (org-export-to-file 'html html-dest)))))
@@ -203,7 +212,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                     (-partial #'s-ends-with-p ".org")))
         (-map 'ns/blog-file-to-meta)))))
 
-(defun! ns/blog-generate ()
+(defun ns/blog-generate (metas)
   (setq
     ns/theme (ht-get myron-theme* :normal) ; compat
     ns/blog-metas nil                      ; cache bust
@@ -213,17 +222,13 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
   (message "BLOG: making pages!")
 
   (llet (;; don't ask about generation when exporting
-          org-confirm-babel-evaluate (fn nil)
-
-          metas (ns/blog-changed-files-metas)
-
-          ;; metas (ns/blog-get-metas)
-          )
+          org-confirm-babel-evaluate (fn nil))
 
     ;; todo here: check conflicting html-dest
+    ;; todo redirects
     (-map #'ns/blog-publish-meta metas)
 
-    (message "BLOG: making site rss!")
+    ;; (message "BLOG: making site rss!")
     (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss.org"))
       (org-export-to-file 'rss (ns/blog-path "published/rss.xml")))
     (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss_full.org"))
@@ -231,6 +236,12 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
   (message "BLOG: done! ✨✨✨✨")
   t)
+
+(defun! ns/blog-generate-changed-files ()
+  (ns/blog-generate (ns/blog-changed-files-metas)))
+
+(defun! ns/blog-generate-all-files ()
+  (ns/blog-generate (ns/blog-get-metas)))
 
 (defun org-publish-ignore-mode-hooks (orig-func &rest args)
   (let ((lexical-binding nil))
@@ -244,18 +255,18 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
   "turn headlines into anchor links within a string org-content."
   (org-ml-update-headlines 'all
     (lambda (headline)
-      (let* ((heading-text (-> headline org-ml-headline-get-path last car))
+      (let* (
+              ;; (heading-text (-> headline org-ml-headline-get-path last car)) ;; "arst"
+              (heading-text (-> headline org-ml-headline-get-path last car))
               (id (org-ml-headline-get-node-property "CUSTOM_ID" headline))
               (id (if id id
                     (->> heading-text
                       (s-replace " " "-")
                       (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
                       (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
-
         (->> headline
           (org-ml-headline-set-node-property "CUSTOM_ID" id)
-          (org-ml-set-property
-            :title
+          (org-ml-set-property :title
             (let ((heading-text (-if-let (m (s-match ; remove old heading anchor style
                                               (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
                                               heading-text))
@@ -329,11 +340,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                (/ 100.0 (length colors))
                (first c)
                (cdr c)))
-           (-zip
-             (-map (lambda (c)
-                     (if (listp c)
-                       (-map 'ct-shorten c)
-                       (ct-shorten c))) colors)
+           (-zip colors
              (or labels (-map (lambda (_) "") (-iota (length colors))))))
        "@@html: </div>@@")))
 
@@ -373,8 +380,3 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                         (apply '-ht))]
            (find-file (ht-get posts (ns/pick (ht-keys posts)))))))
 
-;; for demo theme post
-(defun myron-cache-get (theme-name label &optional emphasis)
-  (llet [theme (plist-get myron--cache theme-name)]
-    (or (ht-get* theme (or emphasis :normal) label)
-      (when (not emphasis) (ht-get* theme :meta label)))))

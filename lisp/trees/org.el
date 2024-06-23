@@ -211,7 +211,7 @@
   (org-show-children)
   ;; (org-show-subtree)
 
-  (let* ((props (second (org-ml-parse-this-headline)))
+  (let* ((props (org-ml-get-all-properties (org-ml-parse-this-headline)))
           (contents-begin (plist-get props :contents-begin))
           (begin (plist-get props :begin)))
     (goto-char (or contents-begin begin))
@@ -516,6 +516,7 @@
   "oi" 'ns/org-clock-in
   "oI" 'ns/org-clock-out
 
+  ;; org-ql-find should popup preview of heading
   "no" (fn!! org-ql-notes
          (org-ql-find
            (-uniq

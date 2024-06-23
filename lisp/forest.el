@@ -20,11 +20,14 @@
     (eros-mode 1)
 
     (defun! ns/smart-elisp-eval ()
-      (if (use-region-p)
-        (eval-region (region-beginning) (region-end))
-        (if (s-blank-p (s-trim (thing-at-point 'line)))
-          (eros-eval-last-sexp nil)
-          (eros-eval-defun nil))))
+      (llet [result (if (use-region-p)
+                      (eval-region (region-beginning) (region-end))
+                      (if (s-blank-p (s-trim (thing-at-point 'line)))
+                        (eros-eval-last-sexp nil)
+                        (eros-eval-defun nil)))]
+        (if (and (functionp result)
+              (s-starts-with? "ns/conf-" (pr-str result)))
+          (funcall result))))
 
     (defun! ns/eval-and-replace ()
       "Replace the preceding sexp with its value."
@@ -144,6 +147,7 @@
     "e" 'ns/smart-cider-eval
     "E" 'cider-eval-print-last-sexp)
 
+  (ns/file-mode "bb" 'clojure-mode)
   (add-to-list 'interpreter-mode-alist '("bb" . clojure-mode))
   (add-to-list 'interpreter-mode-alist '("joker" . clojure-mode))
 
@@ -154,7 +158,23 @@
     (ns/use flycheck-clj-kondo))
 
   (defun! ns/babashka-default-connect ()
-    (cider-connect-clj '(:host "localhost" :port 1667))))
+    ;; todo: indicate a repl is already open here?
+    (let ((proc 'ns/bb-server-process))
+      (when-not (and (boundp proc)
+                  (eq 'run (process-status (symbol-value proc))))
+        (set proc (start-process "bb-repl" "*bb-nrepl-server*" "bb" "--nrepl-server")))
+      (sit-for 0.3))                    ; racey
+    (cider-connect-clj '(:host "localhost" :port 1667)))
+
+  ;; for scittle nrepl https://github.com/babashka/scittle/tree/main/doc/nrepl
+  (cider-register-cljs-repl-type 'sci-js "(+ 1 2 3)")
+
+  (defun mm/cider-connected-hook ()
+    (when (eq 'sci-js cider-cljs-repl-type)
+      (setq-local cider-show-error-buffer nil)
+      (cider-set-repl-type 'cljs)))
+
+  (add-hook 'cider-connected-hook #'mm/cider-connected-hook))
 
 (ns/defconfig projectile
   (ns/use projectile)
@@ -178,6 +198,12 @@
         (-remove (lambda (file) (not file))
           (-map 'projectile-root-bottom-up open-buffers)))))
 
+  (defun f-img? (f)
+    ;; this was faster than shelling out to mimetype etc
+    (when-let (ext (f-ext f))
+      (-contains-p '("jpeg" "png" "jpg" "gif")
+        (downcase ext))))
+
   (defun ns/jump-file-candidates (&rest wants)
     (llet (sources
             (list
@@ -193,24 +219,24 @@
                                            (-intersection (internal-complete-buffer "" nil t))))
 
               :buffers-with-files (fn (->> (buffer-list)
-                                        (-keep 'buffer-file-name)
-                                        (-map #'consult--fast-abbreviate-file-name)))
-              :project-files (fn (-map #'consult--fast-abbreviate-file-name
-                                   (ns/all-project-files (list default-directory))))
-              :project-files-all (fn (-map #'consult--fast-abbreviate-file-name
-                                       (ns/all-project-files (list default-directory))))
+                                        (-keep 'buffer-file-name)))
+              :project-files (fn (ns/all-project-files (list default-directory)))
+              :project-files-all (fn (ns/all-project-files (list default-directory)))
               ;; (ns/get-project-files (current-file))
               ;; (if ns/enable-linux-p (ns/all-project-files open-buffers) (ns/get-project-files (current-file)))
 
-              :recentf (fn (-map #'consult--fast-abbreviate-file-name recentf-list))))
+              :recentf (fn recentf-list)))
 
       (llet [selected (or wants '(:recentf :project-files :buffers-with-files))
               results (->> selected
                         (-mapcat
-                          (lambda (type) (funcall (plist-get sources type)))
-                          ;; (-partial #'plist-get sources)
-                          )
+                          (lambda (type)
+                            (llet [result (funcall (plist-get sources type))]
+                              (if (eq type :buffers-without-files)
+                                result
+                                (-map #'consult--fast-abbreviate-file-name result)))))
                         (-uniq)
+                        (-remove 'f-img?)
                         (--filter
                           ;; if a file is not remote, ensure it exists
                           ;; (f-exists-p is slow on remote files)
@@ -219,6 +245,7 @@
         (if (-contains-p selected :buffers-without-files)
           (append results (plist-get sources :buffers-without-files))
           results))))
+
   (ns/bind
     ;; todo: comething to consider: mixing in org headings here
     "ne" (fn!! surf-files (ns/find-files "file" (ns/jump-file-candidates)))

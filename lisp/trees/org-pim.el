@@ -131,12 +131,15 @@
     (llet [headlines (-sort 'ns/org-outdated-sort-node headlines)
             markers (-uniq (-map 'ns/headline-marker headlines))
             markers (-snoc markers (first markers))
-            target (-when-let (marker (ns/headline-marker (ns/parse-headline-at-point)))
+            ;; todo: should probably sort the markers by buffer -> point or something
+            target (-when-let (current-marker (and (eq major-mode 'org-mode)
+                                                (ns/headline-marker (ns/parse-headline-at-point))))
                      ;; we're looking at a headline, is it in the list?
-                     (-if-let (index (-find-index (-partial '= marker) markers))
+                     (-if-let (index (-find-index (-partial '= current-marker) markers))
                        (nth (+ 1 index) markers)
-                       ;; skip previous markers
-                       (--first (> it marker) markers)))]
+                       ;; jump around
+                       ;; todo: maybe sort for current file marker first
+                       (--first (> it current-marker) (-sort '< markers))))]
       (ns/goto-marker (or target (first markers)))
       (ns/org-jump-to-element-content))))
 

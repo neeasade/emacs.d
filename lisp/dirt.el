@@ -57,8 +57,13 @@
        ;;     (message ": ns/use: %s... done ." ',pkg)))
        )))
 
+
+;; use the builtin org that ships with emacs
+(add-to-list 'straight-built-in-pseudo-packages 'org)
+(require 'org)
+
 ;; load org early so that require's use the correct package
-(ns/use org)
+;; (ns/use org)
 
 ;; elisp enhancers
 (ns/use fn)      ; function
@@ -317,7 +322,7 @@
 
 (defun -ht (&rest kvs)
   "A builder for ht.el with less parentheses"
-  (llet (table (ht-create))
+  (let ((table (ht-create)))
     (-map (-applify (-partial 'ht-set table))
       (-partition 2 kvs))
     table))
