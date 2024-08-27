@@ -575,7 +575,7 @@
 
 (defun! ns/style-circe ()
   "Make chat pretty."
-  (set-face-attribute 'circe-prompt-face nil :background nil)
+  (set-face-attribute 'circe-prompt-face 'unspecified :background 'unspecified)
 
   (llet [highlight-fg (myron-get :alt)
           fade-fg (myron-get :faded)]
