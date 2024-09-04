@@ -47,8 +47,9 @@ the same perceived lightness."
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes" :files ("*.el" "themes/*.el"))
   (setq base16-theme-256-color-source 'colors))
 
-(when ns/enable-home-p (setq myron-use-cache nil))
+(setq myron-use-cache (not ns/enable-home-p))
 
+;; until you fix ct.el
 (setq myron-use-cache t)
 
 (ns/use paren-face (global-paren-face-mode))
@@ -160,6 +161,13 @@ the same perceived lightness."
 
     (setq flycheck-indication-mode 'left-margin)
     (ns/face 'flycheck-error :underline nil)))
+
+(defun! ns/load-random-myron-theme ()
+  (ns/load-theme
+    (->> (custom-available-themes)
+      (-filter (fn (s-starts-with-p "myron-" (pr-str <>))))
+      (-shuffle)
+      (first))))
 
 (defun! ns/load-theme (&optional theme)
   (ns/kill-buffers-no-file)

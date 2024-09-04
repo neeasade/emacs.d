@@ -231,6 +231,12 @@
   (run-hooks 'org-pomodoro-finished-hook)
   (org-pomodoro-start :long-break))
 
+(defun! ns/org-adhoc-timer ()
+  (ns/org-clock-out)
+  (run-hooks 'org-pomodoro-finished-hook)
+  (setq org-pomodoro-long-break-length (read-number "enter timer duration in minutes: "))
+  (org-pomodoro-start :long-break))
+
 ;; one day
 ;; (ns/use org-roam)
 
@@ -262,6 +268,16 @@
         (emacs-lisp-mode)
         (pp-buffer)
         (buffer-string)))))
+
+(named-timer-run :show-bandha-reminder
+  t
+  (ns/t 25m)
+  (fn
+    (when (< (org-user-idle-seconds) 60)
+      (alert ""                         ; short notif (not `alert!`)
+        :severity 'normal
+        :title "engage bandhas!"
+        ))))
 
 (provide 'staging)
 ;;; staging.el ends here

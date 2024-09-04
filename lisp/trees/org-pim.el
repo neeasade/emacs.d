@@ -29,7 +29,7 @@
       (get-file-buffer (org-ml-headline-get-node-property "internal_filepath" headline)))))
 
 (defun ns/get-notes-nodes (org-ql-query &optional paths)
-  "get headlines with org-ql. returns parse results of org-ml"
+  "Get headlines with org-ql. returns parse results of org-ml"
   (org-ql-select (or paths org-agenda-files)
     org-ql-query :action 'ns/parse-headline-at-point))
 
@@ -151,6 +151,7 @@
 
 (defun ns/org-outdated-sort-node (&rest headlines)
   (llet [(h1 h2) headlines
+          ;; todo: check priority inheritance here, missed a bday
           (p1 p2) (--map (or (org-ml-get-property :priority it) 1000) headlines)
           (d1 d2) (-map 'ns/headline-date headlines)
           ;; is it a habit?
@@ -177,9 +178,10 @@
 (defun! ns/org-rotate-captures ()
   (ns/find-or-open org-default-notes-file)
   (ns/org-rotate
-    (-map (-partial 'org-ml-get-property :begin)
-      (ns/get-notes-nodes '(and (outline-path-segment "captures")
-                             (not (regexp "captures")))))))
+    (ns/get-notes-nodes '(and (outline-path-segment "captures")
+                           (not (regexp "captures"))))
+    ;; (-map (-partial 'org-ml-get-property :begin))
+    ))
 
 (ns/bind "oq" 'ns/org-rotate-outdated)
 

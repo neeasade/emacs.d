@@ -192,6 +192,11 @@
   (add-hook 'org-pomodoro-killed-hook 'ns/focus-mode-quit)
 
   (defun ns/org-pomodoro-break-finished ()
+    ;; reset break timers
+    ;; rel for ns/org-adhoc-timer
+    (setq org-pomodoro-short-break-length 5
+      org-pomodoro-long-break-length 20)
+
     (ns/toggle-music "toggle")
     (ns/focus-mode-enter t))
 
