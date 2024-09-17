@@ -166,8 +166,9 @@ Example:
      )
   '(
 
-     checker
+     check
      sep
+
      next-buffers
      sep
      ;; vcs ;; somehow this one makes the spacing off
