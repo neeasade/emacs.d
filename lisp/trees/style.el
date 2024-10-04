@@ -163,11 +163,12 @@ the same perceived lightness."
     (ns/face 'flycheck-error :underline nil)))
 
 (defun! ns/load-random-myron-theme ()
-  (ns/load-theme
-    (->> (custom-available-themes)
-      (-filter (fn (s-starts-with-p "myron-" (pr-str <>))))
-      (-shuffle)
-      (first))))
+  (llet [theme (->> (custom-available-themes)
+                 (-filter (fn (s-starts-with-p "myron-" (pr-str <>))))
+                 (-shuffle)
+                 (first))]
+    (ns/load-theme theme)
+    (message (ns/str "loaded " theme "!"))))
 
 (defun! ns/load-theme (&optional theme)
   (ns/kill-buffers-no-file)
@@ -237,7 +238,7 @@ the same perceived lightness."
 
   (when (and (called-interactively-p 'any)
           ns/enable-home-p)
-    (sh-toss "kitty ltheme wm qutebrowser")
+    (sh-toss "kitty ltheme wm qutebrowser rofi")
     ;; (load-file (which "awp"))
     ;; (start-process "bgtint" nil "bgtint")
     )

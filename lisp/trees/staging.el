@@ -272,12 +272,16 @@
 (named-timer-run :show-bandha-reminder
   t
   (ns/t 25m)
-  (fn
-    (when (< (org-user-idle-seconds) 60)
-      (alert ""                         ; short notif (not `alert!`)
-        :severity 'normal
-        :title "engage bandhas!"
-        ))))
+  (fn (when (< (org-user-idle-seconds) 60)
+        (when-not (or (sh "pgrep obs") (sh "pgrep zoom"))
+          (alert ""                       ; short notif (not `alert!`)
+            :severity 'normal
+            :title "engage bandhas!")))))
+
+;; temp fix for nixos ispell
+;; https://www.reddit.com/r/NixOS/comments/1aed1lf/ispell_not_working_on_emacs/
+
+(setq ispell-alternate-dictionary (~ "my.dict"))
 
 (provide 'staging)
 ;;; staging.el ends here

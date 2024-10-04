@@ -125,10 +125,11 @@
   (llet [docstring (when (stringp (first body))
                      (first body))
           body (if docstring (-drop 1 body) body)]
-    `(defun ,label ,args
-       ,docstring
-       (interactive)
-       ,@body)))
+    `(defalias ',label
+       (lambda ,args
+         (interactive)
+         ,@body)
+       ,docstring)))
 
 (defmacro fn!! (&rest body)
   "Create an interactive function prefixed with ia/ and no arguments (optionally, infer name from first sexp)"
@@ -138,8 +139,7 @@
                                             (if has-name?
                                               (first body)
                                               (first (first body))))))))
-    `(defun ,fnname ()
-       (interactive)
+    `(defun! ,fnname ()
        ,@(if has-name?
            (-drop 1 body)
            body))))
@@ -151,12 +151,14 @@
 
 (defun sh (&rest args)
   "trim the newline from shell exec"
-  (let ((process-environment (cons "CALLED_FROM_EMACS=t" process-environment)))
-    (replace-regexp-in-string "\n$" ""
-      (shell-command-to-string
-        (if (= 1 (length args))
-          (first args)
-          (apply 'format args))))))
+  (let ((process-environment (cons "CALLED_FROM_EMACS=t" process-environment))
+         (result (replace-regexp-in-string "\n$" ""
+                   (shell-command-to-string
+                     (if (= 1 (length args))
+                       (first args)
+                       (apply 'format args))))))
+
+    (if (s-blank-p result) nil result)))
 
 (defun sh-toss (command)
   "start a process and throw it to the wind"

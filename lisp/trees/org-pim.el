@@ -1,5 +1,3 @@
-;; PIM = personal information management
-
 (ns/use org-ql)
 
 (named-timer-run :auto-clock-out
@@ -17,10 +15,9 @@
           (ns/org-clock-out)))))
 
 (defun ns/parse-headline-at-point ()
+  ;; todo here: enhance with parent's priority
   (-when-let (headline (org-ml-parse-this-headline))
-    (org-ml-headline-set-node-property
-      "internal_filepath" (buffer-file-name)
-      headline)))
+    (org-ml-headline-set-node-property "internal_filepath" (buffer-file-name) headline)))
 
 (defun ns/headline-marker (headline)
   (when headline
@@ -154,6 +151,8 @@
           ;; todo: check priority inheritance here, missed a bday
           (p1 p2) (--map (or (org-ml-get-property :priority it) 1000) headlines)
           (d1 d2) (-map 'ns/headline-date headlines)
+          d1 (or d1 (ts-apply :year 2000 (ts-now)))
+          d2 (or d2 (ts-apply :year 2000 (ts-now)))
           ;; is it a habit?
           (h1 h2) (--map (-some->> it
                            (org-ml-headline-get-planning)
@@ -171,9 +170,9 @@
 
 (defun! ns/org-rotate-outdated ()
   (ns/org-rotate
-    (->> (ns/get-notes-nodes '(and (scheduled :to today) (not (todo "DONE"))))
-      ;; (-sort 'ns/org-outdated-sort-node)
-      )))
+    (or (ns/get-notes-nodes '(and (not (todo "DONE"))
+                               (scheduled :to today)))
+      (ns/get-notes-nodes (and (not (scheduled)) (priority '>= "C"))))))
 
 (defun! ns/org-rotate-captures ()
   (ns/find-or-open org-default-notes-file)

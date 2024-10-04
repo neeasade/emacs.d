@@ -415,6 +415,10 @@
 
 (defun ns/org-mode-hook ()
   (interactive)
+
+  ;; org-element--list-struct: Tab width in Org files must be 8, not 4
+  (setq-local tab-width 8)
+
   (ns/set-buffer-face-variable)
   (olivetti-mode)
   (git-gutter-mode 0)
