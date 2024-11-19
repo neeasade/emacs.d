@@ -5,13 +5,14 @@
 (require 'org-habit)
 (require 'org-tempo)
 
-(ns/use org-ml)
+(ns/use (org-ml :host github :repo "ndwarshuis/org-ml" :files ("*.el") :branch "update_org_9_7"))
 
 (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
 
 ;; org-element updates cache on every buffer change (slow)
 ;; having this early means we don't break on capture target setup
-(setq org-element-use-cache nil)
+;; <2024-11-11 Mon 07:49> experiment with turning this back on
+(setq org-element-use-cache t)
 
 (setq org-directory
   (if (f-exists-p (~ "sync/main/notes"))
@@ -221,27 +222,29 @@
           (begin (plist-get props :begin)))
     (goto-char (or contents-begin begin))
 
-    (if contents-begin
-      (progn
-        (let ((first-element (org-element-at-point)))
-          (when (eq 'property-drawer (car first-element))
-            (goto-char (org-element-property :end first-element))))
+    ;; broken: org-element-property
+    ;; (if contents-begin
+    ;;   (progn
+    ;;     (let ((first-element (org-element-at-point)))
+    ;;       (when (eq 'property-drawer (car first-element))
+    ;;         (goto-char (org-element-property :end first-element))))
 
-        (let ((first-element (org-element-at-point)))
-          (when (eq 'drawer (car first-element))
-            (goto-char (org-element-property :end first-element))))
+    ;;     (let ((first-element (org-element-at-point)))
+    ;;       (when (eq 'drawer (car first-element))
+    ;;         (goto-char (org-element-property :end first-element))))
 
-        ;; if we're looking at a headline, we went too far
-        ;; (easily possible with blank headlines)
-        (when (s-starts-with-p "*" (thing-at-point 'line))
-          (evil-previous-line)))
+    ;;     ;; if we're looking at a headline, we went too far
+    ;;     ;; (easily possible with blank headlines)
+    ;;     (when (s-starts-with-p "*" (thing-at-point 'line))
+    ;;       (evil-previous-line)))
 
-      ;; empty headline
-      (when (s-starts-with-p "*" (thing-at-point 'line))
-        (evil-next-line)
-        (when (s-starts-with-p "*" (thing-at-point 'line))
-          (evil-open-above 1)
-          (evil-normal-state)))))
+    ;;   ;; empty headline
+    ;;   (when (s-starts-with-p "*" (thing-at-point 'line))
+    ;;     (evil-next-line)
+    ;;     (when (s-starts-with-p "*" (thing-at-point 'line))
+    ;;       (evil-open-above 1)
+    ;;       (evil-normal-state))))
+    )
 
   (recenter))
 
@@ -415,9 +418,6 @@
 
 (defun ns/org-mode-hook ()
   (interactive)
-
-  ;; org-element--list-struct: Tab width in Org files must be 8, not 4
-  (setq-local tab-width 8)
 
   (ns/set-buffer-face-variable)
   (olivetti-mode)

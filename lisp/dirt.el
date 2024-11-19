@@ -62,6 +62,10 @@
 (add-to-list 'straight-built-in-pseudo-packages 'org)
 (require 'org)
 
+;; org-element--list-struct: Tab width in Org files must be 8, not 4
+(defun ns/org-mode-tab-width () (setq-local tab-width 8))
+(add-hook 'org-mode-hook 'ns/org-mode-tab-width)
+
 ;; load org early so that require's use the correct package
 ;; (ns/use org)
 

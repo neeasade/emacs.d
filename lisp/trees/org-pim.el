@@ -17,7 +17,10 @@
 (defun ns/parse-headline-at-point ()
   ;; todo here: enhance with parent's priority
   (-when-let (headline (org-ml-parse-this-headline))
-    (org-ml-headline-set-node-property "internal_filepath" (buffer-file-name) headline)))
+    (->> headline
+      (org-ml-headline-set-node-property "internal_filepath" (buffer-file-name))
+      ;; (org-ml-headline-set-node-property "internal_ts")
+      )))
 
 (defun ns/headline-marker (headline)
   (when headline
@@ -39,10 +42,11 @@
 
 (defun ns/headline-date (headline-node)
   (-some->> headline-node
-    (org-ml-headline-get-planning)
-    (org-ml-get-property :scheduled)
-    (org-ml-get-property :raw-value)
-    (ts-parse-org)))
+    (org-ml-headline-get-planning)      ; note: currently slow
+    ((lambda (l) (plist-get l :scheduled)))
+    ((lambda (ts) (llet [(year month day hour min) ts]
+                    (ts-adjust 'year year 'month month 'day day 'hour (or hour 0) 'minute (or min 0)
+                      (ts-now)))))))
 
 ;; track headlines to notification status
 (when (not (boundp 'ns/org-notify-ht))
@@ -225,13 +229,6 @@
     (->> (ts-now)
       (ts-apply :hour 0 :minute 0 :second 0)
       (ts-unix))))
-
-(defun ns/org-get-path (&optional point)
-  "Get the FULL path to an outline at a point within notes"
-  (when point (goto-char point))
-  (-snoc
-    (org-get-outline-path)
-    (s-clean (org-get-heading))))
 
 (defun ns/org-pim-wandering? ()
   (llet [pomo-break? (-contains-p '(:short-break :long-break) org-pomodoro-state)

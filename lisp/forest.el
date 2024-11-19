@@ -583,13 +583,11 @@
   (ns/refresh-resources))
 
 (ns/defconfig rice-integrations
+
   (defun ns/make-border-color (c)
-    (--> c
-      (ct-iterate it 'ct-pastel
-        (lambda (c)
-          (> (ct-distance it c) 20)))
-      (ct-iterate it 'ct-edit-lab-l-inc
-        (lambda (c) (ct-is-light-p c 75)))))
+    (-> c
+      (ct-aiterate 'ct-pastel (> (ct-distance C0 C) 20))
+      (ct-aiterate 'ct-edit-lab-l-inc (ct-is-light-p C 75))))
 
   (defun ns/set-btag-colors ()
     (->> (if (-contains-p '(myron-kobo myron-grayscale) (first custom-enabled-themes))
