@@ -60,7 +60,6 @@
        (ledger ns/outdated)
        (filehooks ns/enable-home-p)
        (macos-integrations ns/enable-mac-p)
-       (irc ns/enable-home-p)
        graphviz)))
 
 (defun ns/conf-development ()
@@ -86,10 +85,16 @@
        )))
 
 (if (getenv "NS_EMACS_BATCH")
-  ;; doing a batch job, eval some lisp, message the result
   (progn
-    (ns/conf-scripting)
+    ;; not running interactively -- eval some lisp, message the result
+    (comment
+      (when (getenv "NS_REDIR_LOG")
+        (defun ns/message-stdout (message-fn &rest args)
+          (print (s-trim (apply 'format args)) #'external-debugging-output)
+          (apply message-fn args))
+        (advice-add #'message :around #'ns/message-stdout)))
 
+    (ns/conf-scripting)
     (let ((result (-> "NS_EMACS_BATCH" getenv read eval pr-str)))
       (message "COOL_DELIMITER")
       (message result))
@@ -101,8 +106,8 @@
   (ns/conf-core)
   (ns/conf-extra)
   (ns/conf-development)
-
   (ns/conf-staging)
+
   (ns/check-for-orphans)
   (ns/conf-style)
   (message "🏁🏁🏁 init sequence complete 🏁🏁🏁")
@@ -130,7 +135,7 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      (funcall-interactively 'ns/load-theme (intern (get-resource "emacs.theme")))))
+      (ns/load-theme (intern (get-resource "emacs.theme")))))
 
   ;; (add-hook 'emacs-startup-hook 'ns/initial-startup-hook)
   (run-at-time 0.1 nil 'ns/initial-startup-hook)

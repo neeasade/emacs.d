@@ -40,8 +40,7 @@
 
     (ns/bind-mode 'emacs-lisp
       "e" 'ns/smart-elisp-eval
-      "E" 'eval-print-last-sexp
-      ))
+      "E" 'eval-print-last-sexp))
 
   ;; note: elsa needs cask to do anything:
   (when (which "cask")
@@ -87,7 +86,10 @@
 
     (require 'corfu-popupinfo)
     (corfu-popupinfo-mode)
-    (setq corfu-popupinfo-delay '(0.2 . 0.1)))
+    ;; (setq corfu-popupinfo-delay '(0.2 . 0.1))
+    )
+
+  (ns/use corfu-terminal (corfu-terminal-mode))
 
   ;; todo: check this out
   (ns/use cape))
@@ -120,6 +122,9 @@
 (ns/defconfig clojure
   (ns/use clojure-mode)
   (ns/use cider)
+
+  ;; speed in clojure repl
+  (setq cider-repl-use-clojure-font-lock nil)
 
   ;; (ns/use clj-refactor)
 
@@ -237,14 +242,14 @@
                                 (-map #'consult--fast-abbreviate-file-name result)))))
                         (-uniq)
                         (-remove 'f-img?)
-                        (--filter
-                          ;; if a file is not remote, ensure it exists
-                          ;; (f-exists-p is slow on remote files)
-                          (or (file-remote-p it)
-                            (f-exists-p it))))]
-        (if (-contains-p selected :buffers-without-files)
-          (append results (plist-get sources :buffers-without-files))
-          results))))
+                        ;; todo fix this later - strips all results from buffers-without-files
+                        ;; (--filter
+                        ;;   ;; if a file is not remote, ensure it exists
+                        ;;   ;; (f-exists-p is slow on remote files)
+                        ;;   (or (file-remote-p it)
+                        ;;     (f-exists-p it)))
+                        )]
+        results)))
 
   (ns/bind
     ;; todo: comething to consider: mixing in org headings here
@@ -511,6 +516,7 @@
           (aset str (+ i ?a) (+ i lower)))
         str)))
 
+  (defalias 'ns/text-to-stud 'studlify-region)
   (->> '((?𝙰 ?𝚊 monospace)
           (?Ａ ?ａ widechar)
           (?𝔄 ?𝔞 gothic)
@@ -543,7 +549,9 @@
                             (font-get dfont :name)))))
       (-ht
         "panel.height" "24"
-        "emacs.theme" "myron-mcfay"
+        "emacs.theme" (or (and (f-exists-p (~ ".cache/rice/emacs-theme-name"))
+                            (slurp (~ ".cache/rice/emacs-theme-name")))
+                        "myron-mcfay")
         "font.mono.spec" default-font
         "font.variable.spec" default-font)))
 
@@ -598,8 +606,8 @@
       (-map-indexed (lambda (i c) (sh (format "btags set ^%s color %s" (+ 1 i) c)))))
     nil)
 
-  ;; conflict with blog iq
-  ;; (ns/bind "iq" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
+  ;; "insert region"
+  (ns/bind "ir" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
 
   (ns/bind "it"
     (fn!! insert-theme-key
@@ -651,21 +659,20 @@
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
-(ns/defconfig blog        (shut-up-load (~e "lisp/trees/blog.el")))
-(ns/defconfig doomline    (shut-up-load (~e "lisp/trees/doomline.el")))
-(ns/defconfig editing     (shut-up-load (~e "lisp/trees/editing.el")))
-(ns/defconfig evil        (shut-up-load (~e "lisp/trees/evil.el")))
-(ns/defconfig follow-dwim (shut-up-load (~e "lisp/trees/follow.el")))
-(ns/defconfig git         (shut-up-load (~e "lisp/trees/git.el")))
-(ns/defconfig interface   (shut-up-load (~e "lisp/trees/interface.el")))
-(ns/defconfig irc         (shut-up-load (~e "lisp/trees/irc.el")))
-(ns/defconfig minibuffer         (shut-up-load (~e "lisp/trees/minibuffer.el")))
-(ns/defconfig buffers-and-windows         (shut-up-load (~e "lisp/trees/buffers-and-windows.el")))
-(ns/defconfig dired       (shut-up-load (~e "lisp/trees/dired.el")))
-(ns/defconfig org         (shut-up-load (~e "lisp/trees/org.el")))
-(ns/defconfig org-capture (shut-up-load (~e "lisp/trees/org-capture.el")))
-(ns/defconfig org-pim     (shut-up-load (~e "lisp/trees/org-pim.el")))
-(ns/defconfig org-pim-export     (shut-up-load (~e "lisp/trees/org-pim-export.el")))
+(ns/defconfig blog                (shut-up-load (~e "lisp/trees/blog.el")))
+(ns/defconfig doomline            (shut-up-load (~e "lisp/trees/doomline.el")))
+(ns/defconfig editing             (shut-up-load (~e "lisp/trees/editing.el")))
+(ns/defconfig evil                (shut-up-load (~e "lisp/trees/evil.el")))
+(ns/defconfig follow-dwim         (shut-up-load (~e "lisp/trees/follow.el")))
+(ns/defconfig git                 (shut-up-load (~e "lisp/trees/git.el")))
+(ns/defconfig interface           (shut-up-load (~e "lisp/trees/interface.el")))
+(ns/defconfig minibuffer          (shut-up-load (~e "lisp/trees/minibuffer.el")))
+(ns/defconfig buffers-and-windows (shut-up-load (~e "lisp/trees/buffers-and-windows.el")))
+(ns/defconfig dired               (shut-up-load (~e "lisp/trees/dired.el")))
+(ns/defconfig org                 (shut-up-load (~e "lisp/trees/org.el")))
+(ns/defconfig org-capture         (shut-up-load (~e "lisp/trees/org-capture.el")))
+(ns/defconfig org-pim             (shut-up-load (~e "lisp/trees/org-pim.el")))
+(ns/defconfig org-pim-export      (shut-up-load (~e "lisp/trees/org-pim-export.el")))
 
 (ns/defconfig sanity      (shut-up-load (~e "lisp/trees/sanity.el")))
 (ns/defconfig shell       (shut-up-load (~e "lisp/trees/shell.el")))

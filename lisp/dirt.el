@@ -38,7 +38,8 @@
 
   mac-option-modifier 'meta
   mac-command-modifier 'super
-  mac-control-modifier 'control)
+  mac-control-modifier 'control
+  )
 
 (defmacro ns/use (pkg-def &rest body)
   "Load a PKG-DEF with straight, require it, and then eval BODY."
@@ -180,68 +181,28 @@
                  args)]
     (apply #'f-join (cons ns/emacs-directory parts))))
 
-(defun ns/check-bind-conflict (binding &optional keymap states)
-  (llet [keymap (or keymap 'general-override-mode-map)
-          states (or states '(normal))
-          keymap-bindings (->> general-keybindings
-                            (-first (-lambda ((keymap_ &rest _))
-                                      (eq keymap_ keymap)))
-                            (-drop 1))]
-    (-map
-      (lambda (evil-state)
-        (when-let (conflict (->> keymap-bindings
-                              (-first
-                                (-lambda ((evil-state_ &rest _))
-                                  (eq evil-state_ evil-state)))
-                              (-drop 1)
-                              (-first (-lambda ((binding_ &rest _))
-                                        (string= binding_ binding)))))
-          (message "conflicting keybind! '%s'" (first conflict))))
-      states)))
-
-(defun ns/check-conflicting-binds (binds keymap states &optional prefix)
-  (comment
-    (->> binds
-      (-partition 2)
-      (-map (-lambda ((bind &rest _))
-              (ns/check-bind-conflict
-                (format "%s%s" (or prefix " ") bind) keymap states))))))
-
 (defun ns/bind (&rest binds)
   (llet [states '(normal visual)
           keymap 'general-override-mode-map]
-    (ns/check-conflicting-binds binds keymap states)
     (apply 'general-define-key
       :states states
       :keymaps keymap
-      :prefix "SPC"
-      binds)))
-
-(defun ns/bind-soft (&rest binds)
-  "a version of ns/bind that will not be present via an override mode"
-  (llet [states '(normal visual)
-          keymap 'global]
-    (ns/check-conflicting-binds binds keymap states)
-    (apply 'general-define-key
-      :states states
-      ;; :keymaps keymap
       :prefix "SPC"
       binds)))
 
 (defun ns/bind-mode (mode &rest binds)
   (llet [states '(normal visual)
           keymap (intern (format "%s-mode-map" (symbol-name mode)))] ; convention
-    (ns/check-conflicting-binds binds keymap states)
     (apply 'general-define-key
       :states states
       :keymaps keymap
       :prefix "SPC"
       binds)))
 
+;; todo: reconsider
 (defun ns/bind-leader-mode (mode &rest binds)
   (llet [states '(normal visual)
           keymap (intern (format "%s-mode-map" (symbol-name mode)))]
-    (ns/check-conflicting-binds binds keymap states ",")
     (apply 'general-define-key
       :states states
       :keymaps keymap
@@ -464,5 +425,4 @@
   (comment
     ;; come back to this
     (terminal-init-xterm-kitty)
-
     ))
