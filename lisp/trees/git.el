@@ -92,6 +92,18 @@ command was called, go to its unstaged changes section."
 ;; todo: tryout this package
 (ns/use vdiff)
 
+;; todo: want a shortcut to open:
+;; associated PR
+;; or just git repo generally
+
+
+;; this seems to be a little nicer:
+;; (ns/use browse-at-remote)
+
+(ns/use git-link
+  (setq git-link-open-in-browser t)
+  (ns/bind "ng" 'git-link))
+
 (general-nmap
   "]g" 'git-gutter:next-hunk
   "[g" 'git-gutter:previous-hunk)

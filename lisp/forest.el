@@ -89,7 +89,7 @@
     ;; (setq corfu-popupinfo-delay '(0.2 . 0.1))
     )
 
-  (ns/use corfu-terminal (corfu-terminal-mode))
+  (when ns/term? (ns/use corfu-terminal (corfu-terminal-mode)))
 
   ;; todo: check this out
   (ns/use cape))
@@ -553,7 +553,8 @@
                             (slurp (~ ".cache/rice/emacs-theme-name")))
                         "myron-mcfay")
         "font.mono.spec" default-font
-        "font.variable.spec" default-font)))
+        ;; "font.variable.spec" default-font
+        "font.variable-big.spec" default-font)))
 
   (defun get-resource (name)
     (ht-get ns/resource-table name))
@@ -580,7 +581,7 @@
                "Noto Sans Mono"
                "Lucida Console"
                "Dejavu Sans Mono")))
-        (-first (-partial 'ns/update-resource-font "font.variable.spec")
+        (-first (-partial 'ns/update-resource-font "font.variable-big.spec")
           (--map (format "%s-14" it)
             '("Charter"
                "Noto Serif"

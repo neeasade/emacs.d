@@ -124,7 +124,7 @@
   ;; fun visual vim mode
   (evil-goggles-mode 0))
 
-(ns/use evil-surround  (global-evil-surround-mode 1))
+(ns/use evil-surround (global-evil-surround-mode 1))
 
 (ns/use evil-embrace
   (setq evil-embrace-show-help-p nil)

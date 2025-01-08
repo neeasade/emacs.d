@@ -30,12 +30,15 @@
 (ns/use shx
   ;; todo: this breaks corfu/our ret binding
   (shx-global-mode 0)
+  (shx-global-mode t)
+
   (defun shx-send-input-or-open-thing ()
     "Open thing at point, or send input if no identifiable thing."
     (interactive)
     (when (shx-point-on-input-p)
       (shx-send-input)))
-  (when-not window-system
+
+  (when ns/term?
     (general-nmap shx-mode-map
       "RET" #'shx-send-input-or-open-thing)))
 
@@ -132,11 +135,11 @@
 (ns/stage-terminal)
 
 (defun! ns/spawn-terminal (&optional cwd)
-  (when window-system
+  (when-not ns/term?
     (select-frame (make-frame))
     (ns/pickup-shell cwd t))
 
-  (when (xterm-kitty-in-use)
+  (when ns/term?
     ;; cf https://sw.kovidgoyal.net/kitty/remote-control/#kitty-launch
     ;; lags really bad after window creation
     ;; (kitty-rc-posted-command "launch" `(("type" . "os-window")
@@ -172,12 +175,6 @@
             (process-list))))))
 
   (when terminal
-    (when (and (not window-system)
-            (string= (getenv "TERM") "kitty"))
-      ;; doesn't seem to be needed?
-      ;; (terminal-init-xterm-kitty)
-      )
-
     (when (fboundp 'ns/toggle-modeline)
       (ns/toggle-modeline)))
 

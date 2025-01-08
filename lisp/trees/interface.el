@@ -135,21 +135,12 @@
 
 (ns/bind "nH" 'ns/helpful-or-dashdoc)
 
-;; where should this go
-(when-not window-system
-  ;; (when running in a terminal)
+(when ns/term?
+  (ns/use clipetty (global-clipetty-mode t))
 
   ;; this doesn't work in kitty (might be related to new esc code things)
   (comment (xterm-mouse-mode 1))
-  ;; (xterm-mouse-mode nil)
 
-  (ns/use xclip)
-
-  ;; (ns/use clipetty (global-clipetty-mode t))
-
-  ;; C-i and <tab> are equivalent in the terminal
-  ;; (until kitty saves us all)
-  (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
-
-  (define-key evil-motion-state-map (kbd "C-i")
-    'better-jumper-jump-forward))
+  ;; broken af
+  ;; (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
+  (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))

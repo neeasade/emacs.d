@@ -1,5 +1,4 @@
 ;; -*- lexical-binding: t; -*-
-
 (ns/bind "nk" (fn!! goto-theme (find-file (executable-find "theme"))
                 (goto-line 0)
                 (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
@@ -12,20 +11,12 @@
 ;; (ns/use bash-completion)
 ;; (bash-completion-setup)
 
-(ns/use rainbow-mode
-  (setq rainbow-html-colors nil
-    rainbow-x-colors nil)
-  (ns/bind "tc" 'rainbow-mode))
+
 
 ;; M-x direnv-update-environment
 ;; sync from the pov of the current file
 (ns/use direnv)
 
-(ns/use git-link (setq git-link-open-in-browser t)
-  (ns/bind "ng" 'git-link))
-
-;; this seems to be a little nicer:
-;; (ns/use browse-at-remote)
 
 ;; (named-timer-run :show-periodic-reminder
 ;;   t
@@ -45,13 +36,6 @@
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
-
-;; for emacs <28 org-ql
-(when-not (fboundp 'byte-run--set-speed)
-  (defalias 'byte-run--set-speed
-    #'(lambda (f _args val)
-        (list 'function-put (list 'quote f)
-          ''speed (list 'quote val)))))
 
 ;; (let ((org-super-agenda-groups
 ;;         '((:auto-group t))))
@@ -93,6 +77,7 @@
 ;;        (left . 0.0)
 ;;        ))
 
+
 ;;   ;; (set-face-attribute 'avy-lead-face nil :box (tarp/get :faded))
 ;;   (set-face-attribute 'avy-lead-face nil :box nil))
 
@@ -102,12 +87,6 @@
     ((display-graphic-p)
       'avy-posframe)
     (t 'avy-side-window)))
-
-;; (frog-menu-type)
-
-;; want a shortcut to open:
-;; associated PR
-;; or just git repo generally
 
 ;; clean-buffer-list-delay-general
 ;; clean-buffer-list-delay-special
@@ -191,13 +170,6 @@
          ,@(-interleave syms syms-old))
        ret)))
 
-;; 10x the default, enable fat copy
-(setq xterm-max-cut-length (* 10 100000))
-
-;; (ns/use (kkp :host github :repo "benjaminor/kkp")
-;;   (when-not window-system
-;;     (global-kkp-mode +1)))
-
 ;; idea: a function for jumping to shell-modes with cwd (ie find where a lein run or docker something is held etc)
 
 ;; todo: revert all file buffers interactive fn
@@ -232,10 +204,11 @@
   (org-pomodoro-start :long-break))
 
 (defun! ns/org-adhoc-timer ()
-  (ns/org-clock-out)
-  (run-hooks 'org-pomodoro-finished-hook)
-  (setq org-pomodoro-long-break-length (read-number "enter timer duration in minutes: "))
-  (org-pomodoro-start :long-break))
+  (llet [duration (read-number "enter timer duration in minutes: ")]
+    (ns/org-clock-out)
+    (run-hooks 'org-pomodoro-finished-hook)
+    (setq org-pomodoro-long-break-length duration)
+    (org-pomodoro-start :long-break)))
 
 ;; one day
 ;; (ns/use org-roam)
@@ -289,18 +262,49 @@
 (defun ns/add-heading-if-not-exists (heading)
   "Add HEADING to the current org file if it doesn't already exist."
   (goto-char (point-min))
-  ;; todo: newline here/not catch partials
   (when-not (re-search-forward (concat "^\\* \n" (regexp-quote heading)) nil t)
     (goto-char (point-max))
     (insert "\n* " heading)))
 
-(defun! ns/start-pomo ()
+(defun! ns/start-pomodoro ()
   "declare a pomo"
   (llet [intent (read-string "Pomodoro purpose: ")]
     (with-current-buffer (find-file-noselect (f-join (f-parent org-default-notes-file) "pomodoro.org"))
       (ns/add-heading-if-not-exists intent)
       (org-pomodoro))))
 
+;; this is only enforced after the printing is done? feels useless
+(setq cider-print-quota 50000)
+
+(setq cider-repl-buffer-size-limit 10000)
+
+;; needed for interrupts on java >21
+;; https://docs.cider.mx/cider/basics/up_and_running.html#enabling-nrepl-jvmti-agent
+(setq cider-enable-nrepl-jvmti-agent t)
+
+(ns/use
+  (eat :type git
+    :host codeberg
+    :repo "akib/emacs-eat"
+    :files ("*.el" ("term" "term/*.el") "*.texi"
+             "*.ti" ("terminfo/e" "terminfo/e/*")
+             ("terminfo/65" "terminfo/65/*")
+             ("integration" "integration/*")
+             (:exclude ".dir-locals.el" "*-tests.el"))))
+
+;; (defvar shell-pop-internal-mode-func '(lambda () (shell)))
+
+;; (setq shell-pop-shell-type '("eat" "*eat*" (lambda nil (eat))))
+
+;; (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type)
+
+;; (comment ns/inmap
+;;   'eat-line-mode'
+;;   ;; 'eat-previous-shell-prompt
+;;   ;; 'eat-next-shell-prompt
+;;   )
+
+(ns/use chatgpt-shell)
 
 (provide 'staging)
 ;;; staging.el ends here

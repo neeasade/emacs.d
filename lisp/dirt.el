@@ -33,6 +33,7 @@
   ;; ns/enable-work-p ns/enable-mac-p
   ns/enable-work-p nil
 
+  ns/term? (not window-system)
   ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
   ns/emacs-directory user-emacs-directory
 
@@ -287,6 +288,10 @@
   "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
 
+(defun s-split-lines (s)
+  "Remove text properies from S."
+  (s-split "\n" s))
+
 (defun -ht (&rest kvs)
   "A builder for ht.el with less parentheses"
   (let ((table (ht-create)))
@@ -367,8 +372,6 @@
     (let ((alert-fade-time 0))
       (apply 'alert alert-args))))
 
-;; trying terminal
-(add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
 
 ;; in anticipation of it existing one day
 ;; https://github.com/magnars/dash.el/pull/404
@@ -398,31 +401,18 @@
   "pick random item from list"
   (first (-shuffle list)))
 
-(when-not window-system
-  (setq kitty-kbp-modifiers-alist
+(when ns/term?
+  (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
 
+  (setq kitty-kbp-modifiers-alist
     ;; original
     ;; '((1 . shift) (2 . alt) (4 . control) (8 . super) (16 . hyper) (32 . meta))
-
     ;; swap meta and alt (get my home keyboard to work)
-    '((1 . shift) (2 . meta) (4 . control) (8 . alt) (16 . hyper) (32 . super))
-    )
+    '((1 . shift) (2 . meta) (4 . control) (8 . alt) (16 . hyper) (32 . super)))
+
   (setq kitty-kbp-delete-backspace-workaround t)
+
   (require 'term/xterm-kitty)
 
-  ;; (defun ravi/get-rid-of-xterm-key-translations ()
-  ;;   (message "Getting rid of xterm key translations")
-  ;;   (mapcar (lambda (k) (define-key local-function-key-map (vector k) nil))
-  ;;     '(tab delete return escape))
-  ;;   ;; ??
-  ;;   (global-set-key (kbd "<delete>") #'delete-forward-char))
-
-  ;; (add-hook 'terminal-init-xterm-kitty-hook #'ravi/get-rid-of-xterm-key-translations)
-  ;; (add-hook 'terminal-init-xterm-kitty-hook #'kitty-rc-set-interprogram-cut-function)
-  ;; (add-hook 'terminal-init-xterm-kitty-hook #'xterm-kitty-add-select-frame-set-input-focus-advice)
-
-
-  (comment
-    ;; come back to this
-    (terminal-init-xterm-kitty)
-    ))
+  ;; (terminal-init-xterm-kitty)
+  )

@@ -4,10 +4,10 @@
 (setq-default indicate-empty-lines nil)
 
 (ns/use doom-modeline)
-(ns/use (myron-themes :host github :repo "neeasade/myron-themes" :files ("*.el" "themes/*.el"))
-  (setq base16-theme-256-color-source 'colors))
-
-(setq myron-use-cache (not ns/enable-home-p))
+(ns/use (myron-themes :host github :repo "neeasade/myron-themes"
+          :files ("*.el" "themes/*.el"))
+  (setq base16-theme-256-color-source 'colors)
+  (setq myron-use-cache (not ns/enable-home-p)))
 
 (ns/use paren-face (global-paren-face-mode))
 
@@ -67,14 +67,14 @@
 
 (defun ns/set-faces-variable (faces)
   (apply 'ns/face faces
-    (ns/parse-font (get-resource "font.variable.spec"))))
+    (ns/parse-font (get-resource "font.variable-big.spec"))))
 
 (defun ns/set-faces-monospace (faces)
   (apply 'ns/face faces
     (ns/parse-font (get-resource "font.mono.spec"))))
 
 (defun ns/set-buffers-face-variable (buffers)
-  (llet [font (ns/parse-font (get-resource "font.variable.spec"))]
+  (llet [font (ns/parse-font (get-resource "font.variable-big.spec"))]
     (--map (with-current-buffer it
              (setq-local buffer-face-mode-face font)
              (buffer-face-mode t))
@@ -94,14 +94,8 @@
       buffers)))
 
 (defun ns/style-terminal ()
-  (when-not window-system
-    ;; bold monospace headings in org look gross
-    (->> (face-list)
-      (--filter (s-starts-with-p "org" (ns/str it)))
-      (--map (ns/face it :weight 'normal)))
-
+  (when ns/term?
     (ns/use evil-terminal-cursor-changer
-      
       (defun etcc--in-xterm? ()
         "Runing in xterm."
         (or (string= (getenv "TERM") "xterm-kitty")
@@ -160,6 +154,12 @@
   (ns/face 'bold :weight 'bold)
   (ns/face 'region :slant 'unspecified)
 
+  ;; (ns/face 'font-lock-comment-face :slant 'normal)
+
+  ;; (ns/face 'font-lock-constant-face :weight 'bold)
+
+  ;; (ns/face 'font-lock-variable-name-face :weight 'bold)
+
   ;; todo: these should probably move into the theme
   (ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)
 
@@ -172,11 +172,10 @@
   (setq window-divider-default-places t)
   (window-divider-mode t) 
 
-  (->>
-    `(internal-border-width ,(if ns/enable-home-p 0 10)
-       right-divider-width ,(default-font-width)
-       bottom-divider-width 0
-       font ,(get-resource "font.mono.spec"))
+  (->> `(internal-border-width ,(if ns/enable-home-p 0 10)
+          right-divider-width ,(default-font-width)
+          bottom-divider-width 0
+          font ,(get-resource "font.mono.spec"))
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
@@ -186,22 +185,32 @@
     :background (face-attribute 'mode-line-inactive :background)
     :foreground (face-attribute 'mode-line-inactive :background))
 
-  (-map (fn (when (fboundp <>)
-              (message (pr-str <>))
-              (funcall-interactively <>)))
+  (-map (lambda (f)
+          (interactive)
+          (when (fboundp f)
+            (message (pr-str f))
+            (funcall-interactively f)))
     '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc ns/style-terminal))
 
+  ;; testing, lighter emphasis on codeblocks
+  (ns/face 'org-block :background (ct-lessen (myron-get :background) 3))
+
   (f-mkdir-full-path (~ ".cache/rice/"))
+  (spit (~ ".cache/rice/emacs-theme-name")
+    (ns/str (first custom-enabled-themes)))
   (spit (~ ".cache/rice/emacs-theme-cache")
     (ns/emacs-to-theme))
 
   (when (and (called-interactively-p 'any)
           ns/enable-home-p)
-    (sh-toss "kitty ltheme wm qutebrowser rofi")
-    (sh-toss "/home/neeasade/walls/3074ac6e6ba4ccc596b5fa4d3ae36e1998535d47d1a62df8d2d9bed0ca418807.awp")
+    (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
+    ;; (sh-toss "awp disease")
+    ;; (sh-toss "/home/neeasade/walls/3074ac6e6ba4ccc596b5fa4d3ae36e1998535d47d1a62df8d2d9bed0ca418807.awp")
+    ;; (sh-toss "/home/neeasade/walls/4c3f11a0f90b4388b8a49f49b9ffbad88f36547b5d9ce1310aae72934604521e.awp")
+
 
     ;; (sh-toss "awp disease")
-    (sh-toss "")
+    ;; (sh-toss "")
     ;; (load-file (which "awp"))
     ;; (start-process "bgtint" nil "bgtint")
     )
@@ -211,3 +220,8 @@
   ;;   (make-thread
   ;;     (fn (ns/blog-set-htmlize-colors))))
   t)
+
+(ns/use rainbow-mode
+  (setq rainbow-html-colors nil
+    rainbow-x-colors nil)
+  (ns/bind "tc" 'rainbow-mode))

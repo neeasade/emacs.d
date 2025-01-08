@@ -192,9 +192,9 @@
   ;; todo: dated scratch buffer/dir
   ;; todo: per-mode scratch? should text be org? ugh
   "ns" '(:ignore t :which-key "Scratch")
-  "nss" (fn!! goto-scratch-elisp (ns/find-or-open (~e "lisp/scratch.el")))
-  "nst" (fn!! goto-scratch-text (ns/find-or-open (~e "lisp/scratch.txt")))
-  "nso" (fn!! goto-scratch-org (ns/find-or-open (~e "lisp/scratch.org")))
+  "nss" (fn!! goto-scratch-elisp (ns/find-or-open (~e "lisp/scratch/scratch.el")))
+  "nst" (fn!! goto-scratch-text (ns/find-or-open (~e "lisp/scratch/scratch.txt")))
+  "nso" (fn!! goto-scratch-org (ns/find-or-open (~e "lisp/scratch/scratch.org")))
 
   "nm" (fn!! goto-messages (ns/find-or-open  "*Messages*"))
   "nU" 'undo-tree-visualize
@@ -202,6 +202,7 @@
   "t" '(:ignore t :which-key "Toggle")
   "tw" 'whitespace-mode
   "tn" (fn!! line-numbers-toggle (setq-local display-line-numbers (if display-line-numbers nil 'relative)))
+  "tN" (fn!! line-numbers-toggle (setq-local display-line-numbers (if display-line-numbers nil t)))
   "tl" 'toggle-truncate-lines
   ;; "ts" 'ns/style
   "ts" 'ns/load-theme

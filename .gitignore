@@ -18,9 +18,7 @@ tramp
 url
 var
 
-lisp/scratch.el
-lisp/scratch.txt
-lisp/*.org
+lisp/scratch/*
 eln-cache
 .cask
 

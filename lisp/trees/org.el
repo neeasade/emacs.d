@@ -31,6 +31,7 @@
           (s-ends-with-p ".org" f)
           (not (string= f org-default-diary-file))
           (not (or
+                 (s-contains? ".sync-conflict" f)
                  (s-starts-with-p (ns/str org-directory "/private") f)
                  (s-starts-with-p (ns/str org-directory "/archive") f)))))
       t)))
