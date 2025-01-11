@@ -306,5 +306,10 @@
 
 (ns/use chatgpt-shell)
 
+(ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
+  (setq scroll-conservatively 101
+    scroll-margin 0)
+  (ultra-scroll-mode t))
+
 (provide 'staging)
 ;;; staging.el ends here

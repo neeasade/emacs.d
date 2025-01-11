@@ -195,14 +195,17 @@
   ;; testing, lighter emphasis on codeblocks
   (ns/face 'org-block :background (ct-lessen (myron-get :background) 3))
 
-  (f-mkdir-full-path (~ ".cache/rice/"))
-  (spit (~ ".cache/rice/emacs-theme-name")
-    (ns/str (first custom-enabled-themes)))
-  (spit (~ ".cache/rice/emacs-theme-cache")
-    (ns/emacs-to-theme))
-
   (when (and (called-interactively-p 'any)
-          ns/enable-home-p)
+          ns/enable-home-p
+          (not (getenv "NS_EMACS_BATCH")))
+
+    (llet [cache-dir (~ ".cache/rice/")]
+      (f-mkdir-full-path cache-dir)
+      (spit (ns/str cache-dir "emacs-theme-name")
+        (ns/str (first custom-enabled-themes)))
+      (spit (ns/str cache-dir "emacs-theme-cache")
+        (ns/emacs-to-theme)))
+
     (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
     ;; (sh-toss "awp disease")
     ;; (sh-toss "/home/neeasade/walls/3074ac6e6ba4ccc596b5fa4d3ae36e1998535d47d1a62df8d2d9bed0ca418807.awp")

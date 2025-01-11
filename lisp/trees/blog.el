@@ -32,7 +32,7 @@
 (setq ns/blog-title "🌳ＧＲＯＶＥ🌳")
 
 (defun ns/blog-path (ext)
-  (format (~ "code/neeasade.github.io/%s") ext))
+  (ns/str (or (getenv "NS_BLOG_PATH") (~ "code/neeasade.github.io/")) ext))
 
 (defun ns/mustache (text table)
   "Basic mustache templating."
@@ -161,6 +161,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
+  (setq ns/theme (ht-get myron-theme* :normal)) ; compat
   (save-buffer)
   (llet (file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta)
           post-html-file (ht-get file-meta :html-dest))
@@ -340,7 +341,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                (/ 100.0 (length colors))
                (first c)
                (cdr c)))
-           (-zip colors
+           (-zip-pair colors
              (or labels (-map (lambda (_) "") (-iota (length colors))))))
        "@@html: </div>@@")))
 

@@ -87,12 +87,11 @@
 (if (getenv "NS_EMACS_BATCH")
   (progn
     ;; not running interactively -- eval some lisp, message the result
-    (comment
-      (when (getenv "NS_REDIR_LOG")
-        (defun ns/message-stdout (message-fn &rest args)
-          (print (s-trim (apply 'format args)) #'external-debugging-output)
-          (apply message-fn args))
-        (advice-add #'message :around #'ns/message-stdout)))
+    (when (getenv "NS_REDIR_LOG")
+      (defun ns/message-stdout (message-fn &rest args)
+        (print (s-trim (apply 'format args)) #'external-debugging-output)
+        (apply message-fn args))
+      (advice-add #'message :around #'ns/message-stdout))
 
     (ns/conf-scripting)
     (let ((result (-> "NS_EMACS_BATCH" getenv read eval pr-str)))
