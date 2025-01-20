@@ -64,7 +64,8 @@
 (ns/bind "nd"
   (fn!! surf-dirs
     (llet [dir (ns/pick "directory"
-                 (->> ns/cd-dirs
+                 (->> (ns/atuin-list-dirs)
+                   (-map 'expand-file-name)
                    (-uniq)
                    (-filter (fn (s-equals-p (file-remote-p <>)
                                   (file-remote-p default-directory))))

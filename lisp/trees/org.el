@@ -188,6 +188,12 @@
       (spit (~ ".config/qutebrowser/adblock.txt") "")
       (sh-toss "qb_command :adblock-update")))
 
+  (defun ns/save-pomodoro-buffer ()
+    (with-current-buffer (get-file-buffer "/home/neeasade/sync/main/notes/pomodoro.org")
+      (save-buffer)))
+
+  (add-hook 'org-pomodoro-finished-hook 'ns/save-pomodoro-buffer)
+
   (add-hook 'org-pomodoro-extend-last-clock 'ns/focus-mode-enter)
   (add-hook 'org-pomodoro-started-hook 'ns/focus-mode-enter)
   (add-hook 'org-pomodoro-finished-hook 'ns/focus-mode-quit)
@@ -406,11 +412,12 @@
   (ns/use flyspell-correct-avy-menu
     (setq flyspell-correct-interface #'flyspell-correct-avy-menu)
 
-    ;; todo: I think think this should include a "jump to next spelling err as well"
     (defun! ns/spellcheck-at-point ()
       (when-not (and (boundp 'flyspell-mode)
                   flyspell-mode)
-        (flyspell-mode 1))
+        (if (derived-mode-p 'prog-mode)
+          (flyspell-prog-mode)
+          (flyspell-mode 1)))
       (flyspell-correct-at-point))
 
     (define-key flyspell-mode-map (kbd "C-;") 'ns/spellcheck-at-point)

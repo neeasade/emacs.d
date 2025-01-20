@@ -170,17 +170,29 @@
   "start a process and throw it to the wind"
   (start-process command nil "sh" "-c" command))
 
+(defun ns/normalize-filepath (path)
+  "Make a path normal. Normal means:
+- call expand-file-name (~ to $HOME)
+- end in '/' if a directory
+- replace '//' ('/+') with '/'
+
+if path doesn't exist, returns without trailing '/'"
+  ;; when (f-exists? path)
+  (llet [p (expand-file-name path)
+          p (s-replace-regexp "/+" "/" p)
+          dir? (when (f-exists? p) (f-directory? p))
+          slashed? (s-ends-with-p "/" p)]
+    (if dir?
+      (if slashed? p (concat p "/"))
+      (if slashed? (substring p -1) p))))
+
 (defun ~ (&rest args)
-  (llet [parts (if (s-starts-with? "/" (first args))
-                 (-non-nil `(,(substring (first args) 1) ,(cdr args)))
-                 args)]
-    (apply #'f-join (cons ns/home-directory parts))))
+  (ns/normalize-filepath
+    (apply 'concat ns/home-directory "/" args)))
 
 (defun ~e (&rest args)
-  (llet [parts (if (s-starts-with? "/" (first args))
-                 (-non-nil `(,(substring (first args) 1) ,(cdr args)))
-                 args)]
-    (apply #'f-join (cons ns/emacs-directory parts))))
+  (ns/normalize-filepath
+    (apply 'concat ns/emacs-directory  "/" args)))
 
 (defun ns/bind (&rest binds)
   (llet [states '(normal visual)
@@ -306,7 +318,7 @@
 
 (defun ns/str (&rest vals)
   "Coerce VAL to string. nil is empty string."
-  (s-join ""
+  (apply 'concat
     (-map (lambda (val)
             (cond
               ((stringp val) val)
@@ -400,6 +412,33 @@
 (defun ns/random-list (list)
   "pick random item from list"
   (first (-shuffle list)))
+
+
+(defun shell/sh (cmd &rest args)
+  ;; call some process, return stdout + stderr as string
+  (s-trim
+    (with-temp-buffer
+      (apply 'call-process cmd nil
+        t nil args)
+      (buffer-string))))
+
+(defun shell/sh-toss (cmd &rest args)
+  ;; sh, but don't wait for return
+  (apply 'call-process cmd nil 0 nil args))
+
+(defun ns/atuin-add-dir (cwd)
+  (when (which "atuin")
+    (shell/sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/normalize-filepath cwd) "_")))
+
+(defun ns/atuin-list-dirs ()
+  (when (which "atuin")
+    (->> (-concat
+           (s-split-lines (sh "atuin history list --format {directory} | sort | uniq"))
+           (s-split-lines (sh "atuin kv list -n dirs")))
+      (-distinct)
+      (--remove (not (f-exists-p it)))
+      (-map 'ns/normalize-filepath)
+      (-map #'consult--fast-abbreviate-file-name))))
 
 (when ns/term?
   (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")

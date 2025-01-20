@@ -67,8 +67,10 @@
 ;; but it's very laggy/intensive by comparison (measured in the profiler)
 (setq-default evil-escape-key-sequence "tn")
 
-(ns/use (evil-escape :host github :repo "hlissner/evil-escape")
-   (evil-escape-mode))
+;; note: https://github.com/emacs-evil/evil/commit/0ad84c52169068021ec3372bf52503631f2261de
+;; breaks tn in macro use, you removed the (let (pre-command-hook post-command-hook)) in evil.el
+(ns/use (evil-escape :host github :repo "emacsorphanage/evil-escape")
+  (evil-escape-mode))
 
 (defun set-in-evil-states (key def maps)
   (while maps

@@ -157,6 +157,7 @@
     (-> cmd sh s-blank-p not))
 
   ;; todo: this should detect if in zoom meeting
+  ;; todo: this should cover gaming too
   (-any-p 'ns/sh-has-content-p
     '("playerctl metadata 2>/dev/null | grep -i netflix"
        "playerctl metadata 2>/dev/null | grep -i 'prime video'"

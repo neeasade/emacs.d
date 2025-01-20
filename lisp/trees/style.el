@@ -185,19 +185,21 @@
     :background (face-attribute 'mode-line-inactive :background)
     :foreground (face-attribute 'mode-line-inactive :background))
 
-  (-map (lambda (f)
-          (interactive)
-          (when (fboundp f)
-            (message (pr-str f))
-            (funcall-interactively f)))
-    '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc ns/style-terminal))
-
   ;; testing, lighter emphasis on codeblocks
   (ns/face 'org-block :background (ct-lessen (myron-get :background) 3))
+
+
 
   (when (and (called-interactively-p 'any)
           ns/enable-home-p
           (not (getenv "NS_EMACS_BATCH")))
+
+    (-map (lambda (f)
+            (interactive)
+            (when (fboundp f)
+              (message (pr-str f))
+              (funcall-interactively f)))
+      '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc ns/style-terminal))
 
     (llet [cache-dir (~ ".cache/rice/")]
       (f-mkdir-full-path cache-dir)

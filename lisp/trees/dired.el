@@ -1,11 +1,9 @@
 
-(ns/persist ns/cd-dirs (list))
-
 (defun ns/dired-init()
   (hl-line-mode)
 
   ;; accumulate directories
-  (add-to-list 'ns/cd-dirs (expand-file-name default-directory)))
+  (ns/atuin-add-dir (expand-file-name default-directory)))
 
 ;; cf. https://endlessparentheses.com/auto-focus-a-relevant-file-in-dired-buffers.html
 (defun ns/dired-maybe-goto-file ()

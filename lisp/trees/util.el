@@ -31,7 +31,6 @@
      (add-hook ,mode-hook (fn (setq-local counsel-dash-docsets '(,docset))))))
 
 ;; using this package only for a tramp aware 'open file as root' function
-;; initially went to steal but turned out to be many functions to steal
 (ns/use crux (crux-reopen-as-root-mode t))
 
 (ns/use simpleclip)
@@ -52,30 +51,38 @@
         (interactive)
         (insert data)))))
 
-(defun! ns/insert-history ()
+(defun ns/shell-history-atuin ()
+  (when (which "atuin")
+    (->> (sh "atuin history list --format {command} --print0" )
+      (s-split (ns/str ?\0)))))
+
+(defun ns/shell-history-shell ()
   (llet [shell-name (if (eq major-mode 'shell-mode)
                       (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
-                      "bash")
-          vertico-prescient-enable-sorting nil
-          history-item (ns/pick "history"
-                         (->> (append
-                                ;; current history across all open shells:
-                                (-mapcat
-                                  (fn (with-current-buffer <>
-                                        (and
-                                          (boundp 'comint-input-ring)
-                                          (> (ring-size comint-input-ring) 0)
-                                          (-map 's-clean (ring-elements comint-input-ring)))))
-                                  (ns/buffers-by-mode 'shell-mode))
+                      "bash")]
+    (->> (~ (format ".%s_history" shell-name))
+      (f-read)
+      (s-split "\n")
+      (reverse)
+      (-map (fn ;; shared history format: ': 1556747685:0;cmd'
+              (if (s-starts-with-p ":" <>)
+                (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
+                <>))))))
 
-                                (->> (~ (format ".%s_history" shell-name))
-                                  (f-read)
-                                  (s-split "\n")
-                                  (reverse)
-                                  (-map (fn ;; shared history format: ': 1556747685:0;cmd'
-                                          (if (s-starts-with-p ":" <>)
-                                            (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                                            <>)))))
+(defun ns/shell-history-comint (mode)
+  (-mapcat
+    (fn (with-current-buffer <>
+          (and
+            (boundp 'comint-input-ring)
+            (> (ring-size comint-input-ring) 0)
+            (-map 's-clean (ring-elements comint-input-ring)))))
+    (ns/buffers-by-mode mode)))
+
+(defun! ns/insert-history ()
+  (llet [vertico-prescient-enable-sorting nil
+          history-item (ns/pick "history"
+                         (->> (append (or (ns/shell-history-atuin) (ns/shell-history-shell))
+                                (ns/shell-history-comint 'shell-mode))
                            (-uniq)
                            (-remove (-partial #'s-starts-with-p " "))))]
     (when (eq major-mode 'shell-mode)
@@ -96,7 +103,6 @@
               desc (if (and (stringp desc) (s-blank-p desc))
                      nil
                      desc)]
-
         (insert
           (cond
             ((not desc) url)

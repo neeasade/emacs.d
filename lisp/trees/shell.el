@@ -28,8 +28,6 @@
   (kbd "C-n") 'comint-next-input)
 
 (ns/use shx
-  ;; todo: this breaks corfu/our ret binding
-  (shx-global-mode 0)
   (shx-global-mode t)
 
   (defun shx-send-input-or-open-thing ()
@@ -43,9 +41,11 @@
       "RET" #'shx-send-input-or-open-thing)))
 
 (ns/use shell-pop
+  ;; idea: would like concurrent shell-pops
+
   (setq-ns shell-pop
     window-position "top"
-    window-size 33 ;; percent
+    window-size 30 ;; percent
     full-span t)
 
   ;; interactive shell-pop bound to spc t index shell
@@ -90,14 +90,8 @@
 (defun shell-sync-dir-with-prompt (string)
   (if (string-match "\\+Pr0mPT\\+\\([^+]*\\)\\+" string)
     (let ((cwd (match-string 1 string)))
-      (setq default-directory
-        (if (string-equal "/" (substring cwd -1))
-          cwd
-          (setq cwd (concat cwd "/"))))
-
-      ;; accumulate directories
-      (add-to-list 'ns/cd-dirs default-directory)
-
+      (setq default-directory (ns/normalize-filepath cwd))
+      (ns/atuin-add-dir default-directory)
       (replace-match "" t t string 0))
     string))
 
