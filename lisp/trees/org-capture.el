@@ -126,7 +126,7 @@
 ;; ensure capture hierarchy exists for capture targets
 ;; TODO: presuppose this at time of capture
 
-(setq ns/linkmark-file (concat org-directory "/linkmarks.org"))
+(setq ns/linkmark-file (ns/path org-directory "linkmarks.org"))
 
 (defun! linkmark-select ()
   (llet [link-label (ns/pick (-map 'org-ml-headline-get-path

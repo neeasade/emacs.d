@@ -18,9 +18,11 @@ tramp
 url
 var
 
+ellama-sessions/*
 lisp/scratch/*
 eln-cache
 .cask
+tutorial
 
 straight/*
 !straight/versions

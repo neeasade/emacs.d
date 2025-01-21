@@ -20,8 +20,8 @@
     (~ "notes")))
 
 (setq
-  org-default-notes-file (concat org-directory "/notes.org")
-  org-default-diary-file (concat org-directory "/journal.org"))
+  org-default-notes-file (ns/path org-directory "notes.org")
+  org-default-diary-file (ns/path org-directory "journal.org"))
 
 (defun ns/refresh-org-files ()
   (setq org-agenda-files
@@ -32,10 +32,11 @@
           (not (string= f org-default-diary-file))
           (not (or
                  (s-contains? ".sync-conflict" f)
-                 (s-starts-with-p (ns/str org-directory "/private") f)
-                 (s-starts-with-p (ns/str org-directory "/archive") f)))))
+                 (s-starts-with-p (ns/path org-directory "private") f)
+                 (s-starts-with-p (ns/path org-directory "archive") f)))))
       t)))
 
+;; maybe only do when saving in org file?
 (add-hook 'after-save-hook 'ns/refresh-org-files)
 
 (ns/refresh-org-files)
@@ -536,10 +537,10 @@
   ;; org-ql-find should popup preview of heading
   "no" (fn!! org-ql-notes
          (org-ql-find
-           (-uniq
-             (-concat org-agenda-files
-               (when (eq 'org-mode major-mode)
-                 (list (buffer-file-name (current-buffer)))))))))
+           (->> org-agenda-files
+             (-concat (when (eq 'org-mode major-mode)
+                        (list (buffer-file-name (current-buffer)))))
+             (-uniq)))))
 
 (ns/bind-mode 'org
   "or" (fn!! refile-headline-or-region

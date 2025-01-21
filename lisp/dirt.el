@@ -1,8 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 ;;; dirt.el --- Lay the plot
 ;;; Commentary:
-;;; I'm a sugar lover. This file is about getting emacs-lisp sugar to use
-;;; everywhere else.
+;;; I'm a sugar lover. This file is about getting emacs-lisp sugar to use everywhere else.
 ;;; Code:
 
 (setq load-prefer-newer t)
@@ -155,22 +154,27 @@
              (-mapcat (-lambda ((k v))
                         (list (intern (format "%s-%s" namespace k)) v))))))
 
+(defun sh-impl (toss? &rest args)
+  ;; 🤪
+  (if (= 1 (length args))
+    (sh-impl toss? (which "bash") "-c" (first args))
+    (llet [process-environment (cons "CALLED_FROM_EMACS=t" process-environment)
+            (cmd . args) args]
+      (s-trim
+        (with-output-to-string
+          (with-current-buffer standard-output
+            (apply 'call-process cmd nil
+              (if toss? 0 t)
+              nil args)))))))
+
 (defun sh (&rest args)
-  "trim the newline from shell exec"
-  (let ((process-environment (cons "CALLED_FROM_EMACS=t" process-environment))
-         (result (replace-regexp-in-string "\n$" ""
-                   (shell-command-to-string
-                     (if (= 1 (length args))
-                       (first args)
-                       (apply 'format args))))))
+  (apply 'sh-impl nil args))
 
-    (if (s-blank-p result) nil result)))
-
-(defun sh-toss (command)
+(defun sh-toss (&rest args)
   "start a process and throw it to the wind"
-  (start-process command nil "sh" "-c" command))
+  (apply 'sh-impl t args))
 
-(defun ns/normalize-filepath (path)
+(defun ns/path (&rest paths)
   "Make a path normal. Normal means:
 - call expand-file-name (~ to $HOME)
 - end in '/' if a directory
@@ -178,7 +182,8 @@
 
 if path doesn't exist, returns without trailing '/'"
   ;; when (f-exists? path)
-  (llet [p (expand-file-name path)
+  (llet [p (s-join "/" paths)
+          p (expand-file-name p)
           p (s-replace-regexp "/+" "/" p)
           dir? (when (f-exists? p) (f-directory? p))
           slashed? (s-ends-with-p "/" p)]
@@ -187,12 +192,10 @@ if path doesn't exist, returns without trailing '/'"
       (if slashed? (substring p -1) p))))
 
 (defun ~ (&rest args)
-  (ns/normalize-filepath
-    (apply 'concat ns/home-directory "/" args)))
+  (apply 'ns/path ns/home-directory args))
 
 (defun ~e (&rest args)
-  (ns/normalize-filepath
-    (apply 'concat ns/emacs-directory  "/" args)))
+  (apply 'ns/path ns/emacs-directory args))
 
 (defun ns/bind (&rest binds)
   (llet [states '(normal visual)
@@ -252,7 +255,7 @@ if path doesn't exist, returns without trailing '/'"
 ;; wrap passwordstore
 (defun pass (key)
   (when (which "pass")
-    (sh "pass %s 2>/dev/null" key)))
+    (sh (format "pass %s 2>/dev/null" key))))
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."
@@ -413,22 +416,9 @@ if path doesn't exist, returns without trailing '/'"
   "pick random item from list"
   (first (-shuffle list)))
 
-
-(defun shell/sh (cmd &rest args)
-  ;; call some process, return stdout + stderr as string
-  (s-trim
-    (with-temp-buffer
-      (apply 'call-process cmd nil
-        t nil args)
-      (buffer-string))))
-
-(defun shell/sh-toss (cmd &rest args)
-  ;; sh, but don't wait for return
-  (apply 'call-process cmd nil 0 nil args))
-
 (defun ns/atuin-add-dir (cwd)
   (when (which "atuin")
-    (shell/sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/normalize-filepath cwd) "_")))
+    (sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/normalize-filepath cwd) "_")))
 
 (defun ns/atuin-list-dirs ()
   (when (which "atuin")

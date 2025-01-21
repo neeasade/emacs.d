@@ -122,10 +122,10 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                         (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
                           (list (ht-get props "pubdate" "")
                             (f-base path))))
-      :edited-date (let ((git-query-result (sh "cd '%s'; git log --follow -1 --format=%%cI '%s'"
-                                             ;; appease the shell.
-                                             (s-replace "'" "'\\''" (f-dirname path))
-                                             (s-replace "'" "'\\''" path))))
+      :edited-date (let ((git-query-result (sh (format "cd '%s'; git log --follow -1 --format=%%cI '%s'"
+                                                  ;; appease the shell.
+                                                  (s-replace "'" "'\\''" (f-dirname path))
+                                                  (s-replace "'" "'\\''" path)))))
                      (when-not (s-blank-p git-query-result)
                        (substring git-query-result 0 10)))
       :og-url (format "https://notes.neeasade.net/%s.html" (ns/path-to-slug path))

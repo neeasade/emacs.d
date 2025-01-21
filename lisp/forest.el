@@ -570,7 +570,7 @@
     (interactive)
     (if (which "theme")
       (--map (ht-set ns/resource-table it
-               (sh "theme -q '%s' 2>/dev/null" it))
+               (sh (format "theme -q '%s' 2>/dev/null" it)))
         (ht-keys ns/resource-table))
       (progn
         (-first (-partial 'ns/update-resource-font "font.mono.spec")
@@ -592,7 +592,6 @@
   (ns/refresh-resources))
 
 (ns/defconfig rice-integrations
-
   (defun ns/make-border-color (c)
     (-> c
       (ct-aiterate 'ct-pastel (> (ct-distance C0 C) 20))
@@ -621,7 +620,13 @@
   (defalias 'evil-window-north 'evil-window-up)
   (defalias 'evil-window-south 'evil-window-down)
   (defalias 'evil-window-east 'evil-window-right)
-  (defalias 'evil-window-west 'evil-window-left))
+  (defalias 'evil-window-west 'evil-window-left)
+
+  ;; used in box
+  (defun ns/string-width (s)
+    ;; string-width lies?, so we divide
+    (/ (string-pixel-width s)
+      (string-pixel-width "═"))))
 
 (ns/defconfig macos-integrations
   (defun! ns/toggle-music-play ()
