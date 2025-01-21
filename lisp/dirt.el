@@ -158,20 +158,26 @@
   ;; 🤪
   (if (= 1 (length args))
     (sh-impl toss? (which "bash") "-c" (first args))
-    (llet [process-environment (cons "CALLED_FROM_EMACS=t" process-environment)
-            (cmd . args) args]
-      (s-trim
-        (with-output-to-string
-          (with-current-buffer standard-output
-            (apply 'call-process cmd nil
-              (if toss? 0 t)
-              nil args)))))))
+    (llet (process-environment (cons "CALLED_FROM_EMACS=t" process-environment)
+            (cmd . args) args
+            result (s-trim
+                     (with-output-to-string
+                       (with-current-buffer standard-output
+                         (apply 'call-process cmd nil
+                           (list (if toss? 0 t)
+                             nil)       ; nil to discard stderr, t to mix
+                           nil args)))))
+      (when-not (s-blank? result)
+        result))))
 
 (defun sh (&rest args)
+  "Run shell command and return trimmed output.
+Given (CMD ARGS...), runs CMD with ARGS. Given string, runs via bash."
   (apply 'sh-impl nil args))
 
 (defun sh-toss (&rest args)
-  "start a process and throw it to the wind"
+  "Run shell command asynchronously, discarding output.
+Given (CMD ARGS...), runs CMD with ARGS. Given string, runs via bash."
   (apply 'sh-impl t args))
 
 (defun ns/path (&rest paths)
