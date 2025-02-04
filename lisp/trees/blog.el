@@ -2,10 +2,7 @@
 
 (ns/comment
   (measure-time
-    (ns/blog-generate-all-files)
-    )
-
-  )
+    (ns/blog-generate-all-files)))
 
 ;; compat
 (defalias 'tarp/get 'myron-get)
@@ -161,7 +158,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
-  (setq ns/theme (ht-get myron-theme* :normal)) ; compat
+  (setq ns/theme (ht-get myron-themes-colors :normal)) ; compat
   (save-buffer)
   (llet (file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta)
           post-html-file (ht-get file-meta :html-dest))
@@ -215,7 +212,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
 
 (defun ns/blog-generate (metas)
   (setq
-    ns/theme (ht-get myron-theme* :normal) ; compat
+    ns/theme (ht-get myron-themes-colors :normal) ; compat
     ns/blog-metas nil                      ; cache bust
     ns/blog-csslinks nil)                  ; cache bust
 
@@ -278,7 +275,7 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
                   (format "[[#%s][%s]]" id "#"))))))))))
 
 (defun! ns/blog-new-post ()
-  (let* ((title (read-from-minibuffer "new blog post title: "))
+  (let* ((title (s-trim (read-from-minibuffer "new blog post title: ")))
           (file (format (~ "code/neeasade.github.io/posts/%s.org")
                   (s-replace " " "-" title))))
     (find-file file)

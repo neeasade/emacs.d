@@ -63,6 +63,25 @@
            (ns/pick "buffer")
            (ns/find-or-open)))
 
+  ;; idea: find shell buffers running something - might also be nice to show pname
+  "bM" (fn!! surf-shells-running-something
+         (-some->> (ns/buffers-by-mode 'shell-mode)
+           (-keep
+             (lambda (b)
+               (when (get-buffer-process b)
+                 (llet [pid (process-id (get-buffer-process b))
+                         ;; -P works on macos and linux
+                         children (sh (format "pgrep -P %s" pid))]
+                   (when (not (s-blank? children))
+                     (ns/str (buffer-name b)
+                       "\t"
+                       (first (s-split) children)
+                       (process-name (get-buffer-process b))))))))
+           (ns/pick "buffer")
+           (s-split "\t")
+           (first)
+           (ns/find-or-open)))
+
   "bm" (fn!! surf-buffers-mode
          (->> (ns/buffers-by-mode major-mode)
            (-map 'buffer-name)

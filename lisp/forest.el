@@ -7,6 +7,14 @@
 (ns/defconfig elisp
   (ns/install-dashdoc "Emacs Lisp" 'emacs-lisp-mode-hook)
   ;; 'common-lisp-indent-function
+  (defun! ns/byte-compile-and-jump-to-error ()
+    (byte-compile-file (buffer-file-name))
+    (with-current-buffer "*Compile-Log*"
+      (goto-char (point-max))
+      (compilation-previous-error 1)
+      (compile-goto-error)))
+
+  (ns/bind-leader-mode 'emacs-lisp "c" 'ns/byte-compile-and-jump-to-error)
 
   (setq lisp-indent-function 'common-lisp-indent-function)
 
@@ -42,7 +50,6 @@
       "e" 'ns/smart-elisp-eval
       "E" 'eval-print-last-sexp))
 
-  ;; note: elsa needs cask to do anything:
   (when (which "cask")
     (ns/use elsa)
     (ns/use flycheck-elsa)
@@ -78,18 +85,20 @@
     (setq
       corfu-quit-no-match 'separator
       corfu-auto t
-      corfu-auto-delay 0.1)
+      ;; corfu-auto-delay 0.1
+      )
 
-    (apply 'evil-collection-translate-key
-      'insert '(corfu-map)
-      ns/evil-collection-keys)
+    (apply 'evil-collection-translate-key 'insert '(corfu-map) ns/evil-collection-keys)
+
+    (global-corfu-mode t)
 
     (require 'corfu-popupinfo)
-    (corfu-popupinfo-mode)
-    ;; (setq corfu-popupinfo-delay '(0.2 . 0.1))
-    )
+    (setq corfu-popupinfo-delay '(0.2 . 0.1))
+    (corfu-popupinfo-mode t))
 
-  (when ns/term? (ns/use corfu-terminal (corfu-terminal-mode)))
+
+  (when ns/term?
+    (ns/use corfu-terminal (corfu-terminal-mode)))
 
   ;; todo: check this out
   (ns/use cape))
@@ -182,6 +191,7 @@
   (add-hook 'cider-connected-hook #'mm/cider-connected-hook))
 
 (ns/defconfig projectile
+  ;; todo: try to replace this with builtin?
   (ns/use projectile)
 
   (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
@@ -242,6 +252,7 @@
                                 (-map #'consult--fast-abbreviate-file-name result)))))
                         (-uniq)
                         (-remove 'f-img?)
+                        (--remove (s-ends-with? "org_archive" (f-filename it)))
                         ;; todo fix this later - strips all results from buffers-without-files
                         ;; (--filter
                         ;;   ;; if a file is not remote, ensure it exists
@@ -255,6 +266,9 @@
     ;; todo: comething to consider: mixing in org headings here
     "ne" (fn!! surf-files (ns/find-files "file" (ns/jump-file-candidates)))
     "nE" (fn!! surf-project-files (ns/find-files "file" (ns/jump-file-candidates :project-files)))))
+
+(fn!! surf-files-cwd ()
+  (ns/pick (sh "rg" "--files" default-directory)))
 
 (ns/defconfig javascript
   ;; note: this is huge, takes a bit.
@@ -686,6 +700,3 @@
 (ns/defconfig style       (shut-up-load (~e "lisp/trees/style.el")))
 (ns/defconfig util        (shut-up-load (~e "lisp/trees/util.el")))
 
-(provide 'forest)
-
-;;; forest.el ends here

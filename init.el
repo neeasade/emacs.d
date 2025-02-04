@@ -69,12 +69,12 @@
        elisp
        go
        sql
+       python
 
        (c ns/outdated)
        (common-lisp ns/outdated)
        (javascript ns/outdated)
        (typescript ns/outdated)
-       (python ns/outdated)
        (plantuml ns/outdated)
 
        markdown adoc
@@ -115,11 +115,13 @@
     (when (not (boundp 'ns/after-init-hook))
       (setq ns/after-init-hook t)
 
-      ;; Emacs is terribly slow on windows
-      (ns/toggle-bloat-global (not ns/enable-windows-p))
+      (when (f-exists-p (~ "extend.el"))
+        (load (~ "extend.el")))
 
       ;; todo: sometimes this is annoying
       (named-timer-idle-run :garbage-collect 2 t 'garbage-collect)
+
+      (ns/load-theme (intern (get-resource "emacs.theme")))
 
       (->> recentf-list
         (-filter (fn
@@ -129,16 +131,8 @@
                      (not (s-ends-with-p "recentf" <>))
                      (f-exists-p <>))))
         (-take 6)
-        (mapc 'find-file))
-
-      (when (f-exists-p (~ "extend.el"))
-        (load (~ "extend.el")))
-
-      (ns/load-theme (intern (get-resource "emacs.theme")))))
+        (mapc 'find-file))))
 
   ;; (add-hook 'emacs-startup-hook 'ns/initial-startup-hook)
-  (run-at-time 0.1 nil 'ns/initial-startup-hook)
-  )
+  (run-at-time 0.1 nil 'ns/initial-startup-hook))
 
-(provide 'init)
-;;; init.el ends here

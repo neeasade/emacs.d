@@ -32,6 +32,7 @@
           (not (string= f org-default-diary-file))
           (not (or
                  (s-contains? ".sync-conflict" f)
+                 (s-contains? "pomodoro.org" f)
                  (s-starts-with-p (ns/path org-directory "private") f)
                  (s-starts-with-p (ns/path org-directory "archive") f)))))
       t)))
@@ -395,9 +396,10 @@
 (ns/use olivetti
   (ns/bind "tf" 'olivetti-mode)
   (setq-default fill-column 80)
+  (setq-default olivetti-body-width 50)
 
-  (setq olivetti-body-width 0.4)
-  (setq olivetti-body-width nil)
+  ;; (setq-local olivetti-body-width 0.2)
+  ;; (setq olivetti-body-width nil)
 
   ;; The original value is "\f\\|[      ]*$", so we add the bullets (-), (+), and (*).
   ;; There is no need for "^" as the regexp is matched at the beginning of line.

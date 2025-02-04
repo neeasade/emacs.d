@@ -2,8 +2,6 @@
 ;; follow <thing> at point
 ;; <thing> can be a file location, one of many kinds of emacs links, a code definition, whatever.
 
-;; todo: handle relative paths if they can be found from the git root
-
 ;; handles many kinds of links
 (ns/use link-hint)
 

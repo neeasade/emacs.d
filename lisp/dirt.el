@@ -158,15 +158,15 @@
   ;; 🤪
   (if (= 1 (length args))
     (sh-impl toss? (which "bash") "-c" (first args))
-    (llet (process-environment (cons "CALLED_FROM_EMACS=t" process-environment)
+    (llet [process-environment (cons "CALLED_FROM_EMACS=t" process-environment)
             (cmd . args) args
             result (s-trim
                      (with-output-to-string
                        (with-current-buffer standard-output
                          (apply 'call-process cmd nil
                            (list (if toss? 0 t)
-                             nil)       ; nil to discard stderr, t to mix
-                           nil args)))))
+                             t)           ; nil to discard stderr, t to mix
+                           nil args))))]
       (when-not (s-blank? result)
         result))))
 
@@ -191,6 +191,7 @@ if path doesn't exist, returns without trailing '/'"
   (llet [p (s-join "/" paths)
           p (expand-file-name p)
           p (s-replace-regexp "/+" "/" p)
+          ;; todo: this probably has perf implications (esp if tramp)
           dir? (when (f-exists? p) (f-directory? p))
           slashed? (s-ends-with-p "/" p)]
     (if dir?
@@ -422,18 +423,23 @@ if path doesn't exist, returns without trailing '/'"
   "pick random item from list"
   (first (-shuffle list)))
 
+(setenv "ATUIN_SESSION" (sh "bash" "-ic" "echo $ATUIN_SESSION"))
+
 (defun ns/atuin-add-dir (cwd)
   (when (which "atuin")
-    (sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/normalize-filepath cwd) "_")))
+    (sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/path cwd) "_")))
 
 (defun ns/atuin-list-dirs ()
+  ;; get session
   (when (which "atuin")
     (->> (-concat
-           (s-split-lines (sh "atuin history list --format {directory} | sort | uniq"))
+           (s-split-lines
+             (or (sh "atuin history list --format {directory} | sort | uniq")
+               ""))
            (s-split-lines (sh "atuin kv list -n dirs")))
       (-distinct)
       (--remove (not (f-exists-p it)))
-      (-map 'ns/normalize-filepath)
+      (-map 'ns/path)
       (-map #'consult--fast-abbreviate-file-name))))
 
 (when ns/term?

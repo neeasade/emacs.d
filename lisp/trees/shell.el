@@ -90,7 +90,7 @@
 (defun shell-sync-dir-with-prompt (string)
   (if (string-match "\\+Pr0mPT\\+\\([^+]*\\)\\+" string)
     (let ((cwd (match-string 1 string)))
-      (setq default-directory (ns/normalize-filepath cwd))
+      (setq default-directory (ns/path cwd))
       (ns/atuin-add-dir default-directory)
       (replace-match "" t t string 0))
     string))
@@ -248,5 +248,3 @@
               (ns/t 5m))
         (ns/cleanup-shells))))
 
-(provide 'shell)
-;;; shell.el ends here

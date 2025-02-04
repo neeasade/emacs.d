@@ -9,6 +9,9 @@
   (setq base16-theme-256-color-source 'colors)
   (setq myron-use-cache (not ns/enable-home-p)))
 
+
+(defalias 'myron-get 'myron-themes-get) ; compat
+
 (ns/use paren-face (global-paren-face-mode))
 
 (ns/use hl-todo
@@ -19,8 +22,8 @@
 
 (defun ns/emacs-to-theme ()
   (parseedn-print-str
-    (-ht :colors (apply 'vector (myron-termcolors))
-      :color (ht-merge myron-theme*
+    (-ht :colors (apply 'vector (myron-themes-termcolors))
+      :color (ht-merge myron-themes-colors
                (-ht :cursor (first evil-insert-state-cursor))))))
 
 ;; update buffer local variables across all open buffers
@@ -179,20 +182,18 @@
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
-  (ns/conf-doomline)
-
-  (ns/face '(vertical-border window-divider window-divider-first-pixel window-divider-last-pixel)
-    :background (face-attribute 'mode-line-inactive :background)
-    :foreground (face-attribute 'mode-line-inactive :background))
-
   ;; testing, lighter emphasis on codeblocks
   (ns/face 'org-block :background (ct-lessen (myron-get :background) 3))
-
-
 
   (when (and (called-interactively-p 'any)
           ns/enable-home-p
           (not (getenv "NS_EMACS_BATCH")))
+
+    (ns/conf-doomline)
+
+    (ns/face '(vertical-border window-divider window-divider-first-pixel window-divider-last-pixel)
+      :background (face-attribute 'mode-line-inactive :background)
+      :foreground (face-attribute 'mode-line-inactive :background))
 
     (-map (lambda (f)
             (interactive)

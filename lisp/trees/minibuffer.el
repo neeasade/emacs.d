@@ -39,8 +39,10 @@
   (setq vertico-resize nil)             ; fixed-size
 
   (ns/face 'vertico-current :extend nil)
+
   (defun ns/set-vertico-count (&rest _)
-    (setq vertico-count (/ (frame-height) 2)))
+    (setq vertico-count (round (/ (frame-height) 2))))
+
   (advice-add 'completing-read :before 'ns/set-vertico-count))
 
 (ns/use marginalia (marginalia-mode t))

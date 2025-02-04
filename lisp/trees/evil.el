@@ -81,7 +81,6 @@
                                 evil-normal-state-map
                                 evil-visual-state-map)))
 
-
 ;; commenting out -- want to see if setting  search backend before  evil-collection fixes (edit: it does not)
 
 ;; note: these are associated with the evil-search search module, set above with
@@ -92,6 +91,7 @@
 
 (set-in-navigation-evil-states "n" 'evil-next-line)
 (set-in-navigation-evil-states "e" 'evil-previous-line)
+
 
 (ns/use evil-lion
   (evil-define-key 'normal prog-mode-map
@@ -199,10 +199,9 @@
   ;; "[s" 'flyspell-goto-prev-error ; not a thing
   "]s" 'flyspell-goto-next-error
   ;; "s" 'avy-goto-char-timer
-  "s" 'avy-goto-char-2
 
-  ;; evil motion
-  ;; "s" 'evil-avy-goto-char-2
+  ;; todo: this has a conflicting feel with surround (visual jump around)
+  "s" 'avy-goto-char-2
   )
 
 ;; break a bad habit by nop'ing :b - we have a mapping to "bb" elsewhere
