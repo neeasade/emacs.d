@@ -75,8 +75,10 @@
                    (when (not (s-blank? children))
                      (ns/str (buffer-name b)
                        "\t"
-                       (first (s-split) children)
-                       (process-name (get-buffer-process b))))))))
+                       (first (s-split-lines children))
+                       "\t"
+                       ;; cf https://superuser.com/a/632987
+                       (sh "ps" "-p" (-last-item (s-split-lines children)) "-o" "comm=")))))))
            (ns/pick "buffer")
            (s-split "\t")
            (first)

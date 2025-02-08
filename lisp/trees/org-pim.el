@@ -42,7 +42,8 @@
 
 (defun ns/headline-date (headline-node)
   (-some->> headline-node
-    (org-ml-headline-get-planning)      ; note: currently slow
+    ;; note: currently slow https://github.com/ndwarshuis/org-ml/issues/46#issuecomment-2477515151
+    (org-ml-headline-get-planning)
     ((lambda (l) (plist-get l :scheduled)))
     ((lambda (ts) (llet [(year month day hour min) ts]
                     (ts-adjust 'year year 'month month 'day day 'hour (or hour 0) 'minute (or min 0)
@@ -97,6 +98,11 @@
 (defun ns/org-notify-reset () (setq ns/org-notify-ht (ht)))
 (named-timer-run :org-notify-scheduled-reset t (ns/t 1d) 'ns/org-notify-reset)
 
+(defun ns/tally (count)
+  (ns/str
+    (make-string (/ count 5) ?𝍸)
+    (make-string (mod count 5) ?𝍷)))
+
 (defun ns/org-status-outdated ()
   (when-not (and (boundp 'org-pomodoro-state)
               (eq org-pomodoro-state :pomodoro))
@@ -107,14 +113,17 @@
       (when (> count 0)
         (if (= count 1)
           (format "on deck: %s" outdated-next)
-          (format "[%s]on deck: %s" (make-string count ?@) outdated-next))))))
+          (format "[%s]on deck: %s"
+            (ns/tally count)
+            ;; (make-string count ?@)
+            outdated-next))))))
 
-(defun ns/org-status-scheduled ()
+(defun ns/org-status-scheduled (&optional minutes)
   (llet [nodes (ns/get-notes-nodes `(scheduled :from ,(ts-now) :to today)) ; now through eod
           ;; nodes (-sort 'ts> (-map 'ns/headline-date nodes))
           next-headline (first nodes)]
     (-when-let (next-ts (ns/headline-date next-headline))
-      (when (ts-in (ts-now) (ts-adjust 'hour +1 (ts-now)) next-ts)
+      (when (ts-in (ts-now) (ts-adjust 'minute (or minutes 60) (ts-now)) next-ts)
         (format "%s in %im"
           (-> next-headline org-ml-headline-get-path -last-item)
           (/ (- (ts-unix next-ts)
@@ -129,7 +138,9 @@
   "Rotate through org headings by markers."
   (if-not headlines
     (message "Nothing to jump to!")
-    (llet [headlines (-sort 'ns/org-outdated-sort-node headlines)
+    (llet [
+            ;; not sorting because: https://github.com/ndwarshuis/org-ml/issues/46 (ns/headline-date slowness)
+            ;; headlines (-sort 'ns/org-outdated-sort-node headlines)
             markers (-uniq (-map 'ns/headline-marker headlines))
             markers (-snoc markers (first markers))
             ;; todo: should probably sort the markers by buffer -> point or something
@@ -151,18 +162,18 @@
       (ts-apply :hour 23 :minute 59 :second 59 (ts-now)))))
 
 (defun ns/org-outdated-sort-node (&rest headlines)
-  (llet [(h1 h2) headlines
+  (llet [
           ;; todo: check priority inheritance here, missed a bday
+          ;; --> org-ml doesn't do the org inheritence thing
           (p1 p2) (--map (or (org-ml-get-property :priority it) 1000) headlines)
           (d1 d2) (-map 'ns/headline-date headlines)
           d1 (or d1 (ts-apply :year 2000 (ts-now)))
           d2 (or d2 (ts-apply :year 2000 (ts-now)))
           ;; is it a habit?
-          (h1 h2) (--map (-some->> it
+          (h1 h2) (--map (-some-> it
                            (org-ml-headline-get-planning)
-                           (org-ml-get-property :scheduled)
-                           (org-ml-get-property :raw-value)
-                           (s-contains-p "+"))
+                           (plist-get :scheduled)
+                           (-contains-p '&repeater))
                     headlines)]
     (cond
       ((not (= p1 p2)) (if (< p1 p2) t nil))
@@ -176,6 +187,7 @@
   (ns/org-rotate
     (or (ns/get-notes-nodes '(and (not (todo "DONE"))
                                (scheduled :to today)))
+      ;; ?
       (ns/get-notes-nodes (and (not (scheduled)) (priority '>= "C"))))))
 
 (defun! ns/org-rotate-captures ()
@@ -204,13 +216,12 @@
     (-when-let (scheduled (ns/headline-date heading))
       (ts< (ts-now) (ts-parse-org scheduled))))
 
-  (->>
-    (length
-      (ns/get-notes-nodes
-        ;; todo: not quite the same
-        ;; '(scheduled :from today)
-        'ns/org-scheduled-future
-        ))
+  (->> (length
+         (ns/get-notes-nodes
+           ;; todo: not quite the same
+           ;; '(scheduled :from today)
+           'ns/org-scheduled-future
+           ))
 
     (-map 'org-ml-to-string)
     (s-join "\n")))
@@ -243,8 +254,10 @@
 (named-timer-run :harass-myself
   t 20
   (fn (when (ns/org-pim-wandering?)
-        (alert! (format "Hey! you should be clocked into something. %s"
-                  (if ns/enable-linux-p (random) ""))
+        (alert!
+          (format
+            "Hey! you should be clocked into something. %s"
+            (if ns/enable-linux-p (random) ""))
           :severity 'normal
           :title "BE INTENTIONAL"))))
 

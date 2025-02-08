@@ -7,8 +7,7 @@
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"
           :files ("*.el" "themes/*.el"))
   (setq base16-theme-256-color-source 'colors)
-  (setq myron-use-cache (not ns/enable-home-p)))
-
+  (setq myron-themes-use-cache (not ns/enable-home-p)))
 
 (defalias 'myron-get 'myron-themes-get) ; compat
 
@@ -126,6 +125,15 @@
     ;; (ns/load-theme theme)
     (message (ns/str "loaded " theme "!"))))
 
+(defun ns/set-evil-cursor (color)
+  (and ns/term?
+    (fboundp 'etcc--evil-set-cursor-color)
+    (etcc--evil-set-cursor-color))
+
+  (setq evil-normal-state-cursor `(,color box)
+    evil-insert-state-cursor `(,color bar)
+    evil-visual-state-cursor `(,color box)))
+
 (defun! ns/load-theme (&optional theme)
   (ns/kill-buffers-no-file)
 
@@ -139,6 +147,8 @@
         (ns/pick "theme")
         (intern)))
     t)
+
+  (ns/set-evil-cursor (face-attribute 'cursor :background))
 
   ;; turn off bold in most places
   (->> (face-list)
@@ -209,7 +219,8 @@
       (spit (ns/str cache-dir "emacs-theme-cache")
         (ns/emacs-to-theme)))
 
-    (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
+    ;; (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
+
     ;; (sh-toss "awp disease")
     ;; (sh-toss "/home/neeasade/walls/3074ac6e6ba4ccc596b5fa4d3ae36e1998535d47d1a62df8d2d9bed0ca418807.awp")
     ;; (sh-toss "/home/neeasade/walls/4c3f11a0f90b4388b8a49f49b9ffbad88f36547b5d9ce1310aae72934604521e.awp")

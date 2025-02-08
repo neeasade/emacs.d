@@ -153,9 +153,6 @@
 
 (advice-add 'browse-url :around #'ns/browse-url-slack)
 
-;; still used in emacs_dmenu currently
-(ns/use ivy)
-
 ;; fun
 (defmacro ns/let-setqs (kvs sexp)
   (llet [syms (-map 'first (-partition 2 kvs))
@@ -166,8 +163,6 @@
          ret ,sexp
          ,@(-interleave syms syms-old))
        ret)))
-
-;; idea: a function for jumping to shell-modes with cwd (ie find where a lein run or docker something is held etc)
 
 ;; todo: revert all file buffers interactive fn
 
@@ -323,10 +318,11 @@
 ;;                   :stream t
 ;;                   :models '(mistral:latest)))
 
-(ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
-  (setq scroll-conservatively 101
-    scroll-margin 0)
-  (ultra-scroll-mode t))
+(when-not ns/term?
+  (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
+    (setq scroll-conservatively 101
+      scroll-margin 0)
+    (ultra-scroll-mode t)))
 
 ;; using in python
 (ns/use smart-dash)
