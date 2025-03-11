@@ -23,24 +23,27 @@
   org-default-notes-file (ns/path org-directory "notes.org")
   org-default-diary-file (ns/path org-directory "journal.org"))
 
-(defun ns/refresh-org-files ()
-  (setq org-agenda-files
-    (f-entries org-directory
-      (lambda (f)
-        (and
-          (s-ends-with-p ".org" f)
-          (not (string= f org-default-diary-file))
-          (not (or
-                 (s-contains? ".sync-conflict" f)
-                 (s-contains? "pomodoro.org" f)
-                 (s-starts-with-p (ns/path org-directory "private") f)
-                 (s-starts-with-p (ns/path org-directory "archive") f)))))
-      t)))
 
-;; maybe only do when saving in org file?
+(defun ns/refresh-org-files (&optional force)
+  (when (or force (eq major-mode 'org-mode))
+    (setq org-agenda-files
+      (f-entries org-directory
+        (lambda (f)
+          (and
+            (s-ends-with-p ".org" f)
+            (not (string= f org-default-diary-file))
+            (not (or
+                   (s-contains? ".sync-conflict" f)
+                   (s-contains? "pomodoro.org" f)
+                   (s-starts-with-p (ns/path org-directory "private") f)
+                   (s-starts-with-p (ns/path org-directory "archive") f)))
+            (sh "rg" "-m1" "^\\*" f)    ; has at least one heading
+            ))
+        t))))
+
 (add-hook 'after-save-hook 'ns/refresh-org-files)
 
-(ns/refresh-org-files)
+(ns/refresh-org-files t)
 
 ;; config
 (setq-ns org

@@ -4,6 +4,7 @@
 (setq-default indicate-empty-lines nil)
 
 (ns/use doom-modeline)
+
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"
           :files ("*.el" "themes/*.el"))
   (setq base16-theme-256-color-source 'colors)
@@ -196,7 +197,6 @@
   (ns/face 'org-block :background (ct-lessen (myron-get :background) 3))
 
   (when (and (called-interactively-p 'any)
-          ns/enable-home-p
           (not (getenv "NS_EMACS_BATCH")))
 
     (ns/conf-doomline)
