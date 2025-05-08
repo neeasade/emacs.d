@@ -96,8 +96,10 @@
       (advice-add #'message :around #'ns/message-stdout))
 
     (ns/conf-scripting)
-    (message "COOL_DELIMITER")
-    (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
+
+    (llet [result (-> "NS_EMACS_BATCH" getenv read eval pr-str)] ; intentional
+      (message "COOL_DELIMITER")
+      (message result))
 
     ;; (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
     (kill-emacs))
