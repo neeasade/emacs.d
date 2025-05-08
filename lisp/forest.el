@@ -643,12 +643,6 @@
       (string-pixel-width "═"))))
 
 (ns/defconfig macos-integrations
-  (defun! ns/toggle-music-play ()
-    (sh (format "macos-vol setvol %s" ns/macos-vol)))
-  (defun! ns/toggle-music-pause ()
-    (setq ns/macos-vol (sh "macos-vol get"))
-    (sh "macos-vol setvol 0"))
-
   ;; adding the (t . emacs) so we don't open in textedit and stuff when using ns/follow
   (setq org-file-apps
     '((auto-mode . emacs)

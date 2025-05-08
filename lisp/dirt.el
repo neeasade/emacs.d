@@ -51,11 +51,11 @@
        (require ',pkg nil t)
        (require ',pkg-mode nil t)
        ,@body
-       (message ": ns/use: %s... done ." ',pkg)
+       (message ": ns/use: %s... done." ',pkg)
        ;; (let ((time-passed (float-time (time-since ns-use-time))))
        ;;   (if (> time-passed 2)
        ;;     (message ": ns/use: %s... done (%.02fs) 🕑." ',pkg time-passed)
-       ;;     (message ": ns/use: %s... done ." ',pkg)))
+       ;;     (message ": ns/use: %s... done." ',pkg)))
        )))
 
 
@@ -383,11 +383,7 @@ if path doesn't exist, returns without trailing '/'"
     (-list faces)))
 
 (ns/use alert
-  (setq alert-default-style
-    (cond
-      (ns/enable-windows-p 'toaster)
-      (ns/enable-mac-p 'osx-notifier)
-      (t 'libnotify)))
+  (setq alert-default-style 'libnotify)
 
   ;; I could not get the (alert :persistent t keyword to work)
   (defun alert! (&rest alert-args)

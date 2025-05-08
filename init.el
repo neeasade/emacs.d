@@ -36,7 +36,6 @@
        projectile
        util
        git
-       server
        org org-capture org-pim org-pim-export
        follow-dwim
        )))
@@ -44,6 +43,9 @@
 (defun ns/conf-extra ()
   (ns/summon
     `(
+       server                           ; do not put this in core - elisp scripts
+
+
        corfu
        flycheck
        (dashdocs nil)
@@ -94,9 +96,8 @@
       (advice-add #'message :around #'ns/message-stdout))
 
     (ns/conf-scripting)
-    (let ((result (-> "NS_EMACS_BATCH" getenv read eval pr-str)))
-      (message "COOL_DELIMITER")
-      (message result))
+    (message "COOL_DELIMITER")
+    (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
 
     ;; (-> "NS_EMACS_BATCH" getenv read eval pr-str message)
     (kill-emacs))
