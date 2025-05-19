@@ -433,7 +433,9 @@
 (defun ns/org-mode-hook ()
   (interactive)
 
-  (ns/set-buffer-face-variable)
+  (and (functionp 'ns/set-buffer-face-variable)
+    (ns/set-buffer-face-variable))
+
   (olivetti-mode)
   (git-gutter-mode 0)
   (flyspell-mode 0)

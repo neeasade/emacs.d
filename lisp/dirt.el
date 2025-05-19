@@ -158,14 +158,14 @@
   ;; 🤪
   (if (= 1 (length args))
     (sh-impl toss? (which "bash") "-c" (first args))
-    (llet [process-environment (cons "CALLED_FROM_EMACS=t" process-environment)
+    (llet [process-environment (if toss? process-environment (cons "CALLED_FROM_EMACS=t" process-environment))
             (cmd . args) args
             result (s-trim
                      (with-output-to-string
                        (with-current-buffer standard-output
                          (apply 'call-process cmd nil
                            (list (if toss? 0 t)
-                             t)           ; nil to discard stderr, t to mix
+                             t)         ; nil to discard stderr, t to mix
                            nil args))))]
       (when-not (s-blank? result)
         result))))

@@ -495,13 +495,14 @@
 
 (ns/defconfig scripting
   (add-to-list 'interpreter-mode-alist '("elisp" . emacs-lisp-mode))
+  (add-to-list 'interpreter-mode-alist '("elispp" . emacs-lisp-mode))
 
   ;; helper for unpacking args provided by elisp script as shebang
   ;; use: (ns/let-script-args (named named2) body)
   (defmacro ns/let-script-args (args &rest content)
     `(let (,@(-map
                (fn (list (nth <> args)
-                     (nth <> ns-args)))
+                     (nth <> *command-line-args*)))
                (number-sequence 0 (- (length args) 1))))
        ,@content))
 

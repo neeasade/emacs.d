@@ -1,6 +1,4 @@
 #!/usr/bin/env elispp
-;; don't yet know why this breaks it
-;; elissp-opts: -v
 
 (condition-case ()
     (if *stdin-file*
