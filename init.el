@@ -44,6 +44,7 @@
   (ns/summon
     `(
        server                           ; do not put this in core - elisp scripts
+       llm
 
 
        corfu

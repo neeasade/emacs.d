@@ -3,6 +3,8 @@
 ;; this mostly covers my usage of emacs shell-mode as my interactive shell
 (require 'comint)
 
+(define-key shell-mode-map (kbd "C-l") 'comint-clear-buffer)
+
 (when ns/enable-linux-p
   (setq explicit-shell-file-name (getenv "SHELL")))
 

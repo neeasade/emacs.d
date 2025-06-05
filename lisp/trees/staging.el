@@ -50,29 +50,30 @@
 
   (setenv "PATH" (s-join ":" exec-path)))
 
-;; (ns/use frog-jump-buffer
-;;   
-;;   (ns/bind "b" 'frog-jump-buffer)
-;;   (ns/bind "B" 'frog-jump-buffer-other-window)
+(ns/use frog-jump-buffer
+  (ns/bind "u" 'frog-jump-buffer)
+  (ns/bind "U" 'frog-jump-buffer-other-window)
 
-;;   (setq frog-jump-buffer-default-filter
-;;     ;; 'frog-jump-buffer-filter-file-buffers
-;;     ;; 'frog-jump-buffer-filter-same-project
-;;     'frog-jump-buffer-filter-recentf
-;;     ;; 'ns/jump-file-candidates
-;;     )
+  (setq frog-jump-buffer-default-filter
+    'frog-jump-buffer-filter-file-buffers
+    ;; 'frog-jump-buffer-filter-same-project
+    ;; 'frog-jump-buffer-filter-recentf
+    ;; 'ns/jump-file-candidates
+    )
 
-;;   ;; (setq frog-menu-avy-padding)
-;;   (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
-;;   (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
-;;   (setq frog-jump-buffer-include-current-buffer nil)
-;;   (setq frog-jump-buffer-posframe-parameters
-;;     `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
-;;        (background-color . ,(tarp/get :background :weak))
+  ;; (setq frog-menu-avy-padding)
+  (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
+  (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
+  (setq frog-jump-buffer-include-current-buffer nil)
+  (setq frog-jump-buffer-posframe-parameters
+    `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
+       (background-color . ,(tarp/get :background :weak))
 
-;;        (foreground-color . ,(tarp/get :foreground :weak))
-;;        (left . 0.0)
-;;        ))
+       (foreground-color . ,(tarp/get :primary :weak))
+       (left . 0.0)
+       ))
+
+  )
 
 
 ;;   ;; (set-face-attribute 'avy-lead-face nil :box (tarp/get :faded))
@@ -80,27 +81,15 @@
 
 (defun frog-menu-type ()
   "Return variable `frog-menu-type' to use."
-  (cond
-    ((display-graphic-p)
-      'avy-posframe)
-    (t 'avy-side-window)))
-
-;; clean-buffer-list-delay-general
-;; clean-buffer-list-delay-special
-;; clean-buffer-list-kill-buffer-names
-;; clean-buffer-list-kill-never-buffer-names
-;; clean-buffer-list-kill-regexps
-;; clean-buffer-list-kill-never-regexps
-
-;; consider the current day to end at 3AM
-;; (setq org-extend-today-until 0)
+  (if ns/term?
+    'avy-side-window
+    'avy-posframe))
 
 ;; make timestamp processing functions aware of this
 ;; (setq org-use-effective-time nil)
 
 ;; todo: I'm not sure why we set this
-(setq org-duration-format
-  (quote h:mm))
+(setq org-duration-format (quote h:mm))
 
 (defun! ns/toggle-modeline ()
   "toggle the modeline in the current buffer"
@@ -281,21 +270,8 @@
              (:exclude ".dir-locals.el" "*-tests.el"))))
 
 ;; (defvar shell-pop-internal-mode-func '(lambda () (shell)))
-
 ;; (setq shell-pop-shell-type '("eat" "*eat*" (lambda nil (eat))))
-
 ;; (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type)
-
-;; (comment ns/inmap
-;;   'eat-line-mode'
-;;   ;; 'eat-previous-shell-prompt
-;;   ;; 'eat-next-shell-prompt
-;;   )
-
-(ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el")))
-(ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el")))
-(setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
-(ns/bind "nf" 'chatgpt-shell)
 
 (when-not ns/term?
   (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
@@ -306,15 +282,16 @@
 ;; using in python
 (ns/use smart-dash)
 
-(define-key shell-mode-map (kbd "C-l") 'comint-clear-buffer)
-
 (ns/use lorem-ipsum)
 
-(ns/use package-lint)
+(ispell-lookup-words "yodel")
 
+;; https://www.reddit.com/r/NixOS/comments/1aed1lf/ispell_not_working_on_emacs/
+;; (sh "aspell -d en dump master | aspell -l en expand > ~/.cache/aspell.dict")
+;; nb: this appears to not be working? not seeing auto complete from values in this file
+;; (but it does fix the error0
+(setq ispell-alternate-dictionary (~ ".cache/aspell.dict"))
 
 (ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
   (stillness-mode))
-
-;; (ns/use '(stillness-mode :host github :repo :branch "main"))
 

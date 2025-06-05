@@ -50,6 +50,9 @@
       "e" 'ns/smart-elisp-eval
       "E" 'eval-print-last-sexp))
 
+  (ns/use package-lint)
+
+
   (when (which "cask")
     (ns/use elsa)
     (ns/use flycheck-elsa)
@@ -662,6 +665,12 @@
 (ns/defconfig go (ns/use go-mode))
 (ns/defconfig pdf (ns/use pdf-tools))
 
+(ns/defconfig llm
+  (ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el")))
+  (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el")))
+  (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
+  (ns/bind "nf" 'chatgpt-shell))
+
 (ns/defconfig minor-langs
   ;; pulling in these modes for syntax highlighting basically
   ;; they get grouped in a defconfig b/c minor/stable
@@ -669,7 +678,7 @@
   (ns/use powershell)
   (ns/use terraform-mode)
   (ns/use yaml-mode)
-  (ns/use ahk-mode) ; autohotkey
+  (ns/use ahk-mode)                     ; autohotkey
   (ns/use dockerfile-mode))
 
 ;; big bois
