@@ -28,7 +28,7 @@
   (kbd "C-n") 'comint-next-input)
 
 (ns/use shx
-  (shx-global-mode t)
+  (shx-global-mode 0)                 ; this breaks comint things noooooooo
 
   (defun shx-send-input-or-open-thing ()
     "Open thing at point, or send input if no identifiable thing."

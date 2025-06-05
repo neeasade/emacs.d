@@ -219,7 +219,7 @@
       (spit (ns/str cache-dir "emacs-theme-cache")
         (ns/emacs-to-theme)))
 
-    ;; (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
+    (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
 
     ;; (sh-toss "awp disease")
     ;; (sh-toss "/home/neeasade/walls/3074ac6e6ba4ccc596b5fa4d3ae36e1998535d47d1a62df8d2d9bed0ca418807.awp")

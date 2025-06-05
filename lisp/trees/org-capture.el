@@ -127,6 +127,7 @@
 ;; TODO: presuppose this at time of capture
 
 (setq ns/linkmark-file (ns/path org-directory "linkmarks.org"))
+(setq ns/org-inbox-file (ns/path org-directory "inbox.org"))
 
 (defun! linkmark-select ()
   (llet [link-label (ns/pick (-map 'org-ml-headline-get-path
@@ -182,9 +183,15 @@
          :template ("* %?"
                      ":PROPERTIES:"
                      ":captured: %U"
-                     ":END:"
-                     ""
-                     ))
+                     ":END:" ""))
+
+       ("Inbox" :keys "i"
+         :file ,ns/org-inbox-file
+         :template ("** %?"
+                     ":PROPERTIES:"
+                     ":captured: %U"
+                     ":END:" ""))
+
 
        ("Journal" :keys "j"
          :template "* %?\n%U\n"

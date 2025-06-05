@@ -292,31 +292,10 @@
 ;;   ;; 'eat-next-shell-prompt
 ;;   )
 
-(ns/use ellama)
-
-;; (setopt ellama-provider
-;; 	(make-llm-ollama
-;; 	  ;; this model should be pulled to use it
-;; 	  ;; value should be the same as you print in terminal during pull
-;; 	  :chat-model "llama3.3"
-;; 	  :embedding-model "nomic-embed-text"
-;; 	  :default-chat-non-standard-params '(("num_ctx" . 32768))))
-
-;; (ns/use chatgpt-shell)
-
-;; (ns/use gptel)
-
-;; (gptel-make-ollama "Ollama"             ;Any name of your choosing
-;;   :host "localhost:11434"               ;Where it's running
-;;   :stream t                             ;Stream responses
-;;   :models '(mistral:latest))          ;List of models
-
-;; (setq
-;;   gptel-model 'mistral:latest
-;;   gptel-backend (gptel-make-ollama "Ollama"
-;;                   :host "localhost:11434"
-;;                   :stream t
-;;                   :models '(mistral:latest)))
+(ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el")))
+(ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el")))
+(setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
+(ns/bind "nf" 'chatgpt-shell)
 
 (when-not ns/term?
   (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")

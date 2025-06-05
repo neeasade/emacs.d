@@ -399,7 +399,7 @@
 (ns/use olivetti
   (ns/bind "tf" 'olivetti-mode)
   (setq-default fill-column 80)
-  (setq-default olivetti-body-width 50)
+  (setq-default olivetti-body-width 80)
 
   ;; (setq-local olivetti-body-width 0.2)
   ;; (setq olivetti-body-width nil)

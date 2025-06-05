@@ -81,8 +81,8 @@
 ;; (remove-hook 'after-change-major-mode-hook 'spacemacs//set-evil-shift-width 'append)
 
 ;; only trim whitespace on lines you edit
-(ns/use (ws-butler :host github :repo "hlissner/ws-butler")
-   (ws-butler-global-mode))
+(ns/use ws-butler
+  (ws-butler-global-mode))
 
 ;; to always trim it all
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
