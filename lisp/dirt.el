@@ -334,6 +334,7 @@ if path doesn't exist, returns without trailing '/'"
               ((stringp val) val)
               ((keywordp val) (substring (pr-str val) 1))
               ((bufferp val) (buffer-name val))
+              ((characterp val) (char-to-string val))
               ;; ((listp val) (ns/make-lines val))
               ;; ((numberp val) (number-to-string val))
               ((eq val nil) "")
