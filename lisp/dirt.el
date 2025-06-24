@@ -261,8 +261,7 @@ if path doesn't exist, returns without trailing '/'"
 
 ;; wrap passwordstore
 (defun pass (key)
-  (when (which "rbw")
-    (sh "rbw" "get" key)))
+  (and (which "rbw") (sh "rbw" "get" key)))
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."

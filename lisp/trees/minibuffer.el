@@ -14,7 +14,7 @@
       :history 'file-name-history)))
 
 (defun ns/pick (one &optional two)
-  "Pick something from a list. accepts (prompt candidates) or (candidates)"
+  "Pick something from a list. Accepts (prompt candidates) or (candidates). calls -uniq."
   (llet [(prompt candidates) (if two
                                (list (format "%s: " one) two)
                                (list "select: " one))]
