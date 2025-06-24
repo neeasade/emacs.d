@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
+(setq ns/blog-title "ＳＴＸ")
+
 (ns/comment
   (measure-time
     (ns/blog-generate-all-files)))
@@ -25,8 +27,6 @@
 (ns/use (ox-rss
           :host github
           :repo "emacsmirror/ox-rss"))
-
-(setq ns/blog-title "🌳ＧＲＯＶＥ🌳")
 
 (defun ns/blog-path (ext)
   (ns/str (or (getenv "NS_BLOG_PATH") (~ "code/neeasade.github.io/")) ext))
@@ -55,7 +55,7 @@
 (defun ns/blog-render-org (post-table)
   (ns/mustache (f-read (~e "org/blog_template.org"))
     (ht-merge post-table
-      (llet ((&hash :type :path :subtitle) post-table)
+      (llet ((&hash :type :path :subtitle :published-date :edited-date) post-table)
         (-ht
           :blog-title ns/blog-title
           :up (llet [(dest label)
@@ -79,9 +79,12 @@
           :sitemap-link (when (s-starts-with-p "index" (f-filename path))
                           "<a href='/sitemap.html'>sitemap</a>")
           :pubinfo (when (string= type "post")
-                     "<div class=pubinfo>
-Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edited-date}}</a>
-</div>")
+                     (s-join "\n"
+                       `("<div class=pubinfo>"
+                          ,(if (string= published-date edited-date)
+                             "Published {{published-date}}"
+                             "Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edited-date}}</a>")
+                          "</div>")))
           :footer-center (when (s-starts-with-p "index" (f-filename path))
                            "<a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
   <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
@@ -188,7 +191,6 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
       (-map 'ns/blog-file-to-meta))))
 
 (setq ns/blog-csslinks nil)
-
 (defun ns/blog-get-csslinks ()
   (if ns/blog-csslinks ns/blog-csslinks
     (setq ns/blog-csslinks
@@ -247,6 +249,14 @@ Published {{published-date}}, last edit <a href=\"{{page-history-link}}\">{{edit
       (apply orig-func args))))
 
 (advice-add 'ns/blog-generate :around #'org-publish-ignore-mode-hooks)
+
+
+(setq org-html-viewport
+  '((width "device-width")
+	   (initial-scale "1.0")
+	   ;; (minimum-scale "1")
+	   (maximum-scale "1.0")
+	   (user-scalable "")))
 
 (defun ns/blog-make-anchors ()
   ;; nb: this is also used in the rice.org file
