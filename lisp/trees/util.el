@@ -83,7 +83,8 @@
           history-item (ns/pick "history"
                          (->> (append (or (ns/shell-history-atuin) (ns/shell-history-shell))
                                 (ns/shell-history-comint 'shell-mode))
-                           (-uniq)
+                           (-remove (-partial #'s-contains-p "--image-display-duration=4"))
+                           (-remove (-partial #'s-starts-with-p "cd"))
                            (-remove (-partial #'s-starts-with-p " "))))]
     (when (eq major-mode 'shell-mode)
       (goto-char (point-max)))
@@ -114,10 +115,22 @@
 (defun! ns/insert-qute-url-title ()
   (ns/insert-qute-url (sh "qb_active_url .title")))
 
+(defun! ns/insert-history-atuin-context ()
+  (when (which "atuin")
+    (insert
+      (ns/pick
+        (s-split-lines
+          (or (sh
+                (format
+                  "atuin history list --format \"{directory}/⁇{command}\" | uniq | grep \"^%s\" | sed 's/.*⁇//'"
+                  (or (projectile-project-root) default-directory)))
+            ""))))))
+
 (ns/bind
   "fE" 'crux-sudo-edit
   "tb" 'ns/toggle-bloat
 
   "iu" 'ns/insert-qute-url
   "iU" 'ns/insert-qute-url-title
-  "ih" 'ns/insert-history)
+  "ih" 'ns/insert-history
+  "iH" 'ns/insert-history-atuin-context)
