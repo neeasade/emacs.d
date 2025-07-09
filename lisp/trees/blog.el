@@ -6,7 +6,7 @@
   (measure-time
     (ns/blog-generate-all-files)))
 
-;; compat
+;;* compat
 (defalias 'tarp/get 'myron-get)
 (defalias 'ns/shell-exec 'sh)
 
@@ -21,6 +21,124 @@
       ((< end start)
         (number-sequence start (+ 1 end) step)))))
 
+;;* macros/content
+(defun ns/blog-make-nav-strip (&rest items)
+  (->> (-remove 'not items) (s-join " ")))
+
+(defun ns/blog-make-color-preview (color &optional text)
+  ;; assumes a dark FG and light BG
+  (format
+    "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
+    color
+    (tarp/get (if (ct-is-light-p color) :foreground :background))
+    (if (ct-is-light-p color) (tarp/get :foreground) color)
+    ;; (tarp/get :background :strong)
+    (if (not (s-equals? "" (or text "")))
+      text color)))
+
+(defun ns/blog-make-color-preview-extended (bg fg text)
+  ;; assumes a dark FG and light BG
+  (format
+    "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
+    bg fg
+    (if (ct-is-light-p bg) (tarp/get :foreground) bg)
+    text))
+
+(defun ns/blog-make-detail (&rest parts)
+  ;; this is done so I don't have to escape commas in details
+  (format "@@html:<detail>@@%s@@html:</detail>@@"
+    (s-join "," (-remove 'not parts))))
+
+(defun ns/blog-make-color-block (width color &optional text foreground class)
+  ;; assumes a dark FG and light BG
+  (format
+    "@@html:<div class=\"%s\" style=\"background: %s;color: %s; width: %s%%;\">%s</div>@@"
+    (or class "colorblock colorcenter")
+    color
+    (if foreground foreground
+      (tarp/get (if (ct-is-light-p color) :foreground :background)))
+    width (or text "")))
+
+(defun ns/blog-make-color-strip (colors &optional labels)
+  (s-join "\n"
+    `("@@html: <div style='display: flex; flex-wrap: wrap; justify-content: center;'>  @@"
+       ,@(-map
+           (lambda (c)
+             (ns/blog-make-color-block
+               (/ 100.0 (length colors))
+               (first c)
+               (cdr c)))
+           (-zip-pair colors
+             (or labels (-map (lambda (_) "") (-iota (length colors))))))
+       "@@html: </div>@@")))
+
+;;* render helpers
+
+(setq ns/blog-csslinks nil)
+(defun ns/blog-get-csslinks ()
+  (if ns/blog-csslinks ns/blog-csslinks
+    (setq ns/blog-csslinks
+      (->> '("colors" "new" "org" "notes")
+	      (--mapcat (llet [file-path (ns/blog-path (format "published/assets/css/%s.css" it))
+		                      include-path (format "/assets/css/%s.css" it)
+		                      sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path)) ]
+	                  (list
+		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
+		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
+        (s-join "\n")))))
+
+(defun ns/blog-make-anchors ()
+  ;; nb: this is also used in the rice.org file
+  "turn headlines into anchor links within a string org-content."
+  (org-ml-update-headlines 'all
+    (lambda (headline)
+      (let* (
+              ;; (heading-text (-> headline org-ml-headline-get-path last car)) ;; "arst"
+              (heading-text (-> headline org-ml-headline-get-path last car))
+              (id (org-ml-headline-get-node-property "CUSTOM_ID" headline))
+              (id (if id id
+                    (->> heading-text
+                      (s-replace " " "-")
+                      (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
+                      (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
+        (->> headline
+          (org-ml-headline-set-node-property "CUSTOM_ID" id)
+          (org-ml-set-property :title
+            (let ((heading-text (-if-let (m (s-match ; remove old heading anchor style
+                                              (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
+                                              heading-text))
+                                  (third m) heading-text)))
+              (list
+                (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@"
+                  heading-text
+                  (format "[[#%s][%s]]" id "#"))))))))))
+
+(defun ns/blog-next-map ()
+  "Return a plist of (post-url (prev next))"
+  (llet [posts (->> (ns/blog-get-metas)
+                 (--filter (string= (ht-get it :type) "post"))
+                 (--remove (ht-get it :draft-p))
+                 (--filter (ht-get it :edited-date))
+                 (--sort (string<
+                           (ht-get it :published-date)
+                           (ht-get other :published-date)))
+                 (--map (ht-get it :url)))]
+    `(,(first posts) (nil ,(second posts))
+       ,@(-mapcat
+           (-lambda ((prev current next))
+             (list current (list prev next)))
+           (-partition-in-steps 3 1 posts))
+       ,(-last-item posts) (,(first (-take-last 2 posts)) nil))))
+
+(defun ns/mustache (text table)
+  "Basic mustache templating."
+  (llet [replace-map (ht-amap `(,(format "{{%s}}" (ns/str key)) . ,(or value "")) table)]
+    ;; 2x for inline templates
+    (->> text
+      (s-replace-all replace-map)
+      (s-replace-all replace-map))))
+
+;;* render
 ;; for fontifying src blocks
 (ns/use htmlize)
 
@@ -30,14 +148,6 @@
 
 (defun ns/blog-path (ext)
   (ns/str (or (getenv "NS_BLOG_PATH") (~ "code/neeasade.github.io/")) ext))
-
-(defun ns/mustache (text table)
-  "Basic mustache templating."
-  (llet [replace-map (ht-amap `(,(format "{{%s}}" (ns/str key)) . ,(or value "")) table)]
-    ;; 2x for inline templates
-    (->> text
-      (s-replace-all replace-map)
-      (s-replace-all replace-map))))
 
 (defun ns/blog-get-properties (text)
   "org string to properties ht. if a value is blank it is not included"
@@ -49,13 +159,10 @@
     (apply '-concat)
     (apply '-ht)))
 
-(defun ns/blog-make-nav-strip (&rest items)
-  (->> (-remove 'not items) (s-join " ")))
-
-(defun ns/blog-render-org (post-table)
+(defun ns/blog-render-org (org-meta-table)
   (ns/mustache (f-read (~e "org/blog_template.org"))
-    (ht-merge post-table
-      (llet ((&hash :type :path :subtitle :published-date :edited-date) post-table)
+    (ht-merge org-meta-table
+      (llet ((&hash :type :path :subtitle :published-date :edited-date) org-meta-table)
         (-ht
           :blog-title ns/blog-title
           :up (llet [(dest label)
@@ -107,10 +214,11 @@
   "File path to metadata ."
   ;; (message (format "BLOG: generating meta for %s" path))
   (llet [org-file-content (f-read path)
-          props (ns/blog-get-properties org-file-content)]
+          props (ns/blog-get-properties org-file-content)
+          hsep (format "@@html:<div class=separator>@@%s@@html:</div>@@" "∗ ∗ ∗")]
     (-ht
       :path path
-      :content (s-replace-regexp "^-----$" (ns/blog-make-hsep) org-file-content)
+      :content (s-replace-regexp "^-----$" hsep org-file-content)
       :draft-p (ht-get props "draft")
       :title (ht-get props "title" "(untitled)")
 
@@ -123,16 +231,23 @@
                           (list (ht-get props "pubdate" "")
                             (f-base path))))
       :edited-date (let ((git-query-result (sh (format "cd '%s'; git log --follow -1 --format=%%cI '%s'"
-                                                  ;; appease the shell.
-                                                  (s-replace "'" "'\\''" (f-dirname path))
-                                                  (s-replace "'" "'\\''" path)))))
+                                                 ;; appease the shell.
+                                                 (s-replace "'" "'\\''" (f-dirname path))
+                                                 (s-replace "'" "'\\''" path)))))
                      (when-not (s-blank-p git-query-result)
                        (substring git-query-result 0 10)))
-      :og-url (format "https://notes.neeasade.net/%s.html" (ns/path-to-slug path))
+      :url (format "https://notes.neeasade.net/%s.html" (ns/path-to-slug path))
       :html-dest (format "%s/%s.html" (ns/blog-path "published") (ns/path-to-slug path))
       :csslinks (ns/blog-get-csslinks))))
 
 (defun! ns/blog-publish-meta (org-meta)
+  (setq org-html-viewport
+    '((width "device-width")
+	     (initial-scale "1.0")
+	     ;; (minimum-scale "1")
+	     (maximum-scale "1.0")
+	     (user-scalable "")))
+
   (let ((default-directory (ns/blog-path "published"))
          (org-export-with-toc nil)
          (org-export-with-section-numbers t)
@@ -190,23 +305,11 @@
       (-uniq)
       (-map 'ns/blog-file-to-meta))))
 
-(setq ns/blog-csslinks nil)
-(defun ns/blog-get-csslinks ()
-  (if ns/blog-csslinks ns/blog-csslinks
-    (setq ns/blog-csslinks
-      (->> '("colors" "new" "org" "notes")
-	      (--mapcat (llet [file-path (ns/blog-path (format "published/assets/css/%s.css" it))
-		                      include-path (format "/assets/css/%s.css" it)
-		                      sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path)) ]
-	                  (list
-		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
-		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-        (s-join "\n")))))
-
 (setq ns/blog-metas nil)
 (defun ns/blog-get-metas ()
   (if ns/blog-metas ns/blog-metas
     (setq ns/blog-metas
+      ;; duplication with get-blog-files?
       (->> '("posts" "pages" "notes")
         (--mapcat (f-entries (ns/blog-path it)
                     (-partial #'s-ends-with-p ".org")))
@@ -250,40 +353,6 @@
 
 (advice-add 'ns/blog-generate :around #'org-publish-ignore-mode-hooks)
 
-
-(setq org-html-viewport
-  '((width "device-width")
-	   (initial-scale "1.0")
-	   ;; (minimum-scale "1")
-	   (maximum-scale "1.0")
-	   (user-scalable "")))
-
-(defun ns/blog-make-anchors ()
-  ;; nb: this is also used in the rice.org file
-  "turn headlines into anchor links within a string org-content."
-  (org-ml-update-headlines 'all
-    (lambda (headline)
-      (let* (
-              ;; (heading-text (-> headline org-ml-headline-get-path last car)) ;; "arst"
-              (heading-text (-> headline org-ml-headline-get-path last car))
-              (id (org-ml-headline-get-node-property "CUSTOM_ID" headline))
-              (id (if id id
-                    (->> heading-text
-                      (s-replace " " "-")
-                      (s-replace-regexp (pcre-to-elisp/cached "\\[\\[(.*)\\]\\[") "")
-                      (s-replace-regexp (pcre-to-elisp/cached "\\]\\]") "")))))
-        (->> headline
-          (org-ml-headline-set-node-property "CUSTOM_ID" id)
-          (org-ml-set-property :title
-            (let ((heading-text (-if-let (m (s-match ; remove old heading anchor style
-                                              (pcre-to-elisp/cached "\\[\\[\\#(.*)\\]\\[(.*)\\]\\]")
-                                              heading-text))
-                                  (third m) heading-text)))
-              (list
-                (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@"
-                  heading-text
-                  (format "[[#%s][%s]]" id "#"))))))))))
-
 (defun! ns/blog-new-post ()
   (let* ((title (s-trim (read-from-minibuffer "new blog post title: ")))
           (file (format (~ "code/neeasade.github.io/posts/%s.org")
@@ -301,70 +370,22 @@
               title
               (sh "date '+<%Y-%m-%d>'")))))
 
-;;;
-;;; here down are content helpers -- many of these have correlating macros in the template
-;;;
-
-(defun ns/blog-make-color-preview (color &optional text)
-  ;; assumes a dark FG and light BG
-  (format
-    "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
-    color
-    (tarp/get (if (ct-is-light-p color) :foreground :background))
-    (if (ct-is-light-p color) (tarp/get :foreground) color)
-    ;; (tarp/get :background :strong)
-    (if (not (s-equals? "" (or text "")))
-      text color)))
-
-(defun ns/blog-make-color-preview-extended (bg fg text)
-  ;; assumes a dark FG and light BG
-  (format
-    "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
-    bg fg
-    (if (ct-is-light-p bg) (tarp/get :foreground) bg)
-    text))
-
-(defun ns/blog-make-detail (&rest parts)
-  ;; this is done so I don't have to escape commas in details
-  (format "@@html:<detail>@@%s@@html:</detail>@@"
-    (s-join "," (-remove 'not parts))))
-
-(defun ns/blog-make-color-block (width color &optional text foreground class)
-  ;; assumes a dark FG and light BG
-  (format
-    "@@html:<div class=\"%s\" style=\"background: %s;color: %s; width: %s%%;\">%s</div>@@"
-    (or class "colorblock colorcenter")
-    color
-    (if foreground foreground
-      (tarp/get (if (ct-is-light-p color) :foreground :background)))
-    width (or text "")))
-
-(defun ns/blog-make-color-strip (colors &optional labels)
-  (s-join "\n"
-    `("@@html: <div style='display: flex; flex-wrap: wrap; justify-content: center;'>  @@"
-       ,@(-map
-           (lambda (c)
-             (ns/blog-make-color-block
-               (/ 100.0 (length colors))
-               (first c)
-               (cdr c)))
-           (-zip-pair colors
-             (or labels (-map (lambda (_) "") (-iota (length colors))))))
-       "@@html: </div>@@")))
-
-(defun ns/blog-make-hsep ()
-  (format "@@html:<div class=separator>@@%s@@html:</div>@@"
-    "∗ ∗ ∗"))
-
 (defun ns/get-blog-files ()
-  "title to filepath"
+  "return a map of title -> filepath"
   (->> `(,@(f-entries (ns/blog-path "posts") (-partial 's-ends-with-p ".org"))
-          ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org")))
+          ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org"))
+          ,@(f-entries (ns/blog-path "notes") (-partial 's-ends-with-p ".org")))
     (--remove (s-starts-with? ".#" (f-base it)))
     (reverse)
     (--mapcat (list (ht-get (ns/blog-get-properties (slurp it)) "title" "untitled") it))
     (-flatten)
     (apply '-ht)))
+
+(comment
+  (ht-keys
+    (ns/get-blog-files)
+    )
+  )
 
 (ns/bind
   "iq" (fn!! insert-blog-link

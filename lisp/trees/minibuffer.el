@@ -17,7 +17,7 @@
   "Pick something from a list. Accepts (prompt candidates) or (candidates). calls -uniq."
   (llet [(prompt candidates) (if two
                                (list (format "%s: " one) two)
-                               (list "select: " one))]
+                               (list "pick: " one))]
     (completing-read prompt (-uniq candidates))))
 
 ;; Do not allow the cursor in the minibuffer prompt

@@ -10,7 +10,7 @@
 #+html_head: <meta property="og:title" content="{{title}}">
 #+html_head: <meta property="og:description" content="{{og-description}}">
 #+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/newfeather.png">
-#+html_head: <meta property="og:url" content="{{og-url}}">
+#+html_head: <meta property="og:url" content="{{url}}">
 #+html_head: <meta property="description" content="{{og-description}}">
 #+html_head: <meta name="twitter:card" content="summary">
 
