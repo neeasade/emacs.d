@@ -666,10 +666,16 @@
 (ns/defconfig pdf (ns/use pdf-tools))
 
 (ns/defconfig llm
+  ;; todo: comint-highlight-input should have have a face to distinguish prompt lines
   (ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el")))
   (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el")))
   (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
-  (ns/bind "nf" 'chatgpt-shell))
+
+  (ns/bind "nf" 'chatgpt-shell)
+  (setq shell-maker-transcript-default-path (~e "lisp/scratch/chatgpt-shell"))
+
+
+  )
 
 (ns/defconfig minor-langs
   ;; pulling in these modes for syntax highlighting basically

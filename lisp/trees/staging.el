@@ -284,12 +284,11 @@
 
 (ns/use lorem-ipsum)
 
-(ispell-lookup-words "yodel")
+(add-hook 'prog-mode-hook 'outline-minor-mode)
 
 ;; https://www.reddit.com/r/NixOS/comments/1aed1lf/ispell_not_working_on_emacs/
 ;; (sh "aspell -d en dump master | aspell -l en expand > ~/.cache/aspell.dict")
 ;; nb: this appears to not be working? not seeing auto complete from values in this file
-;; (but it does fix the error0
 (setq ispell-alternate-dictionary (~ ".cache/aspell.dict"))
 
 (ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
