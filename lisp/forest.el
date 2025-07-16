@@ -627,12 +627,7 @@
   ;; "insert region"
   (ns/bind "ir" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
 
-  (ns/bind "it"
-    (fn!! insert-theme-key
-      (->> (sh "theme -k")
-        (s-split "\n")
-        (ns/pick)
-        (insert))))
+  (ns/bind "it" (fn!! insert-theme-key (insert (ns/pick (sh-lines "theme -k")))))
 
   ;; used in window move scripts
   (defalias 'evil-window-north 'evil-window-up)

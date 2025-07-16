@@ -180,6 +180,9 @@ Given (CMD ARGS...), runs CMD with ARGS. Given string, runs via bash."
 Given (CMD ARGS...), runs CMD with ARGS. Given string, runs via bash."
   (apply 'sh-impl t args))
 
+(defun sh-lines (&rest args)
+  (s-split-lines (apply 'sh args)))
+
 (defun ns/path (&rest paths)
   "Make a path normal. Normal means:
 - call expand-file-name (~ to $HOME)
