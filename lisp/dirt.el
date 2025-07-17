@@ -181,7 +181,7 @@ Given (CMD ARGS...), runs CMD with ARGS. Given string, runs via bash."
   (apply 'sh-impl t args))
 
 (defun sh-lines (&rest args)
-  (s-split-lines (apply 'sh args)))
+  (s-lines (apply 'sh args)))
 
 (defun ns/path (&rest paths)
   "Make a path normal. Normal means:
@@ -262,7 +262,6 @@ if path doesn't exist, returns without trailing '/'"
       (ns/switch-to-buffer-or-window filename)
       (find-file filepath))))
 
-;; wrap passwordstore
 (defun pass (key)
   (and (which "rbw") (sh "rbw" "get" key)))
 
@@ -312,10 +311,6 @@ if path doesn't exist, returns without trailing '/'"
   "Remove text properies from S."
   (set-text-properties 0 (length s) nil s) s)
 
-(defun s-split-lines (s)
-  "Remove text properies from S."
-  (s-split "\n" s))
-
 (defun -ht (&rest kvs)
   "A builder for ht.el with less parentheses"
   (let ((table (ht-create)))
@@ -323,24 +318,37 @@ if path doesn't exist, returns without trailing '/'"
       (-partition 2 kvs))
     table))
 
+(defun ht-get-cache (ht key fn)
+  "return val in HT from KEY, or set value with FN."
+  (when-not (ht-contains? ht key)
+    (ht-set ht key (funcall fn)))
+  (ht-get ht key))
+
+(defun ht-keep (&rest args)
+  (-non-nil (apply 'ht-map args)))
+
 (defalias 'slurp 'f-read)
 
 (defun spit (f content)
   (f-write content 'utf-8 f))
 
 (defun ns/str (&rest vals)
-  "Coerce VAL to string. nil is empty string."
+  "Coerce VALS to string. nil is empty string.
+
+NOTE: doesn't handle chars, because chars are ints (they get turned into numbers and stringified)"
   (apply 'concat
     (-map (lambda (val)
-            (cond
-              ((stringp val) val)
-              ((keywordp val) (substring (pr-str val) 1))
-              ((bufferp val) (buffer-name val))
-              ((characterp val) (char-to-string val))
-              ;; ((listp val) (ns/make-lines val))
-              ;; ((numberp val) (number-to-string val))
-              ((eq val nil) "")
-              (t (pr-str val))))        ; ?
+            (s-clean
+              (cond
+                ((stringp val) val)
+                ((keywordp val) (substring (pr-str val) 1))
+                ((bufferp val) (buffer-name val))
+                ((numberp val) (number-to-string val))
+                ;; ((characterp val) (char-to-string val))
+                ;; ((listp val) (ns/make-lines val))
+                ((hash-table-p val) (s-join "\n" (ht-map (lambda (k v) (ns/str k " " v)) val)))
+                ((eq val nil) "")
+                (t (pr-str val)))))        ; ?
       vals)))
 
 (defmacro condp (pred expr &rest clauses)
@@ -422,6 +430,10 @@ if path doesn't exist, returns without trailing '/'"
   "pick random item from list"
   (first (-shuffle list)))
 
+;; ugh
+(defun ns/plist-keys (plist) (-map 'first (-partition 2 plist)))
+(defun ns/plist-values (plist) (-map 'second (-partition 2 plist)))
+
 (setenv "ATUIN_SESSION" (sh "bash" "-ic" "echo $ATUIN_SESSION"))
 
 (defun ns/atuin-add-dir (cwd)
@@ -432,10 +444,8 @@ if path doesn't exist, returns without trailing '/'"
   ;; get session
   (when (which "atuin")
     (->> (-concat
-           (s-split-lines
-             (or (sh "atuin history list --format {directory} | sort | uniq")
-               ""))
-           (s-split-lines (sh "atuin kv list -n dirs")))
+           (s-lines (or (sh "atuin history list --format {directory} | sort | uniq") ""))
+           (s-lines (sh "atuin kv list -n dirs")))
       (-distinct)
       (--remove (not (f-exists-p it)))
       (-map 'ns/path)

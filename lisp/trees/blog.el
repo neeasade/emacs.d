@@ -1,6 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 
+
 (setq ns/blog-title "ＳＴＸ")
+(setq ns/blog-cache (-ht))
 
 (ns/comment
   (measure-time
@@ -74,18 +76,19 @@
 
 ;;* render helpers
 
-(setq ns/blog-csslinks nil)
+(defun ns/blog-make-hsep ()
+  (format "@@html:<div class=separator>@@%s@@html:</div>@@" "∗ ∗ ∗"))
+
 (defun ns/blog-get-csslinks ()
-  (if ns/blog-csslinks ns/blog-csslinks
-    (setq ns/blog-csslinks
-      (->> '("colors" "new" "org" "notes")
-	      (--mapcat (llet [file-path (ns/blog-path (format "published/assets/css/%s.css" it))
-		                      include-path (format "/assets/css/%s.css" it)
-		                      sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path)) ]
-	                  (list
-		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
-		                  (format "#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
-        (s-join "\n")))))
+  (ht-get-cache ns/blog-cache :csslinks
+    (fn (->> '("colors" "new" "org" "notes")
+	        (--mapcat (llet [file-path (ns/blog-path (format "published/assets/css/%s.css" it))
+		                        include-path (format "/assets/css/%s.css" it)
+		                        sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path)) ]
+	                    (list
+		                    (format "#+HTML_HEAD: <link rel='stylesheet' href='%s?sum=%s'>" include-path sum)
+		                    (format "#+HTML_HEAD: <link rel='stylesheet' href='.%s?sum=%s'>" include-path sum))))
+          (s-join "\n")))))
 
 (defun ns/blog-make-anchors ()
   ;; nb: this is also used in the rice.org file
@@ -214,11 +217,10 @@
   "File path to metadata ."
   ;; (message (format "BLOG: generating meta for %s" path))
   (llet [org-file-content (f-read path)
-          props (ns/blog-get-properties org-file-content)
-          hsep (format "@@html:<div class=separator>@@%s@@html:</div>@@" "∗ ∗ ∗")]
+          props (ns/blog-get-properties org-file-content)]
     (-ht
       :path path
-      :content (s-replace-regexp "^-----$" hsep org-file-content)
+      :content (s-replace-regexp "^-----$" (ns/blog-make-hsep) org-file-content)
       :draft-p (ht-get props "draft")
       :title (ht-get props "title" "(untitled)")
 
@@ -241,13 +243,6 @@
       :csslinks (ns/blog-get-csslinks))))
 
 (defun! ns/blog-publish-meta (org-meta)
-  (setq org-html-viewport
-    '((width "device-width")
-	     (initial-scale "1.0")
-	     ;; (minimum-scale "1")
-	     (maximum-scale "1.0")
-	     (user-scalable "")))
-
   (let ((default-directory (ns/blog-path "published"))
          (org-export-with-toc nil)
          (org-export-with-section-numbers t)
@@ -258,6 +253,11 @@
          (org-export-with-smart-quotes t)
          (org-use-sub-superscripts "{}")
          (org-html-doctype "html5")
+         (org-html-viewport '((width "device-width")
+	                             (initial-scale "1.0")
+	                             ;; (minimum-scale "1")
+	                             (maximum-scale "1.0")
+	                             (user-scalable "")))
 
          ;; affects timestamp export format
          (org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %I:%M %p>"))
@@ -305,29 +305,38 @@
       (-uniq)
       (-map 'ns/blog-file-to-meta))))
 
-(setq ns/blog-metas nil)
+(defun ns/get-blog-files ()
+  "return a map of title -> filepath"
+  (->> `(,@(f-entries (ns/blog-path "posts") (-partial 's-ends-with-p ".org"))
+          ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org"))
+          ,@(f-entries (ns/blog-path "notes") (-partial 's-ends-with-p ".org")))
+    (--remove (s-starts-with? ".#" (f-base it)))
+    (reverse)
+    (--mapcat (list it (ht-get (ns/blog-get-properties (slurp it)) "title" "untitled")))
+    (-flatten)
+    (apply '-ht)))
+
 (defun ns/blog-get-metas ()
-  (if ns/blog-metas ns/blog-metas
-    (setq ns/blog-metas
-      ;; duplication with get-blog-files?
-      (->> '("posts" "pages" "notes")
-        (--mapcat (f-entries (ns/blog-path it)
-                    (-partial #'s-ends-with-p ".org")))
-        (-map 'ns/blog-file-to-meta)))))
+  (ht-get-cache ns/blog-cache :blog-metas
+    (fn (-map 'ns/blog-file-to-meta
+          (ht-keys (ns/get-blog-files))))))
+
 
 (defun ns/blog-generate (metas)
   (setq
     ns/theme (ht-get myron-themes-colors :normal) ; compat
-    ns/blog-metas nil                      ; cache bust
-    ns/blog-csslinks nil)                  ; cache bust
+    ns/blog-cache (-ht))                  
 
   ;; need to define these here for index listings and rss:
   (message "BLOG: making pages!")
 
+  (when-not (= (length (--map (ht-get it :html-dest) metas))
+              (length (-uniq (--map (ht-get it :html-dest) metas))))
+    (error "BLOG: conflicting html-dests! not generating"))
+
   (llet (;; don't ask about generation when exporting
           org-confirm-babel-evaluate (fn nil))
 
-    ;; todo here: check conflicting html-dest
     ;; todo redirects
     (-map #'ns/blog-publish-meta metas)
 
@@ -358,54 +367,31 @@
           (file (format (~ "code/neeasade.github.io/posts/%s.org")
                   (s-replace " " "-" title))))
     (find-file file)
-    (insert (format "
-#+title: %s
-#+title_extra:
-#+post_type: post
-#+filetags:
-#+rss_title:
-#+draft: t
-#+pubdate: %s
- "
-              title
-              (sh "date '+<%Y-%m-%d>'")))))
-
-(defun ns/get-blog-files ()
-  "return a map of title -> filepath"
-  (->> `(,@(f-entries (ns/blog-path "posts") (-partial 's-ends-with-p ".org"))
-          ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org"))
-          ,@(f-entries (ns/blog-path "notes") (-partial 's-ends-with-p ".org")))
-    (--remove (s-starts-with? ".#" (f-base it)))
-    (reverse)
-    (--mapcat (list (ht-get (ns/blog-get-properties (slurp it)) "title" "untitled") it))
-    (-flatten)
-    (apply '-ht)))
-
-(comment
-  (ht-keys
-    (ns/get-blog-files)
-    )
-  )
+    (insert (->> (-ht :title title
+                   :title_extra nil
+                   :post_type "post"
+                   :filetags nil
+                   :rss_title nil
+                   :draft t
+                   :pubdate (sh "date '+<%Y-%m-%d>'"))
+              (ht-map (lambda (k v) (ns/str "#+" k ": " v)))
+              (s-join "\n")))))
 
 (ns/bind
   "iq" (fn!! insert-blog-link
          (llet [posts (ns/get-blog-files)
-                 title (ns/pick (ht-keys posts))]
-           (insert (format "[[./%s.org][%s]]"
-                     (f-base (ht-get posts title))
-                     title))))
+                 title (ns/pick (ht-values posts))
+                 file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
+           (insert (format "[[./%s.org][%s]]" (f-base file) title))))
   "nq" (fn!! surf-blog-posts
-         (llet [posts (ns/get-blog-files)]
-           (find-file (ht-get posts (ns/pick (ht-keys posts))))))
-
+         (llet [posts (ns/get-blog-files)
+                 title (ns/pick (ht-values posts))
+                 file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
+           (find-file file)))
   "nQ" (fn!! surf-blog-posts-draft
-         (llet [posts (->> (ns/get-blog-files)
-                        (ht-map (lambda (k v)
-                                  (when (ht-get (ns/blog-get-properties (slurp v)) "draft")
-                                    (list k v))))
-                        ;; munge
-                        (-non-nil)
-                        (-flatten)
-                        (apply '-ht))]
-           (find-file (ht-get posts (ns/pick (ht-keys posts)))))))
-
+         (llet [posts (ns/get-blog-files)
+                 title (ns/pick (ht-keep (lambda (file title)
+                                           (and (ht-get (ns/blog-get-properties (slurp file)) "draft")
+                                             title)) posts))
+                 file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
+           (find-file file))))

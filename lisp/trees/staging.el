@@ -286,6 +286,9 @@
 
 (add-hook 'prog-mode-hook 'outline-minor-mode)
 
+;; this should really be in sanity lmao
+(ns/use symbol-overlay (add-hook 'prog-mode-hook 'symbol-overlay-mode))
+
 ;; https://www.reddit.com/r/NixOS/comments/1aed1lf/ispell_not_working_on_emacs/
 ;; (sh "aspell -d en dump master | aspell -l en expand > ~/.cache/aspell.dict")
 ;; nb: this appears to not be working? not seeing auto complete from values in this file

@@ -54,7 +54,7 @@
 (defun ns/shell-history-atuin ()
   (when (which "atuin")
     (->> (sh "atuin history list --format {command} --print0" )
-      (s-split (ns/str ?\0)))))
+      (s-split (char-to-string ?\0)))))
 
 (defun ns/shell-history-shell ()
   (llet [shell-name (if (eq major-mode 'shell-mode)
@@ -119,7 +119,7 @@
   (when (which "atuin")
     (insert
       (ns/pick
-        (s-split-lines
+        (s-lines
           (or (sh
                 (format
                   "atuin history list --format \"{directory}/⁇{command}\" | uniq | grep \"^%s\" | sed 's/.*⁇//'"

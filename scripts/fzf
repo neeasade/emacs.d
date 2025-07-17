@@ -2,6 +2,6 @@
 
 (condition-case ()
     (if *stdin-file*
-        (ns/pick "fzf" (s-split "\n" (f-read *stdin-file*)))
-      (ns/pick "fzf" (s-split-lines (sh "rg --files"))))
+        (ns/pick "fzf" (s-lines (f-read *stdin-file*)))
+      (ns/pick "fzf" (s-lines (sh "rg --files"))))
   (quit nil))

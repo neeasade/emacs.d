@@ -52,7 +52,6 @@
 
   (ns/use package-lint)
 
-
   (when (which "cask")
     (ns/use elsa)
     (ns/use flycheck-elsa)
@@ -627,7 +626,7 @@
   ;; "insert region"
   (ns/bind "ir" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
 
-  (ns/bind "it" (fn!! insert-theme-key (insert (ns/pick (sh-lines "theme -k")))))
+  (ns/bind "it" (fn!! insert-theme-key (insert (ns/pick (s-lines (sh "theme -k"))))))
 
   ;; used in window move scripts
   (defalias 'evil-window-north 'evil-window-up)
@@ -662,14 +661,14 @@
 
 (ns/defconfig llm
   ;; todo: comint-highlight-input should have have a face to distinguish prompt lines
-  (ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el")))
-  (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el")))
-  (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
+  (ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el"))
+    (setq shell-maker-transcript-default-path (~e "lisp/scratch/chatgpt-shell")))
+  (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el"))
+    (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
+    (chatgpt-shell-ollama-load-models)
+    (ns/bind "nf" 'chatgpt-shell))
 
-  (ns/bind "nf" 'chatgpt-shell)
-  (setq shell-maker-transcript-default-path (~e "lisp/scratch/chatgpt-shell"))
-
-
+  ;; todo: automatic save transcript on clear
   )
 
 (ns/defconfig minor-langs
