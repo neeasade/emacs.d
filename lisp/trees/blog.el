@@ -72,7 +72,10 @@
 ;;* render helpers
 
 (defun ns/blog-make-hsep ()
-  (format "@@html:<div class=separator>@@%s@@html:</div>@@" "∗ ∗ ∗"))
+  (s-join "\n"
+    '("#+BEGIN_EXPORT html"
+       "<div class=separator> ∗ ∗ ∗ </div>"
+       "#+END_EXPORT")))
 
 (defun ns/blog-get-csslinks ()
   (ht-get-cache ns/blog-cache :csslinks
@@ -107,7 +110,7 @@
                                               heading-text))
                                   (third m) heading-text)))
               (list
-                (format "%s @@html:<span class=anchor>@@%s@@html:</span>@@"
+                (format "%s %s"
                   heading-text
                   (format "[[#%s][%s]]" id "#"))))))))))
 
@@ -121,12 +124,13 @@
                            (ht-get it :published-date)
                            (ht-get other :published-date)))
                  (--map (ht-get it :url)))]
-    `(,(first posts) (nil ,(second posts))
-       ,@(-mapcat
-           (-lambda ((prev current next))
-             (list current (list prev next)))
-           (-partition-in-steps 3 1 posts))
-       ,(-last-item posts) (,(first (-take-last 2 posts)) nil))))
+    (apply '-ht
+      `(,(first posts) (nil ,(second posts))
+         ,@(-mapcat
+             (-lambda ((prev current next))
+               (list current (list prev next)))
+             (-partition-in-steps 3 1 posts))
+         ,(-last-item posts) (,(first (-take-last 2 posts)) nil)))))
 
 (ns/use mustache)
 (require 'xml)
@@ -170,7 +174,7 @@
   (->> (--reduce-from (s-replace it "" acc)
          (f-base path)
          (s-split "" ";/?:@&=+$,'"))
-    (s-replace-regexp (pcre-to-elisp "[0-9]-[0-9]{2}-[0-9]{2}-") "")
+    (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
     (s-downcase)))
 
 (defun ns/blog-file-to-meta (path)
@@ -186,10 +190,10 @@
       :subtitle (ht-get props "title_extra" "")
       :type (llet [parent-dir (->> path f-parent f-base)]
               (substring parent-dir 0 (1- (length parent-dir))))
-      :published-date  (first
-                         (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
-                           (list (ht-get props "pubdate" "")
-                             (f-base path))))
+      :published-date (first
+                        (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
+                          (list (ht-get props "pubdate" "")
+                            (f-base path))))
       :edited-date (let ((git-query-result (sh (format "cd '%s'; git log --follow -1 --format=%%cI '%s'"
                                                  ;; appease the shell.
                                                  (s-replace "'" "'\\''" (f-dirname path))
@@ -203,7 +207,9 @@
 (defun ns/blog-render-org (org-meta-table)
   (ns/mustache (f-read (~e "org/blog_template.org"))
     (ht-merge org-meta-table
-      (llet ((&hash :type :path :subtitle :published-date :edited-date) org-meta-table)
+      (llet ((&hash :type :path :subtitle :published-date :edited-date :title :url) org-meta-table
+              next-map (ht-get-cache ns/blog-cache :next-map 'ns/blog-next-map)
+              (prev-post next-post) (ht-get next-map url))
         (-ht
           :up (llet [(dest label)
                       (cond
@@ -219,7 +225,9 @@
                               type (f-filename path))
           :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
                                type (f-filename path))
-          :blog-title ns/blog-title
+          :page-title (if (s-starts-with-p "index" (f-filename path)) ns/blog-title title)
+          :next-post next-post
+          :prev-post prev-post
           :is-index (s-starts-with-p "index" (f-filename path))
           :is-page (string= type "page")
           :is-post (string= type "post")
@@ -235,6 +243,7 @@
          (org-html-html5-fancy t)
          (org-export-with-title nil)
          (org-export-with-smart-quotes t)
+         (org-html-table-align-individual-fields nil) ; sus
          (org-use-sub-superscripts "{}")
          (org-html-doctype "html5")
          (org-html-viewport '((width "device-width")
@@ -250,13 +259,13 @@
          ;; don't ask about generation when exporting
          (org-confirm-babel-evaluate (fn nil)))
 
-    (with-temp-buffer
-      (llet ((&hash :path :html-dest) org-meta)
-        (message "BLOG: making %s " path)
+    (message "BLOG: making %s " (ht-get org-meta :path))
+    (shut-up
+      (with-temp-buffer
         (org-mode)
         (insert (ns/blog-render-org org-meta))
         (ns/blog-make-anchors)
-        (org-export-to-file 'html html-dest)))))
+        (org-export-to-file 'html (ht-get org-meta :html-dest))))))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()

@@ -7,7 +7,7 @@
 #+html_head: <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
 #+html_head: <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
 
-#+html_head: <meta property="og:title" content="{{title}}">
+#+html_head: <meta property="og:title" content="{{page-title}}">
 #+html_head: <meta property="og:description" content="{{og-description}}">
 #+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/newfeather.png">
 #+html_head: <meta property="og:url" content="{{url}}">
@@ -46,8 +46,7 @@
     <a href="{{page-markup-link}}">source</a>
 </div>
 <h1 class=title>
-    {{#is-index}}{{blog-title}}{{/is-index}}
-    {{#is-post}}{{title}}{{/is-post}}
+    {{page-title}}
 </h1>
 #+end_export
 #+BEGIN_CENTER
@@ -55,21 +54,26 @@
 #+END_CENTER
 
 #+BEGIN_EXPORT html
+{{#is-post}}
+{{#published-date}}
 <span class=pubinfo>
-    {{#is-post}} Published {{published-date}}{{#is-edited}},
-        last edit <a href=\"{{page-history-link}}\">{{edited-date}}</a>
-        {{/is-edited}}
-    {{/is-post}}
+    Published {{published-date}}{{#is-edited}},
+    last edit <a href=\"{{page-history-link}}\">{{edited-date}}</a>
+    {{/is-edited}}
 </span>
+{{/published-date}}
+{{/is-post}}
 #+end_export
 -----
 {{content}}
 #+BEGIN_EXPORT html
-<div class="footer-center">
 {{#is-index}}
     <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
     <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
     <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
 {{/is-index}}
-</div>
+{{#is-post}}
+    {{#prev-post}} prev: {{prev-post}} {{/prev-post}}
+    {{#next-post}} next: {{next-post}} {{/next-post}}
+{{/is-post}}
 #+end_export
