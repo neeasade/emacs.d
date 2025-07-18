@@ -123,14 +123,16 @@
                  (--sort (string<
                            (ht-get it :published-date)
                            (ht-get other :published-date)))
-                 (--map (ht-get it :url)))]
+                 (--map (list
+                          (ht-get it :url)
+                          (ht-get it :title))))]
     (apply '-ht
-      `(,(first posts) (nil ,(second posts))
+      `(,(first (first posts)) (nil ,(second posts))
          ,@(-mapcat
              (-lambda ((prev current next))
-               (list current (list prev next)))
+               (list (first current) (list prev next)))
              (-partition-in-steps 3 1 posts))
-         ,(-last-item posts) (,(first (-take-last 2 posts)) nil)))))
+         ,(first (-last-item posts)) (,(first (-take-last 2 posts)) nil)))))
 
 (ns/use mustache)
 (require 'xml)
@@ -209,7 +211,7 @@
     (ht-merge org-meta-table
       (llet ((&hash :type :path :subtitle :published-date :edited-date :title :url) org-meta-table
               next-map (ht-get-cache ns/blog-cache :next-map 'ns/blog-next-map)
-              (prev-post next-post) (ht-get next-map url))
+              ((prev-url prev-title) (next-url next-title)) (ht-get next-map url))
         (-ht
           :up (llet [(dest label)
                       (cond
@@ -226,8 +228,8 @@
           :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
                                type (f-filename path))
           :page-title (if (s-starts-with-p "index" (f-filename path)) ns/blog-title title)
-          :next-post next-post
-          :prev-post prev-post
+          :next-post (format "<a href='%s'>%s</a>" next-url next-title)
+          :prev-post (format "<a href='%s'>%s</a>" prev-url prev-title)
           :is-index (s-starts-with-p "index" (f-filename path))
           :is-page (string= type "page")
           :is-post (string= type "post")
@@ -300,14 +302,16 @@
 
 (defun ns/get-blog-files ()
   "return a map of title -> filepath"
-  (->> `(,@(f-entries (ns/blog-path "posts") (-partial 's-ends-with-p ".org"))
-          ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org"))
-          ,@(f-entries (ns/blog-path "notes") (-partial 's-ends-with-p ".org")))
-    (--remove (s-starts-with? ".#" (f-base it)))
-    (reverse)
-    (--mapcat (list it (ht-get (ns/blog-get-properties (slurp it)) "title" "untitled")))
-    (-flatten)
-    (apply '-ht)))
+  (ht-get-cache ns/blog-cache :blog-files
+    (lambda ()
+      (->> `(,@(f-entries (ns/blog-path "posts") (-partial 's-ends-with-p ".org"))
+              ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org"))
+              ,@(f-entries (ns/blog-path "notes") (-partial 's-ends-with-p ".org")))
+        (--remove (s-starts-with? ".#" (f-base it)))
+        (reverse)
+        (--mapcat (list it (ht-get (ns/blog-get-properties (slurp it)) "title" "untitled")))
+        (-flatten)
+        (apply '-ht)))))
 
 (defun ns/blog-get-metas ()
   (ht-get-cache ns/blog-cache :blog-metas
