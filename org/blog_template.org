@@ -42,21 +42,34 @@
 </div>
 
 <div style="float: right">
-    {{sitemap-link}}
+    {{#is-index}}<a href='/sitemap.html'>sitemap</a>{{/is-index}}
     <a href="{{page-markup-link}}">source</a>
 </div>
-<h1 class=title>{{title}}</h1>
+<h1 class=title>
+    {{#is-index}}{{blog-title}}{{/is-index}}
+    {{#is-post}}{{title}}{{/is-post}}
+</h1>
 #+end_export
 #+BEGIN_CENTER
 {{subtitle}}
 #+END_CENTER
+
 #+BEGIN_EXPORT html
-{{pubinfo}}
+<span class=pubinfo>
+    {{#is-post}} Published {{published-date}}{{#is-edited}},
+        last edit <a href=\"{{page-history-link}}\">{{edited-date}}</a>
+        {{/is-edited}}
+    {{/is-post}}
+</span>
 #+end_export
 -----
 {{content}}
 #+BEGIN_EXPORT html
 <div class="footer-center">
-    {{footer-center}}
+{{#is-index}}
+    <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
+    <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
+    <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
+{{/is-index}}
 </div>
 #+end_export
