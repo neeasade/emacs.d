@@ -37,6 +37,7 @@
 {{csslinks}}
 
 #+BEGIN_EXPORT html
+<header>
 <div style="float: left">
     {{up}}
 </div>
@@ -58,11 +59,12 @@
 {{#published-date}}
 <span class=pubinfo>
     Published {{published-date}}{{#is-edited}},
-    last edit <a href=\"{{page-history-link}}\">{{edited-date}}</a>
+    last edit <a href="{{page-history-link}}">{{edited-date}}</a>
     {{/is-edited}}
 </span>
 {{/published-date}}
 {{/is-post}}
+</header>
 #+end_export
 -----
 {{content}}
@@ -73,7 +75,14 @@
     <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
 {{/is-index}}
 {{#is-post}}
-    {{#prev-post}} prev: {{prev-post}} {{/prev-post}}
-    {{#next-post}} next: {{next-post}} {{/next-post}}
+<footer>
+    <div style="float: left">
+        {{#next-post}} {{next-post}} {{/next-post}}
+    </div>
+    <div style="text-align: right">
+        {{#prev-post}} {{prev-post}} {{/prev-post}}
+    </div>
+</footer>
 {{/is-post}}
-#+end_export
+#+END_EXPORT
+-----

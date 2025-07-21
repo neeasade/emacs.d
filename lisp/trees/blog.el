@@ -79,7 +79,9 @@
 
 (defun ns/blog-get-csslinks ()
   (ht-get-cache ns/blog-cache :csslinks
-    (fn (->> '("colors" "new" "org" "notes")
+    (fn (->>
+          ;; '("colors" "new" "org" "notes")
+          '("colors" "normalize" "magick" "notes")
 	        (--mapcat (llet [file-path (ns/blog-path (format "published/assets/css/%s.css" it))
 		                        include-path (format "/assets/css/%s.css" it)
 		                        sum (sh (format "md5sum '%s' | awk '{print $1}'" file-path)) ]
@@ -93,9 +95,7 @@
   "turn headlines into anchor links within a string org-content."
   (org-ml-update-headlines 'all
     (lambda (headline)
-      (let* (
-              ;; (heading-text (-> headline org-ml-headline-get-path last car)) ;; "arst"
-              (heading-text (-> headline org-ml-headline-get-path last car))
+      (let* ((heading-text (-> headline org-ml-headline-get-path last car))
               (id (org-ml-headline-get-node-property "CUSTOM_ID" headline))
               (id (if id id
                     (->> heading-text
@@ -228,8 +228,8 @@
           :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
                                type (f-filename path))
           :page-title (if (s-starts-with-p "index" (f-filename path)) ns/blog-title title)
-          :next-post (format "<a href='%s'>%s</a>" next-url next-title)
-          :prev-post (format "<a href='%s'>%s</a>" prev-url prev-title)
+          :next-post (and next-url (format "<a href='%s'>newer: %s</a>" next-url next-title))
+          :prev-post (and prev-url (format "<a href='%s'>older: %s</a>" prev-url prev-title))
           :is-index (s-starts-with-p "index" (f-filename path))
           :is-page (string= type "page")
           :is-post (string= type "post")
@@ -271,11 +271,13 @@
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
+  (when-not (s-contains? (ns/blog-path "") default-directory)
+    (error "not a blog file"))
+
   (setq ns/theme (ht-get myron-themes-colors :normal)) ; compat
   (save-buffer)
   (llet (file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta)
           post-html-file (ht-get file-meta :html-dest))
-
     (ns/blog-publish-meta file-meta)
 
     (message post-html-file)
