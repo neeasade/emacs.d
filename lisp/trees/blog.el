@@ -237,29 +237,37 @@
           :is-edited (and (not (s-blank? edited-date)) (not (string= published-date edited-date))))))))
 
 (defun! ns/blog-publish-meta (org-meta)
-  (let ((default-directory (ns/blog-path "published"))
-         (org-export-with-toc nil)
-         (org-export-with-section-numbers t)
-         (org-export-with-timestamps nil)
-         (org-export-with-date nil)
-         (org-html-html5-fancy t)
-         (org-export-with-title nil)
-         (org-export-with-smart-quotes t)
-         (org-html-table-align-individual-fields nil) ; sus
-         (org-use-sub-superscripts "{}")
-         (org-html-doctype "html5")
-         (org-html-viewport '((width "device-width")
-	                             (initial-scale "1.0")
-	                             ;; (minimum-scale "1")
-	                             (maximum-scale "1.0")
-	                             (user-scalable "")))
+  (llet (default-directory (ns/blog-path "published")
+          org-html-divs '((preamble  "div" "preamble")
+                           (content   "main" "content")
+                           (postamble "div" "postamble"))
 
-         ;; affects timestamp export format
-         (org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %I:%M %p>"))
-         (org-display-custom-times t)
+          org-export-time-stamp-file nil
+          org-export-with-date nil
+          org-export-with-timestamps nil
+          org-export-with-toc nil
+          org-html-head ""
+          org-html-head-extra ""
+          org-html-head-include-default-style nil
+          org-html-head-include-scripts nil
+          org-html-postamble nil
+          org-html-preamble nil
+          org-html-use-infos nil
 
-         ;; don't ask about generation when exporting
-         (org-confirm-babel-evaluate (fn nil)))
+          org-export-with-section-numbers t
+          org-export-with-smart-quotes t
+          org-export-with-title nil
+          org-html-doctype "html5"
+          org-html-html5-fancy t
+          org-html-table-align-individual-fields nil ; sus - speeds up export
+          org-use-sub-superscripts "{}"
+
+          ;; affects timestamp export format
+          org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %I:%M %p>")
+          org-display-custom-times t
+
+          ;; don't ask about generation when exporting
+          org-confirm-babel-evaluate (fn nil))
 
     (message "BLOG: making %s " (ht-get org-meta :path))
     (shut-up
