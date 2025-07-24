@@ -1,5 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 
+;; todo: redirects
+;; todo: hidden: t
+;; todo: tag pages
+
 (setq ns/blog-title "notes")
 (setq ns/blog-cache (-ht))
 
@@ -179,6 +183,30 @@
     (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
     (s-downcase)))
 
+(defun ns/blog-sync-colors-css ()
+  (->> (-ht
+         :--background_subtle (myron-get :subtle :meta)
+         :--background        (myron-get :background)
+         :--background_weak   (myron-get :background :weak)
+         :--background_strong (myron-get :background :strong)
+         :--background_plus   (myron-get :background :focused)
+         :--strings           (myron-get :strings)
+         :--alt               (myron-get :alt)
+         :--assumed           (myron-get :assumed)
+         :--primary           (myron-get :primary)
+         :--faded             (myron-get :faded)
+         :--faded_weak        (myron-get :faded :weak)
+         :--faded_strong      (myron-get :faded :strong)
+         :--foreground        (myron-get :foreground)
+         :--foreground_weak   (myron-get :foreground :weak)
+         :--foreground_strong (myron-get :foreground :strong)
+         :--foreground_plus   (myron-get :foreground :focused))
+    (ht-map (lambda (k v) (ns/str k ": " v ";" )))
+    (s-join "\n")
+    (-ht :sitecolors)
+    (ns/mustache (slurp (ns/blog-path "published/assets/css/colors.css.template")))
+    (spit (ns/blog-path "published/assets/css/colors.css"))))
+
 (defun ns/blog-file-to-meta (path)
   "File path to metadata ."
   ;; (message (format "BLOG: generating meta for %s" path))
@@ -193,11 +221,13 @@
       :rss-title (ht-get props "rss_title")
       :subtitle (ht-get props "title_extra" "")
       :is-index (s-starts-with-p "index" (f-filename path))
+      :foreground (myron-get :foreground)
       :type type
       :is-page (string= type "page")
       :is-post (string= type "post")
       :is-note (string= type "note")
       :is-doodle (string= type "doodle")
+      :is-hidden (ht-get props "hidden")
       :published-date (first
                         (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
                           (list (ht-get props "pubdate" "")
@@ -360,6 +390,7 @@
   (ns/blog-generate (ns/blog-changed-files-metas)))
 
 (defun! ns/blog-generate-all-files ()
+  (ns/blog-sync-colors-css)
   (ns/blog-generate (ns/blog-get-metas)))
 
 (defun org-publish-ignore-mode-hooks (orig-func &rest args)
