@@ -1,6 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
-(setq ns/blog-title "ＳＴＸ")
+(setq ns/blog-title "notes")
 (setq ns/blog-cache (-ht))
 
 ;;* compat
@@ -183,15 +183,21 @@
   "File path to metadata ."
   ;; (message (format "BLOG: generating meta for %s" path))
   (llet [org-file-content (f-read path)
-          props (ns/blog-get-properties org-file-content)]
+          props (ns/blog-get-properties org-file-content)
+          type (llet [parent-dir (->> path f-parent f-base)]
+                 (substring parent-dir 0 (1- (length parent-dir))))]
     (-ht :path path
       :content (s-replace-regexp "^-----$" (ns/blog-make-hsep) org-file-content)
       :draft-p (ht-get props "draft")
       :title (ht-get props "title" "(untitled)")
       :rss-title (ht-get props "rss_title")
       :subtitle (ht-get props "title_extra" "")
-      :type (llet [parent-dir (->> path f-parent f-base)]
-              (substring parent-dir 0 (1- (length parent-dir))))
+      :is-index (s-starts-with-p "index" (f-filename path))
+      :type type
+      :is-page (string= type "page")
+      :is-post (string= type "post")
+      :is-note (string= type "note")
+      :is-doodle (string= type "doodle")
       :published-date (first
                         (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
                           (list (ht-get props "pubdate" "")
@@ -230,10 +236,6 @@
           :page-title (if (s-starts-with-p "index" (f-filename path)) ns/blog-title title)
           :next-post (and next-url (format "<a href='%s'>newer: %s</a>" next-url next-title))
           :prev-post (and prev-url (format "<a href='%s'>older: %s</a>" prev-url prev-title))
-          :is-index (s-starts-with-p "index" (f-filename path))
-          :is-page (string= type "page")
-          :is-post (string= type "post")
-          :is-note (string= type "note")
           :is-edited (and (not (s-blank? edited-date)) (not (string= published-date edited-date))))))))
 
 (defun! ns/blog-publish-meta (org-meta)
@@ -314,9 +316,8 @@
   "return a map of title -> filepath"
   (ht-get-cache ns/blog-cache :blog-files
     (lambda ()
-      (->> `(,@(f-entries (ns/blog-path "posts") (-partial 's-ends-with-p ".org"))
-              ,@(f-entries (ns/blog-path "pages") (-partial 's-ends-with-p ".org"))
-              ,@(f-entries (ns/blog-path "notes") (-partial 's-ends-with-p ".org")))
+      (->> '("posts" "pages" "notes" "doodles")
+        (--mapcat (f-entries (ns/blog-path it) (-partial 's-ends-with-p ".org")))
         (--remove (s-starts-with? ".#" (f-base it)))
         (reverse)
         (--mapcat (list it (ht-get (ns/blog-get-properties (slurp it)) "title" "untitled")))
@@ -375,21 +376,30 @@
     (find-file file)
     (insert (->> (-ht :title title
                    :title_extra nil
-                   :post_type "post"
                    :filetags nil
                    :rss_title nil
                    :draft t
                    :pubdate (sh "date '+<%Y-%m-%d>'"))
               (ht-map (lambda (k v) (ns/str "#+" k ": " v)))
-              (s-join "\n")))))
+              (s-join "\n"))))
+  (setq ns/blog-cache (-ht)))
 
 (ns/bind
   "ob" 'ns/blog-generate-and-open-current-file
-  "iq" (fn!! insert-blog-link
-         (llet [posts (ns/get-blog-files)
-                 title (ns/pick (ht-values posts))
-                 file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
-           (insert (format "[[./%s.org][%s]]" (f-base file) title))))
+  "ii" (fn!! insert-org-image  ;todo: this can maybe be a more general concept?
+         (when-not (s-contains? (ns/blog-path "") default-directory)
+           (error "not a blog file"))
+         (llet [name (read-string "image slug (copying from shot.png): ")
+                 name (ns/str (f-base name) ".png")
+                 dest (ns/path (ns/blog-path "published/assets/posts") name)]
+           (f-copy (~ "Last_Shot/shot.png") dest)
+           (insert (format "{{{image(%s)}}}" name))))
+  ;; broken, should be html slug or something
+  ;; "iq" (fn!! insert-blog-link
+  ;;        (llet [posts (ns/get-blog-files)
+  ;;                title (ns/pick (ht-values posts))
+  ;;                file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
+  ;;          (insert (format "[[./%s.org][%s]]" (f-base file) title))))
   "nq" (fn!! surf-blog-posts
          (llet [posts (ns/get-blog-files)
                  title (ns/pick (ht-values posts))

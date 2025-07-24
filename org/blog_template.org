@@ -22,6 +22,11 @@
 #+html_head: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
 
 # cf https://orgmode.org/manual/Macro-Replacement.html
+
+#+MACRO: newline   src_emacs-lisp[:results raw]{"\n"}
+
+#+MACRO: blog-title  (eval ns/blog-title)
+
 #+MACRO:  image [[file:./assets/posts/$1][file:./assets/posts/$1]]
 #+MACRO:  detail (eval (ns/blog-make-detail $1 $2 $3 $4 $5 $6 $7 $8 $9))
 #+MACRO:  nav-strip (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
