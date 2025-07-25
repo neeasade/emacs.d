@@ -391,9 +391,12 @@
       ((org-in-clocktable-p)
         (org-clock-report))
       ((org-in-src-block-p)
-        ;; living dangerously
-        (let ((org-confirm-babel-evaluate (fn nil)))
-          (org-babel-execute-src-block))))))
+        ;; if it has tangle directive, do that
+        (if (s-contains-p ":tangle" (or (plist-get (second (org-element-context)) :parameters) ""))
+          (org-babel-tangle)
+          ;; else, living dangerously
+          (let ((org-confirm-babel-evaluate (fn nil)))
+            (org-babel-execute-src-block)))))))
 
 ;; writing niceties:
 (ns/use olivetti
