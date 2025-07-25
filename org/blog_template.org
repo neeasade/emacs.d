@@ -1,4 +1,5 @@
 #+OPTIONS: html-style:nil
+#+OPTIONS: ^:nil
 
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 #+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -10,7 +11,7 @@
 #+html_head: <meta property="og:title" content="{{page-title}}">
 #+html_head: <meta property="og:description" content="{{og-description}}">
 #+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/newfeather.png">
-#+html_head: <meta property="og:url" content="{{url}}">
+#+html_head: <meta property="og:url" content="https://neeasade.net/{{url}}">
 #+html_head: <meta property="description" content="{{og-description}}">
 #+html_head: <meta name="twitter:card" content="summary">
 
@@ -52,7 +53,7 @@
 </div>
 
 <div style="float: right">
-    {{#is-index}}<a href='/sitemap.html'>sitemap</a>{{/is-index}}
+    {{#is-index}}<a href='./sitemap.html'>sitemap</a>{{/is-index}}
     <a href="{{page-markup-link}}">source</a>
 </div>
 <h1 class=title>
@@ -80,6 +81,7 @@
     {{/is-edited}}
 </span>
 {{/published-date}}
+<div class="posttags"> {{taghtml}} </div>
 {{/is-post}}
 </header>
 #+end_export

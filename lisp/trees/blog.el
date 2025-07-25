@@ -1,8 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
 ;; todo: redirects
-;; todo: hidden: t
-;; todo: tag pages
 
 (setq ns/blog-title "notes")
 (setq ns/blog-cache (-ht))
@@ -122,13 +120,13 @@
   "Return a plist of (post-url (prev next))"
   (llet [posts (->> (ns/blog-get-metas)
                  (--filter (string= (ht-get it :type) "post"))
-                 (--remove (ht-get it :draft-p))
+                 (--remove (ht-get it :is-draft))
                  (--filter (ht-get it :edited-date))
                  (--sort (string<
                            (ht-get it :published-date)
                            (ht-get other :published-date)))
                  (--map (list
-                          (ht-get it :url)
+                          (ht-get it :slug)
                           (ht-get it :title))))]
     (apply '-ht
       `(,(first (first posts)) (nil ,(second posts))
@@ -183,6 +181,44 @@
     (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
     (s-downcase)))
 
+(defun ns/blog-get-tags ()
+  ;; return a list of (tag count ?post) (post if single post for tag)
+  (ht-get-cache ns/blog-cache :taginfo
+    (lambda ()
+      (->> (ns/blog-get-metas-public)
+        (--keep (ht-get it :tags))
+        (-flatten)
+        (-uniq)
+        (--remove (s-blank? (ns/str it)))
+        (--map (llet [posts (-filter (lambda (meta) (-contains? (ht-get meta :tags) it)) (ns/blog-get-metas-public))]
+                 (list it
+                   (length posts)
+                   (when (= 1 (length posts))
+                     (ht-get (first posts) :slug)))))))))
+
+(defun ns/blog-make-tag-pages ()
+  ;; remove any prev tag pages first:
+  (f-mkdir (ns/blog-path "tags"))
+  (-map 'f-delete (f-entries (ns/blog-path "tags") (-partial #'s-ends-with-p ".org")))
+  ;; write to tag-*.org, pass to blog-file-to-meta
+  ;; and then gitignore tag-*.org
+  (->> (ns/blog-get-tags)
+    (-keep (-lambda ((tag count _))
+             (when-not (= 1 count)
+               (llet [f (ns/blog-path (ns/str "tags/tag-" tag ".org"))]
+                 (spit f
+                   (s-join "\n"
+                     `(,(ns/str "#+title: posts tagged '" tag "'")
+                        ,@(->> (ns/blog-get-metas-public)
+                            (--filter (-contains? (ht-get it :tags) tag))
+                            (--sort (string> (ht-get it :published-date) (ht-get other :published-date)))
+                            (-map (-lambda ((&hash :published-date :slug :title))
+	                                  (format "- <%s> [[./%s.org][%s]]"
+		                                  published-date slug title)))))))
+                 f))))
+    (-map 'ns/blog-file-to-meta)
+    (-map 'ns/blog-publish-meta)))
+
 (defun ns/blog-sync-colors-css ()
   (->> (-ht
          :--background_subtle (myron-get :subtle :meta)
@@ -213,21 +249,35 @@
   (llet [org-file-content (f-read path)
           props (ns/blog-get-properties org-file-content)
           type (llet [parent-dir (->> path f-parent f-base)]
-                 (substring parent-dir 0 (1- (length parent-dir))))]
+                 (substring parent-dir 0 (1- (length parent-dir))))
+          tags (ht-get-cache ns/blog-cache :tags
+                 (lambda ()
+                   (->> (slurp (ns/blog-path "tags/generated-tags.txt"))
+                     (s-lines)
+                     (--mapcat (llet [(f tags) (s-split "@" it)]
+                                 (when tags
+                                   (list f
+                                     (->> tags
+                                       (s-split ",")
+                                       (-map 's-trim)
+                                       (-map 's-downcase))))))
+                     (apply '-ht))))]
     (-ht :path path
       :content (s-replace-regexp "^-----$" (ns/blog-make-hsep) org-file-content)
-      :draft-p (ht-get props "draft")
+      :tags (-concat (ht-get tags (f-filename path))
+              (-some->> (ht-get props "filetags") (s-trim) (s-split ":")))
       :title (ht-get props "title" "(untitled)")
       :rss-title (ht-get props "rss_title")
       :subtitle (ht-get props "title_extra" "")
       :is-index (s-starts-with-p "index" (f-filename path))
       :foreground (myron-get :foreground)
       :type type
-      :is-page (string= type "page")
-      :is-post (string= type "post")
-      :is-note (string= type "note")
-      :is-doodle (string= type "doodle")
+      :is-draft  (ht-get props "draft")
       :is-hidden (ht-get props "hidden")
+      :is-page   (string= type "page")
+      :is-post   (string= type "post")
+      :is-note   (string= type "note")
+      :is-doodle (string= type "doodle")
       :published-date (first
                         (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
                           (list (ht-get props "pubdate" "")
@@ -238,23 +288,32 @@
                                                  (s-replace "'" "'\\''" path)))))
                      (if (s-blank-p git-query-result) ""
                        (substring git-query-result 0 10)))
-      :url (format "https://notes.neeasade.net/%s.html" (ns/path-to-slug path))
+      :slug (ns/path-to-slug path)
       :html-dest (format "%s/%s.html" (ns/blog-path "published") (ns/path-to-slug path))
       :csslinks (ns/blog-get-csslinks))))
 
 (defun ns/blog-render-org (org-meta-table)
   (ns/mustache (f-read (~e "org/blog_template.org"))
     (ht-merge org-meta-table
-      (llet ((&hash :type :path :subtitle :published-date :edited-date :title :url) org-meta-table
+      (llet ((&hash :tags :type :path :subtitle :published-date :edited-date :title :slug) org-meta-table
               next-map (ht-get-cache ns/blog-cache :next-map 'ns/blog-next-map)
-              ((prev-url prev-title) (next-url next-title)) (ht-get next-map url))
-        (-ht
-          :up (llet [(dest label)
-                      (cond
-                        ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "splash"))
-                        ((and (string= type "page") (not (string= (f-base path) "sitemap")))
-                          '("/sitemap.html" "sitemap"))
-                        (t `("/index.html" ,ns/blog-title)))]
+              ((prev-url prev-title) (next-url next-title)) (ht-get next-map slug)
+              fat-tags (ht-get-cache ns/blog-cache :tagtable
+                         (lambda ()
+                           (->> (ns/blog-get-tags)
+                             (-filter (-lambda ((_ c _)) (> c 1)))
+                             (-map 'first)))))
+        (-ht :taghtml (->> tags
+                        (--filter (-contains? fat-tags it))
+                        (--map (format "<a href='./tag-%s.html'>#%s</a>" it it))
+                        (apply 'ns/str))
+          ;; (--mapcat (format "<span class=posttag> </span>" it) tags)
+          :blog-title ns/blog-title
+          :up (llet [(dest label) (cond
+                                    ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "splash"))
+                                    ((and (string= type "page") (not (string= (f-base path) "sitemap")))
+                                      '("./sitemap.html" "sitemap"))
+                                    (t `("./index.html" ,ns/blog-title)))]
                 (format "<a href='%s'>../%s</a>" dest label))
           :og-description (->> (or subtitle "")
                             (s-replace-regexp "{{{.*(" "")
@@ -264,15 +323,14 @@
           :page-history-link (format "https://github.com/neeasade/neeasade.github.io/commits/source/%ss/%s"
                                type (f-filename path))
           :page-title (if (s-starts-with-p "index" (f-filename path)) ns/blog-title title)
-          :next-post (and next-url (format "<a href='%s'>newer: %s</a>" next-url next-title))
-          :prev-post (and prev-url (format "<a href='%s'>older: %s</a>" prev-url prev-title))
+          :next-post (and next-url (format "<a href='%s.html'>newer: %s</a>" next-url next-title))
+          :prev-post (and prev-url (format "<a href='%s.html'>older: %s</a>" prev-url prev-title))
           :is-edited (and (not (s-blank? edited-date)) (not (string= published-date edited-date))))))))
 
 (defun! ns/blog-publish-meta (org-meta)
-  (llet (default-directory (ns/blog-path "published")
-          org-html-divs '((preamble  "div" "preamble")
-                           (content   "main" "content")
-                           (postamble "div" "postamble"))
+  (llet (org-html-divs '((preamble  "div" "preamble")
+                          (content   "main" "content")
+                          (postamble "div" "postamble"))
 
           org-export-time-stamp-file nil
           org-export-with-date nil
@@ -285,6 +343,8 @@
           org-html-postamble nil
           org-html-preamble nil
           org-html-use-infos nil
+
+          org-export-with-broken-links t ; added for tag page
 
           org-export-with-section-numbers t
           org-export-with-smart-quotes t
@@ -299,7 +359,10 @@
           org-display-custom-times t
 
           ;; don't ask about generation when exporting
-          org-confirm-babel-evaluate (fn nil))
+          org-confirm-babel-evaluate (fn nil)
+
+          ;; for src block asset relativity
+          default-directory (ns/blog-path "published"))
 
     (message "BLOG: making %s " (ht-get org-meta :path))
     (shut-up
@@ -359,10 +422,15 @@
     (fn (-map 'ns/blog-file-to-meta
           (ht-keys (ns/get-blog-files))))))
 
+(defun ns/blog-get-metas-public ()
+  (--filter (and (ht-get it :edited-date)  ; tracked by git
+              (not (ht-get it :is-index))
+              (not (ht-get it :is-hidden))
+              (not (ht-get it :is-draft)))
+    (ns/blog-get-metas)))
+
 (defun ns/blog-generate (metas)
-  (setq
-    ns/theme (ht-get myron-themes-colors :normal) ; compat
-    ns/blog-cache (-ht))                  
+  (setq ns/theme (ht-get myron-themes-colors :normal)) ; compat
 
   ;; need to define these here for index listings and rss:
   (message "BLOG: making pages!")
@@ -387,10 +455,13 @@
   t)
 
 (defun! ns/blog-generate-changed-files ()
+  (setq ns/blog-cache (-ht))
   (ns/blog-generate (ns/blog-changed-files-metas)))
 
 (defun! ns/blog-generate-all-files ()
+  (setq ns/blog-cache (-ht))
   (ns/blog-sync-colors-css)
+  (ns/blog-make-tag-pages)
   (ns/blog-generate (ns/blog-get-metas)))
 
 (defun org-publish-ignore-mode-hooks (orig-func &rest args)
@@ -398,6 +469,7 @@
     (cl-letf (((symbol-function #'run-mode-hooks) #'ignore))
       (apply orig-func args))))
 
+(advice-add 'ns/blog-publish-meta :around #'org-publish-ignore-mode-hooks)
 (advice-add 'ns/blog-generate :around #'org-publish-ignore-mode-hooks)
 
 (defun! ns/blog-new-post ()
