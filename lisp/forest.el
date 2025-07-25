@@ -16,6 +16,8 @@
 
   (ns/bind-leader-mode 'emacs-lisp "c" 'ns/byte-compile-and-jump-to-error)
 
+  (define-key emacs-lisp-mode-map (kbd "C-c C-l") 'load-file)
+
   (setq lisp-indent-function 'common-lisp-indent-function)
 
   (ns/use helpful
