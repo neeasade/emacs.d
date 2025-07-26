@@ -35,14 +35,6 @@
     (if (not (s-equals? "" (or text "")))
       text color)))
 
-(defun ns/blog-make-color-preview-extended (bg fg text)
-  ;; assumes a dark FG and light BG
-  (format
-    "@@html:<code style=\"background: %s;color: %s; padding: 2px; border: 1px solid %s\">%s</code>@@"
-    bg fg
-    (if (ct-is-light-p bg) (tarp/get :foreground) bg)
-    text))
-
 (defun ns/blog-make-detail (&rest parts)
   ;; this is done so I don't have to escape commas in details
   (format "@@html:<detail>@@%s@@html:</detail>@@"
@@ -148,9 +140,7 @@
           (when (and (not v) (not (s-starts-with? "is-" (ns/str k))))
             (message (ns/str "nil key: " k))))
         table))
-    (-> text
-      (mustache-render (ht->alist table))
-      (xml-substitute-special))))
+    (mustache-render text (ht->alist table))))
 
 ;;* render
 ;; for fontifying src blocks
@@ -219,7 +209,7 @@
     (-map 'ns/blog-file-to-meta)
     (-map 'ns/blog-publish-meta)))
 
-(defun ns/blog-sync-colors-css ()
+(defun! ns/blog-sync-colors-css ()
   (->> (-ht
          :--background_subtle (myron-get :subtle :meta)
          :--background        (myron-get :background)
@@ -252,7 +242,7 @@
                  (substring parent-dir 0 (1- (length parent-dir))))
           tags (ht-get-cache ns/blog-cache :tags
                  (lambda ()
-                   (->> (slurp (ns/blog-path "tags/generated-tags.txt"))
+                   (->> (slurp (ns/blog-path "extra/generated-tags.txt"))
                      (s-lines)
                      (--mapcat (llet [(f tags) (s-split "@" it)]
                                  (when tags
@@ -368,7 +358,7 @@
     (shut-up
       (with-temp-buffer
         (org-mode)
-        (insert (ns/blog-render-org org-meta))
+        (insert (xml-substitute-special (ns/blog-render-org org-meta)))
         (ns/blog-make-anchors)
         (org-export-to-file 'html (ht-get org-meta :html-dest))))))
 
