@@ -662,15 +662,33 @@
 (ns/defconfig pdf (ns/use pdf-tools))
 
 (ns/defconfig llm
-  ;; todo: comint-highlight-input should have have a face to distinguish prompt lines
   (ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el"))
-    (setq shell-maker-transcript-default-path (~e "lisp/scratch/chatgpt-shell")))
+    (defun shell-maker-welcome-message (_)))
+
   (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el"))
     (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
+    (setq chatgpt-shell-google-key (pass "gemini_api_key"))
+    (chatgpt-shell-google-load-models)
     (chatgpt-shell-ollama-load-models)
     (ns/bind "nf" 'chatgpt-shell))
 
-  ;; todo: automatic save transcript on clear
+  (defun ns/chatgpt-shell-save-transcript ()
+    (when (eq major-mode 'chatgpt-shell-mode)
+      (f-mkdir (~ "logs" "llm" chatgpt-shell-model-version))
+      (setq-local shell-maker--file
+        (~ "logs" "llm" chatgpt-shell-model-version (format-time-string "%F-%T-transcript.txt")))
+      (chatgpt-shell-save-session-transcript)))
+
+  (advice-add 'comint-clear-buffer :before 'ns/chatgpt-shell-save-transcript)
+
+  ;; todo: check this var later for custom prompt messing
+  ;; chatgpt-shell-system-prompts
+
+  ;; considering:
+  ;; comint is shell, chatgpt-shell
+  ;; (ns/face '(comint-highlight-input comint-highlight-prompt)
+  ;;   :foreground (myron-get :faded)
+  ;;   :background nil)
   )
 
 (ns/defconfig minor-langs
