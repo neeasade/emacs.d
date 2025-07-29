@@ -254,8 +254,8 @@
                      (apply '-ht))))]
     (-ht :path path
       :content (s-replace-regexp "^-----$" (ns/blog-make-hsep) org-file-content)
-      :tags (-concat (ht-get tags (f-filename path))
-              (-some->> (ht-get props "filetags") (s-trim) (s-split ":")))
+      :tags (-uniq (-concat (ht-get tags (f-filename path))
+                     (-some->> (ht-get props "filetags") (s-trim) (s-split ":"))))
       :title (ht-get props "title" "(untitled)")
       :rss-title (ht-get props "rss_title")
       :subtitle (ht-get props "title_extra" "")
@@ -336,6 +336,7 @@
 
           org-export-with-broken-links t ; added for tag page
 
+          org-html-table-caption-above nil
           org-export-with-section-numbers t
           org-export-with-smart-quotes t
           org-export-with-title nil

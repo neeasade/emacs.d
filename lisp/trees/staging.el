@@ -294,6 +294,11 @@
 ;; nb: this appears to not be working? not seeing auto complete from values in this file
 (setq ispell-alternate-dictionary (~ ".cache/aspell.dict"))
 
+(ns/inmap 'debugger-mode-map "q" 'delete-window)
+
 (ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
   (stillness-mode))
 
+(defun! ns/grab-filename ()
+  "put the current filepath in clipboard"
+  (pbcopy (buffer-file-name)))

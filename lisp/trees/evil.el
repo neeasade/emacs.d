@@ -193,6 +193,8 @@
 
 (ns/use avy
   ;; (setq avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
+  (setq avy-all-windows 'all-frames)
+
   (setq avy-keys '(?a ?r ?s ?t ?n ?e ?i ?o)))
 
 (general-nmap
