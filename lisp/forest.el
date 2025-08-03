@@ -343,7 +343,8 @@
     (when (called-interactively-p 'any)
       (ns/set-buffers-face-variable (ns/buffers-by-mode 'markdown-mode))))
 
-  (add-hook 'markdown-mode-hook 'ns/set-buffer-face-variable))
+  (add-hook 'markdown-mode-hook 'ns/set-buffer-face-variable)
+  (add-hook 'markdown-mode-hook 'markdown-toggle-fontify-code-blocks-natively))
 
 (ns/defconfig restclient
   (ns/use restclient
