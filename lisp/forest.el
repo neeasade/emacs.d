@@ -674,10 +674,21 @@
 
   (defun ns/chatgpt-shell-save-transcript ()
     (when (eq major-mode 'chatgpt-shell-mode)
-      (f-mkdir (~ "logs" "llm" chatgpt-shell-model-version))
-      (setq-local shell-maker--file
-        (~ "logs" "llm" chatgpt-shell-model-version (format-time-string "%F-%T-transcript.txt")))
-      (chatgpt-shell-save-session-transcript)))
+      (llet [dest (~ "logs" "llm" chatgpt-shell-model-version (format-time-string "%F-%T-transcript.md"))
+              frontmatter (ns/str "# a chat with " chatgpt-shell-model-version " saved at " (format-time-string "%F-%T"))]
+        (f-mkdir (f-dirname dest))
+
+        (setq-local shell-maker--file "/dev/shm/llm.txt")
+        (chatgpt-shell-save-session-transcript)
+        (->> (slurp "/dev/shm/llm.txt")
+          (s-replace-regexp (chatgpt-shell--prompt-regexp) "## User: ")
+          ;; the duplication is on purpose for code block handling
+          (s-replace "<shell-maker-end-of-prompt>\n`" "## LLM: \n`")
+          (s-replace "<shell-maker-end-of-prompt>\n" "## LLM: ")
+          (s-replace "\n\n## User: " "\n## User: ")
+          (s-replace "## User: clear" "")
+          (ns/str frontmatter "\n\n")
+          (spit dest)))))
 
   (advice-add 'comint-clear-buffer :before 'ns/chatgpt-shell-save-transcript)
 
