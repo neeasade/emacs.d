@@ -172,40 +172,34 @@
     (s-downcase)))
 
 (defun ns/blog-get-tags ()
-  ;; return a list of (tag count ?post) (post if single post for tag)
   (ht-get-cache ns/blog-cache :taginfo
     (lambda ()
       (->> (ns/blog-get-metas-public)
         (--keep (ht-get it :tags))
         (-flatten)
-        (-uniq)
-        (--remove (s-blank? (ns/str it)))
-        (--map (llet [posts (-filter (lambda (meta) (-contains? (ht-get meta :tags) it)) (ns/blog-get-metas-public))]
-                 (list it
-                   (length posts)
-                   (when (= 1 (length posts))
-                     (ht-get (first posts) :slug)))))))))
+        (-remove 's-blank?)
+        (-frequencies)
+        (--remove (= 1 (cdr it)))))))
 
 (defun ns/blog-make-tag-pages ()
   ;; remove any prev tag pages first:
   (f-mkdir (ns/blog-path "tags"))
   (-map 'f-delete (f-entries (ns/blog-path "tags") (-partial #'s-ends-with-p ".org")))
-  ;; write to tag-*.org, pass to blog-file-to-meta
-  ;; and then gitignore tag-*.org
+  ;; publish!
   (->> (ns/blog-get-tags)
-    (-keep (-lambda ((tag count _))
-             (when-not (= 1 count)
-               (llet [f (ns/blog-path (ns/str "tags/tag-" tag ".org"))]
-                 (spit f
-                   (s-join "\n"
-                     `(,(ns/str "#+title: posts tagged '" tag "'")
-                        ,@(->> (ns/blog-get-metas-public)
-                            (--filter (-contains? (ht-get it :tags) tag))
-                            (--sort (string> (ht-get it :published-date) (ht-get other :published-date)))
-                            (-map (-lambda ((&hash :published-date :slug :title))
-	                                  (format "- <%s> [[./%s.org][%s]]"
-		                                  published-date slug title)))))))
-                 f))))
+    (-map 'first)
+    (-map (lambda (tag)
+            (llet [f (ns/blog-path (ns/str "tags/tag-" tag ".org"))]
+              (spit f
+                (s-join "\n"
+                  `(,(ns/str "#+title: posts tagged '" tag "'")
+                     ,@(->> (ns/blog-get-metas-public)
+                         (--filter (-contains? (ht-get it :tags) tag))
+                         (--sort (string> (ht-get it :published-date) (ht-get other :published-date)))
+                         (-map (-lambda ((&hash :published-date :slug :title))
+	                               (format "- <%s> [[./%s.org][%s]]"
+		                               published-date slug title)))))))
+              f)))
     (-map 'ns/blog-file-to-meta)
     (-map 'ns/blog-publish-meta)))
 
@@ -437,9 +431,9 @@
     (-map #'ns/blog-publish-meta metas)
 
     ;; (message "BLOG: making site rss!")
-    (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss.org"))
+    (with-current-buffer (find-file-noselect (ns/blog-path "extra/rss.org"))
       (org-export-to-file 'rss (ns/blog-path "published/rss.xml")))
-    (with-current-buffer (find-file-noselect (ns/blog-path "rss/rss_full.org"))
+    (with-current-buffer (find-file-noselect (ns/blog-path "extra/rss_full.org"))
       (org-export-to-file 'rss (ns/blog-path "published/rss_full.xml"))))
 
   (message "BLOG: done! ✨✨✨✨")
