@@ -431,20 +431,21 @@
 
 (defun ns/blog-changed-files-metas ()
   (llet [default-directory (ns/blog-path "published")
-          last-published-date (sh "git log -n 1 --format=%cd")
+          last-published-date (sh "git log -n 1 --format=%ci")
           default-directory (ns/blog-path ".")
-          files-changed (sh (format "git diff --name-only --since=\"{%s}\" --until=now" last-published-date))]
-    (->> files-changed
-      (s-split "\n")
-      (-remove (-partial 's-starts-with-p "rss"))
-      (-map 'ns/blog-path)
-      (-filter (-partial #'s-ends-with-p ".org"))
-      ;; force indexes to be regenerated all the time
-      (append
-        (f-entries (ns/blog-path "pages")
-          (lambda (f) (s-starts-with-p "index" (f-base f)))))
-      (-uniq)
-      (-map 'ns/blog-file-to-meta))))
+          files-changed (sh (format "git log --since=\"%s\" --name-only --pretty=format: | sort -u | grep -v '^$'" last-published-date))]
+    (when files-changed
+      (->> files-changed
+        (s-split "\n")
+        (-remove (-partial 's-starts-with-p "rss"))
+        (-map 'ns/blog-path)
+        (-filter (-partial #'s-ends-with-p ".org"))
+        ;; force indexes to be regenerated all the time
+        (append
+          (f-entries (ns/blog-path "pages")
+            (lambda (f) (s-starts-with-p "index" (f-base f)))))
+        (-uniq)
+        (-map 'ns/blog-file-to-meta)))))
 
 (defun ns/get-blog-files ()
   "return a map of title -> filepath"
@@ -497,6 +498,8 @@
 
 (defun! ns/blog-generate-changed-files ()
   (setq ns/blog-cache (-ht))
+  (ns/blog-sync-colors-css)
+  (ns/blog-make-tag-pages)
   (ns/blog-generate (ns/blog-changed-files-metas)))
 
 (defun! ns/blog-generate-all-files ()
