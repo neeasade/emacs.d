@@ -10,18 +10,22 @@
 
 #+html_head: <meta property="og:title" content="{{page-title}}">
 #+html_head: <meta property="og:description" content="{{og-description}}">
-#+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/newfeather.png">
-#+html_head: <meta property="og:url" content="https://neeasade.net/{{url}}">
+# #+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/newfeather.png">
+#+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/posts/ca_dump3/{{background}}">
+#+html_head: <meta property="og:url" content="https://notes.neeasade.net/{{slug}}">
 #+html_head: <meta property="description" content="{{og-description}}">
 #+html_head: <meta name="twitter:card" content="summary">
 
 {{^is-doodle}}
-#+html_head: <script src="/assets/js/linktext.js" defer></script>
-#+html_head: <script src="../published/assets/js/linktext.js" defer></script>
+#+html_head: <script src="./assets/js/linktext.js" defer></script>
+# #+html_head: <script src="../published/assets/js/linktext.js" defer></script>
 {{/is-doodle}}
 
-#+html_head: <script src="/assets/js/copy.js" defer></script>
-#+html_head: <script src="../published/assets/js/copy.js" defer></script>
+#+html_head: <style> body {background: url("./assets/posts/ca_dump3/{{background}}") repeat;} </style>
+#+html_head: <style> body {background-size: auto {{background-width}}px !important; } </style>
+
+#+html_head: <script src=".//assets/js/copy.js" defer></script>
+# #+html_head: <script src="../published/assets/js/copy.js" defer></script>
 
 #+html_head: <script data-goatcounter="https://neeasade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 #+html_head: <script src="//instant.page/5.1.0" type="module" integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
@@ -32,7 +36,13 @@
 
 #+MACRO: blog-title  (eval ns/blog-title)
 
+#+MACRO: index-navbar  (eval (ns/blog-index-navbar $1))
+
+#+MACRO:  redirect (eval (ns/blog-redirect-title $1))
+#+MACRO:  bloglink (eval (ns/blog-link-title $1))
 #+MACRO:  image [[file:./assets/posts/$1][file:./assets/posts/$1]]
+
+# some of these are terrible, just around for legacy
 #+MACRO:  detail (eval (ns/blog-make-detail $1 $2 $3 $4 $5 $6 $7 $8 $9))
 #+MACRO:  nav-strip (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
 #+MACRO:  center (eval (ns/blog-make-nav-strip $1 $2 $3 $4 $5 $6 $7 $8 $9))
