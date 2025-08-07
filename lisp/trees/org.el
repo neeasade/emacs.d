@@ -488,6 +488,34 @@
   (when (called-interactively-p 'any)
     (ns/set-buffers-face-variable (ns/buffers-by-mode 'org-mode))))
 
+(defun! ns/org-print-setup ()
+  (llet [text (if (use-region-p)
+                (buffer-substring (region-beginning) (region-end))
+                (buffer-string))
+          file "/tmp/printdir/out.org"]
+
+    ;; ephemeral
+    (and (get-file-buffer file)
+      (kill-buffer (get-file-buffer file)))
+
+    (f-mkdir (f-dirname file))
+    (and (f-exists-p file) (f-delete file))
+    (f-touch file)
+    (spit file
+      (xml-substitute-special
+        (ns/mustache
+          (slurp (~e "org/print.org"))
+          (-ht :content (s-clean text)))))
+    file))
+
+(defun! ns/org-print-pdf-edit-first ()
+  (find-file (ns/org-print-setup)))
+
+(defun! ns/org-print-pdf ()
+  (with-current-buffer (find-file-noselect (ns/org-print-setup))
+    (org-latex-export-to-pdf))
+  (sh "okular" "/tmp/printdir/out.pdf"))
+
 (defun! ns/org-clock-out ()
   "Clock out of pomodoro, or active clock"
   (when (org-clock-is-active)
@@ -499,8 +527,6 @@
                                    (- (org-user-idle-seconds))
                                    (ts-now))))]
         (org-clock-out nil t idle-start-time)))
-
-
     (ns/with-notes (save-buffer))))
 
 (defun! ns/org-clock-in ()
