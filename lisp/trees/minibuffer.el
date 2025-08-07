@@ -43,6 +43,8 @@
   (defun ns/set-vertico-count (&rest _)
     (setq vertico-count (round (/ (frame-height) 2))))
 
+  (add-hook 'window-size-change-functions 'ns/set-vertico-count)
+
   (advice-add 'completing-read :before 'ns/set-vertico-count))
 
 (ns/use marginalia (marginalia-mode t))

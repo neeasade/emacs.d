@@ -149,7 +149,6 @@
          ,(first (-last-item posts)) (,(first (-take-last 2 posts)) nil)))))
 
 (ns/use mustache)
-(require 'xml)
 
 (defun ns/mustache (text table)
   (llet [mustache-key-type 'keyword]
@@ -182,7 +181,6 @@
                (list (downcase key) value))))
     (apply '-concat)
     (apply '-ht)))
-
 
 (defun ns/path-to-slug (path)
   "File path to html slug (basename)"
@@ -235,7 +233,7 @@
               (llet [f (ns/blog-path (format "tags/%s.org" from))
                       ht (-ht)]
                 (spit f
-                  (format "#+html_head: <meta http-equiv=\"refresh\" content=\"0;url=https://notes.neeasade.net/%s\">\n" to))
+                  (format "#+title: redirect\n#+html_head: <meta http-equiv=\"refresh\" content=\"0;url=https://notes.neeasade.net/%s\">\n" to))
                 (ht-merge (ns/blog-file-to-meta f) (-ht :slug from)))))
       (-map 'ns/blog-publish-meta)))
 
@@ -423,9 +421,7 @@
   (setq ns/theme (ht-get myron-themes-colors :normal)) ; compat
   (save-buffer)
   (llet (file-meta (-> (current-buffer) buffer-file-name ns/blog-file-to-meta)
-          post-html-file (ns/blog-path (ns/str "published/" (ht-get file-meta :slug) ".html"))
-          ;; (ht-get file-meta :html-dest)
-          )
+          post-html-file (ns/blog-path (ns/str "published/" (ht-get file-meta :slug) ".html")))
     (ns/blog-publish-meta file-meta)
 
     (message post-html-file)
@@ -541,7 +537,10 @@
            (error "not a blog file"))
          (llet [name (read-string "image slug (copying from shot.png): ")
                  name (ns/str (f-base name) ".png")
+                 name (s-trim (s-replace " " "_" name))
                  dest (ns/path (ns/blog-path "published/assets/posts") name)]
+           (when (f-exists? dest)
+             (error (format "file exists! %s" name)))
            (f-copy (~ "Last_Shot/shot.png") dest)
            (insert (format "{{{image(%s)}}}" name))))
   "iq" (fn!! insert-blog-link

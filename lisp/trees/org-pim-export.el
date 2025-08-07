@@ -14,7 +14,6 @@
 #+title_extra: %s
 #+filetags: %s
 #+pubdate: %s
-#+post_type: note
 %s"
         (or (ns/blog-get-prop "title" old-content) (-> node cadr cadr))
         (or (ns/blog-get-prop "title_extra" old-content) "")

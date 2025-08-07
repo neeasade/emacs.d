@@ -88,6 +88,7 @@
 (ns/use request)
 (ns/use shut-up)
 
+(require 'xml)
 (require 'man)
 (require 'seq)
 (require 'cl-macs)
@@ -315,7 +316,7 @@ if path doesn't exist, returns without trailing '/'"
   "A builder for ht.el with less parentheses"
   (let ((table (ht-create)))
     (-map (-applify (-partial 'ht-set table))
-      (-partition 2 kvs))
+      (reverse (-partition 2 kvs)))
     table))
 
 (defun ht-get-cache (ht key fn)
