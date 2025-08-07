@@ -713,6 +713,13 @@
   (ns/use ahk-mode)                     ; autohotkey
   (ns/use dockerfile-mode))
 
+(ns/defconfig blog-syntax
+  ;; modes for src block syntax, only used in blog ssg
+  (ns/use dockerfile-mode)
+  (ns/use restclient)
+  (ns/use nix-mode)
+  (ns/use clojure-mode))
+
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
 (ns/defconfig blog                (shut-up-load (~e "lisp/trees/blog.el")))
