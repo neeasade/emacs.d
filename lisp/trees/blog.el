@@ -506,6 +506,7 @@
   (ns/blog-make-redirect-pages)
   (ns/blog-generate (ns/blog-get-metas)))
 
+;; caution: if anything goes wrong in publishing, hooks remain ignored
 (defun org-publish-ignore-mode-hooks (orig-func &rest args)
   (let ((lexical-binding nil))
     (cl-letf (((symbol-function #'run-mode-hooks) #'ignore))
