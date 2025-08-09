@@ -435,6 +435,11 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
 (defun ns/plist-keys (plist) (-map 'first (-partition 2 plist)))
 (defun ns/plist-values (plist) (-map 'second (-partition 2 plist)))
 
+(defun ns/tap (v)
+  "print val and return it"
+  (message (ns/str v))
+  v)
+
 (setenv "ATUIN_SESSION" (sh "bash" "-ic" "echo $ATUIN_SESSION"))
 
 (defun ns/atuin-add-dir (cwd)
