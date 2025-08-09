@@ -508,6 +508,9 @@
 (defun! ns/blog-generate-all-files ()
   (setq ns/blog-cache (-ht))
   (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
+  (-map 'f-delete
+    (f-entries (ns/blog-path "published")
+      (-partial 's-ends-with-p ".html")))
   (ns/blog-make-tag-pages)
   (ns/blog-make-redirect-pages)
   (ns/blog-generate (ns/blog-get-metas)))
@@ -546,8 +549,7 @@
                  name (ns/str (f-base name) ".png")
                  name (s-trim (s-replace " " "_" name))
                  dest (ns/path (ns/blog-path "published/assets/posts") name)]
-           (when (f-exists? dest)
-             (error (format "file exists! %s" name)))
+           (sh (format "cd '%s'; git add '%s'" (f-dirname dest) (f-filename dest)))
            (f-copy (~ "Last_Shot/shot.png") dest)
            (insert (format "{{{image(%s)}}}" name))))
   "iq" (fn!! insert-blog-link
