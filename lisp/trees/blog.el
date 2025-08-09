@@ -40,6 +40,10 @@
   (format "@@html:<span class=detail>@@%s@@html:</span>@@"
     (s-join "," (-remove 'not parts))))
 
+(defun ns/blog-make-cite (&rest parts)
+  (format "@@html:<cite>@@%s@@html:</cite>@@"
+    (s-join "," (-remove 'not parts))))
+
 (defun ns/blog-make-color-block (width color &optional text foreground class)
   ;; assumes a dark FG and light BG
   (format
@@ -132,7 +136,7 @@
   "Return a plist of (post-url (prev next))"
   (llet [posts (->> (ns/blog-get-metas)
                  (--filter (string= (ht-get it :type) "post"))
-                 (--remove (ht-get it :is-draft))
+                 (--remove (ht-get it :is-hidden))
                  (--filter (ht-get it :edited-date))
                  (--sort (string<
                            (ht-get it :published-date)
@@ -301,8 +305,8 @@
       :subtitle  (ht-get props "title_extra" "")
       :foreground (myron-get :foreground)
       :is-index  (s-starts-with-p "index" (f-filename path))
-      :is-draft  (ht-get props "draft")
-      :is-hidden (ht-get props "hidden")
+      :is-hidden (or (ht-get props "hidden")
+                   (ht-get props "draft"))
       :is-page   (string= type "page")
       :is-post   (string= type "post")
       :is-note   (string= type "note")
@@ -467,8 +471,7 @@
 (defun ns/blog-get-metas-public ()
   (--filter (and (ht-get it :edited-date)  ; tracked by git
               (not (ht-get it :is-index))
-              (not (ht-get it :is-hidden))
-              (not (ht-get it :is-draft)))
+              (not (ht-get it :is-hidden)))
     (ns/blog-get-metas)))
 
 (defun ns/blog-generate (metas)
@@ -498,13 +501,13 @@
 
 (defun! ns/blog-generate-changed-files ()
   (setq ns/blog-cache (-ht))
-  (ns/blog-sync-colors-css)
+  (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
   (ns/blog-make-tag-pages)
   (ns/blog-generate (ns/blog-changed-files-metas)))
 
 (defun! ns/blog-generate-all-files ()
   (setq ns/blog-cache (-ht))
-  (ns/blog-sync-colors-css)
+  (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
   (ns/blog-make-tag-pages)
   (ns/blog-make-redirect-pages)
   (ns/blog-generate (ns/blog-get-metas)))
@@ -529,7 +532,7 @@
                    :pubdate (sh "date '+<%Y-%m-%d>'")
                    :filetags nil
                    :rss_title nil
-                   :draft t)
+                   :hidden t)
               (ht-map (lambda (k v) (ns/str "#+" k ": " v)))
               (s-join "\n"))))
   (setq ns/blog-cache (-ht)))
@@ -558,7 +561,9 @@
   "nQ" (fn!! surf-blog-posts-draft
          (llet [posts (ns/get-blog-files)
                  title (ns/pick (ht-keep (lambda (file title)
-                                           (and (ht-get (ns/blog-get-properties (slurp file)) "draft")
+                                           (and
+                                             (llet [props (ns/blog-get-properties (slurp file))]
+                                               (or (ht-get props "draft") (ht-get props "hidden")))
                                              title)) posts))
                  file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
            (find-file file))))
