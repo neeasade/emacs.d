@@ -128,7 +128,7 @@
                                               heading-text))
                                   (third m) heading-text)))
               (list
-                (format "%s %s"
+                (format "%s%s"
                   heading-text
                   (format "[[#%s][%s]]" id "#"))))))))))
 
@@ -227,19 +227,18 @@
     (-map 'ns/blog-publish-meta)))
 
 (defun ns/blog-make-redirect-pages ()
-    (->> (slurp (ns/blog-path "extra/redirects.txt"))
-      (s-split "\n")
-      (--map (s-split "@" it))
-      ;; debug:
-      ;; (-take 1)
-      (-map (-lambda ((from to))
-              (prn from to)
-              (llet [f (ns/blog-path (format "tags/%s.org" from))
-                      ht (-ht)]
-                (spit f
-                  (format "#+title: redirect\n#+html_head: <meta http-equiv=\"refresh\" content=\"0;url=https://notes.neeasade.net/%s\">\n" to))
-                (ht-merge (ns/blog-file-to-meta f) (-ht :slug from)))))
-      (-map 'ns/blog-publish-meta)))
+  (->> (slurp (ns/blog-path "extra/redirects.txt"))
+    (s-split "\n")
+    (--map (s-split "@" it))
+    ;; debug:
+    ;; (-take 1)
+    (-map (-lambda ((from to))
+            (llet [f (ns/blog-path (format "tags/%s.org" from))
+                    ht (-ht)]
+              (spit f
+                (format "#+title: redirect\n#+html_head: <meta http-equiv=\"refresh\" content=\"0;url=https://notes.neeasade.net/%s\">\n" to))
+              (ht-merge (ns/blog-file-to-meta f) (-ht :slug from)))))
+    (-map 'ns/blog-publish-meta)))
 
 (comment
   ;; leaving around for ref
@@ -278,7 +277,6 @@
 
 (defun ns/blog-file-to-meta (path)
   "File path to metadata ."
-  ;; (message (format "BLOG: generating meta for %s" path))
   (llet [org-file-content (f-read path)
           props (ns/blog-get-properties org-file-content)
           type (llet [parent-dir (->> path f-parent f-base)]
@@ -313,7 +311,9 @@
       :is-doodle (string= type "doodle")
       :type type
       :published-date (first (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
-                               (list (ht-get props "pubdate" "")
+		                           (list
+		                             (ht-get props "pubdate" "")
+		                             (ht-get props "date" "")
                                  (f-base path))))
       :edited-date (let ((git-query-result (sh (format "cd '%s'; git log --follow -1 --format=%%cI '%s'"
                                                  ;; appease the shell.
@@ -390,7 +390,7 @@
           org-export-with-broken-links t ; added for tag page
 
           org-html-table-caption-above nil
-          org-export-with-section-numbers t
+          org-export-with-section-numbers nil
           org-export-with-smart-quotes t
           org-export-with-title nil
           org-html-doctype "html5"
@@ -515,7 +515,7 @@
   (ns/blog-make-redirect-pages)
   (ns/blog-generate (ns/blog-get-metas)))
 
-;; caution: if anything goes wrong in publishing, hooks remain ignored
+;; caution XXX: if anything goes wrong in publishing, hooks remain ignored
 (defun org-publish-ignore-mode-hooks (orig-func &rest args)
   (let ((lexical-binding nil))
     (cl-letf (((symbol-function #'run-mode-hooks) #'ignore))

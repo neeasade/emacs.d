@@ -35,6 +35,7 @@
             (not (or
                    (s-contains? ".sync-conflict" f)
                    (s-contains? "pomodoro.org" f)
+                   (s-starts-with-p (ns/path org-directory "anki") f)
                    (s-starts-with-p (ns/path org-directory "private") f)
                    (s-starts-with-p (ns/path org-directory "archive") f)))
             (sh "rg" "-m1" "^\\*" f)    ; has at least one heading
@@ -82,7 +83,7 @@
                ("active" . ?a)
                ("inactive" . ?i))
 
-  clock-x11idle-program-name "x11idle"
+  clock-x11idle-program-name "xprintidle"
   clock-idle-time 5
   clock-sound nil
 

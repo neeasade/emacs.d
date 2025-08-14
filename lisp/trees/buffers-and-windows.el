@@ -61,7 +61,8 @@
   "bb" (fn!! surf-buffers
          (->> (ns/jump-file-candidates :buffers-without-files)
            (ns/pick "buffer")
-           (ns/find-or-open)))
+           ;; nb: do not do find-or-open here
+           (switch-to-buffer)))
 
   ;; idea: find shell buffers running something - might also be nice to show pname
   "bM" (fn!! surf-shells-running-something
