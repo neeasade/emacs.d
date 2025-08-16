@@ -33,7 +33,10 @@
 ;; using this package only for a tramp aware 'open file as root' function
 (ns/use crux (crux-reopen-as-root-mode t))
 
-(ns/use simpleclip)
+(ns/use simpleclip
+  (defalias 'pbcopy 'kill-new)
+  (defun pbpaste ()
+    (s-clean (simpleclip-get-contents))))
 
 (defun! ns/paste-from-clipboard-url ()
   "GET the clipboard contents into current point"

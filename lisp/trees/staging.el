@@ -302,3 +302,5 @@
 (defun! ns/grab-filename ()
   "put the current filepath in clipboard"
   (pbcopy (buffer-file-name)))
+
+(ns/use org-anki)
