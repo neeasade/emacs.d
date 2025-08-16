@@ -703,6 +703,40 @@
   ;;   :background nil)
   )
 
+(ns/defconfig whisper
+  (ns/use (whisper :host github :repo "natrys/whisper.el")
+    (setq-ns whisper
+      ;; nb: smaller = faster
+      ;; https://github.com/ggml-org/whisper.cpp#memory-usage
+      model "base"
+      ;; model "small"
+      language "en"
+      ;; use-threads (/ (num-processors) 2)
+      ;; server-mode 'local
+      server-mode nil
+
+      insert-text-at-point t            ; nil for preview window
+      server-port 8080
+      -temp-file "/dev/shm/emacs-whisper.wav"))
+
+  ;; talk-to-bot button via chatgpt shell
+  (defun! ns/send-whisper-message ()
+    (when (eq major-mode 'chatgpt-shell-mode)
+      (shell-maker-submit)))
+
+  (add-hook 'whisper-after-insert-hook #'ns/send-whisper-message)
+
+  (defun! ns/whisper-llm-chat ()
+    ;; (switch-to-buffer (first (ns/buffers-by-mode 'chatgpt-shell-mode)))
+    (save-excursion
+      (with-current-buffer (first (ns/buffers-by-mode 'chatgpt-shell-mode))
+        (goto-char (point-max))
+        (whisper-run))))
+
+
+  ;; insert at point
+  (ns/bind "r" 'whisper-run))
+
 (ns/defconfig minor-langs
   ;; pulling in these modes for syntax highlighting basically
   ;; they get grouped in a defconfig b/c minor/stable
