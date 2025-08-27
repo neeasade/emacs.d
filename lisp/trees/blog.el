@@ -206,7 +206,7 @@
 
 (defun ns/blog-make-tag-pages ()
   ;; remove any prev tag pages first:
-  (f-mkdir (ns/blog-path "tags"))
+  (f-mkdir-full-path (ns/blog-path "tags"))
   (-map 'f-delete (f-entries (ns/blog-path "tags") (-partial #'s-ends-with-p ".org")))
   ;; publish!
   (->> (ns/blog-get-tags)
@@ -282,6 +282,8 @@
           type (llet [parent-dir (->> path f-parent f-base)]
                  (substring parent-dir 0 (1- (length parent-dir))))
           title (ht-get props "title" "(untitled)")
+          slug (or (ht-get props "slug")
+                 (ns/path-to-slug path))
           alltags (ht-get-cache ns/blog-cache :tags
                     (lambda ()
                       (->> (slurp (ns/blog-path "extra/generated-tags.txt"))
@@ -321,8 +323,8 @@
                                                  (s-replace "'" "'\\''" path)))))
                      (if (s-blank-p git-query-result) ""
                        (substring git-query-result 0 10)))
-      :slug (ns/path-to-slug path)
-      :orglink (format "[[./%s.org][%s]]" (ns/path-to-slug path) title)
+      :slug slug
+      :orglink (format "[[./%s.org][%s]]" slug title)
       :csslinks (ns/blog-get-csslinks))))
 
 (defun ns/blog-render-org (org-meta-table)
@@ -487,7 +489,6 @@
   (llet (;; don't ask about generation when exporting
           org-confirm-babel-evaluate (fn nil))
 
-    ;; todo redirects
     (-map #'ns/blog-publish-meta metas)
 
     (message "BLOG: making site rss!")

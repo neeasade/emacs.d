@@ -200,7 +200,7 @@ if path doesn't exist, returns without trailing '/'"
           slashed? (s-ends-with-p "/" p)]
     (if dir?
       (if slashed? p (concat p "/"))
-      (if slashed? (substring p -1) p))))
+      (if slashed? (substring p 0 (1- (length p))) p))))
 
 (defun ~ (&rest args)
   (apply 'ns/path ns/home-directory args))

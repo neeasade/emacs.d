@@ -663,7 +663,7 @@
 (ns/defconfig pdf (ns/use pdf-tools))
 
 (ns/defconfig llm
-  (ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("shell-maker*.el"))
+  (ns/use (shell-maker :type git :host github :repo "xenodium/shell-maker" :files ("*.el"))
     (defun shell-maker-welcome-message (_)))
 
   (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el"))
@@ -671,13 +671,17 @@
     (setq chatgpt-shell-google-key (pass "gemini_api_key"))
     (chatgpt-shell-google-load-models)
     (chatgpt-shell-ollama-load-models)
-    (ns/bind "nf" 'chatgpt-shell))
+    (ns/bind "nf"
+      (fn!! find-chatgpt-shell
+        (if-let (b (first (ns/buffers-by-mode 'chatgpt-shell-mode)))
+          (switch-to-buffer b)
+          (chatgpt-shell)))))
 
   (defun ns/chatgpt-shell-save-transcript ()
     (when (eq major-mode 'chatgpt-shell-mode)
       (llet [dest (~ "logs" "llm" chatgpt-shell-model-version (format-time-string "%F-%T-transcript.md"))
               frontmatter (ns/str "# a chat with " chatgpt-shell-model-version " saved at " (format-time-string "%F-%T"))]
-        (f-mkdir (f-dirname dest))
+        (f-mkdir-full-path (f-dirname dest))
 
         (setq-local shell-maker--file "/dev/shm/llm.txt")
         (chatgpt-shell-save-session-transcript)
@@ -730,6 +734,7 @@
     ;; (switch-to-buffer (first (ns/buffers-by-mode 'chatgpt-shell-mode)))
     (save-excursion
       (with-current-buffer (first (ns/buffers-by-mode 'chatgpt-shell-mode))
+        (chatgpt-shell-interrupt t)
         (goto-char (point-max))
         (whisper-run))))
 

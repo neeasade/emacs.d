@@ -290,8 +290,12 @@
 (ns/use symbol-overlay (add-hook 'prog-mode-hook 'symbol-overlay-mode))
 
 ;; https://www.reddit.com/r/NixOS/comments/1aed1lf/ispell_not_working_on_emacs/
-;; (sh "aspell -d en dump master | aspell -l en expand > ~/.cache/aspell.dict")
-;; nb: this appears to not be working? not seeing auto complete from values in this file
+
+(when-not (f-exists? (~ ".cache/aspell.dict"))
+  (f-mkdir-full-path (~ ".cache"))
+
+  (sh "aspell -d en dump master | aspell -l en expand > ~/.cache/aspell.dict"))
+
 (setq ispell-alternate-dictionary (~ ".cache/aspell.dict"))
 
 (ns/inmap 'debugger-mode-map "q" 'delete-window)

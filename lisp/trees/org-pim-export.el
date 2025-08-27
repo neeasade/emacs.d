@@ -1,24 +1,23 @@
+
 (defun ns/write-node-to-post (node)
   "Org headline node to blog post. assumes the presence of blog_slug."
-  (let*
-    ((slug (org-ml-headline-get-node-property "blog_slug" node))
-      (dest (ns/blog-path (format "notes/%s.org" slug)))
-      (exists? (f-exists-p dest))
-      (old-content (if exists? (f-read dest) "")))
+  ;; nb: props like pubdate and title_extra come from the existing exported note file
+  (let* ((slug (org-ml-headline-get-node-property "blog_slug" node))
+          (dest (ns/blog-path (format "notes/%s.org" slug)))
+          (exists? (f-exists-p dest))
+          (old-content (if exists? (slurp dest) ""))
+          (props (ns/blog-get-properties old-content)))
 
     (f-mkdir (f-dirname dest))
     (when exists? (f-delete dest))
     (spit dest
-      (format "
-#+title: %s
-#+title_extra: %s
-#+filetags: %s
-#+pubdate: %s
-%s"
-        (or (ns/blog-get-prop "title" old-content) (-> node cadr cadr))
-        (or (ns/blog-get-prop "title_extra" old-content) "")
-        (or (ns/blog-get-prop "filetags" old-content) "")
-        (or (ns/blog-get-prop "pubdate" old-content) (sh "date '+<%Y-%m-%d>'"))
+      (format "%s\n%s"
+        (ht-map (lambda (k v) (ns/str "#+" k ": " v))
+          (-ht :title (ht-get props "title" (-> node cadr cadr))
+            :title_extra (ht-get props "title_extra")
+            :filetags (ht-get props "filetags")
+            :pubdate (ht-get props "pubdate" (sh "date '+<%Y-%m-%d>'"))
+            ))
         (->> node
           (org-ml-headline-map-node-properties (lambda (_) nil))
           (org-ml-to-trimmed-string)
@@ -27,7 +26,6 @@
           (s-split "\n" )
           (cdr)
           (s-join "\n"))))
-    ;; return the path:
     dest))
 
 (defun ns/org-normalize (node)

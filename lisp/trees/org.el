@@ -173,6 +173,9 @@
 
       (sh-toss "bash -ic 'scu-restart panel'")
 
+      (when-not (f-exists? (~ ".config/qutebrowser/adblock_bad.txt"))
+        (f-touch (~ ".config/qutebrowser/adblock_bad.txt")))
+
       (spit (~ ".config/qutebrowser/adblock.txt")
         (slurp (~ ".config/qutebrowser/adblock_bad.txt")))
 

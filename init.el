@@ -43,8 +43,7 @@
 (defun ns/conf-extra ()
   (ns/summon
     `(
-       server                           ; do not put this in core - elisp scripts
-       llm
+       server                          ; do not put this in core - elisp scripts
 
 
        corfu
@@ -63,7 +62,12 @@
        (ledger ns/outdated)
        (filehooks ns/enable-home-p)
        (macos-integrations ns/enable-mac-p)
-       graphviz)))
+       graphviz
+
+
+       ;; llm
+       ;; whisper
+       )))
 
 (defun ns/conf-development ()
   (ns/summon
@@ -107,12 +111,16 @@
 
   ;; normal MO:
   (ns/conf-core)
+
+  (ns/conf-style)
+  (funcall-interactively 'ns/load-theme (intern (get-resource "emacs.theme")))
+
   (ns/conf-extra)
   (ns/conf-development)
-  (ns/conf-staging)
 
   (ns/check-for-orphans)
-  (ns/conf-style)
+
+  (ns/conf-staging)
   (message "🏁🏁🏁 init sequence complete 🏁🏁🏁")
 
   (defun! ns/initial-startup-hook ()
@@ -124,8 +132,6 @@
 
       ;; todo: sometimes this is annoying
       (named-timer-idle-run :garbage-collect 2 t 'garbage-collect)
-
-      (ns/load-theme (intern (get-resource "emacs.theme")))
 
       (->> recentf-list
         (-filter (fn

@@ -86,15 +86,14 @@
 (when (getenv "BROWSER")
   (setq browse-url-generic-program (getenv "BROWSER")))
 
-;; (when ns/enable-work-p (setq browse-url-generic-program "/Applications/Google Chrome.app/Contents/MacOS/google chrome"))
+(when ns/enable-mac-p
+  (setq browse-url-generic-program "/Applications/Google Chrome.app/Contents/MacOS/google chrome"))
 
-;; Removes *scratch* from buffer after the mode has been set.
+;; auto kill scratch:
 (defun ns/after-change-major-mode-hook ()
   (when (get-buffer "*scratch*")
     (kill-buffer "*scratch*"))
-
-  t
-  )
+  t)
 
 (add-hook 'after-change-major-mode-hook 'ns/after-change-major-mode-hook)
 
@@ -206,7 +205,9 @@
   "tN" (fn!! line-numbers-toggle (setq-local display-line-numbers (if display-line-numbers nil t)))
   "tl" 'toggle-truncate-lines
   ;; "ts" 'ns/style
-  "ts" 'ns/load-theme
+  "ts" (fn!! load-theme-and-apply-system
+         (funcall-interactively 'ns/load-theme)
+         (sh-toss "kitty ltheme wm qutebrowser rofi kitty"))
   "ti" (fn!! (ns/reload-init) (ns/conf-style))
   "m" 'ns/toggle-modeline
   "tp" 'ns/toggle-report
@@ -214,6 +215,7 @@
   "i" '(:ignore t :which-key "Insert")
   "ic" 'insert-char
   "ie" 'emoji-search
+  "qp" (fn!! message-file-name (message (buffer-file-name)))
   "if" (fn!! insert-file-name (insert (buffer-file-name)))
   "id" (fn!! insert-time (org-time-stamp t))
   "iD" (fn!! insert-date (org-time-stamp nil)))
