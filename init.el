@@ -144,7 +144,8 @@
                      (not (s-ends-with-p "recentf" <>))
                      (f-exists-p <>))))
         (-take 6)
-        (mapc 'find-file))))
+        (mapc 'find-file)))
+    (message "🍇🍊🍓 Ready for action 🍌🍍🍎"))
 
   ;; (add-hook 'emacs-startup-hook 'ns/initial-startup-hook)
   (run-at-time 0.1 nil 'ns/initial-startup-hook))
