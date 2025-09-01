@@ -20,6 +20,7 @@
     "[t" 'hl-todo-previous)
   (global-hl-todo-mode))
 
+(ns/use parseedn)
 (defun ns/emacs-to-theme ()
   (parseedn-print-str
     (-ht :colors (apply 'vector (myron-themes-termcolors))

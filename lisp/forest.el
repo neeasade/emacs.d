@@ -569,9 +569,7 @@
                             (font-get dfont :name)))))
       (-ht
         "panel.height" "24"
-        "emacs.theme" (or (and (f-exists-p (~ ".cache/rice/emacs-theme-name"))
-                            (slurp (~ ".cache/rice/emacs-theme-name")))
-                        "myron-mcfay")
+        "emacs.theme" "myron-mcfay"
         "font.mono.spec" default-font
         ;; "font.variable.spec" default-font
         "font.variable-big.spec" default-font)))
