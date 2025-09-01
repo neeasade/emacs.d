@@ -41,9 +41,9 @@
   mac-control-modifier 'control
   )
 
-(defun ns/message (message)
+(defun ns/message (&rest message-args)
   (when ns/enable-init-logs?
-    (message message)))
+    (apply 'message message-args)))
 
 (defmacro ns/use (pkg-def &rest body)
   "Load a PKG-DEF with straight, require it, and then eval BODY."
