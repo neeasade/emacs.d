@@ -41,23 +41,25 @@
   mac-control-modifier 'control
   )
 
+(defun ns/message (message)
+  (when ns/enable-init-logs?
+    (message message)))
+
 (defmacro ns/use (pkg-def &rest body)
   "Load a PKG-DEF with straight, require it, and then eval BODY."
   (-let* ((pkg (-first-item (-list pkg-def)))
            (pkg-mode (intern (format "%s-mode" (s-chop-suffix "-mode" (prin1-to-string pkg))))))
     `(let ((ns-use-time (current-time)))
-       (message ": ns/use: %s..." ',pkg)
+       (ns/message ": ns/use: %s..." ',pkg)
        (straight-use-package ',pkg-def)
        (require ',pkg nil t)
        (require ',pkg-mode nil t)
        ,@body
-       (message ": ns/use: %s... done." ',pkg)
-       ;; (let ((time-passed (float-time (time-since ns-use-time))))
-       ;;   (if (> time-passed 2)
-       ;;     (message ": ns/use: %s... done (%.02fs) 🕑." ',pkg time-passed)
-       ;;     (message ": ns/use: %s... done." ',pkg)))
-       )))
-
+       (ns/message ": ns/use: %s... done." ',pkg)
+       (let ((time-passed (float-time (time-since ns-use-time))))
+         (if (> time-passed 2)
+           (ns/message ": ns/use: %s... done (%.02fs) 🕑." ',pkg time-passed)
+           (ns/message ": ns/use: %s... done." ',pkg))))))
 
 ;; use the builtin org that ships with emacs
 (add-to-list 'straight-built-in-pseudo-packages 'org)
@@ -297,12 +299,12 @@ if path doesn't exist, returns without trailing '/'"
          (interactive)
          (let ((config-name ,conf-string)
                 (config-start-time (current-time)))
-           (message (format "::: %s..." ',function-name))
+           (ns/message (format "::: %s..." ',function-name))
            ,@body
            (let ((time-passed (float-time (time-since config-start-time))))
              (if (> time-passed 2)
-               (message (format "::: %s... done (%.02fs) slow 🕑.." ',function-name time-passed))
-               (message (format "::: %s... done." ',function-name)))))))))
+               (ns/message (format "::: %s... done (%.02fs) slow 🕑.." ',function-name time-passed))
+               (ns/message (format "::: %s... done." ',function-name)))))))))
 
 (defun ns/file-mode (file-extension mode)
   (let ((pattern (format  "\\.%s\\'" file-extension)))
