@@ -454,6 +454,7 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
     (->> (-concat
            (s-lines (or (sh "atuin history list --format {directory} | sort | uniq") ""))
            (s-lines (sh "atuin kv list -n dirs")))
+      (-remove 'file-remote-p)          ; speed
       (-distinct)
       (--remove (not (f-exists-p it)))
       (-map 'ns/path)

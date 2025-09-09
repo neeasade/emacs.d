@@ -290,21 +290,12 @@
 (ns/use symbol-overlay (add-hook 'prog-mode-hook 'symbol-overlay-mode))
 
 ;; https://www.reddit.com/r/NixOS/comments/1aed1lf/ispell_not_working_on_emacs/
-
 (when-not (f-exists? (~ ".cache/aspell.dict"))
   (f-mkdir-full-path (~ ".cache"))
-
   (sh "aspell -d en dump master | aspell -l en expand > ~/.cache/aspell.dict"))
 
 (setq ispell-alternate-dictionary (~ ".cache/aspell.dict"))
 
 (ns/inmap 'debugger-mode-map "q" 'delete-window)
-
-(ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
-  (stillness-mode))
-
-(defun! ns/grab-filename ()
-  "put the current filepath in clipboard"
-  (pbcopy (buffer-file-name)))
 
 (ns/use org-anki)

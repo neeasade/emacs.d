@@ -238,6 +238,9 @@
   ;;     (fn (ns/blog-set-htmlize-colors))))
   t)
 
+(ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
+  (stillness-mode))
+
 (ns/use rainbow-mode
   (setq rainbow-html-colors nil
     rainbow-x-colors nil)
