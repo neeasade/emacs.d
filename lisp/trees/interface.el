@@ -126,6 +126,19 @@
   "n" '(:ignore t :which-key "Jump")
   ;; todo: idea, make jump-config preview location like consult does with files, would be cool
   "nc" 'ns/jump-config
+  "nC" (fn!! jump-using
+         (if-not (which "rg")
+           (message "no ripgrep found!!")
+           (llet [default-directory (~e "lisp")
+                   options (sh-lines "rg '\\(ns/use \\(?([^ )]+)' -o -r '$1'  --no-filename --no-line-number")
+                   match (ns/pick options)
+                   ;; line-info is eg "trees/git.el:23:(ns/use (magit-todos"
+                   line-info (sh (format "rg  -U '\\(ns/use \\(?%s([^a-zA-Z-]|\n)' -n -o" match))
+                   (file line-number . _) (s-split ":" line-info)]
+             ;; nb: caution with this pattern, took a bit of poking
+             (switch-to-buffer (find-file-existing (~e "lisp" file)))
+             (goto-line (string-to-number line-number))
+             (recenter))))
   "nh" 'consult-imenu
   "nu" 'ns/surf-urls)
 
