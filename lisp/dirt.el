@@ -332,8 +332,10 @@ if path doesn't exist, returns without trailing '/'"
 
 (defalias 'slurp 'f-read)
 
-(defun spit (f content)
-  (f-write content 'utf-8 f))
+(defun spit (f content &optional append?)
+  (if append?
+    (f-append content 'utf-8 f)
+    (f-write content 'utf-8 f)))
 
 (defun ns/str (&rest vals)
   "Coerce VALS to string. nil is empty string.

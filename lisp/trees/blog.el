@@ -174,7 +174,7 @@
           :repo "emacsmirror/ox-rss"))
 
 (defun ns/blog-path (ext)
-  (ns/str (or (getenv "NS_BLOG_PATH") (~ "code/neeasade.github.io/")) ext))
+  (ns/str (or (getenv "NS_BLOG_PATH") (~ "code_shared/neeasade.github.io/")) ext))
 
 (defun ns/blog-get-properties (text)
   "org string to properties ht. if a value is blank it is not included"
@@ -191,6 +191,7 @@
   (->> (--reduce-from (s-replace it "" acc)
          (f-base path)
          (s-split "" ";/?:@&=+$,'"))
+    (s-replace " " "-")
     (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
     (s-downcase)))
 
@@ -242,6 +243,9 @@
 
 (comment
   ;; leaving around for ref
+  (setq ns/old-slugs (--map (ht-get it :slug) (ns/blog-get-metas-public)))
+  ;; then update path-to-slug, reset cache, and...
+  (setq ns/new-slugs (--map (ht-get it :slug) (ns/blog-get-metas-public)))
   ;; slug to slug communication
   (->> (-interleave ns/old-slugs ns/new-slugs)
     (-partition 2)
@@ -249,7 +253,8 @@
              (when-not (string= one two)
                (ns/str one "@" two))))
     (s-join "\n")
-    (spit (ns/blog-path "extra/redirects.txt"))))
+    ;; (spit (ns/blog-path "extra/redirects.txt"))
+    ))
 
 (defun! ns/blog-sync-colors-css ()
   (->> (-ht
