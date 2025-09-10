@@ -173,8 +173,10 @@
           :host github
           :repo "emacsmirror/ox-rss"))
 
-(defun ns/blog-path (ext)
-  (ns/str (or (getenv "NS_BLOG_PATH") (~ "code_shared/neeasade.github.io/")) ext))
+(defun ns/blog-path (&rest args)
+  (apply 'ns/path (or (getenv "NS_BLOG_PATH")
+                    (~ "code_shared/neeasade.github.io/"))
+    args))
 
 (defun ns/blog-get-properties (text)
   "org string to properties ht. if a value is blank it is not included"
@@ -532,8 +534,7 @@
 
 (defun! ns/blog-new-post ()
   (let* ((title (s-trim (read-from-minibuffer "new blog post title: ")))
-          (file (format (~ "code/neeasade.github.io/posts/%s.org")
-                  (s-replace " " "-" title))))
+          (file (ns/blog-path "posts" (ns/str (ns/path-to-slug title) ".org"))))
     (find-file file)
     (insert (->> (-ht
                    :title title
