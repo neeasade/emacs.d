@@ -130,7 +130,7 @@
          (if-not (which "rg")
            (message "no ripgrep found!!")
            (llet [default-directory (~e "lisp")
-                   options (sh-lines "rg '\\(ns/use \\(?([^ )]+)' -o -r '$1'  --no-filename --no-line-number")
+                   options (sh-lines "rg '\\(ns/use \\(?([^ \")]+)' -o -r '$1'  --no-filename --no-line-number")
                    match (ns/pick options)
                    ;; line-info is eg "trees/git.el:23:(ns/use (magit-todos"
                    line-info (sh (format "rg  -U '\\(ns/use \\(?%s([^a-zA-Z-]|\n)' -n -o" match))
