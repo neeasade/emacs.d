@@ -450,17 +450,19 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
   (when (which "atuin")
     (sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/path cwd) "_")))
 
-(defun ns/atuin-list-dirs ()
+(defun ns/atuin-list-dirs (&optional remote?)
   ;; get session
   (when (which "atuin")
     (->> (-concat
            (s-lines (or (sh "atuin history list --format {directory} | sort | uniq") ""))
            (s-lines (sh "atuin kv list -n dirs")))
-      (-remove 'file-remote-p)          ; speed
+      (funcall (if remote? '-filter '-remove) 'file-remote-p)
       (-distinct)
       (--remove (not (f-exists-p it)))
       (-map 'ns/path)
-      (-map #'consult--fast-abbreviate-file-name))))
+      (--map (if (file-remote-p it)
+               it
+               (consult--fast-abbreviate-file-name it))))))
 
 (when ns/term?
   (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")

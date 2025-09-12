@@ -61,21 +61,17 @@
     (s-join " ")
     (message)))
 
-(ns/bind "nd"
-  (fn!! surf-dirs
-    (llet [dir (ns/pick "directory"
-                 (->> (ns/atuin-list-dirs)
-                   (-map 'expand-file-name)
-                   (-uniq)
-                   (-filter (fn (s-equals-p (file-remote-p <>)
-                                  (file-remote-p default-directory))))
-                   (-filter 'f-exists-p)))]
-      (if-not (eq major-mode 'shell-mode)
-        (dired dir)
-        (progn
-          (goto-char (point-max))
-          (insert (format "cd \"%s\"" (s-replace (or (file-remote-p dir) "") "" dir)))
-          (comint-send-input))))))
+(defun! ia/surf-dirs (&optional remote?)
+  (llet [dir (ns/pick "directory" (ns/atuin-list-dirs remote?))]
+    (if-not (eq major-mode 'shell-mode)
+      (dired dir)
+      (progn
+        (goto-char (point-max))
+        (insert (format "cd \"%s\"" (s-replace (or (file-remote-p dir) "") "" dir)))
+        (comint-send-input)))))
+
+(ns/bind "nd" 'ia/surf-dirs)
+(ns/bind "nD" (fn!! surf-remote-dirs (ia/surf-dirs t)))
 
 (defun! ns/surf-urls ()
   "jump to url in current window text"

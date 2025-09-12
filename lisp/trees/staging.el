@@ -1,8 +1,7 @@
 ;; -*- lexical-binding: t; -*-
-(ns/bind "nk" (fn!! goto-theme (find-file (executable-find "theme"))
-                (goto-line 0)
-                (re-search-forward (if ns/enable-work-p "work-theme" "home-theme"))
-                (recenter)))
+
+(ns/bind "nk" (fn!! goto-theme
+                (find-file (~ ".dotfiles/bin/bin/themes/" (sh "hostname")))))
 
 ;; https://github.com/szermatt/emacs-bash-completion
 ;; comprehensive bash completion in emacs

@@ -669,6 +669,7 @@
     (setq chatgpt-shell-google-key (pass "gemini_api_key"))
     (chatgpt-shell-google-load-models)
     (chatgpt-shell-ollama-load-models)
+    (setq-default chatgpt-shell-model-version "claude-3-5-sonnet-latest")
     (ns/bind "nf"
       (fn!! find-chatgpt-shell
         (if-let (b (first (ns/buffers-by-mode 'chatgpt-shell-mode)))

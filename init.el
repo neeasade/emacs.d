@@ -4,7 +4,7 @@
 ;;; code:
 
 ;; useful when debugging, useless for startup time
-(setq ns/enable-init-logs? nil)
+(setq ns/enable-init-logs? nil)         ; see ns/message
 
 (load (concat user-emacs-directory "lisp/dirt.el"))
 (shut-up-load (~e "lisp/forest.el"))
@@ -129,6 +129,9 @@
   (defun! ns/initial-startup-hook ()
     (when (not (boundp 'ns/after-init-hook))
       (setq ns/after-init-hook t)
+
+      ;; refreshing modeline here allows for correct frame divider height -.-
+      (ns/refresh-all-modeline t)
 
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
