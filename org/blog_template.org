@@ -1,3 +1,5 @@
+#+MACRO: blog-title  (eval ns/blog-title)
+
 #+OPTIONS: html-style:nil
 #+OPTIONS: ^:nil
 
@@ -8,7 +10,7 @@
 #+html_head: <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
 #+html_head: <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
 
-#+html_head: <meta property="og:title" content="{{page-title}}">
+#+html_head: <meta property="og:title" content="{{page-title}} - {{{blog-title}}}">
 #+html_head: <meta property="og:description" content="{{og-description}}">
 # #+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/img/backgrounds/newfeather.png">
 #+html_head: <meta property="og:image" content="https://notes.neeasade.net/assets/posts/ca_dump3/{{background}}">
@@ -32,9 +34,6 @@
 
 # cf https://orgmode.org/manual/Macro-Replacement.html
 
-#+MACRO: newline   src_emacs-lisp[:results raw]{"\n"}
-
-#+MACRO: blog-title  (eval ns/blog-title)
 
 #+MACRO: index-navbar  (eval (ns/blog-index-navbar $1))
 
