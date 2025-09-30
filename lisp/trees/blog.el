@@ -316,6 +316,7 @@
                    (ht-get props "draft"))
       :is-page   (string= type "page")
       :is-post   (string= type "post")
+      :include-pubdate (or (string= type "post") (or (string= type "page")))
       :is-note   (string= type "note")
       :is-doodle (string= type "doodle")
       :type type
@@ -444,7 +445,8 @@
 
 (defun ns/blog-changed-files-metas ()
   (llet [default-directory (ns/blog-path "published")
-          last-published-date (sh "git log -n 1 --format=%ci")
+          ;; go back extra to preserve next/prev generation
+          last-published-date (sh "git log -n 3 --format=%ci | tail -n 1")
           default-directory (ns/blog-path ".")
           files-changed (sh (format "git log --since=\"%s\" --name-only --pretty=format: | sort -u | grep -v '^$'" last-published-date))]
     (when files-changed

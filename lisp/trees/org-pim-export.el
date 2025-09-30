@@ -12,12 +12,17 @@
     (when exists? (f-delete dest))
     (spit dest
       (format "%s\n%s"
-        (ht-map (lambda (k v) (ns/str "#+" k ": " v))
-          (-ht :title (ht-get props "title" (-> node cadr cadr))
-            :title_extra (ht-get props "title_extra")
-            :filetags (ht-get props "filetags")
-            :pubdate (ht-get props "pubdate" (sh "date '+<%Y-%m-%d>'"))
-            ))
+        (s-join "\n"
+          (ht-map (lambda (k v) (ns/str "#+" k ": " v))
+            (-ht :title (ht-get props "title"
+                          (-last-item (org-ml-headline-get-path node))
+                          ;; (org-ml-get-property :title node)
+                          ;; (-> node cadr cadr)
+                          )
+              :title_extra (ht-get props "title_extra")
+              :filetags (ht-get props "filetags")
+              :pubdate (ht-get props "pubdate" (sh "date '+<%Y-%m-%d>'"))
+              )))
         (->> node
           (org-ml-headline-map-node-properties (lambda (_) nil))
           (org-ml-to-trimmed-string)
@@ -42,8 +47,8 @@
   (->> (ns/get-notes-nodes '(property "blog_slug"))
     (-map 'ns/org-normalize)
     (-map 'ns/write-node-to-post)
-    ((lambda (valid)
-       (dolist (file (ns/blog-get-org "notes"))
-         (when (not (-contains? valid file))
-           (f-delete file)))))))
-
+    ;; ((lambda (valid)
+    ;;    (dolist (file (ns/blog-get-org "notes"))
+    ;;      (when (not (-contains? valid file))
+    ;;        (f-delete file)))))
+    ))

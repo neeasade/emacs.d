@@ -34,6 +34,7 @@
 
 # cf https://orgmode.org/manual/Macro-Replacement.html
 
+#+MACRO: blog-title  (eval ns/blog-title)
 
 #+MACRO: index-navbar  (eval (ns/blog-index-navbar $1))
 
@@ -57,6 +58,10 @@
 # Square Bracket Close ]
 #+MACRO: BC @@latex:\char93@@@@html:&#93;@@
 
+# future self: if you want to use commas, simply escape them: \,
+#+MACRO: foldstart @@html:<details><summary>$1</summary>@@
+#+MACRO: foldend @@html:</details>@@
+
 {{csslinks}}
 
 #+BEGIN_EXPORT html
@@ -67,6 +72,7 @@
 
 <div style="float: right">
     {{#is-index}}<a href='./sitemap.html'>sitemap</a>{{/is-index}}
+    {{^is-index}}{{#is-page}}<a href='{{page-history-link}}'>history</a>{{/is-page}}{{/is-index}}
     <a href="{{page-markup-link}}">source</a>
 </div>
 <h1 class=title>
@@ -86,7 +92,7 @@
 #+END_CENTER
 
 #+BEGIN_EXPORT html
-{{#is-post}}
+{{#include-pubdate}}
 {{#published-date}}
 <span class=pubinfo>
     Published {{published-date}}{{#is-edited}},
@@ -95,11 +101,12 @@
 </span>
 {{/published-date}}
 <div class="posttags"> {{taghtml}} </div>
-{{/is-post}}
+{{/include-pubdate}}
 </header>
 #+end_export
 -----
 {{content}}
+
 #+BEGIN_EXPORT html
 {{#is-index}}
     <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
