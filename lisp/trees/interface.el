@@ -67,7 +67,13 @@
       (dired dir)
       (progn
         (goto-char (point-max))
-        (insert (format "cd \"%s\"" (s-replace (or (file-remote-p dir) "") "" dir)))
+        (insert
+          (cond
+            ((not remote?) (format "cd \"%s\"" dir))
+            ((string= (file-remote-p dir) (file-remote-p default-directory))
+              (format "cd \"%s\"" (s-replace (file-remote-p dir) "" dir)))
+            (t (let ((default-directory dir))
+                 (shell)))))
         (comint-send-input)))))
 
 (ns/bind "nd" 'ia/surf-dirs)
