@@ -556,11 +556,10 @@
 
   (defun ns/style-adoc ()
     (ns/set-faces-monospace '(adoc-code-face adoc-comment-face))
-
     (when (called-interactively-p 'any)
       (ns/set-buffers-face-variable (ns/buffers-by-mode 'adoc-mode))))
 
-  (add-hook 'markdown-mode-hook 'ns/set-buffer-face-variable))
+  (add-hook 'adoc-mode-hook 'ns/set-buffer-face-variable))
 
 (ns/defconfig resources
   (setq ns/resource-table
