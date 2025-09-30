@@ -1,6 +1,8 @@
 ;; -*- lexical-binding: t; -*-
-
 ;; this mostly covers my usage of emacs shell-mode as my interactive shell
+;; I prefer shell-mode/a comint interface, rather than a full terminal, as this
+;; gives me greater control over input/output
+
 (require 'comint)
 
 (define-key shell-mode-map (kbd "C-l") 'comint-clear-buffer)
@@ -49,6 +51,8 @@
     window-position "top"
     window-size 30 ;; percent
     full-span t)
+
+  ;; todo: it would be nice if these were smart about remote contexts too somehow - pop into recent shell
 
   ;; interactive shell-pop bound to spc t index shell
   (defun ns/shell-pop (index)

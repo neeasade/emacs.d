@@ -298,3 +298,37 @@
 (ns/inmap 'debugger-mode-map "q" 'delete-window)
 
 (ns/use org-anki)
+
+(progn
+  ;; https://coredumped.dev/2025/06/18/making-tramp-go-brrrr./
+  (setq remote-file-name-inhibit-locks t
+    tramp-use-scp-direct-remote-copying t
+    remote-file-name-inhibit-auto-save-visited t
+    tramp-copy-size-limit (* 1024 1024) ;; 1MB
+    tramp-verbose 2)
+
+
+  (defun ns/magit-tramp-check ()
+    (when (file-remote-p default-directory)
+      ;; don't show the diff by default in the commit buffer. Use `C-c C-d' to display it
+      (setq magit-commit-show-diff nil)
+      ;; don't show git variables in magit branch
+      (setq magit-branch-direct-configure nil)
+      ;; don't automatically refresh the status buffer after running a git command
+      (setq magit-refresh-status-buffer nil)))
+
+  (add-hook 'magit-status-mode-hook 'ns/magit-tramp-check)
+
+  (connection-local-set-profile-variables
+    'remote-direct-async-process
+    '((tramp-direct-async-process . t)))
+
+
+  (connection-local-set-profiles
+    '(:application tramp :protocol "scp")
+    'remote-direct-async-process)
+
+  (setq magit-tramp-pipe-stty-settings 'pty)
+
+  ;; adding this one - caution, default is 10s, risky?
+  (setq remote-file-name-inhibit-cache (ns/t 10m)))
