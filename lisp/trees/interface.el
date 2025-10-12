@@ -69,7 +69,7 @@
         (goto-char (point-max))
         (insert
           (cond
-            ((not remote?) (format "cd \"%s\"" dir))
+            ((not remote?) (format "cd \"%s\"" (s-replace "~" (getenv "HOME") dir)))
             ((string= (file-remote-p dir) (file-remote-p default-directory))
               (format "cd \"%s\"" (s-replace (file-remote-p dir) "" dir)))
             (t (let ((default-directory dir))
