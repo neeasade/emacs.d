@@ -14,21 +14,6 @@
 ;; sync from the pov of the current file
 (ns/use direnv)
 
-;; (named-timer-run :show-periodic-reminder
-;;   t
-;;   (ns/t 2h)
-;;   (fn
-;;     (when (< (second (current-idle-time)) 120)
-;;       (alert (let ((reminders
-;;                      (org-ql-select org-default-notes-file
-;;                        '(tags "reminders")
-;;                        :action '(s-clean (org-get-heading t t)))
-;;                      ))
-;;                (nth (random (length reminders)) reminders))
-;;         :severity 'normal
-;;         :title "*Reminder*"
-;;         ))))
-
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
@@ -342,6 +327,12 @@
     (and (shx-point-on-input-p)
       (comint-send-input))))
 
+(defun ns/random-splash-message ()
+  (with-current-buffer (find-file-noselect (ns/path org-directory "reminders.org"))
+    (->> (org-ml-parse-headlines 'all )
+      (-map 'org-ml-to-trimmed-string)
+      (ns/random-list))))
+
 (defun! ns/splash (message)
   "display a splash message"
   (and (get-buffer "*tip*")
@@ -350,8 +341,10 @@
   (dotimes (i (/ (window-height) 4))
     (insert "\n"))
   (insert message)
+  ;; todo: which frame?
   (delete-other-windows)
   (special-mode)
+  ;; (ns/set-buffer-face-variable)
   (olivetti-mode))
 
 (ns/inmap 'special-mode-map
@@ -360,7 +353,6 @@
 (named-timer-idle-run :splash-screen (ns/t 30m) t
   (lambda ()
     (interactive)
-    (ns/splash "test")))
-
+    (ns/splash (ns/random-splash-message))))
 
 ;; todo: checkout https://github.com/sinic/ednc

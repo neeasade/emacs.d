@@ -147,12 +147,10 @@
     (let ((default-directory cwd)
            ;; file-remote-p returns the tramp connection info without the path
            (process-environment (cons (format "TRAMP_INFO=%s" (file-remote-p cwd)) process-environment)))
-      (message "handling this remote shell")
-      (message cwd)
+      (message (ns/str "handling this remote shell: " cwd))
       (save-window-excursion (shell "*spawn-shell-remote-temp*"))
       (switch-to-buffer (get-buffer "*spawn-shell-remote-temp*")))
     (switch-to-buffer (get-buffer "*spawn-shell-staged*")))
-
 
   (rename-buffer
     (format "*spawn-shell-%s*"
@@ -168,6 +166,7 @@
     (when (fboundp 'ns/toggle-modeline)
       (ns/toggle-modeline)))
 
+  ;; todo: trim tramp info off cwd
   (when cwd (shell-pop--cd-to-cwd-shell cwd))
 
   ;; we don't care about how long it takes to stage the terminal

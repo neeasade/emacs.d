@@ -406,7 +406,7 @@
 (ns/use olivetti
   (ns/bind "tf" 'olivetti-mode)
   (setq-default fill-column 80)
-  (setq-default olivetti-body-width 80)
+  (setq-default olivetti-body-width (+ fill-column 3))
 
   ;; (setq-local olivetti-body-width 0.2)
   ;; (setq olivetti-body-width nil)
@@ -446,8 +446,14 @@
   (olivetti-mode)
   (git-gutter-mode 0)
   (flyspell-mode 0)
-  (setq-local comment-auto-fill-only-comments nil)
-  (auto-fill-mode t)
+
+  ;; for some reason this doesn't override setq-default
+  (setq-local olivetti-body-width 50)
+
+  ;; torn - think the move is to stop autofill and start wrapping display-wise
+  ;; with olivetti?
+  ;; (setq-local comment-auto-fill-only-comments nil)
+  ;; (auto-fill-mode t)
 
   (setq flyspell-generic-check-word-predicate
     (lambda ()
