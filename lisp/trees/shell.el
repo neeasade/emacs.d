@@ -31,18 +31,8 @@
   (kbd "C-e") 'comint-previous-input
   (kbd "C-n") 'comint-next-input)
 
-(ns/use shx
-  (shx-global-mode 0)                 ; this breaks comint things noooooooo
-
-  (defun shx-send-input-or-open-thing ()
-    "Open thing at point, or send input if no identifiable thing."
-    (interactive)
-    (when (shx-point-on-input-p)
-      (shx-send-input)))
-
-  (when ns/term?
-    (general-nmap shx-mode-map
-      "RET" #'shx-send-input-or-open-thing)))
+;; shx is intrusive, turn on only for screenshots
+(ns/use shx (shx-global-mode 0))
 
 (ns/use shell-pop
   ;; idea: would like concurrent shell-pops

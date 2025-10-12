@@ -64,18 +64,19 @@
   (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
   (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
   (setq frog-jump-buffer-include-current-buffer nil)
-  (setq frog-jump-buffer-posframe-parameters
-    `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
-       (background-color . ,(tarp/get :background :weak))
+  ;; only valid after a theme is loaded 😩
+  (comment
+    (setq frog-jump-buffer-posframe-parameters
+      `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
+         (background-color . ,(myron-get :background :weak))
 
-       (foreground-color . ,(tarp/get :primary :weak))
-       (left . 0.0)
-       ))
-
+         (foreground-color . ,(myron-get :primary :weak))
+         (left . 0.0)
+         )))
   )
 
 
-;;   ;; (set-face-attribute 'avy-lead-face nil :box (tarp/get :faded))
+;;   ;; (set-face-attribute 'avy-lead-face nil :box (myron-get :faded))
 ;;   (set-face-attribute 'avy-lead-face nil :box nil))
 
 (defun frog-menu-type ()
@@ -332,3 +333,13 @@
 
   ;; adding this one - caution, default is 10s, risky?
   (setq remote-file-name-inhibit-cache (ns/t 10m)))
+
+(general-define-key
+  :states '(normal insert)
+  :keymaps 'comint-mode-map
+  (kbd "<return>")
+  (fn!! comint-send-input
+    (and (shx-point-on-input-p)
+      (comint-send-input))))
+
+;; todo: checkout https://github.com/sinic/ednc
