@@ -342,4 +342,25 @@
     (and (shx-point-on-input-p)
       (comint-send-input))))
 
+(defun! ns/splash (message)
+  "display a splash message"
+  (and (get-buffer "*tip*")
+    (kill-buffer "*tip*"))
+  (switch-to-buffer (get-buffer-create "*tip*"))
+  (dotimes (i (/ (window-height) 4))
+    (insert "\n"))
+  (insert message)
+  (delete-other-windows)
+  (special-mode)
+  (olivetti-mode))
+
+(ns/inmap 'special-mode-map
+  "q" (fn!! window-revert (kill-buffer) (winner-undo)))
+
+(named-timer-idle-run :splash-screen (ns/t 30m) t
+  (lambda ()
+    (interactive)
+    (ns/splash "test")))
+
+
 ;; todo: checkout https://github.com/sinic/ednc
