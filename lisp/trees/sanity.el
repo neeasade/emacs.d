@@ -208,8 +208,8 @@
   "ts" (fn!! load-theme-and-apply-system
          (funcall-interactively 'ns/load-theme)
          (sh-toss "kitty ltheme wm qutebrowser rofi kitty"))
-  "ti" (fn!! (ns/reload-init) (ns/conf-style))
-  "m" 'ns/toggle-modeline
+  "ti" 'ns/reload-init
+  "m"  'ns/toggle-modeline
   "tp" 'ns/toggle-report
 
   "i" '(:ignore t :which-key "Insert")
