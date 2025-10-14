@@ -12,10 +12,64 @@
 (general-evil-setup t)
 
 (ns/use evil
-  (setq evil-ex-visual-char-range t)    ; make search/replace in visual blocks exact, rather than lines
+  (setq evil-ex-visual-char-range t) ; make search/replace in visual blocks exact, rather than lines
   (evil-select-search-module 'evil-search-module 'evil-search)
   (evil-mode 1)
-  (general-nmap "N" 'evil-join))
+  (general-nmap "N" 'evil-join)
+
+  ;; we are redefining here to undo this commit:
+  ;; https://github.com/emacs-evil/evil/commit/0ad84c52169068021ec3372bf52503631f2261de
+  ;; which breaks evil-escape: https://github.com/emacsorphanage/evil-escape/issues/7
+  (evil-define-command evil-execute-macro (count macro)
+    "Execute keyboard macro MACRO, COUNT times.
+When called with a non-numerical prefix \
+\(such as \\[universal-argument]),
+COUNT is infinite. MACRO is read from a register
+when called interactively."
+    :keep-visual t
+    :suppress-operator t
+    :repeat evil-repeat-execute-macro
+    (interactive
+      (let (count macro register)
+        (setq count (cond ((null current-prefix-arg) 1)
+                      ((numberp current-prefix-arg) current-prefix-arg)
+                      (t 0))
+          register (or evil-this-register (read-char)))
+        (cond
+          ((or (eq register ?:)
+             (and (eq register ?@) (eq evil-last-register ?:)))
+            (setq macro #'evil-ex-repeat
+              evil-last-register ?:))
+          ((eq register ?@)
+            (unless evil-last-register
+              (user-error "No previously executed keyboard macro."))
+            (setq macro (evil-get-register evil-last-register t)))
+          (t
+            (setq macro (evil-get-register register t)
+              evil-last-register register)))
+        (list count macro)))
+    (cond
+      ((functionp macro)
+        (evil-repeat-abort)
+        (if (zerop count)
+          (while t (funcall macro))
+          (dotimes (_ (or count 1)) (funcall macro))))
+      ((or (and (not (stringp macro))
+             (not (vectorp macro)))
+         (member macro '("" [])))
+        ;; allow references to currently empty registers
+        ;; when defining macro
+        (unless evil-this-macro (user-error "No previous macro")))
+      (t
+        (condition-case err
+          (evil-with-single-undo
+            (combine-after-change-calls
+              (execute-kbd-macro macro count)
+              (setq this-command 'evil-execute-macro))) ; For repeatability
+          ;; enter Normal state if the macro fails
+          (error
+            (evil-normal-state)
+            (signal (car err) (cdr err))))))))
 
 (ns/use evil-collection
 
