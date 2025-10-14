@@ -4,14 +4,14 @@
 
 (defun ns/find-files (prompt files)
   "Light wrapper around consult read with file set (history based on prompt)"
-  (find-file
-    (consult--read files
-      :prompt (format "%s: " prompt)
-      :sort nil
-      :require-match t
-      :category 'file
-      :state (consult--file-preview)
-      :history 'file-name-history)))
+  (consult--read
+    (-map #'consult--fast-abbreviate-file-name files)
+    :prompt (format "%s: " prompt)
+    :sort nil
+    :require-match t
+    :category 'file
+    :state (consult--file-preview)
+    :history 'file-name-history))
 
 (defun ns/pick (one &optional two)
   "Pick something from a list. Accepts (prompt candidates) or (candidates). calls -uniq."

@@ -248,12 +248,7 @@
 
       (llet [selected (or wants '(:recentf :project-files :buffers-with-files))
               results (->> selected
-                        (-mapcat
-                          (lambda (type)
-                            (llet [result (funcall (plist-get sources type))]
-                              (if (eq type :buffers-without-files)
-                                result
-                                (-map #'consult--fast-abbreviate-file-name result)))))
+                        (--mapcat (funcall (plist-get sources it)))
                         (-uniq)
                         (-remove 'f-img?)
                         (--remove (s-ends-with? "org_archive" (f-filename it)))
