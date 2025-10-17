@@ -356,3 +356,14 @@
     (ns/splash (ns/random-splash-message))))
 
 ;; todo: checkout https://github.com/sinic/ednc
+(defun ns/log-buffer (buffer-name message)
+  "Creates a message mode buffer, puts a message there."
+  (let ((messages-buffer-name buffer-name))
+    (message message)
+    ;; silly. message inserts a newline, but we need to remove it to get the
+    ;; [x times] thing on duplicate messages
+    (with-current-buffer (get-buffer buffer-name)
+      (let ((inhibit-read-only t))
+        (save-excursion (goto-char (max-char))
+          (delete-char -1))))))
+
