@@ -345,25 +345,47 @@
   (delete-other-windows)
   (special-mode)
   ;; (ns/set-buffer-face-variable)
-  (olivetti-mode))
+  ;; nb: still working out olivetti width
+  (olivetti-mode)
+
+  (setq-local mode-line-format nil))
+
+(defun! ns/random-todo ()
+  ;; goto a random todo in dotfiles or emacs
+  (ns/random-list (sh-lines (format "rg --no-heading --line-number todo '%s' | grep -v '\"'" (~ ".dotfiles"))))
+
+  ;; inkling: should tweak follow package
+
+  (defun ns/create-marker (line)
+    (ns/handle-potential-file-link
+      "/home/neeasade/.emacs.d/lisp/trees/staging.el:350"))
+
+  )
 
 (ns/inmap 'special-mode-map
-  "q" (fn!! window-revert (kill-buffer) (winner-undo)))
+  "q" (fn!! window-revert (quit-window) (winner-undo)))
 
-(named-timer-idle-run :splash-screen (ns/t 30m) t
-  (lambda ()
-    (interactive)
-    (ns/splash (ns/random-splash-message))))
+(ns/use devdocs)
 
-;; todo: checkout https://github.com/sinic/ednc
 (defun ns/log-buffer (buffer-name message)
   "Creates a message mode buffer, puts a message there."
   (let ((messages-buffer-name buffer-name))
     (message message)
     ;; silly. message inserts a newline, but we need to remove it to get the
     ;; [x times] thing on duplicate messages
-    (with-current-buffer (get-buffer buffer-name)
-      (let ((inhibit-read-only t))
-        (save-excursion (goto-char (max-char))
-          (delete-char -1))))))
+    ;;     - seems to only happen sometimes? and if not, then we're deleting the necessary newline.
+    ;; (with-current-buffer (get-buffer buffer-name)
+    ;;   (let ((inhibit-read-only t))
+    ;;     (save-excursion (goto-char (max-char))
+    ;;       (delete-char -1))))
+    ))
+
+(run-at-time "11:59pm" "11:59pm" (fn!! message-delimiter
+                                   (message "|")
+                                   (message "------------------- %s the %s -------------------"
+                                     (ts-day-name (ts-now))
+                                     (ts-day (ts-now)))
+                                   (message "|")))
+
+;; https://github.com/astoff/comint-mime
 
