@@ -136,7 +136,6 @@
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))
 
-      ;; todo: sometimes this is annoying
       (named-timer-idle-run :garbage-collect 2 t 'garbage-collect)
 
       (->> recentf-list
@@ -147,8 +146,7 @@
                      (not (s-ends-with-p "recentf" <>))
                      (f-exists-p <>))))
         (-take 6)
-        (mapc 'find-file)))
-    (message "🍇🍊🍓 Ready for action 🍌🍍🍎"))
+        (mapc 'find-file))))
 
   ;; (add-hook 'emacs-startup-hook 'ns/initial-startup-hook)
   (run-at-time 0.1 nil 'ns/initial-startup-hook))

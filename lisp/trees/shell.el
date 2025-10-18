@@ -34,6 +34,12 @@
 ;; shx is intrusive, turn on only for screenshots
 (ns/use shx (shx-global-mode 0))
 
+;; cool idea, but shx image cropping is much slicker
+(ns/use comint-mime
+  (add-hook 'shell-mode-hook 'comint-mime-setup)
+  (setq python-shell-interpreter "ipython3"
+    python-shell-interpreter-args "--simple-prompt --classic"))
+
 (ns/use shell-pop
   ;; idea: would like concurrent shell-pops
 
@@ -242,4 +248,3 @@
   (fn (when (> (org-user-idle-seconds)
               (ns/t 5m))
         (ns/cleanup-shells))))
-

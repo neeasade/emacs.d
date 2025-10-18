@@ -664,6 +664,7 @@
     (chatgpt-shell-google-load-models)
     (chatgpt-shell-ollama-load-models)
     (setq-default chatgpt-shell-model-version "claude-3-5-sonnet-latest")
+    (setq-default chatgpt-shell-system-prompt 2) ; the "programming" prompt
     (ns/bind "nf"
       (fn!! find-chatgpt-shell
         (if-let (b (first (ns/buffers-by-mode 'chatgpt-shell-mode)))

@@ -341,7 +341,6 @@
   (dotimes (i (/ (window-height) 4))
     (insert "\n"))
   (insert message)
-  ;; todo: which frame?
   (delete-other-windows)
   (special-mode)
   ;; (ns/set-buffer-face-variable)
@@ -350,12 +349,18 @@
 
   (setq-local mode-line-format nil))
 
+(named-timer-run :splash-screen
+  "1 sec"
+  (ns/t 5m)
+  (fn (when (> (org-user-idle-seconds) (ns/t 5m))
+        (ns/splash (ns/random-splash-message)))))
+(ns/splash (ns/random-splash-message))
+
 (defun! ns/random-todo ()
   ;; goto a random todo in dotfiles or emacs
   (ns/random-list (sh-lines (format "rg --no-heading --line-number todo '%s' | grep -v '\"'" (~ ".dotfiles"))))
 
   ;; inkling: should tweak follow package
-
   (defun ns/create-marker (line)
     (ns/handle-potential-file-link
       "/home/neeasade/.emacs.d/lisp/trees/staging.el:350"))
@@ -367,18 +372,12 @@
 
 (ns/use devdocs)
 
-(defun ns/log-buffer (buffer-name message)
-  "Creates a message mode buffer, puts a message there."
+(defun ns/message-buffer (buffer-name message)
+  ;; contemplating: timestamps
+  (time)
+
   (let ((messages-buffer-name buffer-name))
-    (message message)
-    ;; silly. message inserts a newline, but we need to remove it to get the
-    ;; [x times] thing on duplicate messages
-    ;;     - seems to only happen sometimes? and if not, then we're deleting the necessary newline.
-    ;; (with-current-buffer (get-buffer buffer-name)
-    ;;   (let ((inhibit-read-only t))
-    ;;     (save-excursion (goto-char (max-char))
-    ;;       (delete-char -1))))
-    ))
+    (message message)))
 
 (run-at-time "11:59pm" "11:59pm" (fn!! message-delimiter
                                    (message "|")
@@ -386,6 +385,3 @@
                                      (ts-day-name (ts-now))
                                      (ts-day (ts-now)))
                                    (message "|")))
-
-;; https://github.com/astoff/comint-mime
-
