@@ -373,9 +373,6 @@
 (ns/use devdocs)
 
 (defun ns/message-buffer (buffer-name message)
-  ;; contemplating: timestamps
-  (time)
-
   (let ((messages-buffer-name buffer-name))
     (message message)))
 
