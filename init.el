@@ -144,6 +144,7 @@
                      ;; tramp slow
                      (not (file-remote-p <>))
                      (not (s-ends-with-p "recentf" <>))
+                     (not (s-ends-with-p ".org" <>))
                      (f-exists-p <>))))
         (-take 6)
         (mapc 'find-file))))
