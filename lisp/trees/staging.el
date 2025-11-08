@@ -373,7 +373,8 @@
 (ns/use devdocs)
 
 (defun ns/message-buffer (buffer-name message)
-  (let ((messages-buffer-name buffer-name))
+  (let ((messages-buffer-name buffer-name)
+         (inhibit-message t))           ; don't show in modeline
     (message message)))
 
 (run-at-time "11:59pm" "11:59pm" (fn!! message-delimiter
