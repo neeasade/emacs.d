@@ -29,7 +29,7 @@
   ns/enable-linux-p (eq system-type 'gnu/linux)
   ns/enable-mac-p (eq system-type 'darwin)
   ns/enable-home-p (string= (getenv "USER") "neeasade")
-  ;; ns/enable-work-p ns/enable-mac-p
+  ns/enable-wsl-p (getenv "WSL_DISTRO_NAME")
   ns/enable-work-p nil
 
   ns/term? (not window-system)
@@ -266,7 +266,9 @@ if path doesn't exist, returns without trailing '/'"
       (find-file filepath))))
 
 (defun pass (key)
-  (and (which "rbw") (sh "timeout" "20" "rbw" "get" key)))
+  (cond
+    ((which "rbw") (sh "timeout" "20" "rbw" "get" key))
+    ((which "passage") (sh "passage" key))))
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."

@@ -7,7 +7,7 @@
   (find-file
     (s-replace "~" (getenv "HOME")
       (consult--read
-        (-map #'consult--fast-abbreviate-file-name files)
+        (-uniq (-map #'consult--fast-abbreviate-file-name files))
         :prompt (format "%s: " prompt)
         :sort nil
         :require-match t

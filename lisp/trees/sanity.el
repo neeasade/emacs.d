@@ -77,17 +77,12 @@
 
 (setq browse-url-browser-function 'browse-url-generic)
 
-(when ns/enable-windows-p
-  (setq browse-url-browser-function 'browse-url-default-windows-browser))
-
-(when (executable-find "qutebrowser")
-  (setq browse-url-generic-program "qutebrowser"))
-
-(when (getenv "BROWSER")
-  (setq browse-url-generic-program (getenv "BROWSER")))
-
-(when ns/enable-mac-p
-  (setq browse-url-generic-program "/Applications/Google Chrome.app/Contents/MacOS/google chrome"))
+(setq browse-url-generic-program
+  (cond
+    ((getenv "BROWSER") (getenv "BROWSER"))
+    ((which "qutebrowser") "qutebrowser")
+    (ns/enable-mac-p "/Applications/Google Chrome.app/Contents/MacOS/google chrome")
+    ((and ns/enable-wsl-p (which "explorer.exe")) "explorer.exe")))
 
 (defun ns/after-change-major-mode-hook ()
   (when (get-buffer "*scratch*")
@@ -97,7 +92,6 @@
 (add-hook 'after-change-major-mode-hook 'ns/after-change-major-mode-hook)
 
 (fset 'yes-or-no-p 'y-or-n-p)
-(fset 'which 'executable-find)
 
 ;; don't ask to kill running processes when killing a buffer.
 (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
