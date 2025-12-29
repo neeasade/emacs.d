@@ -629,6 +629,13 @@
   (defalias 'evil-window-east 'evil-window-right)
   (defalias 'evil-window-west 'evil-window-left)
 
+  ;; if these keys are reaching emacs, use em
+  (ns/inmap 'general-override-mode-map
+    (kbd "M-n") #'evil-window-down
+    (kbd "M-e") #'evil-window-up
+    (kbd "M-l") #'evil-window-right
+    (kbd "M-h") #'evil-window-left)
+
   ;; used in box
   (defun ns/string-width (s)
     ;; string-width lies?, so we divide
