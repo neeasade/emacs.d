@@ -154,15 +154,15 @@
 
 (ns/bind "nH" 'ns/helpful-or-dashdoc)
 
-(when ns/term?
+;; this works one way (emacs -> clip, not clip -> emacs)
+(ns/use clipetty
+  (global-clipetty-mode (if ns/term? t -1))) ; osc 52
 
-  ;; this works one way (emacs -> clip, not clip -> emacs)
-  (ns/use clipetty (global-clipetty-mode t)) ; osc 52
+;; (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
 
-  ;; doesn't work on kitty
-  (comment (xterm-mouse-mode 1))
+;; doesn't work on kitty
+(comment (xterm-mouse-mode 1))
 
-  (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle))
 
 (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
   (setq scroll-conservatively 101
