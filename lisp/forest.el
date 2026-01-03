@@ -101,6 +101,7 @@
     (corfu-popupinfo-mode t))
 
 
+  ;; can be removed with emacs 31
   (when ns/term?
     (ns/use corfu-terminal (corfu-terminal-mode)))
 
@@ -133,6 +134,7 @@
     (ns/use flycheck-pyflakes)))
 
 (ns/defconfig clojure
+  ;; todo: something like spc r to jack in, or open repl buffer if already connected
   (ns/use clojure-mode)
   (ns/use cider)
 
@@ -640,7 +642,13 @@
   (defun ns/string-width (s)
     ;; string-width lies?, so we divide
     (/ (string-pixel-width s)
-      (string-pixel-width "═"))))
+      (string-pixel-width "═")))
+
+  ;; dunst_logger
+  (defun ns/message-buffer (buffer-name message)
+    (let ((messages-buffer-name buffer-name)
+           (inhibit-message t))           ; don't show in modeline
+      (message message))))
 
 (ns/defconfig macos-integrations
   ;; adding the (t . emacs) so we don't open in textedit and stuff when using ns/follow
@@ -670,7 +678,8 @@
     (setq chatgpt-shell-google-key (pass "gemini_api_key"))
     (chatgpt-shell-google-load-models)
     (chatgpt-shell-ollama-load-models)
-    (setq-default chatgpt-shell-model-version "claude-3-5-sonnet-latest")
+    (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")
+
     (setq-default chatgpt-shell-system-prompt 2) ; the "programming" prompt
     (ns/bind "nf"
       (fn!! find-chatgpt-shell
@@ -759,6 +768,63 @@
   (ns/use restclient)
   (ns/use nix-mode)
   (ns/use clojure-mode))
+
+(ns/defconfig frog-jump
+  (ns/use frog-jump-buffer)
+
+  (ns/bind "u" 'frog-jump-buffer)
+  (ns/bind "U" 'frog-jump-buffer-other-window)
+
+  (setq frog-jump-buffer-default-filter
+    'frog-jump-buffer-filter-file-buffers
+    ;; 'frog-jump-buffer-filter-same-project
+    ;; 'frog-jump-buffer-filter-recentf
+    ;; 'ns/jump-file-candidates
+    )
+
+  ;; (setq frog-menu-avy-padding)
+  (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
+  (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
+  (setq frog-jump-buffer-include-current-buffer nil)
+
+  (when (fboundp 'myron-get)
+    (setq frog-jump-buffer-posframe-parameters
+      `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
+         (background-color . ,(myron-get :background :weak))
+
+         (foreground-color . ,(myron-get :primary :weak))
+         (left . 0.0)
+         )))
+
+  ;;   ;; (set-face-attribute 'avy-lead-face nil :box (myron-get :faded))
+  ;;   (set-face-attribute 'avy-lead-face nil :box nil))
+
+  (defun frog-menu-type ()
+    "Return variable `frog-menu-type' to use."
+    (if ns/term?
+      'avy-side-window
+      'avy-posframe))
+  )
+
+(ns/defconfig kkp
+  (ns/use kkp
+    (defun kkp-translate-aliased-keys (original-fun &rest args)
+      "Advise kkp--translate-terminal-input to translate keys like C-i (hard
+aliased to TAB by emacs) into novel unambiguous symbols, bindable with
+e.g. (define-key (kbd (\"<C-i>\")) ...)."
+      (let ((terminal-input (car args)))
+        ;; The KKP escape sequence for e.g. C-i is "\e[105;5u".
+        ;; The input to the translator function is the part *after* "\e[".
+        (cond ((equal terminal-input '(?1 ?0 ?5 ?\; ?5 ?u)) [C-i])
+          ((equal terminal-input '(?1 ?0 ?9 ?\; ?5 ?u)) [C-m])
+          (t (apply original-fun args)))))
+
+    ;; kkp.el maps the kkp escape prefix to a function which pops the rest of the escape sequence
+    ;; chars directly from read-event and feeds them to this function, partially sidestepping emacs'
+    ;; usual keymap system. Advise that function.
+    (advice-add 'kkp--translate-terminal-input :around #'kkp-translate-aliased-keys)
+
+    (global-kkp-mode +1)))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for

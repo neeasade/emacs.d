@@ -48,7 +48,6 @@
     `(
        server                          ; do not put this in core - elisp scripts
 
-
        corfu
        flycheck
        (dashdocs nil)
@@ -68,8 +67,8 @@
        graphviz
 
 
-       ;; llm
-       ;; whisper
+       llm
+       whisper
        )))
 
 (defun ns/conf-development ()

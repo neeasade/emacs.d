@@ -23,7 +23,6 @@
   org-default-notes-file (ns/path org-directory "notes.org")
   org-default-diary-file (ns/path org-directory "journal.org"))
 
-
 (defun ns/refresh-org-files (&optional force)
   (when (or force (eq major-mode 'org-mode))
     (setq org-agenda-files

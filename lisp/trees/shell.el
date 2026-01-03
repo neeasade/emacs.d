@@ -35,10 +35,10 @@
 (ns/use shx (shx-global-mode 0))
 
 ;; cool idea, but shx image cropping is much slicker
-(ns/use comint-mime
-  (add-hook 'shell-mode-hook 'comint-mime-setup)
-  (setq python-shell-interpreter "ipython3"
-    python-shell-interpreter-args "--simple-prompt --classic"))
+;; (ns/use comint-mime
+;;   (remove-hook 'shell-mode-hook 'comint-mime-setup)
+;;   (setq python-shell-interpreter "ipython3"
+;;     python-shell-interpreter-args "--simple-prompt --classic"))
 
 (ns/use shell-pop
   ;; idea: would like concurrent shell-pops

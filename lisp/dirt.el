@@ -36,9 +36,9 @@
   ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
   ns/emacs-directory user-emacs-directory
 
-  mac-option-modifier 'meta
-  mac-command-modifier 'super
-  mac-control-modifier 'control
+  ;; mac-option-modifier 'meta
+  ;; mac-command-modifier 'super
+  ;; mac-control-modifier 'control
   )
 
 (defun ns/message (&rest message-args)
@@ -266,7 +266,7 @@ if path doesn't exist, returns without trailing '/'"
       (find-file filepath))))
 
 (defun pass (key)
-  (and (which "rbw") (sh "rbw" "get" key)))
+  (and (which "rbw") (sh "timeout" "20" "rbw" "get" key)))
 
 (defun! ns/reload-init ()
   "Reload init.el with straight.el."
@@ -463,19 +463,3 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
       (--map (if (file-remote-p it)
                it
                (consult--fast-abbreviate-file-name it))))))
-
-(when ns/term?
-  (add-to-list 'load-path "~/.emacs.d/lisp/kitty/")
-
-  (setq kitty-kbp-modifiers-alist
-    ;; original
-    ;; '((1 . shift) (2 . alt) (4 . control) (8 . super) (16 . hyper) (32 . meta))
-    ;; swap meta and alt (get my home keyboard to work)
-    '((1 . shift) (2 . meta) (4 . control) (8 . alt) (16 . hyper) (32 . super)))
-
-  (setq kitty-kbp-delete-backspace-workaround t)
-
-  (require 'term/xterm-kitty)
-
-  ;; (terminal-init-xterm-kitty)
-  )

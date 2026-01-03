@@ -34,42 +34,6 @@
 
   (setenv "PATH" (s-join ":" exec-path)))
 
-(ns/use frog-jump-buffer
-  (ns/bind "u" 'frog-jump-buffer)
-  (ns/bind "U" 'frog-jump-buffer-other-window)
-
-  (setq frog-jump-buffer-default-filter
-    'frog-jump-buffer-filter-file-buffers
-    ;; 'frog-jump-buffer-filter-same-project
-    ;; 'frog-jump-buffer-filter-recentf
-    ;; 'ns/jump-file-candidates
-    )
-
-  ;; (setq frog-menu-avy-padding)
-  (setq frog-menu-avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))
-  (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
-  (setq frog-jump-buffer-include-current-buffer nil)
-  ;; only valid after a theme is loaded 😩
-  (comment
-    (setq frog-jump-buffer-posframe-parameters
-      `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
-         (background-color . ,(myron-get :background :weak))
-
-         (foreground-color . ,(myron-get :primary :weak))
-         (left . 0.0)
-         )))
-  )
-
-
-;;   ;; (set-face-attribute 'avy-lead-face nil :box (myron-get :faded))
-;;   (set-face-attribute 'avy-lead-face nil :box nil))
-
-(defun frog-menu-type ()
-  "Return variable `frog-menu-type' to use."
-  (if ns/term?
-    'avy-side-window
-    'avy-posframe))
-
 ;; make timestamp processing functions aware of this
 ;; (setq org-use-effective-time nil)
 
@@ -254,19 +218,7 @@
              ("integration" "integration/*")
              (:exclude ".dir-locals.el" "*-tests.el"))))
 
-;; (defvar shell-pop-internal-mode-func '(lambda () (shell)))
-;; (setq shell-pop-shell-type '("eat" "*eat*" (lambda nil (eat))))
-;; (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type)
-
-(when-not ns/term?
-  (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
-    (setq scroll-conservatively 101
-      scroll-margin 0)
-    (ultra-scroll-mode t)))
-
-;; using in python
 (ns/use smart-dash)
-
 (ns/use lorem-ipsum)
 
 (add-hook 'prog-mode-hook 'outline-minor-mode)
@@ -275,7 +227,8 @@
 (ns/use symbol-overlay (add-hook 'prog-mode-hook 'symbol-overlay-mode))
 
 ;; https://www.reddit.com/r/NixOS/comments/1aed1lf/ispell_not_working_on_emacs/
-(when-not (f-exists? (~ ".cache/aspell.dict"))
+(when (and (not (f-exists? (~ ".cache/aspell.dict")))
+        (which "aspell"))
   (f-mkdir-full-path (~ ".cache"))
   (sh "aspell -d en dump master | aspell -l en expand > ~/.cache/aspell.dict"))
 
@@ -309,7 +262,6 @@
     'remote-direct-async-process
     '((tramp-direct-async-process . t)))
 
-
   (connection-local-set-profiles
     '(:application tramp :protocol "scp")
     'remote-direct-async-process)
@@ -341,6 +293,7 @@
   (dotimes (i (/ (window-height) 4))
     (insert "\n"))
   (insert message)
+  (setq ns/splash-window-conf (current-window-configuration))
   (delete-other-windows)
   (special-mode)
   ;; (ns/set-buffer-face-variable)
@@ -367,19 +320,54 @@
 
   )
 
-(ns/inmap 'special-mode-map
-  "q" (fn!! window-revert (quit-window) (winner-undo)))
+(ns/inmap 'special-mode-map "q" (fn!! window-revert
+                                  (kill-buffer)
+                                  ;; todo: this layout is only relevant for splash, but special-mode is used in other places
+                                  (set-window-configuration ns/splash-window-conf)))
 
 (ns/use devdocs)
-
-(defun ns/message-buffer (buffer-name message)
-  (let ((messages-buffer-name buffer-name)
-         (inhibit-message t))           ; don't show in modeline
-    (message message)))
 
 (run-at-time "11:59pm" "11:59pm" (fn!! message-delimiter
                                    (message "|")
                                    (message "------------------- %s the %s -------------------"
                                      (ts-day-name (ts-now))
                                      (ts-day (ts-now)))
-                                   (message "|")))
+                                   ))
+
+(named-timer-idle-run :splash-screen (ns/t 30m) t
+  (lambda ()
+    (interactive)
+    (ns/splash (ns/random-splash-message))))
+
+(ns/use gptel
+  ;; :key can be a function that returns the API key.
+  (gptel-make-gemini "Gemini" :key (pass "gemini_api_key") :stream t)
+
+  ;; set defaults
+  (setq
+    gptel-model 'gemma3:12b
+    ;; 'gemini-2.5-pro
+    gptel-backend
+    (gptel-make-ollama "Ollama"           ;Any name of your choosing
+      :host "localhost:11434"             ;Where it's running
+      :stream t                           ;Stream responses
+      :models (->> (sh-lines "ollama list | awk '{print $1}'")
+                (-drop 1)
+                (-map 'intern))
+      ;; '(gemma3:12b gemma2:9b phi4:latest)
+      ;; '(mistral:latest)
+      )))
+
+
+(defun ns/diff-last-two-kills (&optional ediff?)
+  "Diff last couple of things in the kill-ring. With prefix open ediff."
+  (interactive "P")
+  (let ((old-buffer (generate-new-buffer " *old-kill*"))
+         (new-buffer (generate-new-buffer " *new-kill*")))
+    (with-current-buffer new-buffer
+      (insert (current-kill 0 t)))
+    (with-current-buffer old-buffer
+      (insert (current-kill 1 t)))
+    (if ediff?
+      (ediff-buffers old-buffer new-buffer)
+      (diff old-buffer new-buffer nil t))))

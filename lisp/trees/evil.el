@@ -223,7 +223,7 @@ when called interactively."
   (evil-normal-state)
   (evil-visual-restore))
 
-(ns/persist evil-markers-alist)
+; (ns/persist evil-markers-alist)
 
 ;; match qutebrowser fwd back
 (general-nmap
@@ -266,9 +266,9 @@ when called interactively."
 
 (ns/use better-jumper
   (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
-  (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
-
-  ;; (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
+  ;; (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
+  ;; term friendly:
+  (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window

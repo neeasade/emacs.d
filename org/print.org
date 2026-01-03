@@ -9,9 +9,6 @@
 #+latex_header: \usepackage{setspace}
 # #+latex_header: \onehalfspacing
 
-# #+LATEX_HEADER: \usepackage{parskip}
-# #+LATEX_HEADER: \setlength{\parindent}{12pt}
-
 # font:
 #+LATEX_HEADER: \usepackage{times}
 #+LATEX_HEADER: \usepackage[fontsize=12pt]{scrextend}

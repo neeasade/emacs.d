@@ -17,6 +17,7 @@ request
 tramp
 url
 var
+.chatgpt-shell.el
 
 ellama-sessions/*
 lisp/scratch/*

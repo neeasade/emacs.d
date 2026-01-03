@@ -97,25 +97,23 @@
              (buffer-face-mode t))
       buffers)))
 
-(defun ns/style-terminal ()
-  (when ns/term?
-    (ns/use evil-terminal-cursor-changer
-      (defun etcc--in-xterm? ()
-        "Runing in xterm."
-        (or (string= (getenv "TERM") "xterm-kitty")
-          (getenv "XTERM_VERSION")))
-      (evil-terminal-cursor-changer-activate))
+(defun! ns/style-terminal ()
+  (ns/use evil-terminal-cursor-changer
+    (defun etcc--in-xterm? ()
+      (or (string= (getenv "TERM") "xterm-kitty")
+        (getenv "XTERM_VERSION")))
+    (evil-terminal-cursor-changer-activate))
 
-    (setq-default left-margin-width 1 right-margin-width 1)
+  (setq-default
+    left-margin-width 1
+    right-margin-width 1)
 
-    (defun! ns/windows-set-margins ()
-      (-map (-rpartial 'set-window-margins left-margin-width right-margin-width)
-        (window-list)))
+  (-map (-rpartial 'set-window-margins left-margin-width right-margin-width)
+    (window-list))
 
-    (ns/windows-set-margins)
-
-    (setq flycheck-indication-mode 'left-margin)
-    (ns/face 'flycheck-error :underline nil)))
+  (setq flycheck-indication-mode 'left-margin)
+  ;; (ns/face 'flycheck-error :underline nil)
+  )
 
 (defun! ns/load-random-myron-theme ()
   (llet [theme (->> (custom-available-themes)
@@ -130,7 +128,7 @@
 (defun ns/set-evil-cursor (color)
   (and ns/term?
     (fboundp 'etcc--evil-set-cursor-color)
-    (etcc--evil-set-cursor-color))
+    (etcc--evil-set-cursor-color color))
 
   (setq evil-normal-state-cursor `(,color box)
     evil-insert-state-cursor `(,color bar)
@@ -149,6 +147,8 @@
         (ns/pick "theme")
         (intern)))
     t)
+
+  (setq ns/term? (not window-system))
 
   (ns/set-evil-cursor (face-attribute 'cursor :background))
 
@@ -211,7 +211,19 @@
             (when (fboundp f)
               (message (pr-str f))
               (funcall-interactively f)))
-      '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc ns/style-terminal))
+      '(ns/style-circe ns/style-org ns/style-markdown ns/style-adoc))
+
+    (and ns/term? (funcall-interactively 'ns/style-terminal))
+
+    (progn
+      ;; todo: check if this looks like ass in gui emacs
+      (defface my-truncation-face
+        `((t :foreground ,(myron-get :faded)
+            :weight normal))
+        "Face for line truncation indicator.")
+
+      (set-display-table-slot standard-display-table 'truncation
+        (make-glyph-code ?$ 'my-truncation-face)))
 
     (llet [cache-dir (~ ".cache/rice/")]
       (f-mkdir-full-path cache-dir)
