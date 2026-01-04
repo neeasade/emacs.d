@@ -3,12 +3,17 @@
 
 (setq-default indicate-empty-lines nil)
 
+(ns/use nerd-icons)                     ; dep of doom-modeline?
 (ns/use doom-modeline)
 
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"
           :files ("*.el" "themes/*.el"))
   (setq base16-theme-256-color-source 'colors)
   (setq myron-themes-use-cache (not ns/enable-home-p)))
+
+;; term color comparison makes this hang somehow
+(when ns/term?
+  (setq myron-themes-use-cache t))
 
 (defalias 'myron-get 'myron-themes-get) ; compat
 
@@ -126,6 +131,9 @@
     (message (ns/str "loaded " theme "!"))))
 
 (defun ns/set-evil-cursor (color)
+  ;;
+  (set-cursor-color color)
+
   (and ns/term?
     (fboundp 'etcc--evil-set-cursor-color)
     (etcc--evil-set-cursor-color color))

@@ -320,32 +320,13 @@
                                    (message "------------------- %s the %s -------------------"
                                      (ts-day-name (ts-now))
                                      (ts-day (ts-now)))
-                                   ))
+
+                                   (message "|")))
 
 (named-timer-idle-run :splash-screen (ns/t 30m) t
   (lambda ()
     (interactive)
     (ns/splash (ns/random-splash-message))))
-
-(ns/use gptel
-  ;; :key can be a function that returns the API key.
-  (gptel-make-gemini "Gemini" :key (pass "gemini_api_key") :stream t)
-
-  ;; set defaults
-  (setq
-    gptel-model 'gemma3:12b
-    ;; 'gemini-2.5-pro
-    gptel-backend
-    (gptel-make-ollama "Ollama"           ;Any name of your choosing
-      :host "localhost:11434"             ;Where it's running
-      :stream t                           ;Stream responses
-      :models (->> (sh-lines "ollama list | awk '{print $1}'")
-                (-drop 1)
-                (-map 'intern))
-      ;; '(gemma3:12b gemma2:9b phi4:latest)
-      ;; '(mistral:latest)
-      )))
-
 
 (defun ns/diff-last-two-kills (&optional ediff?)
   "Diff last couple of things in the kill-ring. With prefix open ediff."
@@ -359,3 +340,95 @@
     (if ediff?
       (ediff-buffers old-buffer new-buffer)
       (diff old-buffer new-buffer nil t))))
+
+(ns/use typescript-mode)
+(ns/use vue-mode)
+
+(comment
+  (progn
+    (ns/use gptel)
+
+    (setq
+      gptel-default-mode 'org-mode
+      gptel-model 'claude-sonnet-4-5-20250929
+      gptel-backend (gptel-make-anthropic "Claude"
+                      :stream t :key
+                      chatgpt-shell-anthropic-key
+                      ;; "replace_me"
+                      )))
+
+  )
+
+
+
+(progn
+  ;; current style tweaks
+  (ns/face 'mmm-default-submode-face :background nil)
+  )
+
+(ns/use aidermacs
+  ;; :bind (("C-c a" . aidermacs-transient-menu))
+  ;; ; Set API_KEY in .bashrc, that will automatically picked up by aider or in elisp
+  (setenv "ANTHROPIC_API_KEY" (pass "anthropic-api-key-jack"))
+  ;; See the Configuration section below
+  (setq aidermacs-default-chat-mode 'architect)
+  (setq aidermacs-default-model "opus")
+  )
+
+
+(comment
+  ;; as a reminder to try later (prettier)
+  ;; nb: for vue this seems aggressively wrong (or at least, disagrees with the vscode interpretation)
+  (ns/use apheleia)
+
+  )
+
+;; todo: checkout
+;; https://github.com/8uff3r/vue-ts-mode
+(comment
+  (setq treesit-language-source-alist
+    '((vue "https://github.com/ikatyang/tree-sitter-vue")
+       (css "https://github.com/tree-sitter/tree-sitter-css"
+         )
+
+       (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+         "master" "tsx/src"
+         )))
+
+  (treesit-install-language-grammar 'vue)
+  (treesit-install-language-grammar 'typescript)
+
+  (-map 'treesit-install-language-grammar '(vue css typescript))
+
+  (ns/use (vue-ts-mode :type git :host github :repo "8uff3r/vue-ts-mode" :files ("*.el")))
+  )
+
+(when ns/enable-wsl-p
+  ;; tabs
+  (llet [desired-count 4
+          diff (max 0 (- desired-count (length (tab-bar-tabs))))]
+    (dotimes (_ diff)
+      (tab-bar-new-tab))))
+
+;; while flipping between vscode and here
+(global-auto-revert-mode t)
+
+;; aggressive
+;; (ns/use web-mode)
+;; todo: consider buffer-terminaen
+
+(setq create-lockfiles nil)
+
+(when ns/term?
+  ;; windows terminal: C-<backspace>
+  ;; (general-define-key
+  ;;   :states '(insert)
+  ;;   :keymaps 'general-override-mode-map
+  ;;   (kbd "C-h") 'sp-backward-delete-word
+  ;;   )
+
+  (defun ns/sync-wsl-clipboard ()
+    (when (frame-focus-state)
+      (kill-new (s-trim (shell-command-to-string "wl-paste")))))
+
+  (add-function :after after-focus-change-function #'ns/sync-wsl-clipboard))

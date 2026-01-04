@@ -158,11 +158,10 @@
 (ns/use clipetty
   (global-clipetty-mode (if ns/term? t -1))) ; osc 52
 
-;; (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
-
-;; doesn't work on kitty
-(comment (xterm-mouse-mode 1))
-
+(when (and ns/term?
+        (not ns/kitty?))
+  (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
+  (xterm-mouse-mode 1))
 
 (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
   (setq scroll-conservatively 101
