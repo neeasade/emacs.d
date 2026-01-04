@@ -22,18 +22,6 @@
 ;;         '((:auto-group t))))
 ;;   (org-agenda-list))
 
-(when ns/enable-work-p
-  ;; somehow initialize is broken in macos at the moment
-  (setq exec-path
-    (--> (exec-path-from-shell-initialize)
-      (second it)
-      (cdr it)
-      (s-split ":" it)
-      (-snoc it (~ ".nix-profile/bin/"))
-      (-snoc it "/run/current-system/sw/bin")))
-
-  (setenv "PATH" (s-join ":" exec-path)))
-
 ;; make timestamp processing functions aware of this
 ;; (setq org-use-effective-time nil)
 

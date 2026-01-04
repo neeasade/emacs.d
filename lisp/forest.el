@@ -149,8 +149,7 @@
   (ns/inmap 'cider-repl-mode-map (kbd "C-n") 'cider-repl-next-input)
 
   ;; https://docs.cider.mx/cider/caveats.html#_injecting_dependencies_and_leiningen_pedantic_abort_mode
-  (when ns/enable-work-p
-    (setq cider-inject-dependencies-at-jack-in nil))
+  ;; (setq cider-inject-dependencies-at-jack-in nil)
 
   (setq cljr-suppress-middleware-warnings t)
 
