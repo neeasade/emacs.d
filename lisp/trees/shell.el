@@ -21,8 +21,7 @@
 
 ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
 (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
-(setq comint-buffer-maximum-size 2000)
-(setq comint-prompt-read-only t)
+
 
 (ns/inmap
   'comint-mode-map
@@ -115,9 +114,12 @@
 
   (add-function :after
     (process-sentinel (get-buffer-process (current-buffer)))
-    #'ns/monitor-exit-sentinel))
+    #'ns/monitor-exit-sentinel)
+
+  (setq-local comint-buffer-maximum-size 2000))
 
 (add-hook 'shell-mode-hook 'ns/shell-mode-init)
+(setq comint-prompt-read-only t)
 
 (add-to-list 'display-buffer-alist
   (cons (regexp-quote "*spawn-shell-staged*")
