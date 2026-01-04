@@ -637,6 +637,14 @@
     (kbd "M-l") #'evil-window-right
     (kbd "M-h") #'evil-window-left)
 
+  (ns/inmap 'general-override-mode-map
+    (kbd "M-i") (fn!! switch-one (tab-bar-select-tab 1))
+    (kbd "M-o") (fn!! switch-two (tab-bar-select-tab 2))
+    (kbd "M-u") (fn!! switch-three (tab-bar-select-tab 3))
+    (kbd "M-1") (fn!! switch-one (tab-bar-select-tab 1))
+    (kbd "M-2") (fn!! switch-two (tab-bar-select-tab 2))
+    (kbd "M-3") (fn!! switch-three (tab-bar-select-tab 3)))
+
   ;; used in box
   (defun ns/string-width (s)
     ;; string-width lies?, so we divide
