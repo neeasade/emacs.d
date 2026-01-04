@@ -67,6 +67,7 @@
 ;; cursor
 (show-paren-mode 1)
 (blink-cursor-mode 0)
+(setq visible-cursor nil)
 
 ;; custom
 (defconst custom-file (~e "custom.el"))
