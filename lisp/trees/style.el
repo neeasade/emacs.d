@@ -117,6 +117,10 @@
     (window-list))
 
   (setq flycheck-indication-mode 'left-margin)
+
+  ;; OSC code sync background color (padding)
+  (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))
+
   ;; (ns/face 'flycheck-error :underline nil)
   )
 
