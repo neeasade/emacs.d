@@ -206,8 +206,8 @@
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
-  ;; testing, lighter emphasis on codeblocks
-  (ns/face 'org-block :background (ct-lessen (myron-get :background) 3))
+  (ns/face 'mmm-default-submode-face :background nil)
+  (ns/face 'org-block :background (myron-get :subtle :meta))
 
   (when (and (called-interactively-p 'any)
           (not (getenv "NS_EMACS_BATCH")))

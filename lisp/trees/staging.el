@@ -31,8 +31,8 @@
 (defun! ns/toggle-modeline ()
   "toggle the modeline in the current buffer"
   (setq mode-line-format
-    (if mode-line-format
-      nil '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
+    (if mode-line-format nil
+      '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
   (redraw-frame))
 
 (ns/bind "tm" 'ns/toggle-modeline)
@@ -96,20 +96,11 @@
 (setq native-comp-async-report-warnings-errors nil)
 
 (defadvice flycheck-error-list-refresh (around shrink-error-list activate)
-  ;; ?
-  ;; ad-do-it
   (-when-let (window (flycheck-get-error-list-window t))
     (with-selected-window window
       (fit-window-to-buffer window 30))))
 
 (setq server-window 'pop-to-buffer)
-
-(defun ns/org-open-region-as-pdf ()
-  ;; render region with org defaults, open in pdf program to consider printing
-  (ns/mustache (slurp (~e "org/print.org"))
-    (-ht :content (if (region-active-p)
-                    (buffer-substring (region-beginning) (region-end))
-                    (buffer-string)))))
 
 (defun! ns/org-pomodoro-short-break ()
   (ns/org-clock-out)
@@ -127,20 +118,6 @@
     (run-hooks 'org-pomodoro-finished-hook)
     (setq org-pomodoro-long-break-length duration)
     (org-pomodoro-start :long-break)))
-
-;; one day
-;; (ns/use org-roam)
-
-(named-timer-run :angy-self
-  0 5
-  (fn (when (org-clock-is-active)
-        (llet [work-pomo? (and (s-contains? "pomo" org-clock-heading)
-                            (s-contains? "work" org-clock-heading))
-                active? (< (org-user-idle-seconds) 10)]
-          (when (and work-pomo? active?)
-            (--map (alert (ns/str "😠" it))
-              (-iota 15)))))))
-
 
 (defun! ns/generate-myron-cache ()
   (llet [cache (--mapcat (progn (ns/load-theme (intern (format "myron-%s" it)))
@@ -176,16 +153,6 @@
   (when-not (re-search-forward (concat "^\\* \n" (regexp-quote heading)) nil t)
     (goto-char (point-max))
     (insert "\n* " heading)))
-
-(defun! ns/start-pomodoro ()
-  "Declare a pomodoro."
-  ;; todo: clock cleanup, cancel pomo status?
-  (llet [intent (s-trim (read-string "Pomodoro purpose: "))]
-    (with-current-buffer (find-file-noselect (f-join (f-parent org-default-notes-file) "pomodoro.org"))
-      (ns/add-heading-if-not-exists intent)
-      (org-pomodoro))))
-
-(ns/bind "op" 'ns/start-pomodoro)
 
 ;; this is only enforced after the printing is done? feels useless
 (setq cider-print-quota 50000)
@@ -305,13 +272,17 @@
   (defun ns/create-marker (line)
     (ns/handle-potential-file-link
       "/home/neeasade/.emacs.d/lisp/trees/staging.el:350"))
-
   )
 
 (ns/inmap 'special-mode-map "q" (fn!! window-revert
                                   (kill-buffer)
                                   ;; todo: this layout is only relevant for splash, but special-mode is used in other places
-                                  (set-window-configuration ns/splash-window-conf)))
+                                  (winner-undo)
+                                  ;; (set-window-configuration ns/splash-window-conf)
+                                  ))
+
+;; todo: derive a splash mode from special mode (annoying to have it work on drawer popups)
+;; (ns/inmap 'special-mode-map "q" (fn!! window-revert (quit-window) (winner-undo)))
 
 (ns/use devdocs)
 
@@ -320,7 +291,6 @@
                                    (message "------------------- %s the %s -------------------"
                                      (ts-day-name (ts-now))
                                      (ts-day (ts-now)))
-
                                    (message "|")))
 
 (named-timer-idle-run :splash-screen (ns/t 30m) t
@@ -341,30 +311,14 @@
       (ediff-buffers old-buffer new-buffer)
       (diff old-buffer new-buffer nil t))))
 
-(ns/use typescript-mode)
-(ns/use vue-mode)
 
-(comment
-  (progn
-    (ns/use gptel)
+(comment ns/use gptel
+  (setq
+    gptel-default-mode 'org-mode
+    gptel-model 'claude-sonnet-4-5-20250929
+    gptel-backend (gptel-make-anthropic "Claude"
+                    :stream t :key chatgpt-shell-anthropic-key)))
 
-    (setq
-      gptel-default-mode 'org-mode
-      gptel-model 'claude-sonnet-4-5-20250929
-      gptel-backend (gptel-make-anthropic "Claude"
-                      :stream t :key
-                      chatgpt-shell-anthropic-key
-                      ;; "replace_me"
-                      )))
-
-  )
-
-
-
-(progn
-  ;; current style tweaks
-  (ns/face 'mmm-default-submode-face :background nil)
-  )
 
 (ns/use aidermacs
   ;; :bind (("C-c a" . aidermacs-transient-menu))
@@ -376,32 +330,6 @@
   )
 
 
-(comment
-  ;; as a reminder to try later (prettier)
-  ;; nb: for vue this seems aggressively wrong (or at least, disagrees with the vscode interpretation)
-  (ns/use apheleia)
-
-  )
-
-;; todo: checkout
-;; https://github.com/8uff3r/vue-ts-mode
-(comment
-  (setq treesit-language-source-alist
-    '((vue "https://github.com/ikatyang/tree-sitter-vue")
-       (css "https://github.com/tree-sitter/tree-sitter-css"
-         )
-
-       (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
-         "master" "tsx/src"
-         )))
-
-  (treesit-install-language-grammar 'vue)
-  (treesit-install-language-grammar 'typescript)
-
-  (-map 'treesit-install-language-grammar '(vue css typescript))
-
-  (ns/use (vue-ts-mode :type git :host github :repo "8uff3r/vue-ts-mode" :files ("*.el")))
-  )
 
 (when ns/enable-wsl-p
   ;; tabs
@@ -410,16 +338,19 @@
     (dotimes (_ diff)
       (tab-bar-new-tab))))
 
+
+(setq tab-bar-separator " ")
+
 ;; while flipping between vscode and here
 (global-auto-revert-mode t)
 
 ;; aggressive
 ;; (ns/use web-mode)
-;; todo: consider buffer-terminaen
+;; todo: consider buffer-terminator
 
 (setq create-lockfiles nil)
 
-(when ns/term?
+(when (and ns/term? (which "wl-paste"))
   ;; windows terminal: C-<backspace>
   ;; (general-define-key
   ;;   :states '(insert)
@@ -432,3 +363,47 @@
       (kill-new (s-trim (shell-command-to-string "wl-paste")))))
 
   (add-function :after after-focus-change-function #'ns/sync-wsl-clipboard))
+
+;; corfu is broken due to normalizing keymaps somehow
+;; (remove-hook 'completion-in-region-mode-hook #'evil-normalize-keymaps)
+;; (evil-make-overriding-map corfu-map)
+
+
+(ns/use typescript-mode)
+(ns/use vue-mode)
+
+(comment
+
+  ;; as a reminder to try later (prettier)
+  ;; nb: for vue this seems aggressively wrong (or at least, disagrees with the vscode interpretation)
+  (ns/use apheleia)
+
+  ;; todo: try this w/ eglot
+  (add-to-list 'eglot-server-programs
+	  '(vue-ts-mode . ("vue-language-server" "--stdio" :initializationOptions '(:vue (:hybridMode :json-false)))))
+
+  (ns/use tree-sitter-langs)
+
+  ;; todo: checkout
+  ;; https://github.com/8uff3r/vue-ts-mode
+  (comment
+    (setq treesit-language-source-alist
+      '((vue "https://github.com/ikatyang/tree-sitter-vue")
+         (css "https://github.com/tree-sitter/tree-sitter-css")
+         (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+           "master" "tsx/src"
+           )))
+
+    (treesit-install-language-grammar 'vue)
+
+    (treesit-install-language-grammar 'typescript)
+
+    (-map 'treesit-install-language-grammar '(vue css typescript))
+
+    (ns/use (vue-ts-mode :type git :host github :repo "8uff3r/vue-ts-mode" :files ("*.el")))
+
+    )
+
+
+
+  )

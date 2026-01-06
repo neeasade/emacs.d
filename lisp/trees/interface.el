@@ -160,8 +160,15 @@
 
 (when (and ns/term?
         (not ns/kitty?))
+
   (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
-  (xterm-mouse-mode 1))
+
+  (xterm-mouse-mode 1)
+
+  ;; scroll 5 lines at a time
+  (setq mouse-wheel-scroll-amount
+    '(5 ((shift) . hscroll) ((meta)) ((control meta) . global-text-scale)
+       ((control) . text-scale))))
 
 (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
   (setq scroll-conservatively 101

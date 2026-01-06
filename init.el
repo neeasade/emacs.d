@@ -48,6 +48,8 @@
     `(
        server                          ; do not put this in core - elisp scripts
 
+       (kkp ns/kitty?)
+
        corfu
        flycheck
        (dashdocs nil)
@@ -65,7 +67,6 @@
        (filehooks ns/enable-home-p)
        (macos-integrations ns/enable-mac-p)
        graphviz
-
 
        llm
        whisper

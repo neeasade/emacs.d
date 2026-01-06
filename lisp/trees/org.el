@@ -544,6 +544,14 @@
   (org-clock-in)
   (save-buffer))
 
+(defun! ns/start-pomodoro ()
+  "Declare a pomodoro."
+  ;; todo: clock cleanup, cancel pomo status?
+  (llet [intent (s-trim (read-string "Pomodoro purpose: "))]
+    (with-current-buffer (find-file-noselect (f-join (f-parent org-default-notes-file) "pomodoro.org"))
+      (ns/add-heading-if-not-exists intent)
+      (org-pomodoro))))
+
 (ns/bind
   "oo" (fn!! goto-notes  (let* ((buffer-file-name (buffer-file-name))
                                  (project-notes (if buffer-file-name
@@ -575,9 +583,7 @@
   ;; trash? idk
   "ot" 'org-archive-subtree
 
-  ;; this is just a nice homerow roll on my layout
-  "oi" 'ns/org-clock-in
-  "oI" 'ns/org-clock-out
+  "op" 'ns/start-pomodoro
 
   ;; org-ql-find should popup preview of heading
   "no" (fn!! org-ql-notes
@@ -593,10 +599,14 @@
            (ns/capture-current-region)
            (ns/capture-current-subtree)))
 
+  ;; this is just a nice homerow roll on my layout
+  "oi" 'ns/org-clock-in
+  "oI" 'ns/org-clock-out
+
   ;; "org move"
   "om" 'org-refile
 
-  "op" 'org-pomodoro
+  ;; "op" 'org-pomodoro
 
   ;; query org element
   "qo" (fn!! org-query (-> (point) org-ml-parse-element-at org-ml-get-type pr-str message)))
