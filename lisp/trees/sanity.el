@@ -121,30 +121,6 @@
     (progn (profiler-report) (profiler-stop))
     (profiler-cpu-start profiler-sampling-interval)))
 
-(defun! ns/proced-init ()
-  ;; note: default update rate is 5 seconds
-  ;; (proced-toggle-auto-update)
-  (message "we are reaching here")
-  (delete-other-windows))
-
-;; (advice-remove 'proced-mode #'ns/proced-init)
-(advice-add 'proced-mode :after #'ns/proced-init)
-
-;; (add-hook 'proced-mode-hook 'ns/proced-init)
-(remove-hook 'proced-mode-hook 'ns/proced-init)
-
-;; (remove-hook 'proced-mode-hook 'ns/proced-init)
-
-(defun p-proced-format-args (oldformat &rest args)
-  (let ((args (mapcar (lambda (arg)
-                        (replace-regexp-in-string "/nix/store/[^/]+"
-                          "{nix}"
-                          arg))
-                args)))
-    (apply oldformat args)))
-
-(advice-add #'proced-format-args :around #'p-proced-format-args)
-
 (defun ns/media-playing-p ()
   (defun ns/sh-has-content-p (cmd)
     (-> cmd sh s-blank-p not))
