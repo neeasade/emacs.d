@@ -67,41 +67,6 @@
           new-size (read-number (format "new size (current-size: %s): " current-size))]
     (ns/face 'default :height (* 10 new-size))))
 
-(defun ns/parse-font (font)
-  "translate 'Font Family-10' into emacs font information"
-  (llet [font (s-replace "-" " " font)
-          size (first (s-match (pcre-to-elisp " [0-9]+") font))
-          family (s-replace size "" font)]
-    `(:family ,family :height ,(* 10 (string-to-number size)))))
-
-(defun ns/set-faces-variable (faces)
-  (apply 'ns/face faces
-    (ns/parse-font (get-resource "font.variable-big.spec"))))
-
-(defun ns/set-faces-monospace (faces)
-  (apply 'ns/face faces
-    (ns/parse-font (get-resource "font.mono.spec"))))
-
-(defun ns/set-buffers-face-variable (buffers)
-  (llet [font (ns/parse-font (get-resource "font.variable-big.spec"))]
-    (--map (with-current-buffer it
-             (setq-local buffer-face-mode-face font)
-             (buffer-face-mode t))
-      buffers)))
-
-(defun! ns/set-buffer-face-variable (&optional buffer)
-  (ns/set-buffers-face-variable (list (or buffer (current-buffer)))))
-
-(defun! ns/set-buffer-face-monospace (&optional buffer)
-  (ns/set-buffers-face-monospace (list (or buffer (current-buffer)))))
-
-(defun ns/set-buffers-face-monospace (buffers)
-  (llet [font (ns/parse-font (get-resource "font.mono.spec"))]
-    (--map (with-current-buffer it
-             (setq-local buffer-face-mode-face font)
-             (buffer-face-mode t))
-      buffers)))
-
 (defun! ns/style-terminal ()
   (ns/use evil-terminal-cursor-changer
     (defun etcc--in-xterm? ()

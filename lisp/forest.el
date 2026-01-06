@@ -333,13 +333,6 @@
     :keymaps 'markdown-mode-map
     (kbd "<tab>") 'markdown-cycle)
 
-  (defun ns/style-markdown ()
-    (ns/set-faces-monospace '(markdown-code-face markdown-comment-face))
-
-    (when (called-interactively-p 'any)
-      (ns/set-buffers-face-variable (ns/buffers-by-mode 'markdown-mode))))
-
-  (add-hook 'markdown-mode-hook 'ns/set-buffer-face-variable)
   (add-hook 'markdown-mode-hook 'markdown-toggle-fontify-code-blocks-natively))
 
 (ns/defconfig restclient
@@ -548,14 +541,7 @@
 
 (ns/defconfig adoc
   (ns/use adoc-mode)
-  (ns/use ox-asciidoc)
-
-  (defun ns/style-adoc ()
-    (ns/set-faces-monospace '(adoc-code-face adoc-comment-face))
-    (when (called-interactively-p 'any)
-      (ns/set-buffers-face-variable (ns/buffers-by-mode 'adoc-mode))))
-
-  (add-hook 'adoc-mode-hook 'ns/set-buffer-face-variable))
+  (ns/use ox-asciidoc))
 
 (ns/defconfig resources
   (setq ns/resource-table
@@ -573,7 +559,7 @@
     (ht-get ns/resource-table name))
 
   (defun ns/update-resource-font (key font)
-    "Update the fallback font for xrdb value"
+    "if FONT exists, set it on resource table"
     (when (and font (not (s-blank-p font))
             (find-font (font-spec :name font)))
       (ht-set ns/resource-table key font)

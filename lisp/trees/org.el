@@ -466,9 +466,6 @@
 (defun ns/org-mode-hook ()
   (interactive)
 
-  (and (functionp 'ns/set-buffer-face-variable)
-    (ns/set-buffer-face-variable))
-
   (olivetti-mode)
   (git-gutter-mode 0)
   (flyspell-mode 0)
@@ -495,16 +492,6 @@
 (add-hook 'org-mode-hook 'ns/org-mode-hook)
 
 (defun! ns/style-org ()
-  (ns/set-faces-monospace '(org-block
-                             org-code
-                             org-checkbox
-                             org-table
-                             org-macro
-                             org-formula
-                             org-verbatim
-                             org-block-begin-line
-                             org-block-end-line))
-
   ;; smol
   (ns/face '(org-block-begin-line org-block-end-line) :height 65)
   (ns/face 'org-ellipsis :underline nil)
@@ -522,7 +509,8 @@
               :height (+ (face-attribute 'default :height) height-mod)))))
 
   (when (called-interactively-p 'any)
-    (ns/set-buffers-face-variable (ns/buffers-by-mode 'org-mode))))
+    ;; (ns/set-buffers-face-variable (ns/buffers-by-mode 'org-mode))
+    ))
 
 (defun! ns/org-print-setup ()
   (llet [text (if (use-region-p)
