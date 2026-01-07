@@ -25,7 +25,6 @@
 (defun ns/conf-core ()
   (ns/summon
     `(
-       resources
        sanity
        evil
 
@@ -116,7 +115,10 @@
   (ns/conf-core)
 
   (ns/conf-style)
-  (funcall-interactively 'ns/load-theme (intern (get-resource "emacs.theme")))
+  (funcall-interactively 'ns/load-theme (intern (or (llet [f (~ ".cache/rice/emacs-theme-name")]
+                                                      (and (f-exists? f)
+                                                        (slurp f)))
+                                                  "myron-mcfay")))
 
   (ns/conf-extra)
   (ns/conf-development)

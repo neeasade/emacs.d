@@ -167,7 +167,7 @@
   (->> `(internal-border-width ,(if ns/enable-home-p 0 10)
           right-divider-width ,(default-font-width)
           bottom-divider-width 0
-          font ,(get-resource "font.mono.spec"))
+          font "Go Mono-14")
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 

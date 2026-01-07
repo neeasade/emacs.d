@@ -543,52 +543,7 @@
   (ns/use adoc-mode)
   (ns/use ox-asciidoc))
 
-(ns/defconfig resources
-  (setq ns/resource-table
-    (let ((default-font (-when-let (dfont (face-attribute 'default :font))
-                          (when-not (eq 'unspecified dfont)
-                            (font-get dfont :name)))))
-      (-ht
-        "panel.height" "24"
-        "emacs.theme" "myron-mcfay"
-        "font.mono.spec" default-font
-        ;; "font.variable.spec" default-font
-        "font.variable-big.spec" default-font)))
 
-  (defun get-resource (name)
-    (ht-get ns/resource-table name))
-
-  (defun ns/update-resource-font (key font)
-    "if FONT exists, set it on resource table"
-    (when (and font (not (s-blank-p font))
-            (find-font (font-spec :name font)))
-      (ht-set ns/resource-table key font)
-      t))
-
-  (defun ns/refresh-resources ()
-    (interactive)
-    (if (which "theme")
-      (--map (ht-set ns/resource-table it
-               (sh (format "theme -q '%s' 2>/dev/null" it)))
-        (ht-keys ns/resource-table))
-      (progn
-        (-first (-partial 'ns/update-resource-font "font.mono.spec")
-          (--map (format "%s-14" it)
-            '("Go Mono"
-               "Menlo"
-               "Source Code Pro"
-               "Noto Sans Mono"
-               "Lucida Console"
-               "Dejavu Sans Mono")))
-        (-first (-partial 'ns/update-resource-font "font.variable-big.spec")
-          (--map (format "%s-14" it)
-            '("Charter"
-               "Noto Serif"
-               "Lucida Console"
-               "Dejavu Sans"
-               "Menlo"))))))
-
-  (ns/refresh-resources))
 
 (ns/defconfig rice-integrations
   (defun ns/make-border-color (c)
