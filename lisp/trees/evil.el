@@ -98,32 +98,34 @@ when called interactively."
     (apply 'evil-collection-translate-key 'normal
       (->> mode-keymaps
         (--remove (eq it 'magit-status-mode-map))
+        ;; (--remove (eq it 'corfu-mode-map))
         (--remove (eq it 'magit-log-mode-map)))
-      ns/evil-collection-keys))
+      ns/evil-collection-keys)
+
+    )
 
   (add-hook 'evil-collection-setup-hook #'ns/nek-rotation)
+
   (evil-collection-init))
 
 (defun ns/zz-scroll (&rest _)
-  (when (and (not (-contains-p '(circe-channel-mode circe-query-mode shell-mode) major-mode)))
+  (when-not (-contains-p '(circe-channel-mode circe-query-mode shell-mode) major-mode)
     ;; lift the gaze a little
     (when (> (line-number-at-pos) 6)
       (condition-case nil
         (scroll-up 6)
         (error nil)))))
 
-;; (defun ns/zz-scroll (&rest _))
-
+;; somehow this handles cursor stuff terribly
 (advice-add #'recenter :after #'ns/zz-scroll)
 
 ;; for reference, alteratively tried:
 ;; https://github.com/noctuid/general.el#mapping-under-non-prefix-keys
 ;; but it's very laggy/intensive by comparison (measured in the profiler)
-(setq-default evil-escape-key-sequence "tn")
-
 ;; note: https://github.com/emacs-evil/evil/commit/0ad84c52169068021ec3372bf52503631f2261de
 ;; breaks tn in macro use, you removed the (let (pre-command-hook post-command-hook)) in evil.el
 (ns/use (evil-escape :host github :repo "emacsorphanage/evil-escape")
+  (setq-default evil-escape-key-sequence "tn")
   (evil-escape-mode))
 
 (defun set-in-evil-states (key def maps)

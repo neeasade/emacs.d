@@ -5,7 +5,7 @@
 (require 'org-habit)
 (require 'org-tempo)
 
-(ns/use (org-ml :host github :repo "ndwarshuis/org-ml" :files ("*.el") :branch "update_org_9_7"))
+(ns/use org-ml)
 
 (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
 
@@ -466,7 +466,7 @@
 (defun ns/org-mode-hook ()
   (interactive)
 
-  (olivetti-mode)
+  ;; (olivetti-mode)
   (git-gutter-mode 0)
   (flyspell-mode 0)
 

@@ -2,6 +2,8 @@
 ;; nb: main entrypoint here is ns/load-theme
 
 (setq-default indicate-empty-lines nil)
+(setq tab-bar-separator " ")
+
 
 (ns/use nerd-icons)                     ; dep of doom-modeline?
 (ns/use doom-modeline)
@@ -83,7 +85,6 @@
 
   (setq flycheck-indication-mode 'left-margin)
 
-  ;; OSC code sync background color (padding)
   (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))
 
   ;; (ns/face 'flycheck-error :underline nil)
@@ -115,7 +116,6 @@
   (ns/kill-buffers-no-file)
 
   (-map 'disable-theme custom-enabled-themes)
-  (ns/refresh-resources)
 
   (load-theme
     (or theme
@@ -171,7 +171,6 @@
     (-partition 2)
     (-map (-applify #'ns/frame-set-parameter)))
 
-  (ns/face 'mmm-default-submode-face :background nil)
   (ns/face 'org-block :background (myron-get :subtle :meta))
 
   (when (and (called-interactively-p 'any)

@@ -212,8 +212,11 @@
   "1 sec"
   (ns/t 5m)
   (fn (when (> (org-user-idle-seconds) (ns/t 5m))
-        (ns/splash (ns/random-splash-message)))))
-(ns/splash (ns/random-splash-message))
+        nil
+        ;; (ns/splash (ns/random-splash-message))
+        )))
+
+;; (ns/splash (ns/random-splash-message))
 
 (defun! ns/random-todo ()
   ;; goto a random todo in dotfiles or emacs
@@ -280,17 +283,10 @@
   (setq aidermacs-default-model "opus")
   )
 
-
-
-(when ns/enable-wsl-p
-  ;; tabs
-  (llet [desired-count 4
-          diff (max 0 (- desired-count (length (tab-bar-tabs))))]
-    (dotimes (_ diff)
-      (tab-bar-new-tab))))
-
-
-(setq tab-bar-separator " ")
+(llet [desired-count 3
+        diff (max 0 (- desired-count (length (tab-bar-tabs))))]
+  (dotimes (_ diff)
+    (tab-bar-new-tab)))
 
 ;; while flipping between vscode and here
 (global-auto-revert-mode t)
@@ -302,26 +298,34 @@
 (setq create-lockfiles nil)
 
 (when (and ns/term? (which "wl-paste"))
+  (defun ns/sync-wsl-clipboard ()
+    (when (frame-focus-state)
+      (kill-new (sh "wl-paste | dos2unix"))))
+
+  (add-function :after after-focus-change-function #'ns/sync-wsl-clipboard)
+
   ;; windows terminal: C-<backspace>
   ;; (general-define-key
   ;;   :states '(insert)
   ;;   :keymaps 'general-override-mode-map
   ;;   (kbd "C-h") 'sp-backward-delete-word
   ;;   )
-
-  (defun ns/sync-wsl-clipboard ()
-    (when (frame-focus-state)
-      (kill-new (s-trim (shell-command-to-string "wl-paste")))))
-
-  (add-function :after after-focus-change-function #'ns/sync-wsl-clipboard))
+  )
 
 ;; corfu is broken due to normalizing keymaps somehow
 ;; (remove-hook 'completion-in-region-mode-hook #'evil-normalize-keymaps)
 ;; (evil-make-overriding-map corfu-map)
 
-
 (ns/use typescript-mode)
 (ns/use vue-mode)
+
+(defun! ns/shell-show ()
+  ;; todo: split windows in some nice fashion
+  (ns/cleanup-shells)
+  (ns/buffers-by-mode 'shell-mode)
+
+  ;; (balance-windows)
+  )
 
 (comment
 
@@ -353,8 +357,6 @@
 
     (ns/use (vue-ts-mode :type git :host github :repo "8uff3r/vue-ts-mode" :files ("*.el")))
 
-    )
+    ))
 
-
-
-  )
+(ns/face 'mmm-default-submode-face :background nil)
