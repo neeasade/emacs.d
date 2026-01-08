@@ -300,7 +300,8 @@
 (when (and ns/term? (which "wl-paste"))
   (defun ns/sync-wsl-clipboard ()
     (when (frame-focus-state)
-      (kill-new (sh "wl-paste | dos2unix"))))
+      (when-let (clip (sh "wl-paste | dos2unix") )
+        (kill-new clip ))))
 
   (add-function :after after-focus-change-function #'ns/sync-wsl-clipboard)
 
