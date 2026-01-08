@@ -85,21 +85,28 @@
 (ns/defconfig corfu
   (ns/use (corfu :host github :repo "minad/corfu" :files ("*.el" "extensions/*.el"))
     (setq tab-always-indent 'complete)
-
     (setq
       corfu-quit-no-match 'separator
       corfu-auto t
       ;; corfu-auto-delay 0.1
       )
 
-    (apply 'evil-collection-translate-key 'insert '(corfu-map) ns/evil-collection-keys)
-
     (global-corfu-mode t)
+
+    (ns/inmap 'corfu-map (kbd "C-e") 'corfu-previous)
 
     (require 'corfu-popupinfo)
     (setq corfu-popupinfo-delay '(0.2 . 0.1))
     (corfu-popupinfo-mode t))
 
+  ;; sanity
+  (defun corfu-safe-complete (fn &rest args)
+    "Make corfu-complete safer by checking candidates first."
+    (if (not corfu--candidates)
+      (message "No completion candidates available")
+      (apply fn args)))
+
+  (advice-add 'corfu-complete :around #'corfu-safe-complete)
 
   ;; can be removed with emacs 31
   (when ns/term?

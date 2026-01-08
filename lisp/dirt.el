@@ -398,7 +398,8 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
   (named-timer-idle-run :persist-save (* 60 5) t 'persist--save-all))
 
 (defun ns/face (faces &rest kvs)
-  (--map (apply 'set-face-attribute it nil kvs)
+  (--map (if (facep it) (apply 'set-face-attribute it nil kvs)
+           (message (ns/str "ns/face: face not found! " it)))
     (-list faces)))
 
 (ns/use alert
