@@ -326,13 +326,17 @@
                   ;; (sh "wl-paste | dos2unix")
                   )
         ;; (message (ns/str "killing " clip))
-        (kill-new clip))))
+      ))
 
   (add-function :after after-focus-change-function #'ns/sync-terminal-clipboard)
 
   ;; (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
 
   ;; get C-<backspace> in the windows terminal
+  ;; temp workaround: focus stealing sometimes doesn't work - dtach thing?
+  (ns/bind "ip" (fn!! paste-gui (insert (sh "wl-paste | dos2unix"))))
+
+  ;; windows terminal: C-<backspace>
   ;; (general-define-key
   ;;   :states '(insert)
   ;;   :keymaps 'general-override-mode-map
