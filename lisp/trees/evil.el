@@ -269,11 +269,12 @@ when called interactively."
 (ns/use better-jumper
   (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
 
-  ;; term
-  (if (and ns/term? (not ns/kitty?))
-    (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
-    (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward))
+  (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
 
+  ;; term
+  ;; (if (and ns/term? (not ns/kitty?))
+  ;;   (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
+  ;;   (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward))
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window

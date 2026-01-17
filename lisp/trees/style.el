@@ -13,6 +13,13 @@
   (setq base16-theme-256-color-source 'colors)
   (setq myron-themes-use-cache (not ns/enable-home-p)))
 
+;; force terminal colors to work in daemon mode
+(defun base16-theme-transform-face (spec colors)
+  "Transform a face `SPEC' into an Emacs theme face definition using `COLORS'."
+  (let* ((face             (car spec))
+          (definition       (cdr spec)))
+    (list face `((t ,(base16-theme-transform-spec definition colors))))))
+
 ;; term color comparison makes this hang somehow
 (when ns/term?
   (setq myron-themes-use-cache t))

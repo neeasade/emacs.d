@@ -277,16 +277,11 @@
 (ns/use aidermacs
   ;; :bind (("C-c a" . aidermacs-transient-menu))
   ;; ; Set API_KEY in .bashrc, that will automatically picked up by aider or in elisp
-  (setenv "ANTHROPIC_API_KEY" (pass "anthropic-api-key-jack"))
+  (setenv "ANTHROPIC_API_KEY" chatgpt-shell-anthropic-key)
+
   ;; See the Configuration section below
   (setq aidermacs-default-chat-mode 'architect)
-  (setq aidermacs-default-model "opus")
-  )
-
-(llet [desired-count 3
-        diff (max 0 (- desired-count (length (tab-bar-tabs))))]
-  (dotimes (_ diff)
-    (tab-bar-new-tab)))
+  (setq aidermacs-default-model "opus"))
 
 ;; while flipping between vscode and here
 (global-auto-revert-mode t)
@@ -344,10 +339,6 @@
   ;;   (kbd "C-h") 'sp-backward-delete-word
   ;;   )
   )
-
-;; corfu is broken due to normalizing keymaps somehow
-;; (remove-hook 'completion-in-region-mode-hook #'evil-normalize-keymaps)
-;; (evil-make-overriding-map corfu-map)
 
 (ns/use typescript-mode)
 (ns/use vue-mode)

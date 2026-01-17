@@ -585,13 +585,23 @@
     (kbd "M-l") #'evil-window-right
     (kbd "M-h") #'evil-window-left)
 
+  (defun ns/ensure-tabs (count)
+    (llet [diff (max 0 (- count (length (tab-bar-tabs))))]
+      (dotimes (_ diff)
+        (tab-bar-select-tab (length (tab-bar-tabs)))
+        (tab-bar-new-tab))))
+
+  (defun ns/goto-tab (i)
+    (ns/ensure-tabs i)
+    (tab-bar-select-tab i))
+
   (ns/inmap 'general-override-mode-map
-    (kbd "M-i") (fn!! switch-one (tab-bar-select-tab 1))
-    (kbd "M-o") (fn!! switch-two (tab-bar-select-tab 2))
-    (kbd "M-u") (fn!! switch-three (tab-bar-select-tab 3))
-    (kbd "M-1") (fn!! switch-one (tab-bar-select-tab 1))
-    (kbd "M-2") (fn!! switch-two (tab-bar-select-tab 2))
-    (kbd "M-3") (fn!! switch-three (tab-bar-select-tab 3)))
+    (kbd "M-i") (fn!! switch-one (ns/goto-tab 1))
+    (kbd "M-o") (fn!! switch-two (ns/goto-tab 2))
+    (kbd "M-u") (fn!! switch-three (ns/goto-tab 3))
+    (kbd "M-1") 'ia/switch-one
+    (kbd "M-2") 'ia/switch-two
+    (kbd "M-3") 'ia/switch-three)
 
   ;; used in box
   (defun ns/string-width (s)
