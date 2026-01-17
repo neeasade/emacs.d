@@ -85,12 +85,13 @@
     (ns/enable-mac-p "/Applications/Google Chrome.app/Contents/MacOS/google chrome")
     ((and ns/enable-wsl-p (which "explorer.exe")) "explorer.exe")))
 
-(defun ns/after-change-major-mode-hook ()
-  (when (get-buffer "*scratch*")
-    (kill-buffer "*scratch*"))
-  t)
-
-(add-hook 'after-change-major-mode-hook 'ns/after-change-major-mode-hook)
+;; <2026-01-16 Fri 19:41> do not restore this:
+;; if the scratch buffer doesn't exist, you can't run `emacsclient -t` with no arguments
+;; (defun ns/after-change-major-mode-hook ()
+;;   (when (get-buffer "*scratch*")
+;;     (kill-buffer "*scratch*"))
+;;   t)
+;; (add-hook 'after-change-major-mode-hook 'ns/after-change-major-mode-hook)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
