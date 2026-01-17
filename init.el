@@ -47,7 +47,7 @@
     `(
        server                          ; do not put this in core - elisp scripts
 
-       (kkp ns/kitty?)
+       (kkp ns/term?)
 
        corfu
        flycheck

@@ -297,15 +297,47 @@
 
 (setq create-lockfiles nil)
 
-(when (and ns/term? (which "wl-paste"))
-  (defun ns/sync-wsl-clipboard ()
+(when (and ns/term?)
+
+  (defun ns/osc52-read ()
+    ;; taken from xterm.el
+    (let* ((type 'CLIPBOARD)
+            (query (concat "\e]52;" (xterm--selection-char type) ";")))
+      (with-temp-buffer
+        (set-buffer-multibyte nil)
+        (xterm--query
+          ;; Use ST as query terminator to get ST as reply terminator (bug#36879).
+          (concat query "?\e\\")
+          (list (cons query
+                  (lambda ()
+                    ;; Read data up to the string terminator, ST.
+                    (let (char last)
+                      (while (and (setq char (read-char
+                                               nil nil
+                                               xterm-query-timeout))
+                               (not (and (eq char ?\\)
+                                      (eq last ?\e))))
+                        (when last
+                          (insert last))
+                        (setq last char))))))
+          'no-async)
+        (base64-decode-region (point-min) (point-max))
+        (decode-coding-region (point-min) (point-max) 'utf-8-unix t))))
+
+  ;; (s-replace "\r\n" "\n" (ns/osc52-read))
+  (defun ns/sync-terminal-clipboard ()
     (when (frame-focus-state)
-      (when-let (clip (sh "wl-paste | dos2unix") )
-        (kill-new clip ))))
+      (when-let (clip (ns/osc52-read)
+                  ;; (sh "wl-paste | dos2unix")
+                  )
+        ;; (message (ns/str "killing " clip))
+        (kill-new clip))))
 
-  (add-function :after after-focus-change-function #'ns/sync-wsl-clipboard)
+  (add-function :after after-focus-change-function #'ns/sync-terminal-clipboard)
 
-  ;; windows terminal: C-<backspace>
+  ;; (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
+
+  ;; get C-<backspace> in the windows terminal
   ;; (general-define-key
   ;;   :states '(insert)
   ;;   :keymaps 'general-override-mode-map
@@ -327,6 +359,12 @@
 
   ;; (balance-windows)
   )
+
+(defun! ns/term-refresh ()
+  (xterm-mouse-mode -1)
+  (xterm-mouse-mode 1)
+  (global-kkp-mode -1)
+  (global-kkp-mode 1))
 
 (comment
 

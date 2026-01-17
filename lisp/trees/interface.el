@@ -156,12 +156,12 @@
 
 ;; this works one way (emacs -> clip, not clip -> emacs)
 (ns/use clipetty
+  (setenv "SSH_TTY" nil)                  ; pretty much never want this?
   (global-clipetty-mode (if ns/term? t -1))) ; osc 52
 
-(when (and ns/term?
-        (not ns/kitty?))
-
-  (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle)
+(when ns/term?
+  (when (not ns/kitty?)
+    (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle))
 
   (xterm-mouse-mode 1)
 
