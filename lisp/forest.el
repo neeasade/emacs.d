@@ -372,7 +372,15 @@
     (add-hook 'ledger-mode-hook #'evil-ledger-mode)))
 
 (ns/defconfig lsp
+
   (ns/use lsp-mode)
+
+  ;; https://www.reddit.com/r/emacs/comments/1b0ppls/anyone_using_lspmode_with_tsls_having_trouble/
+  (setq lsp-apply-edits-after-file-operations nil)
+
+  ;; https://github.com/emacs-lsp/lsp-mode/issues/3516#issuecomment-1122681167
+  (setq backup-by-copying t)
+
   (ns/use lsp-ui)
 
   ;; (ns/use eglot)
@@ -569,7 +577,6 @@
 
   ;; "insert region"
   (ns/bind "ir" (fn!! insert-qb-region (sh "qb_userscript paste_selected")))
-
   (ns/bind "it" (fn!! insert-theme-key (insert (ns/pick (s-lines (sh "theme -k"))))))
 
   ;; used in window move scripts
@@ -639,18 +646,26 @@
     (defun shell-maker-welcome-message (_)))
 
   (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el"))
-    (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
     (setq chatgpt-shell-google-key (pass "gemini_api_key"))
     (chatgpt-shell-google-load-models)
     (chatgpt-shell-ollama-load-models)
-    (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")
+    ;; (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
 
+    (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")
     (setq-default chatgpt-shell-system-prompt 2) ; the "programming" prompt
-    (ns/bind "nf"
-      (fn!! find-chatgpt-shell
-        (if-let (b (first (ns/buffers-by-mode 'chatgpt-shell-mode)))
-          (switch-to-buffer b)
-          (chatgpt-shell)))))
+    )
+
+  (ns/bind "nf"
+    (fn!! find-llm-shell
+      (if-let (b (first (ns/buffers-by-mode 'chatgpt-shell-mode 'aidermacs-comint-mode)))
+        (switch-to-buffer b)
+        (chatgpt-shell))))
+
+  (ns/bind "nF"
+    (fn!! find-chatgpt-shell
+      (if-let (b (first (ns/buffers-by-mode 'aidermacs-comint-mode)))
+        (switch-to-buffer b)
+        (chatgpt-shell))))
 
   (defun ns/chatgpt-shell-save-transcript ()
     (when (eq major-mode 'chatgpt-shell-mode)
@@ -671,9 +686,6 @@
           (spit dest)))))
 
   (advice-add 'comint-clear-buffer :before 'ns/chatgpt-shell-save-transcript)
-
-  ;; todo: check this var later for custom prompt messing
-  ;; chatgpt-shell-system-prompts
 
   ;; considering:
   ;; comint is shell, chatgpt-shell

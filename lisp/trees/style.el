@@ -94,6 +94,7 @@
 
   (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))
 
+
   ;; (ns/face 'flycheck-error :underline nil)
   )
 

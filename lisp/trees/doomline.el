@@ -86,24 +86,27 @@
 
 (column-number-mode) ; give us column info in the modeline
 
-(setq-ns doom-modeline
-  height (frame-char-height)
-  bar-width 3
-  percent-position nil
-  icon nil
-  ;; buffer-file-name-style 'truncate-with-project
-  buffer-file-name-style 'buffer-name
-  project-detection 'projectile
-  enable-word-count nil
-  buffer-encoding nil
-  indent-info t
-  vcs-max-length 12
-  lsp t
-  gnus-timer nil
-  irc t ;; circe notifications? no idea if this works
-  before-update-env-hook nil
-  after-update-env-hook nil
-  )
+
+;; setting these variables causes all the buffers to revert. only do so once
+(when-not (boundp 'ns/after-init-hook)
+  (setq-ns doom-modeline
+    height (frame-char-height)
+    bar-width 3
+    percent-position nil
+    icon nil
+    ;; buffer-file-name-style 'truncate-with-project
+    buffer-file-name-style 'buffer-name
+    project-detection 'projectile
+    enable-word-count nil
+    buffer-encoding nil
+    indent-info t
+    vcs-max-length 12
+    lsp t
+    gnus-timer nil
+    irc t ;; circe notifications? no idea if this works
+    before-update-env-hook nil
+    after-update-env-hook nil
+    ))
 
 ;; removed upstream
 (defvar doom-modeline--font-width-cache nil)

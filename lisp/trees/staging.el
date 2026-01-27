@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
+(ns/use dumb-jump)
+
 (ns/bind "nk" (fn!! goto-theme
                 (find-file (~ ".dotfiles/bin/bin/themes/" (sh "hostname")))))
 
@@ -276,7 +278,6 @@
 
 (ns/use aidermacs
   ;; :bind (("C-c a" . aidermacs-transient-menu))
-  ;; ; Set API_KEY in .bashrc, that will automatically picked up by aider or in elisp
   (setenv "ANTHROPIC_API_KEY" chatgpt-shell-anthropic-key)
 
   ;; See the Configuration section below
@@ -287,7 +288,7 @@
 (global-auto-revert-mode t)
 
 ;; aggressive
-;; (ns/use web-mode)
+
 ;; todo: consider buffer-terminator
 
 (setq create-lockfiles nil)
@@ -323,29 +324,33 @@
   (defun ns/sync-terminal-clipboard ()
     (when (frame-focus-state)
       (when-let (clip (ns/osc52-read)
-                  ;; (sh "wl-paste | dos2unix")
+                  ;; (if ns/enable-wsl-p (sh "wl-paste | dos2unix") (ns/osc52-read))
                   )
-        ;; (message (ns/str "killing " clip))
-      ))
+        (message (ns/str "killing " clip))
+        (kill-new clip))))
 
   (add-function :after after-focus-change-function #'ns/sync-terminal-clipboard)
 
-  ;; (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
+  (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
 
   ;; get C-<backspace> in the windows terminal
   ;; temp workaround: focus stealing sometimes doesn't work - dtach thing?
   (ns/bind "ip" (fn!! paste-gui (insert (sh "wl-paste | dos2unix"))))
 
-  ;; windows terminal: C-<backspace>
-  ;; (general-define-key
-  ;;   :states '(insert)
-  ;;   :keymaps 'general-override-mode-map
-  ;;   (kbd "C-h") 'sp-backward-delete-word
-  ;;   )
-  )
+  ;; make an assumption: wsl + xterm = windows terminal
+  (llet [initial-terminal (getenv-internal "TERM" initial-environment)
+          wt? (and (string= initial-terminal "xterm-256color") ns/enable-wsl-p)]
+    (when wt?
+      ;; C-<backspace> equivalent
+      (general-define-key
+        :states '(insert)
+        :keymaps 'general-override-mode-map
+        (kbd "C-h") 'sp-backward-delete-word))))
 
 (ns/use typescript-mode)
-(ns/use vue-mode)
+;; (ns/use vue-mode)
+(ns/use web-mode)
+(ns/file-mode "vue" 'web-mode)
 
 (defun! ns/shell-show ()
   ;; todo: split windows in some nice fashion
@@ -390,7 +395,6 @@
     (-map 'treesit-install-language-grammar '(vue css typescript))
 
     (ns/use (vue-ts-mode :type git :host github :repo "8uff3r/vue-ts-mode" :files ("*.el")))
-
     ))
 
 (ns/face 'mmm-default-submode-face :background nil)

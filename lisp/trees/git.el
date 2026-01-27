@@ -36,8 +36,12 @@
 
 (advice-add #'magit-mode-bury-buffer :after #'ns/restore-magit-layout)
 
-(ns/use git-gutter-fringe
-  (setq git-gutter-fr:side 'right-fringe))
+;; gui only
+;; (ns/use git-gutter-fringe
+;;   (setq git-gutter-fr:side 'right-fringe))
+
+
+(ns/use git-gutter)
 
 (defhydra git-smerge-menu ()
   "
