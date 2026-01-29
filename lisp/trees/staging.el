@@ -275,14 +275,15 @@
     gptel-backend (gptel-make-anthropic "Claude"
                     :stream t :key chatgpt-shell-anthropic-key)))
 
-
 (ns/use aidermacs
   ;; :bind (("C-c a" . aidermacs-transient-menu))
   (setenv "ANTHROPIC_API_KEY" chatgpt-shell-anthropic-key)
 
   ;; See the Configuration section below
   (setq aidermacs-default-chat-mode 'architect)
-  (setq aidermacs-default-model "opus"))
+  (setq aidermacs-default-model "opus")
+  (setq aidermacs-extra-args '("--yes"))
+  (setq aidermacs-show-diff-after-change nil))
 
 ;; while flipping between vscode and here
 (global-auto-revert-mode t)
@@ -398,3 +399,17 @@
     ))
 
 (ns/face 'mmm-default-submode-face :background nil)
+
+(setq scroll-error-top-bottom t)
+(setq scroll-preserve-screen-position t)
+
+
+(ns/inmap 'general-override-mode-map
+  ;; these names are flipped for my intuition
+  (kbd "C-n") (fn!! scroll-up (if (minibufferp) (previous-line) (scroll-up-command)))
+  (kbd "C-e") (fn!! scroll-down (if (minibufferp) (next-line) (scroll-down-command))))
+
+;; broken for now (magit mode
+(ns/inmap 'general-override-mode-map
+  (kbd "C-n") nil
+  (kbd "C-e") nil)
