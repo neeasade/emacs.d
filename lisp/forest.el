@@ -737,7 +737,10 @@
   (ns/use terraform-mode)
   (ns/use yaml-mode)
   (ns/use ahk-mode)                     ; autohotkey
-  (ns/use dockerfile-mode))
+  (ns/use dockerfile-mode)
+  (ns/use yuck-mode)                    ; eww
+  (ns/use kdl-mode)
+  )
 
 (ns/defconfig blog-syntax
   ;; modes for src block syntax, only used in blog ssg

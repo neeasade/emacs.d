@@ -451,14 +451,16 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
 (setenv "ATUIN_SESSION" (sh "bash" "-ic" "echo $ATUIN_SESSION"))
 
 (defun ns/atuin-add-dir (cwd)
-  (when (which "atuin")
+  (when (and
+          (which "atuin")
+          (not (file-remote-p cwd)))
     (sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/path cwd) "_")))
 
 (defun ns/atuin-list-dirs (&optional remote?)
   ;; get session
   (when (which "atuin")
     (->> (-concat
-           (s-lines (or (sh "atuin history list --format {directory} | sort | uniq") ""))
+           ;; (s-lines (or (sh "atuin history list --format {directory} | sort | uniq") ""))
            (s-lines (sh "atuin kv list -n dirs")))
       (funcall (if remote? '-filter '-remove) 'file-remote-p)
       (-distinct)

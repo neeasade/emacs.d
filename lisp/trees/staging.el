@@ -137,7 +137,8 @@
 (ns/use smart-dash)
 (ns/use lorem-ipsum)
 
-(add-hook 'prog-mode-hook 'outline-minor-mode)
+;; bad hook? emacs client start
+;; (add-hook 'prog-mode-hook 'outline-minor-mode)
 
 ;; this should really be in sanity lmao
 (ns/use symbol-overlay (add-hook 'prog-mode-hook 'symbol-overlay-mode))
@@ -322,21 +323,25 @@
         (decode-coding-region (point-min) (point-max) 'utf-8-unix t))))
 
   ;; (s-replace "\r\n" "\n" (ns/osc52-read))
+  ;; (sh "wl-paste | dos2unix")
+
   (defun ns/sync-terminal-clipboard ()
     (when (frame-focus-state)
       (when-let (clip (ns/osc52-read)
                   ;; (if ns/enable-wsl-p (sh "wl-paste | dos2unix") (ns/osc52-read))
                   )
-        (message (ns/str "killing " clip))
+        ;; (message (ns/str "killing " clip))
         (kill-new clip))))
 
   (add-function :after after-focus-change-function #'ns/sync-terminal-clipboard)
 
-  (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
+  ;; (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
+
+  (ns/bind "ip" (fn!! insert-paste (insert (ns/osc52-read))))
 
   ;; get C-<backspace> in the windows terminal
   ;; temp workaround: focus stealing sometimes doesn't work - dtach thing?
-  (ns/bind "ip" (fn!! paste-gui (insert (sh "wl-paste | dos2unix"))))
+  ;; (ns/bind "ip" (fn!! paste-gui (insert (sh "wl-paste | dos2unix"))))
 
   ;; make an assumption: wsl + xterm = windows terminal
   (llet [initial-terminal (getenv-internal "TERM" initial-environment)
@@ -409,7 +414,7 @@
   (kbd "C-n") (fn!! scroll-up (if (minibufferp) (previous-line) (scroll-up-command)))
   (kbd "C-e") (fn!! scroll-down (if (minibufferp) (next-line) (scroll-down-command))))
 
-;; broken for now (magit mode
+;; broken for now (magit mode)
 (ns/inmap 'general-override-mode-map
   (kbd "C-n") nil
   (kbd "C-e") nil)
@@ -447,3 +452,30 @@
       nil)
     ((display-graphic-p frame) (xw-color-values color frame))
     (t (my-color-values color))))
+
+;; fun, maybe we want this in the modeline instead
+(ns/use breadcrumb
+  (breadcrumb-mode nil)
+
+  (ns/face 'breadcrumb-project-leaf-face
+    :foreground (myron-get :assumed :weak)
+    )
+
+  (ns/face 'header-line
+    ;; :background (myron-get :subtle :meta)
+    :background (myron-get :background :weak)
+    ;; :foreground nil
+    :foreground (myron-get :foreground :weak)
+    )
+
+  )
+
+
+(defun ns/on-save (command) (add-hook 'after-save-hook (lambda () (sh command)) nil t))
+
+(comment
+
+
+  ;; works: should we prefix with emacs?
+  (ns/use (term-title :host github :repo "CyberShadow/term-title"))
+  )
