@@ -1,6 +1,7 @@
 ;; config the minad stack
 
-(global-set-key (kbd "C-e") 'previous-line)
+(define-key minibuffer-local-map
+  (kbd "C-e") 'previous-line)
 
 (defun ns/find-files (prompt files)
   "Light wrapper around consult read with file set (history based on prompt)"
