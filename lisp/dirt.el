@@ -36,10 +36,6 @@
   ns/kitty? (s-contains? "kitty" (getenv-internal "TERM" initial-environment))
   ns/home-directory (getenv (if ns/enable-windows-p "USERPROFILE" "HOME"))
   ns/emacs-directory user-emacs-directory
-
-  ;; mac-option-modifier 'meta
-  ;; mac-command-modifier 'super
-  ;; mac-control-modifier 'control
   )
 
 (defun ns/message (&rest message-args)

@@ -154,10 +154,28 @@
 
 (ns/bind "nH" 'ns/helpful-or-dashdoc)
 
+;; "eemacs"
+(--map (setenv it nil) '("SSH_ASKPASS" "SSH_CONNECTION" "SSH_TTY"))
+
 ;; this works one way (emacs -> clip, not clip -> emacs)
 (ns/use clipetty
   (setenv "SSH_TTY" nil)                  ; pretty much never want this?
   (global-clipetty-mode (if ns/term? t -1))) ; osc 52
+
+(defun clipetty--emit (string)
+  "Emit STRING, optionally wrapped in a DCS, to an appropriate tty."
+  (let ((tmux    (getenv "TMUX" (selected-frame)))
+         (term    (getenv "TERM" (selected-frame)))
+         (ssh-tty (getenv "SSH_TTY" (selected-frame))))
+    ;; foot's osc52 limit is like 2gb
+    (if (or (string= term "foot") (<= (length string) clipetty--max-cut))
+      (write-region
+        (clipetty--dcs-wrap string tmux term ssh-tty)
+        nil
+        (clipetty--tty ssh-tty tmux)
+        t
+        0)
+      (message "Selection too long for osc52 (length: %d)" (length string)))))
 
 (when ns/term?
   (when (not ns/kitty?)
