@@ -7,6 +7,12 @@
 
 (define-key shell-mode-map (kbd "C-l") 'comint-clear-buffer)
 
+(defun! ns/toggle-shell-name ()
+  (if (string= explicit-shell-file-name "/bin/sh")
+    (setq explicit-shell-file-name (getenv "SHELL"))
+    (setq explicit-shell-file-name "/bin/sh"))
+  (message (ns/str "shell is now: " explicit-shell-file-name)))
+
 (when ns/enable-linux-p
   (setq explicit-shell-file-name (getenv "SHELL")))
 
@@ -15,13 +21,21 @@
     (format "%s;%s"
       (~ "scoop/apps/git-with-openssh/current/usr/bin/")
       (getenv "PATH")))
-  (setq
-    explicit-shell-file-name (executable-find "bash")
+  (setq explicit-shell-file-name (executable-find "bash")
     explicit-bash.exe-args '("--login" "-i")))
 
 ;; cf https://stackoverflow.com/questions/25862743/emacs-can-i-limit-a-number-of-lines-in-a-buffer
-(add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
+;; (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
+(remove-hook 'comint-output-filter-functions 'comint-truncate-buffer)
 
+(setq comint-scroll-show-maximum-output nil)
+
+(named-timer-idle-run :comint-collect 2 t
+  (lambda ()
+    (--map
+      (with-current-buffer it
+        (comint-truncate-buffer))
+      (ns/buffers-by-mode 'shell-mode))))
 
 (ns/inmap
   'comint-mode-map
@@ -116,7 +130,7 @@
     (process-sentinel (get-buffer-process (current-buffer)))
     #'ns/monitor-exit-sentinel)
 
-  (setq-local comint-buffer-maximum-size 2000))
+  (setq-local comint-buffer-maximum-size 8000))
 
 (add-hook 'shell-mode-hook 'ns/shell-mode-init)
 (setq comint-prompt-read-only t)
