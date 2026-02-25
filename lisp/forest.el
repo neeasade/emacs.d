@@ -812,7 +812,8 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
     ;; usual keymap system. Advise that function.
     (advice-add 'kkp--translate-terminal-input :around #'kkp-translate-aliased-keys)
 
-    (global-kkp-mode +1)))
+    (when-not ns/enable-wsl-p
+      (global-kkp-mode +1))))
 
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
