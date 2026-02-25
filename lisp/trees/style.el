@@ -10,8 +10,7 @@
 
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"
           :files ("*.el" "themes/*.el"))
-  (setq base16-theme-256-color-source 'colors)
-  (setq myron-themes-use-cache (not ns/enable-home-p)))
+  (setq base16-theme-256-color-source 'colors))
 
 ;; force terminal colors to work in daemon mode
 (defun base16-theme-transform-face (spec colors)
@@ -92,11 +91,16 @@
 
   (setq flycheck-indication-mode 'left-margin)
 
-  (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))
-
+  ;; todo: maybe do this on ec connect as well
+  (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background))))
 
   ;; (ns/face 'flycheck-error :underline nil)
   )
+
+(defun ns/sync-terminal-frame-background (_)
+  (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))))
+
+(add-to-list 'after-make-frame-functions #'ns/sync-terminal-frame-background)
 
 (defun! ns/load-random-myron-theme ()
   (llet [theme (->> (custom-available-themes)

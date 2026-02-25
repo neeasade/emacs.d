@@ -603,12 +603,20 @@
     (tab-bar-select-tab i))
 
   (ns/inmap 'general-override-mode-map
-    (kbd "M-i") (fn!! switch-one (ns/goto-tab 1))
-    (kbd "M-o") (fn!! switch-two (ns/goto-tab 2))
-    (kbd "M-u") (fn!! switch-three (ns/goto-tab 3))
-    (kbd "M-1") 'ia/switch-one
-    (kbd "M-2") 'ia/switch-two
-    (kbd "M-3") 'ia/switch-three)
+    ;; note to self: did a fun thing, but it didn't pan out
+    (kbd "M-1") (fn!! switch-one   (ns/goto-tab 1))
+    (kbd "M-2") (fn!! switch-two   (ns/goto-tab 2))
+    (kbd "M-3") (fn!! switch-three (ns/goto-tab 3))
+    (kbd "M-4") (fn!! switch-four  (ns/goto-tab 4))
+    (kbd "M-5") (fn!! switch-five  (ns/goto-tab 5))
+    (kbd "M-6") (fn!! switch-six   (ns/goto-tab 6))
+    (kbd "M-7") (fn!! switch-seven (ns/goto-tab 7))
+    (kbd "M-8") (fn!! switch-eight (ns/goto-tab 8))
+    (kbd "M-9") (fn!! switch-nine  (ns/goto-tab 9))
+
+    (kbd "M-i") 'ia/switch-one
+    (kbd "M-o") 'ia/switch-two
+    (kbd "M-u") 'ia/switch-three)
 
   ;; used in box
   (defun ns/string-width (s)
@@ -647,8 +655,8 @@
 
   (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el"))
     (setq chatgpt-shell-google-key (pass "gemini_api_key"))
-    (chatgpt-shell-google-load-models)
-    (chatgpt-shell-ollama-load-models)
+    ;; (chatgpt-shell-google-load-models)
+    ;; (chatgpt-shell-ollama-load-models)
     ;; (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
 
     (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")

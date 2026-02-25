@@ -27,6 +27,9 @@
 (when-not (and ns/enable-mac-p (string= (which "ls") "/bin/ls"))
   (setq dired-listing-switches "-aAlGhvF --group-directories-first")) ; default: "-al"
 
+(when ns/enable-wsl-p
+  (setq dired-listing-switches "-al"))
+
 (general-define-key
   :states '(normal)
   :keymaps 'dired-mode-map

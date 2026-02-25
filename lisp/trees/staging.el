@@ -268,7 +268,6 @@
       (ediff-buffers old-buffer new-buffer)
       (diff old-buffer new-buffer nil t))))
 
-
 (comment ns/use gptel
   (setq
     gptel-default-mode 'org-mode
@@ -296,7 +295,6 @@
 (setq create-lockfiles nil)
 
 (when (and ns/term?)
-
   (defun ns/osc52-read ()
     ;; taken from xterm.el
     (let* ((type 'CLIPBOARD)
@@ -322,29 +320,31 @@
         (base64-decode-region (point-min) (point-max))
         (decode-coding-region (point-min) (point-max) 'utf-8-unix t))))
 
-  ;; (s-replace "\r\n" "\n" (ns/osc52-read))
-  ;; (sh "wl-paste | dos2unix")
+  (defun ns/get-clipboard ()
+    ;; nb: osc52-read not working on windows alacritty
+    (llet [result (if ns/enable-wsl-p
+                    (sh "wl-paste | dos2unix")
+                    (ns/osc52-read))]
+      (when-not (s-blank? result)
+        result)))
 
+  ;; nb: focus hook not working on dtach resume - workaround by connecting with emacsclient
   (defun ns/sync-terminal-clipboard ()
     (when (frame-focus-state)
-      (when-let (clip (ns/osc52-read)
-                  ;; (if ns/enable-wsl-p (sh "wl-paste | dos2unix") (ns/osc52-read))
-                  )
+      (when-let (clip (ns/get-clipboard))
         ;; (message (ns/str "killing " clip))
         (kill-new clip))))
 
   (add-function :after after-focus-change-function #'ns/sync-terminal-clipboard)
-
   ;; (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
 
-  (ns/bind "ip" (fn!! insert-paste (insert (ns/osc52-read))))
 
-  ;; get C-<backspace> in the windows terminal
-  ;; temp workaround: focus stealing sometimes doesn't work - dtach thing?
   ;; (ns/bind "ip" (fn!! paste-gui (insert (sh "wl-paste | dos2unix"))))
+  (ns/bind "ip" (fn!! paste-gui (insert (ns/get-clipboard))))
 
   ;; make an assumption: wsl + xterm = windows terminal
   (llet [initial-terminal (getenv-internal "TERM" initial-environment)
+
           wt? (and (string= initial-terminal "xterm-256color") ns/enable-wsl-p)]
     (when wt?
       ;; C-<backspace> equivalent
