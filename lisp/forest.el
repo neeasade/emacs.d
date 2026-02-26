@@ -145,6 +145,10 @@
   (ns/use clojure-mode)
   (ns/use cider)
 
+  ;; needed for interrupts on java >21
+  ;; https://docs.cider.mx/cider/basics/up_and_running.html#enabling-nrepl-jvmti-agent
+  (setq cider-enable-nrepl-jvmti-agent t)
+
   ;; speed in clojure repl
   (setq cider-repl-use-clojure-font-lock nil)
 

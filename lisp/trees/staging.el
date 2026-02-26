@@ -120,10 +120,6 @@
         ;; (pp-buffer)
         (buffer-string)))))
 
-;; needed for interrupts on java >21
-;; https://docs.cider.mx/cider/basics/up_and_running.html#enabling-nrepl-jvmti-agent
-(setq cider-enable-nrepl-jvmti-agent t)
-
 (ns/use
   (eat :type git
     :host codeberg
