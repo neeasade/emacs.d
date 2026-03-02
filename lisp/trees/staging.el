@@ -415,43 +415,9 @@
   (kbd "C-n") nil
   (kbd "C-e") nil)
 
-(defun my-color-values (color)
-  "Return RGB values of COLOR as list of 3 integers (0-65535)."
-  (cond
-    ;; #RGB
-    ((string-match "^#\\([0-9a-fA-F]\\)\\([0-9a-fA-F]\\)\\([0-9a-fA-F]\\)$" color)
-      (mapcar (lambda (s) (* (string-to-number s 16) 4369))
-        (list (match-string 1 color)
-          (match-string 2 color)
-          (match-string 3 color))))
-
-    ;; #RRGGBB
-    ((string-match "^#\\([0-9a-fA-F]\\{2\\}\\)\\([0-9a-fA-F]\\{2\\}\\)\\([0-9a-fA-F]\\{2\\}\\)$" color)
-      (mapcar (lambda (s) (* (string-to-number s 16) 257))
-        (list (match-string 1 color)
-          (match-string 2 color)
-          (match-string 3 color))))
-
-    ;; #RRRRGGGGBBBB
-    ((string-match "^#\\([0-9a-fA-F]\\{4\\}\\)\\([0-9a-fA-F]\\{4\\}\\)\\([0-9a-fA-F]\\{4\\}\\)$" color)
-      (mapcar (lambda (s) (string-to-number s 16))
-        (list (match-string 1 color)
-          (match-string 2 color)
-          (match-string 3 color))))
-
-    ;; Named color lookup
-    (t (cdr (assoc-string color color-name-rgb-alist t)))))
-
-(defun color-values (color &optional frame)
-  (cond
-    ((member color '(unspecified "unspecified-fg" "unspecified-bg"))
-      nil)
-    ((display-graphic-p frame) (xw-color-values color frame))
-    (t (my-color-values color))))
-
 ;; fun, maybe we want this in the modeline instead
 (ns/use breadcrumb
-  (breadcrumb-mode nil)
+  (breadcrumb-mode -1)
 
   (ns/face 'breadcrumb-project-leaf-face
     :foreground (myron-get :assumed :weak)

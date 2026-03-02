@@ -19,10 +19,6 @@
           (definition       (cdr spec)))
     (list face `((t ,(base16-theme-transform-spec definition colors))))))
 
-;; term color comparison makes this hang somehow
-(when ns/term?
-  (setq myron-themes-use-cache t))
-
 (defalias 'myron-get 'myron-themes-get) ; compat
 
 (ns/use paren-face (global-paren-face-mode))
@@ -91,13 +87,13 @@
 
   (setq flycheck-indication-mode 'left-margin)
 
-  ;; todo: maybe do this on ec connect as well
   (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background))))
 
   ;; (ns/face 'flycheck-error :underline nil)
   )
 
 (defun ns/sync-terminal-frame-background (_)
+  (interactive)
   (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))))
 
 (add-to-list 'after-make-frame-functions #'ns/sync-terminal-frame-background)
@@ -240,6 +236,43 @@
 
 (ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
   (stillness-mode))
+
+
+(defun my-color-values (color)
+  "Return RGB values of COLOR as list of 3 integers (0-65535)."
+  (cond
+    ;; #RGB
+    ((string-match "^#\\([0-9a-fA-F]\\)\\([0-9a-fA-F]\\)\\([0-9a-fA-F]\\)$" color)
+      (mapcar (lambda (s) (* (string-to-number s 16) 4369))
+        (list (match-string 1 color)
+          (match-string 2 color)
+          (match-string 3 color))))
+
+    ;; #RRGGBB
+    ((string-match "^#\\([0-9a-fA-F]\\{2\\}\\)\\([0-9a-fA-F]\\{2\\}\\)\\([0-9a-fA-F]\\{2\\}\\)$" color)
+      (mapcar (lambda (s) (* (string-to-number s 16) 257))
+        (list (match-string 1 color)
+          (match-string 2 color)
+          (match-string 3 color))))
+
+    ;; #RRRRGGGGBBBB
+    ((string-match "^#\\([0-9a-fA-F]\\{4\\}\\)\\([0-9a-fA-F]\\{4\\}\\)\\([0-9a-fA-F]\\{4\\}\\)$" color)
+      (mapcar (lambda (s) (string-to-number s 16))
+        (list (match-string 1 color)
+          (match-string 2 color)
+          (match-string 3 color))))
+
+    ;; Named color lookup
+    (t (cdr (assoc-string color color-name-rgb-alist t)))))
+
+(defun color-values (color &optional frame)
+  ;; overridden to speedup terminal color comparison
+  ;; non-completing in the default case w/ truecolor?
+  (cond
+    ((member color '(unspecified "unspecified-fg" "unspecified-bg"))
+      nil)
+    ((display-graphic-p frame) (xw-color-values color frame))
+    (t (my-color-values color))))
 
 (ns/use rainbow-mode
   (setq rainbow-html-colors nil
