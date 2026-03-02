@@ -86,9 +86,8 @@
 
 (column-number-mode) ; give us column info in the modeline
 
-
 ;; setting these variables causes all the buffers to revert. only do so once
-(when-not (boundp 'ns/after-init-hook)
+(when doom-modeline-icon
   (setq-ns doom-modeline
     height (frame-char-height)
     bar-width 3
