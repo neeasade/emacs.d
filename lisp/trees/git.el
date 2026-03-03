@@ -91,7 +91,7 @@ command was called, go to its unstaged changes section."
                        t)
         do (condition-case nil
              (magit-section-forward)
-             (error (cl-return (magit-status-goto-initial-section-1))))))))
+             (error (cl-return (magit-status-goto-initial-section))))))))
 
 ;; todo: tryout this package
 (ns/use vdiff)

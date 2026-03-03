@@ -525,11 +525,13 @@
   (ns/blog-make-redirect-pages)
   (ns/blog-generate (ns/blog-get-metas)))
 
-;; caution XXX: if anything goes wrong in publishing, hooks remain ignored
 (defun org-publish-ignore-mode-hooks (orig-func &rest args)
   (let ((lexical-binding nil))
     (cl-letf (((symbol-function #'run-mode-hooks) #'ignore))
-      (apply orig-func args))))
+      (condition-case err
+        (apply orig-func args)
+        ;; dunno about this, no stacktrace popup. tbd
+        (error (message "%s" (error-message-string err)))))))
 
 (advice-add 'ns/blog-publish-meta :around #'org-publish-ignore-mode-hooks)
 (advice-add 'ns/blog-generate :around #'org-publish-ignore-mode-hooks)

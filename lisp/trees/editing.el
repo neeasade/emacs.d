@@ -88,8 +88,11 @@
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; todo: call yas-describe-tables sometime/look into snippets to use more often
-(ns/use yasnippet-snippets)
-(ns/use yasnippet  (yas-global-mode 1))
+
+(ns/use yasnippet-snippets)             ; collection of common snippets
+(ns/use yasnippet (yas-global-mode 1))
+
+
 
 (defun ns/sh-mode-init-hook ()
   (sh-electric-here-document-mode -1)

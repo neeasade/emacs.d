@@ -349,10 +349,14 @@
         :keymaps 'general-override-mode-map
         (kbd "C-h") 'sp-backward-delete-word))))
 
-(ns/use typescript-mode)
+;; (ns/use typescript-mode)
 ;; (ns/use vue-mode)
 (ns/use web-mode)
 (ns/file-mode "vue" 'web-mode)
+
+;; hilarious - ts for translation files
+(when ns/enable-wsl-p
+  (ns/file-mode "ts" 'xml-mode))
 
 (defun! ns/shell-show ()
   ;; todo: split windows in some nice fashion
@@ -404,16 +408,24 @@
 (setq scroll-error-top-bottom t)
 (setq scroll-preserve-screen-position t)
 
-
 (ns/inmap 'general-override-mode-map
   ;; these names are flipped for my intuition
-  (kbd "C-n") (fn!! scroll-up (if (minibufferp) (previous-line) (scroll-up-command)))
-  (kbd "C-e") (fn!! scroll-down (if (minibufferp) (next-line) (scroll-down-command))))
+  (kbd "C-n") (fn!! scroll-up
+                (cond
+                  ((minibufferp) (next-line))
+                  ((eq 'magit-status-mode major-mode) (magit-section-forward))
+                  (t (scroll-up-command))))
+  (kbd "C-e") (fn!! scroll-down
+                (cond
+                  ((minibufferp) (previous-line))
+                  ((eq 'magit-status-mode major-mode) (magit-section-backward))
+                  (t (scroll-down-command)))))
 
-;; broken for now (magit mode)
-(ns/inmap 'general-override-mode-map
-  (kbd "C-n") nil
-  (kbd "C-e") nil)
+;; to turn off ^
+(comment
+  (ns/inmap 'general-override-mode-map
+    (kbd "C-n") nil
+    (kbd "C-e") nil))
 
 ;; fun, maybe we want this in the modeline instead
 (ns/use breadcrumb
@@ -428,16 +440,60 @@
     :background (myron-get :background :weak)
     ;; :foreground nil
     :foreground (myron-get :foreground :weak)
-    )
+    ))
 
+(ns/use qml-mode)
+
+;; (ns/use vlf)
+
+;; HEY: consider installing activities.el, it would have saved your bacon like 3 times today
+;; dunno when^ this was said, adding a timestamp <2026-02-24 Tue 12:20>
+
+(ns/use activities
+  (activities-mode)
+  (activities-tabs-mode)
+
+  ;; default bindings to consider
+  ;; Prevent `edebug' default bindings from interfering.
+  ;; (setq edebug-inhibit-emacs-lisp-mode-bindings t)
+
+  ;; :bind
+  ;; (("C-x C-a C-n" . activities-new)
+  ;;   ("C-x C-a C-d" . activities-define)
+  ;;   ("C-x C-a C-a" . activities-resume)
+  ;;   ("C-x C-a C-s" . activities-suspend)
+  ;;   ("C-x C-a C-k" . activities-kill)
+  ;;   ("C-x C-a RET" . activities-switch)
+  ;;   ("C-x C-a b" . activities-switch-buffer)
+  ;;   ("C-x C-a g" . activities-revert)
+  ;;   ("C-x C-a l" . activities-list))
   )
 
+(ns/bind
+  "ib" (fn!! git-branches (insert (ns/pick (sh-lines "git" "branch" "--format" "%(refname:short)"))))
+  "iB" (fn!! git-current-branch (insert (sh "git" "rev-parse" "--abbrev-ref" "HEAD"))))
 
-(defun ns/on-save (command) (add-hook 'after-save-hook (lambda () (sh command)) nil t))
+;; never expire tramp password entries
+(setq password-cache-expiry nil)
+
+(ns/use (term-title :host github :repo "CyberShadow/term-title")
+  (when ns/term? (term-title-mode t)))
 
 (comment
+  ;; todo: deadgreap-match face and match face generally
+  (ns/face 'isearch :foreground nil)
 
+  (ns/face 'match :foreground nil :background nil :inverse-video nil)
 
-  ;; works: should we prefix with emacs?
-  (ns/use (term-title :host github :repo "CyberShadow/term-title"))
-  )
+  (use-package qml-ts-mode
+    (add-to-list 'lsp-language-id-configuration '(qml-ts-mode . "qml-ts"))
+
+    (lsp-register-client
+      (make-lsp-client :new-connection (lsp-stdio-connection '("qmlls"))
+        :activation-fn (lsp-activate-on "qml-ts")
+        :server-id 'qmlls))
+
+    (add-hook 'qml-ts-mode-hook (lambda ()
+                                  (setq-local electric-indent-chars '(?\n ?\( ?\) ?{ ?} ?\[ ?\] ?\; ?,))
+                                  ;; (lsp-deferred)
+                                  ))))

@@ -237,7 +237,6 @@
 (ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
   (stillness-mode))
 
-
 (defun my-color-values (color)
   "Return RGB values of COLOR as list of 3 integers (0-65535)."
   (cond
