@@ -664,12 +664,13 @@
     ;; (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
 
     (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")
-    (setq-default chatgpt-shell-system-prompt 2) ; the "programming" prompt
-    )
+    (setq-default chatgpt-shell-system-prompt 2)) ; the "programming" prompt
+
+  (ns/use agent-shell)
 
   (ns/bind "nf"
     (fn!! find-llm-shell
-      (if-let (b (first (ns/buffers-by-mode 'chatgpt-shell-mode 'aidermacs-comint-mode)))
+      (if-let (b (first (ns/buffers-by-mode 'agent-shell-mode 'chatgpt-shell-mode 'aidermacs-comint-mode)))
         (switch-to-buffer b)
         (chatgpt-shell))))
 

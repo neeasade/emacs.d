@@ -133,7 +133,7 @@
       (setq ns/after-init-hook t)
 
       ;; refreshing modeline here allows for correct frame divider height -.-
-      (ns/refresh-all-modeline t)
+      ;; (ns/refresh-all-modeline t)
 
       (when (f-exists-p (~ "extend.el"))
         (load (~ "extend.el")))

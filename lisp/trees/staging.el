@@ -318,20 +318,23 @@
 
   (defun ns/get-clipboard ()
     ;; nb: osc52-read not working on windows alacritty
+    ;; if wslg is stuck, wl-paste just hangs forever
     (llet [result (if ns/enable-wsl-p
-                    (sh "wl-paste | dos2unix")
+                    (sh "timeout 1 wl-paste | dos2unix")
                     (ns/osc52-read))]
       (when-not (s-blank? result)
         result)))
 
   ;; nb: focus hook not working on dtach resume - workaround by connecting with emacsclient
   (defun ns/sync-terminal-clipboard ()
+    (interactive)
     (when (frame-focus-state)
       (when-let (clip (ns/get-clipboard))
         ;; (message (ns/str "killing " clip))
         (kill-new clip))))
 
   (add-function :after after-focus-change-function #'ns/sync-terminal-clipboard)
+
   ;; (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
 
 
@@ -408,39 +411,63 @@
 (setq scroll-error-top-bottom t)
 (setq scroll-preserve-screen-position t)
 
-(ns/inmap 'general-override-mode-map
-  ;; these names are flipped for my intuition
-  (kbd "C-n") (fn!! scroll-up
-                (cond
-                  ((minibufferp) (next-line))
-                  ((eq 'magit-status-mode major-mode) (magit-section-forward))
-                  (t (scroll-up-command))))
-  (kbd "C-e") (fn!! scroll-down
-                (cond
-                  ((minibufferp) (previous-line))
-                  ((eq 'magit-status-mode major-mode) (magit-section-backward))
-                  (t (scroll-down-command)))))
+;; (ns/inmap 'general-override-mode-map
+;;   (kbd "C-n") (fn!! scroll-up
+;;                 (cond
+;;                   ((minibufferp) (next-line))
+;;                   ((-non-nil (and (boundp 'corfu--candidates) corfu--candidates)) (corfu-next))
+;;                   ((derived-mode-p 'cide-repl-mode) (cider-repl-next-input))
+;;                   ((derived-mode-p 'comint-mode) (comint-next-input)
+;;                   ((derived-mode-p 'magit-section-mode) (magit-section-forward))
+;;                   ((derived-mode-p 'prog-mode) (scroll-up-command))
+;;                   (t (message "C-n: no action"))))
+;;   (kbd "C-e") (fn!! scroll-down
+;;                 (cond
+;;                   ((minibufferp) (previous-line))
+;;                   ((-non-nil (and (boundp 'corfu--candidates) corfu--candidates)) (corfu-previous))
+;;                   ((derived-mode-p 'cide-repl-mode) (cider-repl-previous-input))
+;;                   ((derived-mode-p 'comint-mode) (comint-previous-input))
+;;                   ((derived-mode-p 'magit-section-mode) (magit-section-backward))
+;;                   ((derived-mode-p 'prog-mode) (scroll-down-command))
+;;                   (t (message "C-e: no action")))))
 
 ;; to turn off ^
 (comment
   (ns/inmap 'general-override-mode-map
     (kbd "C-n") nil
-    (kbd "C-e") nil))
+    (kbd "C-e") nil)
+
+  ;; remove conflicts
+  (evil-define-key nil evil-motion-state-map (kbd "C-e") nil)
+
+  (evil-define-key nil evil-normal-state-map (kbd "C-n") nil)
+
+  (general-nmap (kbd "C-n") 'scroll-up-command)
+  (general-nmap (kbd "C-e") 'scroll-down-command)
+
+  (ns/inmap 'evil-motion-state-map
+    (kbd "C-n") nil
+    (kbd "C-e") nil)
+
+  (ns/inmap 'text-mode-map
+    (kbd "C-n") 'scroll-up-command
+    (kbd "C-e") 'scroll-down-command)
+
+  )
 
 ;; fun, maybe we want this in the modeline instead
 (ns/use breadcrumb
   (breadcrumb-mode -1)
+  (comment
 
-  (ns/face 'breadcrumb-project-leaf-face
-    :foreground (myron-get :assumed :weak)
-    )
-
-  (ns/face 'header-line
-    ;; :background (myron-get :subtle :meta)
-    :background (myron-get :background :weak)
-    ;; :foreground nil
-    :foreground (myron-get :foreground :weak)
-    ))
+    (ns/face 'breadcrumb-project-leaf-face :foreground (myron-get :assumed :weak))
+    (ns/face 'header-line
+      ;; :background (myron-get :subtle :meta)
+      :background (myron-get :background :weak)
+      ;; :foreground nil
+      :foreground (myron-get :foreground :weak)
+      ))
+  )
 
 (ns/use qml-mode)
 
