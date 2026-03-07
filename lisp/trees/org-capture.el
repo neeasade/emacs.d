@@ -85,19 +85,18 @@
                                                       ":PROPERTIES:" ":captured: %U" ":END:"
                                                       "%?"))
                    :olp ("projects" ,project "notes"))
-
                  ("task" :keys "T" :todo-state "TODO"
-                   :template ,(or template-override (list "* %{todo-state} %{Description}"
+                   :template ,(or template-override (list "* %{todo-state} "
                                                       ":PROPERTIES:" ":captured: %U" ":END:"
                                                       "%?"))
                    :olp ("projects" ,project "tasks"))
                  ("capture" :keys "C" :todo-state "TODO"
-                   :template ,(or template-override (list "* %{todo-state} %{Description}"
+                   :template ,(or template-override (list "* %{todo-state} "
                                                       ":PROPERTIES:" ":captured: %U" ":END:"
                                                       "%?"))
                    :olp ("projects" ,project "captures"))
                  ("note" :keys "N"
-                   :template ,(or template-override (list "* %{Description}"
+                   :template ,(or template-override (list "* "
                                                       ":PROPERTIES:" ":captured: %U" ":END:"
                                                       "%?"))
                    :olp ("projects" ,project "notes"))
