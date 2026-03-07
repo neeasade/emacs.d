@@ -32,7 +32,10 @@
 (ns/use parseedn)
 (defun ns/emacs-to-theme ()
   (parseedn-print-str
-    (-ht :colors (apply 'vector (myron-themes-termcolors))
+    (-ht
+      :colors (apply 'vector (myron-themes-termcolors))
+      :term_normal (apply 'vector (-take 7 (myron-themes-termcolors)))
+      :term_bright (apply 'vector (-take-last 7 (myron-themes-termcolors)))
       :color (ht-merge myron-themes-colors
                (-ht :cursor (first evil-insert-state-cursor))))))
 
