@@ -506,6 +506,18 @@
 (ns/use (term-title :host github :repo "CyberShadow/term-title")
   (when ns/term? (term-title-mode t)))
 
+;; these need to be adhoc reachable from m-x
+
+(defun! ns/enable-debug-on-error () (setq debug-on-error t))
+(defun! ns/enable-debug-on-quit () (setq debug-on-quit t))
+(defun! ns/enable-debug-on-message ()
+  (setq debug-on-message (read-string "message: ")))
+
+(defun! ns/disable-debug-hooks ()
+  (setq debug-on-error nil
+    debug-on-quit nil
+    debug-on-message nil))
+
 (comment
   ;; todo: deadgreap-match face and match face generally
   (ns/face 'isearch :foreground nil)
