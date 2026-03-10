@@ -67,7 +67,7 @@
             (switch-to-buffer existing-shell)
             (ns/pickup-shell (expand-file-name default-directory)))))
 
-  ;; "q" (fn! (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
+  ;; "q" (lambda () (interactive) (mapcar 'kill-buffer (ns/buffers-by-mode 'dired-mode)))
   "q" 'previous-buffer)
 
 (ns/bind "d" (fn!! dired

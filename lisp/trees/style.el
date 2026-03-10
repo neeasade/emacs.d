@@ -4,7 +4,6 @@
 (setq-default indicate-empty-lines nil)
 (setq tab-bar-separator " ")
 
-
 (ns/use nerd-icons)                     ; dep of doom-modeline?
 (ns/use doom-modeline)
 
@@ -217,19 +216,7 @@
       (spit (ns/str cache-dir "emacs-theme-name")
         (ns/str (first custom-enabled-themes)))
       (spit (ns/str cache-dir "emacs-theme-cache")
-        (ns/emacs-to-theme)))
-
-
-    ;; (sh-toss "awp disease")
-    ;; (sh-toss "/home/neeasade/walls/3074ac6e6ba4ccc596b5fa4d3ae36e1998535d47d1a62df8d2d9bed0ca418807.awp")
-    ;; (sh-toss "/home/neeasade/walls/4c3f11a0f90b4388b8a49f49b9ffbad88f36547b5d9ce1310aae72934604521e.awp")
-
-
-    ;; (sh-toss "awp disease")
-    ;; (sh-toss "")
-    ;; (load-file (which "awp"))
-    ;; (start-process "bgtint" nil "bgtint")
-    )
+        (ns/emacs-to-theme))))
 
   ;; (when ns/enable-blog-p
   ;;   ;; this takes a bit
@@ -279,4 +266,12 @@
 (ns/use rainbow-mode
   (setq rainbow-html-colors nil
     rainbow-x-colors nil)
+
+  (defun rainbow-colorize-match (color &optional match)
+    (let ((match (or match 0)))
+      (put-text-property
+        (match-beginning match) (match-end match)
+        'face `((:foreground ,(when-not (ct-light-p color) "white"))
+                 (:background ,color)))))
+
   (ns/bind "tc" 'rainbow-mode))

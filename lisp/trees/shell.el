@@ -34,7 +34,8 @@
   (lambda ()
     (--map
       (with-current-buffer it
-        (comint-truncate-buffer))
+        (when (get-buffer-process (current-buffer))
+          (comint-truncate-buffer)))
       (ns/buffers-by-mode 'shell-mode))))
 
 (ns/inmap
@@ -73,7 +74,8 @@
         (setq shell-pop-last-shell-buffer-index old-shell-index
           shell-pop-last-shell-buffer-buffer old-shell-buffer))))
 
-  (-map (lambda (i) (ns/bind (concat "t" (number-to-string i)) (fn! (ns/shell-pop i))))
+  (-map (lambda (i) (ns/bind (concat "t" (number-to-string i))
+                      (lambda () (interactive) (ns/shell-pop i))))
     (number-sequence 1 9))
 
   ;; treat 9 special, meant to be a long running buffer

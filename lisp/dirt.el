@@ -100,7 +100,6 @@
 
 (ns/use named-timer)
 
-(defmacro fn! (&rest body) `(lambda () (interactive) ,@body))
 (defmacro ns/comment (&rest body) nil)
 (defmacro comment (&rest body) nil)
 
@@ -359,6 +358,19 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
                 (t (pr-str val)))))        ; ?
       vals)))
 
+(defmacro fn! (&rest body)
+  "Create a function prefixed with ip/ that takes no arguments, return it"
+  (let* ((has-name? (symbolp (first body)))
+          (fnname (ns/str (if has-name?
+                            (first body)
+                            (md5 (ns/str body)))))
+          (fnname (intern (ns/str "ip/" fnname)))) ; "in place"
+    `(defun! ,fnname ()
+       "docstring"
+       ,@(if has-name?
+           (-drop 1 body)
+           body))))
+
 (defmacro condp (pred expr &rest clauses)
   `(cond
      ,@(-map (-lambda ((p1 p2))
@@ -409,7 +421,6 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
   (defun alert! (&rest alert-args)
     (let ((alert-fade-time 0))
       (apply 'alert alert-args))))
-
 
 ;; in anticipation of it existing one day
 ;; https://github.com/magnars/dash.el/pull/404

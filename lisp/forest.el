@@ -562,8 +562,6 @@
   (ns/use adoc-mode)
   (ns/use ox-asciidoc))
 
-
-
 (ns/defconfig rice-integrations
   (defun ns/make-border-color (c)
     (-> c
