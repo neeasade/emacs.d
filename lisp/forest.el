@@ -652,12 +652,11 @@
     (defun shell-maker-welcome-message (_)))
 
   (ns/use (chatgpt-shell :type git :host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell*.el"))
-    (setq chatgpt-shell-google-key (pass "gemini_api_key"))
+    (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
     ;; (chatgpt-shell-google-load-models)
-    ;; (chatgpt-shell-ollama-load-models)
-    ;; (setq chatgpt-shell-anthropic-key (pass "anthropic api key"))
+    (and (which "ollama") (chatgpt-shell-ollama-load-models))
 
-    (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")
+    ;; (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")
     (setq-default chatgpt-shell-system-prompt 2)) ; the "programming" prompt
 
   (ns/use agent-shell)
@@ -732,7 +731,6 @@
         (goto-char (point-max))
         (whisper-run))))
 
-
   ;; insert at point
   (ns/bind "r" 'whisper-run))
 
@@ -775,12 +773,11 @@
   (setq frog-jump-buffer-include-current-buffer nil)
 
   (add-hook 'ns/theme-hook
-    (fn!
-      (setq frog-jump-buffer-posframe-parameters
-        `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
-           (background-color . ,(myron-get :background :weak))
-           (foreground-color . ,(myron-get :primary :weak))
-           (left . 0.0)))))
+    (fn! (setq frog-jump-buffer-posframe-parameters
+           `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
+              (background-color . ,(myron-get :background :weak))
+              (foreground-color . ,(myron-get :primary :weak))
+              (left . 0.0)))))
 
   ;;   ;; (set-face-attribute 'avy-lead-face nil :box (myron-get :faded))
   ;;   (set-face-attribute 'avy-lead-face nil :box nil))
