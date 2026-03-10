@@ -507,6 +507,22 @@
 (ns/use (term-title :host github :repo "CyberShadow/term-title")
   (term-title-mode ns/term?))
 
+(defun! ns/unix2dos-current-file ()
+  (sh "unix2dos" (buffer-file-name)))
+
+;; don't automigrate files
+(setq inhibit-eol-conversion t)
+
+;; ...
+(defun hide-dos-eol ()
+  "Hide ^M in files containing mixed UNIX and DOS line endings."
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
+
+(when ns/enable-wsl-p
+  (add-hook 'c++-mode-hook 'hide-dos-eol))
+
 (comment
   ;; todo: deadgreap-match face and match face generally
   (ns/face 'isearch :foreground nil)
