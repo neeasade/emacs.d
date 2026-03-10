@@ -774,14 +774,13 @@
   (setq frog-jump-buffer-max-buffers (length frog-menu-avy-keys))
   (setq frog-jump-buffer-include-current-buffer nil)
 
-  (when (fboundp 'myron-get)
-    (setq frog-jump-buffer-posframe-parameters
-      `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
-         (background-color . ,(myron-get :background :weak))
-
-         (foreground-color . ,(myron-get :primary :weak))
-         (left . 0.0)
-         )))
+  (add-hook 'ns/theme-hook
+    (fn!
+      (setq frog-jump-buffer-posframe-parameters
+        `(;; cf https://www.gnu.org/software/emacs/manual/html_node/elisp/Font-and-Color-Parameters.html
+           (background-color . ,(myron-get :background :weak))
+           (foreground-color . ,(myron-get :primary :weak))
+           (left . 0.0)))))
 
   ;;   ;; (set-face-attribute 'avy-lead-face nil :box (myron-get :faded))
   ;;   (set-face-attribute 'avy-lead-face nil :box nil))

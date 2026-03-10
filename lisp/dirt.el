@@ -66,6 +66,9 @@
 (add-to-list 'straight-built-in-pseudo-packages 'org)
 (require 'org)
 
+(defvar ns/theme-hook nil
+  "Hook run when a theme is loaded (for myron-get readiness)")
+
 ;; org-element--list-struct: Tab width in Org files must be 8, not 4
 (defun ns/org-mode-tab-width () (setq-local tab-width 8))
 (add-hook 'org-mode-hook 'ns/org-mode-tab-width)

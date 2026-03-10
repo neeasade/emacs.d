@@ -26,6 +26,12 @@
   (general-nmap
     "]t" 'hl-todo-next
     "[t" 'hl-todo-previous)
+
+  (add-hook 'ns/theme-hook
+    (fn! (setq hl-todo-keyword-faces
+           `(("TODO" . ,(myron-get :faded))
+              ("todo" . ,(myron-get :faded))))))
+
   (global-hl-todo-mode))
 
 (ns/use parseedn)
@@ -139,35 +145,11 @@
 
   (ns/set-evil-cursor (face-attribute 'cursor :background))
 
-  ;; turn off bold in most places
-  (->> (face-list)
-    (--remove (s-starts-with-p "org" (ns/str it)))
-    (--remove (s-starts-with-p "magit" (ns/str it)))
-    (--map (ns/face it
-             ;; :weight 'normal
-             :weight (llet [already-unspecified? (or (eq (face-attribute it :weight) 'unspecified)
-                                                   (not (face-attribute it :weight)))]
-                       (if already-unspecified? 'unspecified 'normal))
-             ;; :slant 'normal
-             ;; :underline nil
-             )))
-
   (ns/face 'italic :slant 'italic)
   (ns/face 'bold :weight 'bold)
   (ns/face 'region :slant 'unspecified)
 
-  ;; (ns/face 'font-lock-comment-face :slant 'normal)
-
-  ;; (ns/face 'font-lock-constant-face :weight 'bold)
-
-  ;; (ns/face 'font-lock-variable-name-face :weight 'bold)
-
-  ;; todo: these should probably move into the theme
   (ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)
-
-  (setq hl-todo-keyword-faces
-    `(("TODO" . ,(myron-get :faded))
-       ("todo" . ,(myron-get :faded))))
 
   (fringe-mode 8)
   (setq window-divider-default-right-width (default-font-width))
