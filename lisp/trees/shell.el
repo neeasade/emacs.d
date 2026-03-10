@@ -190,8 +190,8 @@
     (when (fboundp 'ns/toggle-modeline)
       (ns/toggle-modeline)))
 
-  ;; todo: trim tramp info off cwd
-  (when cwd (shell-pop--cd-to-cwd-shell cwd))
+  (when (and cwd (not (file-remote-p cwd)))
+    (shell-pop--cd-to-cwd-shell cwd))
 
   ;; we don't care about how long it takes to stage the terminal
   (make-thread 'ns/stage-terminal)
