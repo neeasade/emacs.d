@@ -24,10 +24,10 @@
 ;;  -v : Do natural sort .. so the file names starting with . will show up first.
 ;;  -F : Classify filenames by appending '*' to executables,
 ;;       '/' to directories, etc.
-(when-not (and ns/enable-mac-p (string= (which "ls") "/bin/ls"))
-  (setq dired-listing-switches "-aAlGhvF --group-directories-first")) ; default: "-al"
+(setq dired-listing-switches "-aAlGhvF --group-directories-first") ; default: "-al"
 
 (when ns/enable-wsl-p
+  ;; this is more about tramp/remote limited ls than anything else
   (setq dired-listing-switches "-al"))
 
 (general-define-key
