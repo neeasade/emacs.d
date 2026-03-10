@@ -38,9 +38,13 @@
   ns/emacs-directory user-emacs-directory
   )
 
-(defun ns/message (&rest message-args)
-  (when ns/enable-init-logs?
+(defun ns/message-buffer (buffer-name &rest message-args)
+  (let ((messages-buffer-name buffer-name)
+         (inhibit-message t))         ; don't show in modeline
     (apply 'message message-args)))
+
+(defun ns/message (&rest message-args)
+  (apply 'ns/message-buffer "*ns-init-log*" message-args))
 
 (defmacro ns/use (pkg-def &rest body)
   "Load a PKG-DEF with straight, require it, and then eval BODY."
@@ -52,7 +56,7 @@
        (require ',pkg nil t)
        (require ',pkg-mode nil t)
        ,@body
-       (ns/message ": ns/use: %s... done." ',pkg)
+       ;; (ns/message ": ns/use: %s... done." ',pkg)
        (let ((time-passed (float-time (time-since ns-use-time))))
          (if (> time-passed 2)
            (ns/message ": ns/use: %s... done (%.02fs) 🕑." ',pkg time-passed)

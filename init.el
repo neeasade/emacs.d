@@ -3,9 +3,6 @@
 ;;; commentary:
 ;;; code:
 
-;; useful when debugging, useless for startup time
-(setq ns/enable-init-logs? t)         ; see ns/message
-
 (load (concat user-emacs-directory "lisp/dirt.el"))
 (shut-up-load (~e "lisp/forest.el"))
 

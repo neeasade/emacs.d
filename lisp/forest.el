@@ -628,11 +628,7 @@
     (/ (string-pixel-width s)
       (string-pixel-width "═")))
 
-  ;; dunst_logger
-  (defun ns/message-buffer (buffer-name message)
-    (let ((messages-buffer-name buffer-name)
-           (inhibit-message t))           ; don't show in modeline
-      (message message))))
+  (defun ns/on-save (command) (add-hook 'after-save-hook (lambda () (sh command)) nil t)))
 
 (ns/defconfig macos-integrations
   ;; adding the (t . emacs) so we don't open in textedit and stuff when using ns/follow
