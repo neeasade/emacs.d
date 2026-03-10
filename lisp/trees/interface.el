@@ -183,10 +183,10 @@
 
   (xterm-mouse-mode 1)
 
-  ;; scroll 5 lines at a time
-  (setq mouse-wheel-scroll-amount
-    '(5 ((shift) . hscroll) ((meta)) ((control meta) . global-text-scale)
-       ((control) . text-scale))))
+  (llet [s 5]
+    (setq mouse-wheel-scroll-amount-horizontal s
+      mouse-wheel-scroll-amount `(,s ((shift) . hscroll) ((meta)) ((control meta) . global-text-scale)
+                                   ((control) . text-scale)))))
 
 (ns/use (ultra-scroll :host github :repo "jdtsmith/ultra-scroll")
   (setq scroll-conservatively 101
