@@ -160,7 +160,7 @@ when called interactively."
 
   (evil-lion-mode))
 
-(ns/use evil-commentary  (evil-commentary-mode))
+(ns/use evil-commentary (evil-commentary-mode))
 (ns/use evil-anzu 
   (setq anzu-cons-mode-line-p nil)
   (global-anzu-mode 1))
@@ -176,13 +176,14 @@ when called interactively."
 ;;    (setq evil-fringe-mark-show-special nil)
 ;;   (global-evil-fringe-mark-mode t))
 
-(ns/use evil-goggles
-  (setq evil-goggles-duration 0.100)
-  (setq evil-goggles-pulse t)
-  ;; fun visual vim mode
-  (evil-goggles-mode 0))
-
 (ns/use evil-surround (global-evil-surround-mode 1))
+
+(ns/use evil-snipe
+  (setq evil-snipe-smart-case t)
+  (setq evil-snipe-repeat-scope 'whole-line)
+  (setq evil-snipe-spillover-scope 'whole-line)
+  (evil-snipe-override-mode +1)
+  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
 
 (ns/use evil-embrace
   (setq evil-embrace-show-help-p nil)
@@ -194,15 +195,10 @@ when called interactively."
     ;; if you don't want "c" to be affected in visual state, you should add this
     "c" #'evil-change
     "d" #'evil-delete
-    "s" #'embrace-add
+    ;; "s" #'embrace-add
+    "s" #'evil-avy-goto-char-2
+    "S" #'embrace-add
     ))
-
-(ns/use evil-snipe
-  (setq evil-snipe-smart-case t)
-  (setq evil-snipe-repeat-scope 'whole-line)
-  (setq evil-snipe-spillover-scope 'whole-line)
-  (evil-snipe-override-mode +1)
-  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
 
 (ns/use evil-exchange
   (evil-exchange-cx-install))

@@ -208,6 +208,8 @@
 
 (ns/defconfig projectile
   ;; todo: try to replace this with builtin?
+  (require 'project)
+
   (ns/use projectile)
 
   (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
@@ -387,12 +389,36 @@
 
   (ns/use lsp-ui)
 
+  (add-hook 'ns/load-theme
+    (fn!
+      ;; these should move to myron-themes
+      (ns/face 'lsp-ui-doc-background :background (myron-get :background :strong))
+      (ns/face 'lsp-headerline-breadcrumb-symbols-face :inherit 'font-lock-type-face :weight 'normal)
+      (ns/face 'lsp-headerline-breadcrumb-path-face :inherit 'font-lock-builtin-face)
+      (ns/face 'tty-menu-enabled-face :background (myron-get :background :strong) :foreground (myron-get :foreground :strong))
+      (ns/face 'tty-menu-disabled-face :background (myron-get :background :strong) :foreground (myron-get :faded :strong))
+      (ns/face 'tty-menu-selected-face :background (myron-get :background :focused) :foreground (myron-get :foreground :focused))))
+
+  ;; qml
+  (add-to-list 'lsp-language-id-configuration '(qml-ts-mode . "qml-ts"))
+  (lsp-register-client
+    (make-lsp-client :new-connection (lsp-stdio-connection '("qmlls6"))
+      :activation-fn (lsp-activate-on "qml-ts")
+      :server-id 'qmlls6))
+
+  ;; lsp uses company. thems the breaks kid
+  (define-key company-active-map (kbd "C-e") 'company-select-previous)
+
+  (add-hook 'qml-ts-mode-hook #'lsp-deferred)
+  (add-hook 'c++-mode-hook #'lsp-deferred)
+
+  ;; eglot breaks everything anytime I touch it
   ;; (ns/use eglot)
 
-  (defun ns/lsp-cleanup ()
-    "lsp-format and imports on save"
-    (add-hook 'before-save-hook #'lsp-format-buffer t t)
-    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+  ;; (defun ns/lsp-cleanup ()
+  ;;   "lsp-format and imports on save"
+  ;;   (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  ;;   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
   (add-hook 'go-mode-hook #'lsp-deferred)
   (add-hook 'go-mode-hook #'ns/lsp-cleanup))
@@ -639,7 +665,7 @@
        (t . emacs)))
 
   (when (string= (which "ls") "/bin/ls")
-    (setq dired-listing-switches "-al")) ; default
+    (setq dired-listing-switches "-al"))
 
   (when (which "/run/current-system/sw/bin/bash")
     (setq explicit-shell-file-name "/run/current-system/sw/bin/bash")))
@@ -659,7 +685,9 @@
     ;; (setq-default chatgpt-shell-model-version "claude-3-7-sonnet-latest")
     (setq-default chatgpt-shell-system-prompt 2)) ; the "programming" prompt
 
-  (ns/use agent-shell)
+  (ns/use agent-shell
+    (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
+    (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input))
 
   (ns/bind "nf"
     (fn!! find-llm-shell
@@ -786,8 +814,7 @@
     "Return variable `frog-menu-type' to use."
     (if ns/term?
       'avy-side-window
-      'avy-posframe))
-  )
+      'avy-posframe)))
 
 (ns/defconfig kkp
   (ns/use kkp

@@ -63,6 +63,7 @@
        (filehooks ns/enable-home-p)
        (macos-integrations ns/enable-mac-p)
        graphviz
+       frog-jump
 
        llm
        whisper
@@ -86,7 +87,7 @@
        markdown adoc
 
        minor-langs
-       ;; keep after $langs on purpose
+       ;; keep after language modes on purpose
        lsp
        )))
 

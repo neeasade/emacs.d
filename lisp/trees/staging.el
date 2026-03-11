@@ -439,7 +439,6 @@
 
   ;; remove conflicts
   (evil-define-key nil evil-motion-state-map (kbd "C-e") nil)
-
   (evil-define-key nil evil-normal-state-map (kbd "C-n") nil)
 
   (general-nmap (kbd "C-n") 'scroll-up-command)
@@ -523,20 +522,15 @@
 (when ns/enable-wsl-p
   (add-hook 'c++-mode-hook 'hide-dos-eol))
 
+(ns/use (qml-ts-mode :type git :host github :repo "xhcoding/qml-ts-mode"
+          :files ("*.el")))
+
 (comment
   ;; todo: deadgreap-match face and match face generally
   (ns/face 'isearch :foreground nil)
 
   (ns/face 'match :foreground nil :background nil :inverse-video nil)
-
-  (use-package qml-ts-mode
-    (add-to-list 'lsp-language-id-configuration '(qml-ts-mode . "qml-ts"))
-
-    (lsp-register-client
-      (make-lsp-client :new-connection (lsp-stdio-connection '("qmlls"))
-        :activation-fn (lsp-activate-on "qml-ts")
-        :server-id 'qmlls))
-
+  (comment
     (add-hook 'qml-ts-mode-hook (lambda ()
                                   (setq-local electric-indent-chars '(?\n ?\( ?\) ?{ ?} ?\[ ?\] ?\; ?,))
                                   ;; (lsp-deferred)
