@@ -393,10 +393,19 @@
     (fn!
       ;; these should move to myron-themes
       (ns/face 'lsp-ui-doc-background :background (myron-get :background :strong))
+
       (ns/face 'lsp-headerline-breadcrumb-symbols-face :inherit 'font-lock-type-face :weight 'normal)
       (ns/face 'lsp-headerline-breadcrumb-path-face :inherit 'font-lock-builtin-face)
-      (ns/face 'tty-menu-enabled-face :background (myron-get :background :strong) :foreground (myron-get :foreground :strong))
-      (ns/face 'tty-menu-disabled-face :background (myron-get :background :strong) :foreground (myron-get :faded :strong))
+
+      (ns/face 'tty-menu-enabled-face
+        :background (myron-get :background :strong)
+        :foreground (myron-get :foreground :strong))
+
+      (ns/face 'tty-menu-disabled-face
+        ;; this bg should be like the diff red or something
+        :background (myron-get :diff-remove-highlight :meta)
+        :foreground (myron-get :faded :strong))
+
       (ns/face 'tty-menu-selected-face :background (myron-get :background :focused) :foreground (myron-get :foreground :focused))))
 
   ;; qml
@@ -407,7 +416,8 @@
       :server-id 'qmlls6))
 
   ;; lsp uses company. thems the breaks kid
-  (define-key company-active-map (kbd "C-e") 'company-select-previous)
+  ;; only valid after company loads lmao
+  ;; (define-key company-active-map (kbd "C-e") 'company-select-previous)
 
   (add-hook 'qml-ts-mode-hook #'lsp-deferred)
   (add-hook 'c++-mode-hook #'lsp-deferred)

@@ -512,6 +512,18 @@
 ;; don't automigrate files
 (setq inhibit-eol-conversion t)
 
+;; there's a motion thing here that makes it easy to accidentally jump around
+(setq lsp-ui-doc-show-with-mouse nil)
+
+(add-hook 'ns/theme-hook
+  (fn!
+    (ns/face 'xref-file-header :foreground (myron-get :foreground))
+
+    (ns/face 'match
+      :background (myron-get :background :strong)
+      :foreground (myron-get :foreground :strong)
+      :inverse-video nil)))
+
 ;; ...
 (defun hide-dos-eol ()
   "Hide ^M in files containing mixed UNIX and DOS line endings."
