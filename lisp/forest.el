@@ -850,6 +850,8 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
 ;; big bois
 ;; having them listed like this gives ns/jump-config something to search for
 (ns/defconfig blog                (shut-up-load (~e "lisp/trees/blog.el")))
+(ns/defconfig buffers-and-windows (shut-up-load (~e "lisp/trees/buffers-and-windows.el")))
+(ns/defconfig dired               (shut-up-load (~e "lisp/trees/dired.el")))
 (ns/defconfig doomline            (shut-up-load (~e "lisp/trees/doomline.el")))
 (ns/defconfig editing             (shut-up-load (~e "lisp/trees/editing.el")))
 (ns/defconfig evil                (shut-up-load (~e "lisp/trees/evil.el")))
@@ -857,16 +859,13 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
 (ns/defconfig git                 (shut-up-load (~e "lisp/trees/git.el")))
 (ns/defconfig interface           (shut-up-load (~e "lisp/trees/interface.el")))
 (ns/defconfig minibuffer          (shut-up-load (~e "lisp/trees/minibuffer.el")))
-(ns/defconfig buffers-and-windows (shut-up-load (~e "lisp/trees/buffers-and-windows.el")))
-(ns/defconfig dired               (shut-up-load (~e "lisp/trees/dired.el")))
 (ns/defconfig org                 (shut-up-load (~e "lisp/trees/org.el")))
 (ns/defconfig org-capture         (shut-up-load (~e "lisp/trees/org-capture.el")))
 (ns/defconfig org-pim             (shut-up-load (~e "lisp/trees/org-pim.el")))
 (ns/defconfig org-pim-export      (shut-up-load (~e "lisp/trees/org-pim-export.el")))
-
-(ns/defconfig sanity      (shut-up-load (~e "lisp/trees/sanity.el")))
-(ns/defconfig shell       (shut-up-load (~e "lisp/trees/shell.el")))
-(ns/defconfig staging     (shut-up-load (~e "lisp/trees/staging.el")))
-(ns/defconfig style       (shut-up-load (~e "lisp/trees/style.el")))
-(ns/defconfig util        (shut-up-load (~e "lisp/trees/util.el")))
-
+(ns/defconfig sanity              (shut-up-load (~e "lisp/trees/sanity.el")))
+(ns/defconfig shell               (shut-up-load (~e "lisp/trees/shell.el")))
+(ns/defconfig staging             (shut-up-load (~e "lisp/trees/staging.el")))
+(ns/defconfig style               (shut-up-load (~e "lisp/trees/style.el")))
+(ns/defconfig terminal-clipboard  (shut-up-load (~e "lisp/trees/buffers-and-windows.el")))
+(ns/defconfig util                (shut-up-load (~e "lisp/trees/util.el")))
