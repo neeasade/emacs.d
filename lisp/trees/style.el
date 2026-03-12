@@ -204,6 +204,18 @@
   ;;   ;; this takes a bit
   ;;   (make-thread
   ;;     (fn (ns/blog-set-htmlize-colors))))
+
+
+  (when (eq 'myron-kobo (first custom-enabled-themes))
+    (when ns/enable-wsl-p
+      ;; default color is rendering wrong on wsl alacritty.
+      ;; changing to something palatable, can't be arsed
+
+      ;; (ht-set* myron-themes-colors  )
+      (ns/face 'org-block :background "#dfe0df")))
+
+  (run-hooks 'ns/theme-hook)
+
   t)
 
 (ns/use (stillness-mode :host github :repo "neeasade/stillness-mode.el")
