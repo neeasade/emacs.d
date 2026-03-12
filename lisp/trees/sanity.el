@@ -174,6 +174,7 @@
   ;; todo: per-mode scratch? should text be org? ugh
   "ns" '(:ignore t :which-key "Scratch")
   "nss" (fn!! goto-scratch-elisp (ns/find-or-open (~e "lisp/scratch/scratch.el")))
+  "nsc" (fn!! goto-scratch-clj (ns/find-or-open (~ "bin/scratch.clj")))
   "nst" (fn!! goto-scratch-text (ns/find-or-open (~e "lisp/scratch/scratch.txt")))
   "nso" (fn!! goto-scratch-org (ns/find-or-open (~e "lisp/scratch/scratch.org")))
 
