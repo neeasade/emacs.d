@@ -470,9 +470,6 @@
   (git-gutter-mode 0)
   (flyspell-mode 0)
 
-  ;; for some reason this doesn't override setq-default
-  (setq-local olivetti-body-width 50)
-
   ;; torn - think the move is to stop autofill and start wrapping display-wise
   ;; with olivetti?
   ;; (setq-local comment-auto-fill-only-comments nil)

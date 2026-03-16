@@ -19,6 +19,7 @@
 ;; whether or not to rely on notifications from the fs that files have changed
 ;; when set to nil, checks every 5 seconds
 (setq auto-revert-use-notify nil)
+(global-auto-revert-mode t)
 
 ;; (let ((org-super-agenda-groups
 ;;         '((:auto-group t))))
@@ -63,8 +64,6 @@
 
 (general-define-key :states 'visual "v" #'hydra-expand-region/body)
 
-(setq search-invisible t)
-
 (defun ns/browse-url-slack (original-browse &rest args)
   (let* ((url (first args))
           (slack? (string-match-p (regexp-quote "slack.com") url))
@@ -104,22 +103,6 @@
 
 (setq server-window 'pop-to-buffer)
 
-(defun! ns/generate-myron-cache ()
-  (llet [cache (--mapcat (progn (ns/load-theme (intern (format "myron-%s" it)))
-                           (list (intern (format "myron-%s" it))
-                             (myron-themes--create-meta-colors (funcall (intern (format "myron-%s-create" it))))))
-                 '(dogman grayscale kobo mcfay room storm struan))
-          cache-def `(defvar myron-themes-cache ',cache "Cache value for the themes. Internal use only.")
-          fill-column 100]
-    (spit (~e "straight/repos/myron-themes/myron-themes-cache.el")
-      (with-temp-buffer
-        (insert ";; -*- lexical-binding: t; -*-\n")
-        (insert (pp-to-string (print cache-def)))
-        (insert (ns/str '(provide 'myron-themes-cache)))
-        (emacs-lisp-mode)
-        ;; (pp-buffer)
-        (buffer-string)))))
-
 (ns/use
   (eat :type git
     :host codeberg
@@ -132,9 +115,9 @@
 
 (ns/use smart-dash)
 (ns/use lorem-ipsum)
+(ns/use devdocs)
 
-;; bad hook? emacs client start
-;; (add-hook 'prog-mode-hook 'outline-minor-mode)
+(add-hook 'prog-mode-hook 'outline-minor-mode)
 
 ;; this should really be in sanity lmao
 (ns/use symbol-overlay (add-hook 'prog-mode-hook 'symbol-overlay-mode))
@@ -150,7 +133,6 @@
     remote-file-name-inhibit-auto-save-visited t
     tramp-copy-size-limit (* 1024 1024) ;; 1MB
     tramp-verbose 2)
-
 
   (defun ns/magit-tramp-check ()
     (when (file-remote-p default-directory)
@@ -174,8 +156,12 @@
   (setq magit-tramp-pipe-stty-settings 'pty)
 
   ;; adding this one - caution, default is 10s, risky?
-  (setq remote-file-name-inhibit-cache (ns/t 10m)))
+  (setq remote-file-name-inhibit-cache (ns/t 10m))
 
+  ;; never expire tramp password entries
+  (setq password-cache-expiry nil))
+
+;; not working - some evil-bind ret takes precedence
 (general-define-key
   :states '(normal insert)
   :keymaps 'comint-mode-map
@@ -198,11 +184,8 @@
   (dotimes (i (/ (window-height) 4))
     (insert "\n"))
   (insert message)
-  (setq ns/splash-window-conf (current-window-configuration))
   (delete-other-windows)
   (special-mode)
-  ;; (ns/set-buffer-face-variable)
-  ;; nb: still working out olivetti width
   (olivetti-mode)
 
   (setq-local mode-line-format nil))
@@ -217,27 +200,9 @@
 
 ;; (ns/splash (ns/random-splash-message))
 
-(defun! ns/random-todo ()
-  ;; goto a random todo in dotfiles or emacs
-  (ns/random-list (sh-lines (format "rg --no-heading --line-number todo '%s' | grep -v '\"'" (~ ".dotfiles"))))
-
-  ;; inkling: should tweak follow package
-  (defun ns/create-marker (line)
-    (ns/handle-potential-file-link
-      "/home/neeasade/.emacs.d/lisp/trees/staging.el:350"))
-  )
-
 (ns/inmap 'special-mode-map "q" (fn!! window-revert
                                   (kill-buffer)
-                                  ;; todo: this layout is only relevant for splash, but special-mode is used in other places
-                                  (winner-undo)
-                                  ;; (set-window-configuration ns/splash-window-conf)
-                                  ))
-
-;; todo: derive a splash mode from special mode (annoying to have it work on drawer popups)
-;; (ns/inmap 'special-mode-map "q" (fn!! window-revert (quit-window) (winner-undo)))
-
-(ns/use devdocs)
+                                  (winner-undo)))
 
 (run-at-time "11:59pm" "11:59pm" (fn!! message-delimiter
                                    (message "|")
@@ -271,23 +236,8 @@
     gptel-backend (gptel-make-anthropic "Claude"
                     :stream t :key chatgpt-shell-anthropic-key)))
 
-(ns/use aidermacs
-  ;; :bind (("C-c a" . aidermacs-transient-menu))
-  (setenv "ANTHROPIC_API_KEY" chatgpt-shell-anthropic-key)
-
-  ;; See the Configuration section below
-  (setq aidermacs-default-chat-mode 'architect)
-  (setq aidermacs-default-model "opus")
-  (setq aidermacs-extra-args '("--yes"))
-  (setq aidermacs-show-diff-after-change nil))
-
-;; while flipping between vscode and here
-(global-auto-revert-mode t)
-
-;; aggressive
 
 ;; todo: consider buffer-terminator
-
 (setq create-lockfiles nil)
 
 ;; (ns/use typescript-mode)
@@ -392,22 +342,6 @@
 
   )
 
-;; fun, maybe we want this in the modeline instead
-(ns/use breadcrumb
-  (breadcrumb-mode -1)
-  (comment
-
-    (ns/face 'breadcrumb-project-leaf-face :foreground (myron-get :assumed :weak))
-    (ns/face 'header-line
-      ;; :background (myron-get :subtle :meta)
-      :background (myron-get :background :weak)
-      ;; :foreground nil
-      :foreground (myron-get :foreground :weak)
-      ))
-  )
-
-(ns/use qml-mode)
-
 ;; (ns/use vlf)
 
 ;; HEY: consider installing activities.el, it would have saved your bacon like 3 times today
@@ -438,21 +372,18 @@
   "iB" (fn!! git-bug-or-branch
          (llet [branch-name (sh "git" "rev-parse" "--abbrev-ref" "HEAD")
                  bug (first (s-match "BUG-[0-9]+" branch-name))]
-           (insert
-             (if bug (format "[%s]" bug)
-               branch-name)))))
+           (insert (if bug (format "[%s]" bug)
+                     branch-name)))))
 
-;; never expire tramp password entries
-(setq password-cache-expiry nil)
 
-;; works: should we prefix with emacs?
 (ns/use (term-title :host github :repo "CyberShadow/term-title")
+  (setq frame-title-format "%b - emacs")
   (term-title-mode ns/term?))
 
 (defun! ns/unix2dos-current-file ()
   (sh "unix2dos" (buffer-file-name)))
 
-;; don't automigrate files
+;; don't automigrate files from \r\n to \n
 (setq inhibit-eol-conversion t)
 
 ;; there's a motion thing here that makes it easy to accidentally jump around
@@ -461,7 +392,6 @@
 (add-hook 'ns/theme-hook
   (fn!
     (ns/face 'xref-file-header :foreground (myron-get :foreground))
-
     (ns/face 'match
       :background (myron-get :background :strong)
       :foreground (myron-get :foreground :strong)
@@ -477,10 +407,15 @@
 (when ns/enable-wsl-p
   (add-hook 'c++-mode-hook 'hide-dos-eol))
 
+;; (ns/use qml-mode)
 (ns/use (qml-ts-mode :type git :host github :repo "xhcoding/qml-ts-mode"
           :files ("*.el")))
 
 (comment
+
+  (ns/use ethan-wspace)
+
+
   ;; todo: deadgreap-match face and match face generally
   (ns/face 'isearch :foreground nil)
 

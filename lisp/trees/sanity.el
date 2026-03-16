@@ -40,7 +40,10 @@
 
   ;; cf https://www.reddit.com/r/emacs/comments/43b42y/i_just_realized_emacs_has_a_fast_infix_calculator/czh7djn/
   calc-multiplication-has-precedence nil
-  )
+
+
+  ;; search invisible text, such as folded org headings
+  search-invisible t)
 
 
 ;; (see below for when we garbage collect)

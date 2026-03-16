@@ -166,7 +166,6 @@
   (lispy-mode)
   (lispyville-mode))
 
-
 (add-hook 'clojure-mode-hook #'ns/lisp-editing-init)
 (add-hook 'emacs-lisp-mode-hook #'ns/lisp-editing-init)
 (add-hook 'fennel-mode #'ns/lisp-editing-init)

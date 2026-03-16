@@ -125,6 +125,7 @@
   (ns/check-for-orphans)
 
   (ns/conf-staging)
+  (ns/message "--------")
   (message "🏁🏁🏁 init sequence complete 🏁🏁🏁")
 
   (defun! ns/initial-startup-hook ()

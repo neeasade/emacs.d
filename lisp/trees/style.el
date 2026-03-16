@@ -9,7 +9,8 @@
 
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"
           :files ("*.el" "themes/*.el"))
-  (setq base16-theme-256-color-source 'colors))
+  (setq base16-theme-256-color-source 'colors)
+  (setq myron-themes-use-cache nil))
 
 ;; force terminal colors to work in daemon mode
 (defun base16-theme-transform-face (spec colors)
@@ -79,6 +80,10 @@
           new-size (read-number (format "new size (current-size: %s): " current-size))]
     (ns/face 'default :height (* 10 new-size))))
 
+(defun ns/sync-terminal-frame-background (_)
+  (interactive)
+  (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))))
+
 (defun! ns/style-terminal ()
   (ns/use evil-terminal-cursor-changer
     (defun etcc--in-xterm? ()
@@ -95,15 +100,12 @@
 
   (setq flycheck-indication-mode 'left-margin)
 
-  (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background))))
+  (ns/sync-terminal-frame-background)
 
   ;; (ns/face 'flycheck-error :underline nil)
   )
 
-(defun ns/sync-terminal-frame-background (_)
-  (interactive)
-  (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))))
-
+;; attempting to hook emacsclient:
 (add-to-list 'after-make-frame-functions #'ns/sync-terminal-frame-background)
 
 (defun! ns/load-random-myron-theme ()
@@ -145,23 +147,24 @@
 
   (ns/set-evil-cursor (face-attribute 'cursor :background))
 
-  (ns/face 'italic :slant 'italic)
-  (ns/face 'bold :weight 'bold)
-  (ns/face 'region :slant 'unspecified)
+  (ns/face 'italic :slant  'italic)
+  (ns/face 'bold   :weight 'bold)
+  (ns/face 'region :slant  'unspecified)
 
   (ns/face '(region evil-ex-search isearch lazy-highlight evil-ex-lazy-highlight) :weight 'unspecified)
 
-  (fringe-mode 8)
-  (setq window-divider-default-right-width (default-font-width))
-  (setq window-divider-default-places t)
-  (window-divider-mode t) 
+  (when-not ns/term?
+    (fringe-mode 8)
+    (setq window-divider-default-right-width (default-font-width))
+    (setq window-divider-default-places t)
+    (window-divider-mode -1)
 
-  (->> `(internal-border-width ,(if ns/enable-home-p 0 10)
-          right-divider-width ,(default-font-width)
-          bottom-divider-width 0
-          font "Go Mono-14")
-    (-partition 2)
-    (-map (-applify #'ns/frame-set-parameter)))
+    (->> `(internal-border-width ,(if ns/enable-home-p 0 10)
+            right-divider-width ,(default-font-width)
+            bottom-divider-width 0
+            font "Go Mono-14")
+      (-partition 2)
+      (-map (-applify #'ns/frame-set-parameter))))
 
   (ns/face 'org-block :background (myron-get :subtle :meta))
 
@@ -206,15 +209,16 @@
   ;;     (fn (ns/blog-set-htmlize-colors))))
 
 
-  (when (eq 'myron-kobo (first custom-enabled-themes))
-    (when ns/enable-wsl-p
-      ;; default color is rendering wrong on wsl alacritty.
-      ;; changing to something palatable, can't be arsed
-
-      ;; (ht-set* myron-themes-colors  )
-      (ns/face 'org-block :background "#dfe0df")))
+  (when (and ns/enable-wsl-p
+          (eq 'myron-room (first custom-enabled-themes)))
+    ;; default color is rendering wrong on wsl alacritty.
+    ;; changing to something palatable, can't be arsed
+    (ns/face 'org-block :background "#dfe0df"))
 
   (run-hooks 'ns/theme-hook)
+
+  (ns/face '(orderless-match-face-0 orderless-match-face-1 orderless-match-face-2 orderless-match-face-3)
+    :weight 'normal)
 
   t)
 
@@ -269,3 +273,19 @@
                  (:background ,color)))))
 
   (ns/bind "tc" 'rainbow-mode))
+
+(defun! ns/generate-myron-cache ()
+  (llet [cache (--mapcat (progn (ns/load-theme (intern (format "myron-%s" it)))
+                           (list (intern (format "myron-%s" it))
+                             (myron-themes--create-meta-colors (funcall (intern (format "myron-%s-create" it))))))
+                 '(dogman grayscale kobo mcfay room storm struan))
+          cache-def `(defvar myron-themes-cache ',cache "Cache value for the themes. Internal use only.")
+          fill-column 100]
+    (spit (~e "straight/repos/myron-themes/myron-themes-cache.el")
+      (with-temp-buffer
+        (insert ";; -*- lexical-binding: t; -*-\n")
+        (insert (pp-to-string (print cache-def)))
+        (insert (ns/str '(provide 'myron-themes-cache)))
+        (emacs-lisp-mode)
+        ;; (pp-buffer)
+        (buffer-string)))))
