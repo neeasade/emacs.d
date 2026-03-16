@@ -43,6 +43,7 @@
   (ns/summon
     `(
        server                          ; do not put this in core - elisp scripts
+       (terminal-clipboard ns/term?)
 
        (kkp ns/term?)
 
