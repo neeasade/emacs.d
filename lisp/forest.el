@@ -867,5 +867,5 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
 (ns/defconfig shell               (shut-up-load (~e "lisp/trees/shell.el")))
 (ns/defconfig staging             (shut-up-load (~e "lisp/trees/staging.el")))
 (ns/defconfig style               (shut-up-load (~e "lisp/trees/style.el")))
-(ns/defconfig terminal-clipboard  (shut-up-load (~e "lisp/trees/buffers-and-windows.el")))
+(ns/defconfig terminal-clipboard  (shut-up-load (~e "lisp/trees/terminal-clipboard.el")))
 (ns/defconfig util                (shut-up-load (~e "lisp/trees/util.el")))
