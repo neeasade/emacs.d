@@ -2,6 +2,9 @@
 
 (ns/use dumb-jump)
 
+;; set or browse
+(ns/bind "l" 'consult-bookmark)
+
 (ns/bind "nk" (fn!! goto-theme
                 (find-file (~ ".dotfiles/bin/bin/themes/" (sh "hostname")))))
 

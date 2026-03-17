@@ -113,6 +113,7 @@
         ;; having this on an idle timer got really annoying
         ;; so giving recentf the chance to maybe save every 5 min, if idle.
         (> (org-user-idle-seconds) 10)
+        (shut-up (bookmark-save))       ; save bookmark states to default file
         (shut-up (recentf-save-list)))))
 
 (setq whitespace-line-column 80)
