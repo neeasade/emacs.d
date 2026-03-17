@@ -99,7 +99,6 @@ command was called, go to its unstaged changes section."
 ;; associated PR
 ;; or just git repo generally
 
-
 ;; this seems to be a little nicer:
 ;; (ns/use browse-at-remote)
 

@@ -23,8 +23,7 @@
   version-control t
   network-security-level 'high
   frame-resize-pixelwise t
-  frame-title-format '(multiple-frames "%b"
-		                    ("" "%b"))
+  frame-title-format "%b - emacs"
 
   ;; set to 0 for default/centering behavior
   scroll-conservatively 1

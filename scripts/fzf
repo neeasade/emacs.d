@@ -1,4 +1,4 @@
-#!/usr/bin/env elispp
+#!/usr/bin/env elisp
 
 (condition-case ()
     (if *stdin-file*

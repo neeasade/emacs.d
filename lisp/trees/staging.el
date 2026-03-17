@@ -190,16 +190,6 @@
 
   (setq-local mode-line-format nil))
 
-(named-timer-run :splash-screen
-  "1 sec"
-  (ns/t 5m)
-  (fn (when (> (org-user-idle-seconds) (ns/t 5m))
-        nil
-        ;; (ns/splash (ns/random-splash-message))
-        )))
-
-;; (ns/splash (ns/random-splash-message))
-
 (ns/inmap 'special-mode-map "q" (fn!! window-revert
                                   (kill-buffer)
                                   (winner-undo)))
@@ -344,12 +334,12 @@
 
 ;; (ns/use vlf)
 
-;; HEY: consider installing activities.el, it would have saved your bacon like 3 times today
-;; dunno when^ this was said, adding a timestamp <2026-02-24 Tue 12:20>
-
 (ns/use activities
   (activities-mode)
   (activities-tabs-mode)
+
+  (add-hook 'ns/load-theme
+    (fn! (ns/face 'activities-tabs :foreground (myron-get :foreground nil))))
 
   ;; default bindings to consider
   ;; Prevent `edebug' default bindings from interfering.
@@ -375,9 +365,7 @@
            (insert (if bug (format "[%s]" bug)
                      branch-name)))))
 
-
 (ns/use (term-title :host github :repo "CyberShadow/term-title")
-  (setq frame-title-format "%b - emacs")
   (term-title-mode ns/term?))
 
 (defun! ns/unix2dos-current-file ()

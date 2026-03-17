@@ -80,7 +80,7 @@
           new-size (read-number (format "new size (current-size: %s): " current-size))]
     (ns/face 'default :height (* 10 new-size))))
 
-(defun ns/sync-terminal-frame-background (_)
+(defun ns/sync-terminal-frame-background ()
   (interactive)
   (and ns/term? (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background)))))
 
