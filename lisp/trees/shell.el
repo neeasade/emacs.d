@@ -28,6 +28,8 @@
 ;; (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
 (remove-hook 'comint-output-filter-functions 'comint-truncate-buffer)
 
+(add-hook 'comint-output-filter-functions #'comint-osc-process-output)
+
 (setq comint-scroll-show-maximum-output nil)
 
 (named-timer-idle-run :comint-collect 2 t

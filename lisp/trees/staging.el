@@ -396,7 +396,8 @@
   (aset buffer-display-table ?\^M []))
 
 (when ns/enable-wsl-p
-  (add-hook 'c++-mode-hook 'hide-dos-eol))
+  (add-hook 'c++-mode-hook 'hide-dos-eol)
+  (add-hook 'c-mode-hook 'hide-dos-eol))
 
 ;; (ns/use qml-mode)
 (ns/use (qml-ts-mode :type git :host github :repo "xhcoding/qml-ts-mode"

@@ -235,6 +235,7 @@ when called interactively."
       (eq (current-buffer) buf)
       (s-starts-with? "*" buffername)
       (s-starts-with? " *" buffername)
+      (s-starts-with? "acp-client-stderr" buffername)
       (s-ends-with? ".org_archive" file-name)
       (s-starts-with? "magit" buffername)
       (eq 'dired-mode (buffer-local-value 'major-mode buf)))))
