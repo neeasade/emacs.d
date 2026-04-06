@@ -4,6 +4,7 @@
 
 ;; set or browse
 (ns/bind "l" 'consult-bookmark)
+(ns/bind "L" 'bookmark-delete)
 
 (ns/bind "nk" (fn!! goto-theme
                 (find-file (~ ".dotfiles/bin/bin/themes/" (sh "hostname")))))
@@ -374,8 +375,13 @@
 (defun! ns/unix2dos-current-file ()
   (sh "unix2dos" (buffer-file-name)))
 
+
+(defun! ns/dos2unix-current-file ()
+  (sh "dos2unix" (buffer-file-name)))
+
 ;; don't automigrate files from \r\n to \n
-(setq inhibit-eol-conversion t)
+;; this setting is bad because it also means your ^r's will spread everywhere
+(setq inhibit-eol-conversion nil)
 
 ;; there's a motion thing here that makes it easy to accidentally jump around
 (setq lsp-ui-doc-show-with-mouse nil)
@@ -388,17 +394,6 @@
       :foreground (myron-get :foreground :strong)
       :inverse-video nil)))
 
-;; ...
-(defun hide-dos-eol ()
-  "Hide ^M in files containing mixed UNIX and DOS line endings."
-  (interactive)
-  (setq buffer-display-table (make-display-table))
-  (aset buffer-display-table ?\^M []))
-
-(when ns/enable-wsl-p
-  (add-hook 'c++-mode-hook 'hide-dos-eol)
-  (add-hook 'c-mode-hook 'hide-dos-eol))
-
 ;; (ns/use qml-mode)
 (ns/use (qml-ts-mode :type git :host github :repo "xhcoding/qml-ts-mode"
           :files ("*.el")))
@@ -406,7 +401,6 @@
 (comment
 
   (ns/use ethan-wspace)
-
 
   ;; todo: deadgreap-match face and match face generally
   (ns/face 'isearch :foreground nil)

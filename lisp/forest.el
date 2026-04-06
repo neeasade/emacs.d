@@ -91,13 +91,14 @@
       ;; corfu-auto-delay 0.1
       )
 
-    (global-corfu-mode t)
+    (global-corfu-mode 1)
 
     (ns/inmap 'corfu-map (kbd "C-e") 'corfu-previous)
 
-    (require 'corfu-popupinfo)
-    (setq corfu-popupinfo-delay '(0.2 . 0.1))
-    (corfu-popupinfo-mode t))
+    ;; (require 'corfu-popupinfo)
+    ;; (setq corfu-popupinfo-delay '(0.2 . 0.1))
+    ;; (corfu-popupinfo-mode -1)
+    )
 
   ;; sanity
   (defun corfu-safe-complete (fn &rest args)
@@ -421,6 +422,7 @@
 
   (add-hook 'qml-ts-mode-hook #'lsp-deferred)
   (add-hook 'c++-mode-hook #'lsp-deferred)
+  (add-hook 'c-mode-hook #'lsp-deferred)
 
   ;; eglot breaks everything anytime I touch it
   ;; (ns/use eglot)
@@ -696,6 +698,7 @@
     (setq-default chatgpt-shell-system-prompt 2)) ; the "programming" prompt
 
   (ns/use agent-shell
+    (setq agent-shell-show-welcome-message nil)
     (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
     (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input))
 

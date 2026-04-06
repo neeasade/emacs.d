@@ -1,5 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 
+;; magit dep:
+(ns/use cond-let)
+
 ;; this happens here to appease evil-collection
 (ns/use magit)
 
@@ -265,7 +268,6 @@ when called interactively."
 
 (ns/use better-jumper
   (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
-
   (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
 
   ;; term
@@ -291,4 +293,9 @@ when called interactively."
 
 ;; undo-tree seems to have a weird garbage collection thing going on
 ;; freezes emacs
+
+;; todo:
 ;; (ns/use undo-fu (evil-set-undo-system 'undo-fu))
+;; (ns/use vundo)
+
+;; there's an undo-fu-session thing too

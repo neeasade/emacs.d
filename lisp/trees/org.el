@@ -450,8 +450,9 @@
           (flyspell-mode 1)))
       (flyspell-correct-at-point))
 
-    (define-key flyspell-mode-map (kbd "C-;") 'ns/spellcheck-at-point)
-    (global-set-key (kbd "C-;") 'ns/spellcheck-at-point)
+    (define-key flyspell-mode-map (kbd "<C-;>") 'ns/spellcheck-at-point)
+    (global-set-key (kbd "<C-;>") 'ns/spellcheck-at-point)
+
     (general-nmap "gs" 'ns/spellcheck-at-point))
 
   ;; ensure dictionary
