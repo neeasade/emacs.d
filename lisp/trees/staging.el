@@ -365,7 +365,7 @@
   "ib" (fn!! git-branches (insert (ns/pick (sh-lines "git" "branch" "--format" "%(refname:short)"))))
   "iB" (fn!! git-bug-or-branch
          (llet [branch-name (sh "git" "rev-parse" "--abbrev-ref" "HEAD")
-                 bug (first (s-match "BUG-[0-9]+" branch-name))]
+                 bug (first (s-match "[A-Z]+-[0-9]+" branch-name))]
            (insert (if bug (format "[%s]" bug)
                      branch-name)))))
 

@@ -122,7 +122,7 @@
       (delete-window))))
 
 (defun ns/shell-mode-init ()
-  (shell-dirtrack-mode nil)
+  (shell-dirtrack-mode -1)
   (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t)
   (setq-local inhibit-field-text-motion nil)
   ;; weird colon highlighting thing

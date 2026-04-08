@@ -702,11 +702,12 @@
     (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
     (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input))
 
-  (ns/bind "nf"
-    (fn!! find-llm-shell
-      (if-let (b (first (ns/buffers-by-mode 'agent-shell-mode 'chatgpt-shell-mode 'aidermacs-comint-mode)))
-        (switch-to-buffer b)
-        (chatgpt-shell))))
+  (ns/bind "nf" 'agent-shell)
+
+  ;; (fn!! find-llm-shell
+  ;;   (if-let (b (first (ns/buffers-by-mode 'agent-shell-mode 'chatgpt-shell-mode 'aidermacs-comint-mode)))
+  ;;     (switch-to-buffer b)
+  ;;     (chatgpt-shell)))
 
   (ns/bind "nF"
     (fn!! find-chatgpt-shell
