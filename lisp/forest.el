@@ -174,6 +174,45 @@
         (cider-eval-last-sexp nil)
         (cider-eval-defun-at-point nil))))
 
+  ;; slopped
+  (defun ns/cider-eval-to-window ()
+    "Eval and display result in a dedicated window (prints strings without quotes)."
+    (interactive)
+    (let* ((buf-name "*cider-eval-result*")
+            (handler (nrepl-make-response-handler
+                       (get-buffer-create buf-name)
+                       (lambda (buf value)
+                         (with-current-buffer buf
+                           (goto-char (point-max))
+                           ;; if it's a string, read it to get actual content with newlines
+                           (insert (if (string-prefix-p "\"" value)
+                                     (read value)
+                                     value)))
+                         (display-buffer buf))
+                       (lambda (buf out)
+                         (with-current-buffer buf
+                           (goto-char (point-max))
+                           (insert out)))
+                       (lambda (buf err)
+                         (with-current-buffer buf
+                           (goto-char (point-max))
+                           (insert (propertize err 'face 'error) "\n"))
+                         (display-buffer buf))
+                       nil)))
+      (with-current-buffer (get-buffer-create buf-name)
+        (erase-buffer)
+        (text-mode))
+      (if (use-region-p)
+        (cider-interactive-eval
+          (buffer-substring-no-properties (region-beginning) (region-end))
+          handler)
+        (if (s-blank-p (s-trim (thing-at-point 'line)))
+          (cider-interactive-eval (cider-last-sexp) handler)
+          (cider-interactive-eval (cider-defun-at-point) handler)))))
+
+
+  (define-key clojure-mode-map (kbd "C-c e") 'ns/cider-eval-to-window)
+
   (ns/bind-mode 'clojure
     "e" 'ns/smart-cider-eval
     "E" 'cider-eval-print-last-sexp)
