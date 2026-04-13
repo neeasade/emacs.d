@@ -906,6 +906,7 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
 (ns/defconfig org-capture         (shut-up-load (~e "lisp/trees/org-capture.el")))
 (ns/defconfig org-pim             (shut-up-load (~e "lisp/trees/org-pim.el")))
 (ns/defconfig org-pim-export      (shut-up-load (~e "lisp/trees/org-pim-export.el")))
+(ns/defconfig qtea                (shut-up-load (~e "lisp/trees/qtea.el")))
 (ns/defconfig sanity              (shut-up-load (~e "lisp/trees/sanity.el")))
 (ns/defconfig shell               (shut-up-load (~e "lisp/trees/shell.el")))
 (ns/defconfig staging             (shut-up-load (~e "lisp/trees/staging.el")))
