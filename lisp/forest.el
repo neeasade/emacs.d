@@ -316,6 +316,13 @@
         results)))
 
   (ns/bind
+    "NE" (fn!! surf-internal
+           (ns/find-files "changed files"
+             (->> (sh "git-files-changed")
+               (s-lines)
+               (--map (ns/str (projectile-project-root) it))))))
+
+  (ns/bind
     ;; todo: comething to consider: mixing in org headings here
     "ne" (fn!! surf-files (ns/find-files "file" (ns/jump-file-candidates)))
     "nE" (fn!! surf-project-files (ns/find-files "file" (ns/jump-file-candidates :project-files)))))
