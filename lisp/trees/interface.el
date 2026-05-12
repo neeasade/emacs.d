@@ -118,9 +118,6 @@
 
   "q" '(:ignore t :which-key "Query")
   "qf" 'ns/what-face
-  "qF" (fn!! grab-file-path
-         (pbcopy (buffer-file-name))
-         (message (pbpaste)))
   "qc" 'describe-char
   "qm" (fn!! what-major-mode (message "%s" major-mode))
   "qM" 'ns/what-minor-modes

@@ -212,7 +212,14 @@
   "i" '(:ignore t :which-key "Insert")
   "ic" 'insert-char
   "ie" 'emoji-search
-  "qp" (fn!! message-file-name (message (buffer-file-name)))
+  "qp" (fn!! grab-file-path
+         (llet [c (buffer-file-name)]
+           (kill-new c)
+           (message (ns/str "copied " c))))
+  "qP" (fn!! grab-file-name
+         (llet [c (f-filename (buffer-file-name))]
+           (kill-new c)
+           (message (ns/str "copied " c))))
   "if" (fn!! insert-file-name (insert (buffer-file-name)))
   "id" (fn!! insert-time (org-time-stamp t))
   "iD" (fn!! insert-date (org-time-stamp nil)))

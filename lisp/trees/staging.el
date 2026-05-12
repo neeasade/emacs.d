@@ -2,6 +2,8 @@
 
 (ns/use dumb-jump)
 
+(ns/use cmake-mode)
+
 ;; set or browse
 (ns/bind "l" 'consult-bookmark)
 (ns/bind "L" 'bookmark-delete)
@@ -362,6 +364,7 @@
   )
 
 (ns/bind
+  "iP" (fn!! paste-second-kill-ring (insert (second kill-ring)))
   "ib" (fn!! git-branches (insert (ns/pick (sh-lines "git" "branch" "--format" "%(refname:short)"))))
   "iB" (fn!! git-bug-or-branch
          (llet [branch-name (sh "git" "rev-parse" "--abbrev-ref" "HEAD")
