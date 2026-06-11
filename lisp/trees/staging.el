@@ -4,6 +4,15 @@
 
 (ns/use cmake-mode)
 
+;; for mx-compile
+(setq compilation-always-kill t)
+
+(ns/use timeout)
+
+(general-nmap
+  "]c" 'next-error
+  "[c" 'previous-error)
+
 ;; set or browse
 (ns/bind "l" 'consult-bookmark)
 (ns/bind "L" 'bookmark-delete)
@@ -196,9 +205,12 @@
 
   (setq-local mode-line-format nil))
 
-(ns/inmap 'special-mode-map "q" (fn!! window-revert
-                                  (kill-buffer)
-                                  (winner-undo)))
+;; this interferes with too many things
+;; (ns/inmap 'special-mode-map "q" (fn!! window-revert
+;;                                   (kill-buffer)
+;;                                   (winner-undo)))
+
+;; (ns/inmap 'special-mode-map "q" 'evil-delete-buffer)
 
 (run-at-time "11:59pm" "11:59pm" (fn!! message-delimiter
                                    (message "|")
@@ -270,6 +282,14 @@
 	  '(vue-ts-mode . ("vue-language-server" "--stdio" :initializationOptions '(:vue (:hybridMode :json-false)))))
 
   (ns/use tree-sitter-langs)
+
+  (setq treesit-language-source-alist
+    '((cpp "https://github.com/tree-sitter/tree-sitter-cpp"
+        "v0.11.4"
+        )))
+
+
+  (treesit-install-language-grammar 'cpp)
 
   ;; todo: checkout
   ;; https://github.com/8uff3r/vue-ts-mode
@@ -377,7 +397,6 @@
 
 (defun! ns/unix2dos-current-file ()
   (sh "unix2dos" (buffer-file-name)))
-
 
 (defun! ns/dos2unix-current-file ()
   (sh "dos2unix" (buffer-file-name)))

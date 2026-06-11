@@ -29,7 +29,7 @@
   ns/enable-linux-p (eq system-type 'gnu/linux)
   ns/enable-mac-p (eq system-type 'darwin)
   ns/enable-home-p (string= (getenv "USER") "neeasade")
-  ns/enable-wsl-p (getenv "WSL_DISTRO_NAME")
+  ns/enable-wsl-p (or (getenv "WSL_DISTRO_NAME") (s-contains? "microsoft" (shell-command-to-string "uname --kernel-release")))
   ns/enable-work-p nil
 
   ns/term? (not window-system)

@@ -213,7 +213,9 @@
   "ic" 'insert-char
   "ie" 'emoji-search
   "qp" (fn!! grab-file-path
-         (llet [c (buffer-file-name)]
+         (llet [c (if (eq major-mode 'dired-mode)
+                    default-directory
+                    (buffer-file-name))]
            (kill-new c)
            (message (ns/str "copied " c))))
   "qP" (fn!! grab-file-name

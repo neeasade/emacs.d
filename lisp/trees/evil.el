@@ -170,14 +170,10 @@ when called interactively."
 
 (ns/use evil-matchit (global-evil-matchit-mode 1))
 
-(ns/use (evil-numbers :host github :repo "janpath/evil-numbers")
-  (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
-
-;; this is nice, but I don't use marks often.
-;; (ns/use evil-fringe-mark
-;;    (setq evil-fringe-mark-show-special nil)
-;;   (global-evil-fringe-mark-mode t))
+;; never used this and it broke
+;; (ns/use (evil-numbers :host github :repo "janpath/evil-numbers")
+;;   (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
+;;   (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
 
 (ns/use evil-surround (global-evil-surround-mode 1))
 

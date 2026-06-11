@@ -256,6 +256,7 @@
           (llet [pid (process-id (get-buffer-process b))
                   ;; -P works on macos and linux
                   children (sh (format "pgrep -P %s" pid))
+                  _ (prn children)
                   visible? (get-buffer-window b)]
             (and (s-blank? children)
               (not visible?))))))

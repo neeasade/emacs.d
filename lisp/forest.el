@@ -167,6 +167,7 @@
 
   (ns/install-dashdoc "Clojure" 'clojure-mode-hook)
 
+  ;; todo: if prefixed and a function, run the function
   (defun! ns/smart-cider-eval ()
     (if (use-region-p)
       (cider-eval-region (region-beginning) (region-end))
@@ -469,6 +470,12 @@
   (add-hook 'qml-ts-mode-hook #'lsp-deferred)
   (add-hook 'c++-mode-hook #'lsp-deferred)
   (add-hook 'c-mode-hook #'lsp-deferred)
+
+  ;; (remove-hook 'qml-ts-mode-hook #'lsp-deferred)
+  ;; (remove-hook 'c++-mode-hook #'lsp-deferred)
+  ;; (remove-hook 'c-mode-hook #'lsp-deferred)
+
+
 
   ;; eglot breaks everything anytime I touch it
   ;; (ns/use eglot)

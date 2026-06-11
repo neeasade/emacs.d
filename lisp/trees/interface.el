@@ -106,7 +106,19 @@
   "t" '(:ignore t :which-key "Toggle")
   "th" 'hl-line-mode
 
-  "/" (if (which "rg") 'consult-ripgrep 'consult-grep)
+  ;; "/" (if (which "rg") 'consult-ripgrep 'consult-grep)
+  "/" (fn!! project-search
+        (let* ((proj-root (projectile-project-root))
+                (spwr-dir (when proj-root (f-join proj-root "spwr")))
+                (search-dir (cond
+                              (current-prefix-arg proj-root)
+                              ((and spwr-dir (f-directory-p spwr-dir)
+                                 (f-ancestor-of? spwr-dir default-directory))
+                                spwr-dir)
+                              (t proj-root))))
+          (funcall (if (which "rg") 'consult-ripgrep 'consult-grep)
+            search-dir)))
+
   "?" (fn!! grep-here
         (funcall (if (which "rg") 'consult-ripgrep 'consult-grep)
           default-directory))
@@ -152,7 +164,7 @@
 (ns/bind "nH" 'ns/helpful-or-dashdoc)
 
 ;; "eemacs"
-(--map (setenv it nil) '("SSH_ASKPASS" "SSH_CONNECTION" "SSH_TTY"))
+(--map (setenv it nil) '("SSH_ASKPASS" "SSH_CONNECTION" "SSH_TTY" "SSH_CLIENT"))
 
 (when ns/term?
   (when (not ns/kitty?)
