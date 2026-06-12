@@ -7,6 +7,16 @@
 
 ;; layer on top of dumb-jump
 (ns/use smart-jump
+  (setq smart-jump-find-references-fallback-function
+    (lambda ()
+      (interactive)
+      (llet [search (cond ((use-region-p)
+                            (buffer-substring-no-properties (region-beginning)
+                              (region-end)))
+                      ((symbol-at-point)
+                        (substring-no-properties
+                          (symbol-name (symbol-at-point)))))]
+        (deadgrep search))))
   (setq dumb-jump-force-searcher 'rg)
   (smart-jump-setup-default-registers)
   (ns/bind
