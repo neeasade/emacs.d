@@ -181,8 +181,10 @@ when called interactively."
   (setq evil-snipe-smart-case t)
   (setq evil-snipe-repeat-scope 'whole-line)
   (setq evil-snipe-spillover-scope 'whole-line)
+  (define-key evil-snipe-mode-map (kbd ",") nil)
   (evil-snipe-override-mode +1)
   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
+
 
 (ns/use evil-embrace
   (setq evil-embrace-show-help-p nil)
