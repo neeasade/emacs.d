@@ -751,6 +751,8 @@
     (setq-default chatgpt-shell-system-prompt 2)) ; the "programming" prompt
 
   (ns/use agent-shell
+    (setq agent-shell-preferred-agent-config 'copilot)
+
     (setq agent-shell-show-welcome-message nil)
     (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
     (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input))

@@ -1,5 +1,23 @@
 ;; -*- lexical-binding: t; -*-
 
+
+
+;; ugh
+(ns/bind "qb" 'ns/grab-current-position-marker)
+;; "buffer put"
+(ns/bind "bp" (fn! buffer-put (ns/goto-marker ns/saved-marker)))
+;; maybe this one makes more sense
+(ns/bind "qB" (fn! buffer-put (ns/goto-marker ns/saved-marker)))
+
+
+;; messing-with-it
+(evil-set-leader '(normal visual) (kbd ","))
+
+(ns/use caser
+  (evil-define-key 'normal 'global (kbd "<leader>tc") (fn! tc (save-excursion (caser-camelcase-dwim nil))))
+  (evil-define-key 'normal 'global (kbd "<leader>ts") (fn! ts (save-excursion (caser-snakecase-dwim nil))))
+  (evil-define-key 'normal 'global (kbd "<leader>td") (fn! td (save-excursion (caser-dashcase-dwim nil)))))
+
 (ns/use dumb-jump)
 
 (ns/use cmake-mode)

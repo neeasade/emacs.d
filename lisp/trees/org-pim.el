@@ -134,6 +134,13 @@
   (ns/switch-to-buffer-or-window (marker-buffer marker))
   (goto-char (marker-position marker)))
 
+(defun ns/grab-current-position-marker ()
+  (interactive)
+  (setq ns/saved-marker
+    (set-marker (make-marker)
+      (point)
+      (current-buffer))))
+
 (defun ns/org-rotate (headlines)
   "Rotate through org headings by markers."
   (if-not headlines
