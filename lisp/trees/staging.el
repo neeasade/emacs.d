@@ -1,6 +1,13 @@
 ;; -*- lexical-binding: t; -*-
 
 
+(defun ns/grab-current-position-marker ()
+  (interactive)
+  (setq ns/saved-marker
+    (set-marker (make-marker)
+      (point)
+      (current-buffer)))
+  (message "grabbed current buffer marker!"))
 
 ;; ugh
 (ns/bind "qb" 'ns/grab-current-position-marker)
@@ -14,9 +21,10 @@
 (evil-set-leader '(normal visual) (kbd ","))
 
 (ns/use caser
-  (evil-define-key 'normal 'global (kbd "<leader>tc") (fn! tc (save-excursion (caser-camelcase-dwim nil))))
-  (evil-define-key 'normal 'global (kbd "<leader>ts") (fn! ts (save-excursion (caser-snakecase-dwim nil))))
-  (evil-define-key 'normal 'global (kbd "<leader>td") (fn! td (save-excursion (caser-dashcase-dwim nil)))))
+  ;; why do these functions move the point
+  (evil-define-key 'normal 'global (kbd "<leader>tc") (fn! tc (save-excursion (call-interactively 'caser-camelcase-dwim))))
+  (evil-define-key 'normal 'global (kbd "<leader>ts") (fn! ts (save-excursion (call-interactively 'caser-snakecase-dwim))))
+  (evil-define-key 'normal 'global (kbd "<leader>td") (fn! td (save-excursion (call-interactively 'caser-dashcase-dwim)))))
 
 (ns/use dumb-jump)
 
