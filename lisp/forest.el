@@ -437,7 +437,7 @@
 
   (ns/use lsp-ui)
 
-  (add-hook 'ns/load-theme
+  (add-hook 'ns/theme-hook
     (fn!
       ;; these should move to myron-themes
       (ns/face 'lsp-ui-doc-background :background (myron-get :background :strong))
@@ -454,7 +454,18 @@
         :background (myron-get :diff-remove-highlight :meta)
         :foreground (myron-get :faded :strong))
 
-      (ns/face 'tty-menu-selected-face :background (myron-get :background :focused) :foreground (myron-get :foreground :focused))))
+      (ns/face 'tty-menu-selected-face :background (myron-get :background :focused) :foreground (myron-get :foreground :focused))
+
+
+      (ns/face 'xref-match
+        :inverse-video nil
+        :background
+        (myron-themes-get :background :weak)
+        ;; (myron-themes-get :subtle :meta)
+        )
+
+      (ns/face 'xref-file-header :foreground (myron-themes-get :foreground))
+      ))
 
   ;; qml
   (add-to-list 'lsp-language-id-configuration '(qml-ts-mode . "qml-ts"))

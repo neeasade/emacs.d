@@ -31,6 +31,12 @@
   (evil-define-key 'normal 'global (kbd "<leader>ts") (fn! ts (save-excursion (call-interactively 'caser-snakecase-dwim))))
   (evil-define-key 'normal 'global (kbd "<leader>td") (fn! td (save-excursion (call-interactively 'caser-dashcase-dwim)))))
 
+(evil-define-key 'normal 'global (kbd "<leader>r")
+  (fn! dcu
+    (save-buffer)
+    (sh "bash -ic 'scu-restart dcu'")
+    (message "queued dcu run!")))
+
 (ns/use dumb-jump)
 
 (ns/use cmake-mode)
@@ -395,7 +401,7 @@
   (activities-mode)
   (activities-tabs-mode)
 
-  (add-hook 'ns/load-theme
+  (add-hook 'ns/theme-hook
     (fn! (ns/face 'activities-tabs :foreground (myron-get :foreground nil))))
 
   ;; default bindings to consider
