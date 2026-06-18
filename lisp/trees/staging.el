@@ -1,5 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 
+;; lsp launches company-mode all over the place
+(add-hook 'company-mode-hook
+  (fn! nope
+    (when company-mode
+      (company-mode -1))))
 
 (defun ns/grab-current-position-marker ()
   (interactive)
