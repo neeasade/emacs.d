@@ -636,15 +636,13 @@
       (buffer-string)))
 
   (defun ns/make-char-table (name upper lower)
-    "Make a char table for a certain kind of character"
+    "Make a char table for a certain kind of character using native alists."
     (set name
-      (let ((str (make-string 127 0)))
-        (dotimes (i 127)
-          (aset str i i))
+      (let (alist)
         (dotimes (i 26)
-          (aset str (+ i ?A) (+ i upper))
-          (aset str (+ i ?a) (+ i lower)))
-        str)))
+          (push (cons (+ i ?A) (+ i upper)) alist)
+          (push (cons (+ i ?a) (+ i lower)) alist))
+        (make-translation-table-from-alist alist))))
 
   (defalias 'ns/text-to-stud 'studlify-region)
   (->> '((?𝙰 ?𝚊 monospace)
@@ -852,7 +850,8 @@
   (ns/use ahk-mode)                     ; autohotkey
   (ns/use dockerfile-mode)
   (ns/use yuck-mode)                    ; eww
-  (ns/use kdl-mode)
+  (ns/use kdl-mode
+    (add-hook 'kdl-mode-hook (fn! (setq tab-width 2))))
   )
 
 (ns/defconfig blog-syntax

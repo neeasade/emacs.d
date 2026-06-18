@@ -272,7 +272,7 @@
 
 (defun color-values (color &optional frame)
   ;; overridden to speedup terminal color comparison
-  ;; non-completing in the default case w/ truecolor?
+  ;; default is non-completing in the default case w/ truecolor?
   (cond
     ((member color '(unspecified "unspecified-fg" "unspecified-bg"))
       nil)
