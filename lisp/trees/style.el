@@ -36,6 +36,21 @@
   (global-hl-todo-mode))
 
 (ns/use parseedn)
+
+;; allow reading 0xFF int values with parseedn:
+;; todo: upstream me?
+(defun parseclj-lex--number-value (number-str)
+  "Parse the NUMBER-STR to an Elisp number."
+  (let ((ratio (split-string number-str "/")))
+    (if (= 2 (length ratio))
+      (let ((numerator (string-to-number (car ratio)))
+             (denominator (string-to-number (cadr ratio))))
+        (/ numerator (float denominator)))
+      (if (or (s-starts-with-p "0x" number-str)
+            (s-starts-with-p "0X" number-str))
+        (string-to-number (substring number-str 2) 16)
+        (string-to-number number-str)))))
+
 (defun ns/emacs-to-theme ()
   (parseedn-print-str
     (-ht

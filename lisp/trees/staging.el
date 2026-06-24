@@ -22,6 +22,9 @@
 (ns/bind "qB" (fn! buffer-put (ns/goto-marker ns/saved-marker)))
 
 
+(ns/use clj-refactor)
+
+
 ;; messing-with-it
 (evil-set-leader '(normal visual) (kbd ","))
 

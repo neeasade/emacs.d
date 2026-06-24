@@ -82,10 +82,11 @@
 
 (setq browse-url-generic-program
   (cond
+    (ns/enable-wsl-p "/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe")
     ((getenv "BROWSER") (getenv "BROWSER"))
     ((which "qutebrowser") "qutebrowser")
     (ns/enable-mac-p "/Applications/Google Chrome.app/Contents/MacOS/google chrome")
-    ((and ns/enable-wsl-p (which "explorer.exe")) "explorer.exe")))
+    ))
 
 ;; <2026-01-16 Fri 19:41> do not restore this:
 ;; if the scratch buffer doesn't exist, you can't run `emacsclient -t` with no arguments
