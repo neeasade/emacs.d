@@ -206,6 +206,9 @@
          (funcall-interactively 'ns/load-theme)
          ;; (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
          )
+  "tS" (fn!! reload-current-theme
+         (when-let* ((theme (first custom-enabled-themes)))
+           (funcall-interactively 'ns/load-theme theme)))
   "ti" (fn!! (ns/reload-init) (ns/conf-style))
   "m" 'ns/toggle-modeline
   "tp" 'ns/toggle-report

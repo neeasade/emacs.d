@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
+(ns/use (dbc-mode :type git :host github :repo "leuven65/dbc-mode"))
+
 ;; lsp launches company-mode all over the place
 (add-hook 'company-mode-hook
   (fn! nope
@@ -22,6 +24,20 @@
 (ns/bind "qB" (fn! buffer-put (ns/goto-marker ns/saved-marker)))
 
 
+;; hmmm
+(defun ns/fn-with-point-change (f)
+  (lambda ()
+    (interactive)
+    (llet [before (point)]
+      (funcall-interactively f)
+      (when (= (point) before)
+        (message "point didn't change!")))))
+
+;; arbitrary - this binding feels bad but it's a start
+(general-nmap
+  "]a" (ns/fn-with-point-change 'symbol-overlay-jump-next)
+  "[a" (ns/fn-with-point-change 'symbol-overlay-jump-last))
+
 (ns/use clj-refactor)
 
 
@@ -33,6 +49,9 @@
   (evil-define-key 'normal 'global (kbd "<leader>tc") (fn! tc (save-excursion (call-interactively 'caser-camelcase-dwim))))
   (evil-define-key 'normal 'global (kbd "<leader>ts") (fn! ts (save-excursion (call-interactively 'caser-snakecase-dwim))))
   (evil-define-key 'normal 'global (kbd "<leader>td") (fn! td (save-excursion (call-interactively 'caser-dashcase-dwim)))))
+
+;; nb: this is sort of point-sensitive
+(evil-define-key 'normal 'global (kbd "<leader>f") #'ff-find-other-file)
 
 (evil-define-key 'normal 'global (kbd "<leader>r")
   (fn! dcu

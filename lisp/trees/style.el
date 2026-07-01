@@ -121,7 +121,10 @@
   )
 
 ;; attempting to hook emacsclient:
-(add-to-list 'after-make-frame-functions #'ns/sync-terminal-frame-background)
+;; bad
+;; (add-to-list 'after-make-frame-functions #'ns/sync-terminal-frame-background)
+
+;; (delete #'ns/sync-terminal-frame-background after-make-frame-functions)
 
 (defun! ns/load-random-myron-theme ()
   (llet [theme (->> (custom-available-themes)
