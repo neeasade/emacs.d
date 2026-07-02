@@ -21,6 +21,10 @@
         (number-sequence start (+ 1 end) step)))))
 
 ;;* macros/content
+
+(defun ns/message-blog (&rest args)
+  (apply 'ns/message-buffer "*ns-blog-log*" args))
+
 (defun ns/blog-make-nav-strip (&rest items)
   (->> (-remove 'not items) (s-join " ")))
 
@@ -161,7 +165,7 @@
       (ht-map
         (lambda (k v)
           (when (and (not v) (not (s-starts-with? "is-" (ns/str k))))
-            (message (ns/str "nil key: " k))))
+            (message (ns/str "blog mustache: nil key: " k))))
         table))
     (mustache-render text (ht->alist table))))
 
@@ -175,7 +179,7 @@
 
 (defun ns/blog-path (&rest args)
   (apply 'ns/path (or (getenv "NS_BLOG_PATH")
-                    (~ "code_shared/neeasade.github.io/"))
+                    (~ "code/neeasade.github.io/"))
     args))
 
 (defun ns/blog-get-properties (text)
@@ -418,7 +422,7 @@
           ;; for src block asset relativity
           default-directory (ns/blog-path "published"))
 
-    (message "BLOG: making %s " (ht-get org-meta :path))
+    (ns/message-blog "making %s " (ht-get org-meta :path))
 
     (shut-up
       (with-temp-buffer
@@ -486,25 +490,31 @@
     (ns/blog-get-metas)))
 
 (defun ns/blog-generate (metas)
+  (ns/message-blog "-----")
+  (ns/message-blog "")
   (setq ns/theme (ht-get myron-themes-colors :normal)) ; compat
 
   ;; need to define these here for index listings and rss:
-  (message "BLOG: making pages!")
+  (ns/message-blog "making pages!")
 
   (when-not (= (length (--map (ht-get it :slug) metas))
               (length (-uniq (--map (ht-get it :slug) metas))))
     (error "BLOG: conflicting slugs! not generating"))
 
   (llet (;; don't ask about generation when exporting
-          org-confirm-babel-evaluate (fn nil))
+          org-confirm-babel-evaluate (fn nil)
+          export-start-time (current-time)
+          )
 
     (-map #'ns/blog-publish-meta metas)
 
-    (message "BLOG: making site rss!")
+    (ns/message-blog "making site rss!")
     (with-current-buffer (find-file-noselect (ns/blog-path "extra/rss.org"))
       (org-export-to-file 'rss (ns/blog-path "published/rss.xml")))
     (with-current-buffer (find-file-noselect (ns/blog-path "extra/rss_full.org"))
-      (org-export-to-file 'rss (ns/blog-path "published/rss_full.xml"))))
+      (org-export-to-file 'rss (ns/blog-path "published/rss_full.xml")))
+
+    (ns/message-blog (ns/str "blog-generate: finished in " (float-time (time-since export-start-time)) "s")))
 
   (message "BLOG: done! ✨✨✨✨")
   t)
