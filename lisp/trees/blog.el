@@ -429,7 +429,25 @@
         (insert (xml-substitute-special (ns/blog-render-org org-meta)))
         (org-mode)
         (ns/blog-make-anchors)
-        (org-export-to-file 'html (ns/blog-path (ns/str "published/" (ht-get org-meta :slug) ".html")))))))
+        ;; idea: here do a sum, save it in the file, check against it
+        ;; or internal somehow
+        (llet [
+                dest (ns/blog-path (ns/str "published/" (ht-get org-meta :slug) ".html"))
+                sum (md5 (buffer-string))
+                f (no-littering-expand-var-file-name "blog-cache.el")
+                ;; manifest (if-not (f-exists? f) '()
+                ;;            (car (read-from-string (slurp f))))
+                ]
+
+          (-if-let (cache-sum (plist-get manifest dest))
+            (when-not (string= cache-sum sum)
+              (org-export-to-file 'html dest))
+            (org-export-to-file 'html dest))
+
+          ;; (spit f (pr-str (ht-put manifest dest sum)))
+          )))))
+
+;; (plist-get (car (read-from-string "(a 1)")) 'a)
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
