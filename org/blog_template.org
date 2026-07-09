@@ -23,8 +23,10 @@
 # #+html_head: <script src="../published/assets/js/linktext.js" defer></script>
 {{/is-doodle}}
 
-#+html_head: <style> body {background: url("./assets/posts/ca_dump3/{{background}}") repeat;} </style>
-#+html_head: <style> body {background-size: auto {{background-width}}px !important; } </style>
+
+# #+html_head: <style> body { background-color: #767676 !important; } </style>
+# #+html_head: <style> body {background: url("./assets/posts/ca_dump3/{{background}}") repeat;} </style>
+# #+html_head: <style> body {background-size: auto {{background-width}}px !important; } </style>
 
 #+html_head: <script src=".//assets/js/copy.js" defer></script>
 # #+html_head: <script src="../published/assets/js/copy.js" defer></script>
@@ -87,31 +89,38 @@
     </svg>
 </h1>
 #+end_export
+
+{{#subtitle}}
 #+BEGIN_CENTER
 {{subtitle}}
 #+END_CENTER
+{{/subtitle}}
 
+# yes .meta-container is actually used -- todo better name
 #+BEGIN_EXPORT html
 {{#include-pubdate}}
 {{#published-date}}
+<div class="meta-container">
 <span class=pubinfo>
     Published {{published-date}}{{#is-edited}},
     last edit <a href="{{page-history-link}}">{{edited-date}}</a>
     {{/is-edited}}
 </span>
 {{/published-date}}
-<div class="posttags"> {{taghtml}} </div>
+<span class="posttags"> {{taghtml}} </span>
+</div>
 {{/include-pubdate}}
 </header>
 #+end_export
 -----
 {{content}}
+-----
 
 #+BEGIN_EXPORT html
 {{#is-index}}
     <a href='https://webring.xxiivv.com/#random' target='_blank'><img style='width:40px;height:40px' src='./assets/img/logos/xxiivv.svg'/></a>
     <a href='https://github.com/nixers-projects/sites/wiki/List-of-nixers.net-user-sites' target='_blank'><img style='width:35px;height:40px' src='./assets/img/logos/nixers.png'/></a>
-    <a href='https://webring.recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
+    <a href='https://recurse.com'><img alt='Recurse Center Logo' src='./assets/img/logos/recurse.png' style='height:40px;width:40px;'></a>
 {{/is-index}}
 {{#is-post}}
 <footer>
@@ -122,6 +131,6 @@
         {{#prev-post}} {{prev-post}} {{/prev-post}}
     </div>
 </footer>
+<div class=flair> </div>
 {{/is-post}}
 #+END_EXPORT
------
