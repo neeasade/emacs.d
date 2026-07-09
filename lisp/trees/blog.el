@@ -85,12 +85,12 @@
       (s-join " "))))
 
 (defun ns/blog-redirect-title (title)
-  (if-let (match (--first (string= title (ht-get it :title)) (ns/blog-get-metas-public)))
+  (-if-let (match (--first (string= title (ht-get it :title)) (ns/blog-get-metas-public)))
     (format "#+html_head: <meta http-equiv=\"refresh\" content=\"0;url=https://notes.neeasade.net/%s\">\n" (ht-get match :slug))
     (error (format "broken redirect! '%s'" title))))
 
 (defun ns/blog-link-title (title)
-  (if-let (match (--first (string= title (ht-get it :title)) (ns/blog-get-metas-public)))
+  (-if-let (match (--first (string= title (ht-get it :title)) (ns/blog-get-metas-public)))
     (format "[[./%s.org][%s]]" (ht-get match :slug) title)
     (error (format "broken blog link! '%s'" title))))
 
@@ -198,7 +198,7 @@
          (f-base path)
          (s-split "" ";/?:@&=+$,'"))
     (s-replace " " "-")
-    (s-replace-regexp (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
+    (s-replace-regexp (pcre-to-elisp/cached "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
     (s-downcase)))
 
 (defun ns/blog-get-tags ()
@@ -313,7 +313,7 @@
                      (-some->> (ht-get props "filetags") (s-trim) (s-split ":"))))
       :title      title
       :rss-title (ht-get props "rss_title")
-      :subtitle  (ht-get props "title_extra" "")
+      :subtitle  (ht-get props "title_extra")
       :foreground (myron-get :foreground)
       :is-index  (s-starts-with-p "index" (f-filename path))
       :is-hidden (or (ht-get props "hidden")
@@ -324,7 +324,7 @@
       :is-note   (string= type "note")
       :is-doodle (string= type "doodle")
       :type type
-      :published-date (first (--keep (first (s-match (pcre-to-elisp "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
+      :published-date (first (--keep (first (s-match (pcre-to-elisp/cached "[0-9]{4}-[0-9]{2}-[0-9]{2}") it))
 		                           (list
 		                             (ht-get props "pubdate" "")
 		                             (ht-get props "date" "")
@@ -422,32 +422,28 @@
           ;; for src block asset relativity
           default-directory (ns/blog-path "published"))
 
-    (ns/message-blog "making %s " (ht-get org-meta :path))
 
     (shut-up
-      (with-temp-buffer
+      (with-work-buffer
         (insert (xml-substitute-special (ns/blog-render-org org-meta)))
-        (org-mode)
-        (ns/blog-make-anchors)
-        ;; idea: here do a sum, save it in the file, check against it
-        ;; or internal somehow
-        (llet [
-                dest (ns/blog-path (ns/str "published/" (ht-get org-meta :slug) ".html"))
-                sum (md5 (buffer-string))
-                f (no-littering-expand-var-file-name "blog-cache.el")
-                ;; manifest (if-not (f-exists? f) '()
-                ;;            (car (read-from-string (slurp f))))
-                ]
 
-          (-if-let (cache-sum (plist-get manifest dest))
-            (when-not (string= cache-sum sum)
-              (org-export-to-file 'html dest))
+        (llet [dest (ns/blog-path (ns/str "published/" (ht-get org-meta :slug) ".html"))
+                sum (md5 (buffer-string))]
+
+          ;; we do this dance because org-export-to-file is slowwwwwww
+          ;; it makes doing this check worth it
+          ;; todo: persist this somewhere
+          (when-not (boundp 'ns/blog-build-cache)
+            (setq ns/blog-build-cache (ht)))
+
+          (when (or (ht-get org-meta :is-index)
+                  (not (string= (ht-get ns/blog-build-cache dest) sum)))
+            (ns/message-blog "making %s " (ht-get org-meta :path))
+            (org-mode)                  ; kind thicc
+            (ns/blog-make-anchors)
             (org-export-to-file 'html dest))
 
-          ;; (spit f (pr-str (ht-put manifest dest sum)))
-          )))))
-
-;; (plist-get (car (read-from-string "(a 1)")) 'a)
+          (ht-set ns/blog-build-cache dest sum))))))
 
 ;; idea: auto refresh on save or on change might be nice
 (defun! ns/blog-generate-and-open-current-file ()
@@ -463,7 +459,7 @@
     (message post-html-file)
     (if (string= (concat "file://" post-html-file) (sh "qb_active_url"))
       (sh "qb_command :reload")
-      (browse-url post-html-file))))
+      (browse-url (ns/str "file://" post-html-file)))))
 
 (defun ns/blog-changed-files-metas ()
   (llet [default-directory (ns/blog-path "published")
@@ -546,9 +542,10 @@
 (defun! ns/blog-generate-all-files ()
   (setq ns/blog-cache (-ht))
   (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
-  (-map 'f-delete
-    (f-entries (ns/blog-path "published")
-      (-partial 's-ends-with-p ".html")))
+  (comment
+    (-map 'f-delete
+      (f-entries (ns/blog-path "published")
+        (-partial 's-ends-with-p ".html"))))
   (ns/blog-make-tag-pages)
   (ns/blog-make-redirect-pages)
   (ns/blog-generate (ns/blog-get-metas)))
