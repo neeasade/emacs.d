@@ -113,6 +113,17 @@
 </header>
 #+end_export
 -----
+
+{{#has-toc}}
+#+begin_export html
+<details><summary>Table of contents</summary>
+#+end_export
+#+TOC: headlines 3
+#+begin_export html
+</details>
+#+end_export
+{{/has-toc}}
+
 {{content}}
 -----
 
