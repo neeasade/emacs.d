@@ -5,6 +5,7 @@
 (setq ns/blog-title "🜁↝🜃 ")
 
 (setq ns/blog-cache (-ht))
+(ns/persist ns/blog-build-cache (-ht))
 
 ;;* compat
 (defalias 'tarp/get 'myron-get)
@@ -435,10 +436,6 @@
 
           ;; we do this dance because org-export-to-file is slowwwwwww
           ;; it makes doing this check worth it
-          ;; todo: persist this somewhere
-          (when-not (boundp 'ns/blog-build-cache)
-            (setq ns/blog-build-cache (ht)))
-
           (when (or (ht-get org-meta :is-index)
                   (not (string= (ht-get ns/blog-build-cache dest) sum)))
             (ns/message-blog "making %s " (ht-get org-meta :path))

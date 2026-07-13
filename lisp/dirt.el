@@ -402,10 +402,15 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
   (ns/t 1h30m)) ;; => 5400
 
 (ns/use persist
+  ;; upstream doesn't seem to like / in symbols names
+  (defun persist--file-location (symbol)
+    (expand-file-name
+      (s-replace "/" "___" (symbol-name symbol))
+      (or (get symbol 'persist-location)
+        persist--directory-location)))
+
   (defmacro ns/persist (symbol &optional initial)
     "Persist symbol between emacs sessions"
-    ;; ensure the cache dir exists (upstream bug)
-    (f-mkdir-full-path (f-parent (persist--file-location symbol)))
     `(persist-defvar ,symbol ,initial
        ,(format "docstring value for %s" symbol)))
 
