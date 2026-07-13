@@ -2,7 +2,8 @@
 
 (ns/summon '(blog-syntax))
 
-(setq ns/blog-title "notes")
+(setq ns/blog-title "🜁↝🜃 ")
+
 (setq ns/blog-cache (-ht))
 
 ;;* compat
@@ -315,6 +316,10 @@
       :rss-title (ht-get props "rss_title")
       :subtitle  (ht-get props "title_extra")
       :foreground (myron-get :foreground)
+      :has-toc (<= 2 (->> org-file-content
+                       (s-lines)
+                       (--filter (s-matches? "^\\*\\*\\* " it))
+                       (length)))
       :is-index  (s-starts-with-p "index" (f-filename path))
       :is-hidden (or (ht-get props "hidden")
                    (ht-get props "draft"))
@@ -382,8 +387,6 @@
           :prev-post (and prev-url (format "<a href='%s.html'>older: %s</a>" prev-url prev-title))
           :is-edited (and (not (s-blank? edited-date)) (not (string= published-date edited-date))))))))
 
-
-
 (defun! ns/blog-publish-meta (org-meta)
   (llet (org-html-divs '((preamble  "div" "preamble")
                           (content   "main" "content")
@@ -441,7 +444,9 @@
             (ns/message-blog "making %s " (ht-get org-meta :path))
             (org-mode)                  ; kind thicc
             (ns/blog-make-anchors)
-            (org-export-to-file 'html dest))
+
+            (llet [default-directory (ns/blog-path "published")] ; with-work-buffer ism
+              (org-export-to-file 'html dest)))
 
           (ht-set ns/blog-build-cache dest sum))))))
 
@@ -535,13 +540,13 @@
 
 (defun! ns/blog-generate-changed-files ()
   (setq ns/blog-cache (-ht))
-  (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
+  ;; (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
   (ns/blog-make-tag-pages)
   (ns/blog-generate (ns/blog-changed-files-metas)))
 
 (defun! ns/blog-generate-all-files ()
   (setq ns/blog-cache (-ht))
-  (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
+  ;; (and (not (getenv "NS_EMACS_BATCH")) (ns/blog-sync-colors-css))
   (comment
     (-map 'f-delete
       (f-entries (ns/blog-path "published")
