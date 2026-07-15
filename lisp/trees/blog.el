@@ -437,9 +437,10 @@
           ;; we do this dance because org-export-to-file is slowwwwwww
           ;; it makes doing this check worth it
           (when (or (ht-get org-meta :is-index)
+                  (not (f-exists? dest))
                   (not (string= (ht-get ns/blog-build-cache dest) sum)))
             (ns/message-blog "making %s " (ht-get org-meta :path))
-            (org-mode)                  ; kind thicc
+            (org-mode)                  ; kinda thicc
             (ns/blog-make-anchors)
 
             (llet [default-directory (ns/blog-path "published")] ; with-work-buffer ism

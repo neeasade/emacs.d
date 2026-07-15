@@ -403,11 +403,10 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
 
 (ns/use persist
   ;; upstream doesn't seem to like / in symbols names
+  ;; (tries to make it a nested dir/fails to write)
   (defun persist--file-location (symbol)
-    (expand-file-name
-      (s-replace "/" "___" (symbol-name symbol))
-      (or (get symbol 'persist-location)
-        persist--directory-location)))
+    (ns/path persist--directory-location
+      (s-replace "/" "___" (symbol-name symbol))))
 
   (defmacro ns/persist (symbol &optional initial)
     "Persist symbol between emacs sessions"

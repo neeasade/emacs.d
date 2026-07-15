@@ -165,6 +165,9 @@
 
   (setq cljr-suppress-middleware-warnings t)
 
+  (evil-define-key 'normal clojure-mode-map (kbd "<leader>c") #'cider-jack-in)
+  (evil-define-key 'normal clojure-mode-map (kbd "<leader>C") #'cider-connect)
+
   (ns/install-dashdoc "Clojure" 'clojure-mode-hook)
 
   ;; todo: if prefixed and a function, run the function

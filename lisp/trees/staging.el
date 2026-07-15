@@ -40,10 +40,6 @@
 
 (ns/use clj-refactor)
 
-
-;; messing-with-it
-(evil-set-leader '(normal visual) (kbd ","))
-
 (ns/use caser
   ;; why do these functions move the point
   (evil-define-key 'normal 'global (kbd "<leader>tc") (fn! tc (save-excursion (call-interactively 'caser-camelcase-dwim))))
@@ -59,14 +55,12 @@
     (sh "bash -ic 'scu-restart dcu'")
     (message "queued dcu run!")))
 
+(ns/use timeout)
 (ns/use dumb-jump)
-
 (ns/use cmake-mode)
 
 ;; for mx-compile
 (setq compilation-always-kill t)
-
-(ns/use timeout)
 
 (general-nmap
   "]c" 'next-error

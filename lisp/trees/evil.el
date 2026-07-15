@@ -74,8 +74,9 @@ when called interactively."
             (evil-normal-state)
             (signal (car err) (cdr err))))))))
 
-(ns/use evil-collection
+(evil-set-leader '(normal visual) (kbd ","))
 
+(ns/use evil-collection
   (setq ns/evil-collection-keys
     `(;; jekn
        "e" "k"
