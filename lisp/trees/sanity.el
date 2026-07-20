@@ -194,7 +194,6 @@
   "nso" (fn!! goto-scratch-org (ns/find-or-open (~e "lisp/scratch/scratch.org")))
 
   "nm" (fn!! goto-messages (ns/find-or-open  "*Messages*"))
-  "nU" 'undo-tree-visualize
 
   "t" '(:ignore t :which-key "Toggle")
   "tw" 'whitespace-mode

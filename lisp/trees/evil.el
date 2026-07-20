@@ -286,15 +286,24 @@ when called interactively."
 
   (add-hook 'better-jumper-post-jump-hook 'recenter))
 
-(ns/use undo-tree
-  (global-undo-tree-mode)
-  (evil-set-undo-system 'undo-tree))
+;;
+;; (ns/use undo-tree
+;;   (global-undo-tree-mode)
+;;   (evil-set-undo-system 'undo-tree))
 
 ;; undo-tree seems to have a weird garbage collection thing going on
 ;; freezes emacs
+;; <2026-07-20 Mon 14:28>  today I was mad at something undo tree being slow yet again.
 
-;; todo:
-;; (ns/use undo-fu (evil-set-undo-system 'undo-fu))
-;; (ns/use vundo)
+(ns/use undo-fu (evil-set-undo-system 'undo-fu))
+(ns/use vundo)
 
-;; there's an undo-fu-session thing too
+;; can't clone?
+;; (ns/use undo-fu-session)
+
+;; evil-collection remap?
+
+(ns/bind
+  ;; "nU" 'undo-tree-visualize
+  "nU" 'vundo
+  )

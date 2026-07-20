@@ -16,6 +16,8 @@
       (current-buffer)))
   (message "grabbed current buffer marker!"))
 
+(ns/bind-leader-mode 'profiler-report "a" 'profiler-report-toggle-entry)
+
 ;; ugh
 (ns/bind "qb" 'ns/grab-current-position-marker)
 ;; "buffer put"
@@ -44,7 +46,8 @@
   ;; why do these functions move the point
   (evil-define-key 'normal 'global (kbd "<leader>tc") (fn! tc (save-excursion (call-interactively 'caser-camelcase-dwim))))
   (evil-define-key 'normal 'global (kbd "<leader>ts") (fn! ts (save-excursion (call-interactively 'caser-snakecase-dwim))))
-  (evil-define-key 'normal 'global (kbd "<leader>td") (fn! td (save-excursion (call-interactively 'caser-dashcase-dwim)))))
+  ;; using k because it's "kebab" in my head
+  (evil-define-key 'normal 'global (kbd "<leader>tk") (fn! td (save-excursion (call-interactively 'caser-dashcase-dwim)))))
 
 ;; nb: this is sort of point-sensitive
 (evil-define-key 'normal 'global (kbd "<leader>f") #'ff-find-other-file)
