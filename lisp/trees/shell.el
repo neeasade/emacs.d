@@ -166,43 +166,40 @@
   t)
 
 (defun! ns/pickup-shell (&optional cwd terminal)
-  (when (not (get-buffer "*spawn-shell-staged*"))
-    (ns/stage-terminal))
+  (llet [cwd (or cwd default-directory)]
+    (when (not (get-buffer "*spawn-shell-staged*"))
+      (ns/stage-terminal))
 
-  (if (file-remote-p (or cwd ""))
-    (let ((default-directory cwd)
-           ;; file-remote-p returns the tramp connection info without the path
-           (process-environment (cons (format "TRAMP_INFO=%s" (file-remote-p cwd)) process-environment)))
-      (message (ns/str "handling this remote shell: " cwd))
-      (save-window-excursion (shell "*spawn-shell-remote-temp*"))
-      (switch-to-buffer (get-buffer "*spawn-shell-remote-temp*")))
-    (switch-to-buffer (get-buffer "*spawn-shell-staged*")))
+    (if (file-remote-p (or cwd ""))
+      (let ((default-directory cwd)
+             ;; file-remote-p returns the tramp connection info without the path
+             (process-environment (cons (format "TRAMP_INFO=%s" (file-remote-p cwd)) process-environment)))
+        (message (ns/str "handling this remote shell: " cwd))
+        (save-window-excursion (shell "*spawn-shell-remote-temp*"))
+        (switch-to-buffer (get-buffer "*spawn-shell-remote-temp*")))
+      (switch-to-buffer (get-buffer "*spawn-shell-staged*")))
 
-  (rename-buffer
-    (format "*spawn-shell-%s*"
-      ;; get the pid of the running bash process
-      (first
-        (-map 'process-id
-          (-filter
-            (fn (eq (process-buffer <>)
-                  (current-buffer)))
-            (process-list))))))
+    (rename-buffer
+      (format "*spawn-shell-%s*"
+        ;; get the pid of the running bash process
+        (first
+          (-map 'process-id
+            (-filter
+              (fn (eq (process-buffer <>)
+                    (current-buffer)))
+              (process-list))))))
 
-  (when terminal
-    (when (fboundp 'ns/toggle-modeline)
-      (ns/toggle-modeline)))
+    (when terminal
+      (when (fboundp 'ns/toggle-modeline)
+        (ns/toggle-modeline)))
 
-  (when (and cwd (not (file-remote-p cwd)))
-    (shell-pop--cd-to-cwd-shell cwd))
+    (when (and cwd (not (file-remote-p cwd)))
+      (shell-pop--cd-to-cwd-shell cwd))
 
-  ;; we don't care about how long it takes to stage the terminal
-  (make-thread 'ns/stage-terminal)
+    ;; we don't care about how long it takes to stage the terminal
+    (make-thread 'ns/stage-terminal)
 
-  ;; (evil-insert nil)
-
-  ;; t
-  nil
-  )
+    nil))
 
 (ns/bind
   "at" 'ns/spawn-terminal

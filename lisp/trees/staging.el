@@ -464,6 +464,9 @@
 ;; there's a motion thing here that makes it easy to accidentally jump around
 (setq lsp-ui-doc-show-with-mouse nil)
 
+;; stop popping up please
+(setq lsp-ui-doc-enable nil)
+
 (add-hook 'ns/theme-hook
   (fn!
     (ns/face 'xref-file-header :foreground (myron-get :foreground))
