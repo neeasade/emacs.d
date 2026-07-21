@@ -63,6 +63,7 @@
 # future self: if you want to use commas, simply escape them: \,
 #+MACRO: foldstart @@html:<details><summary>$1</summary>@@
 #+MACRO: foldend @@html:</details>@@
+#+MACRO: spoiler @@html:<span class=spoiler>$1</span>@@
 
 {{csslinks}}
 
