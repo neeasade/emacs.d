@@ -1,5 +1,25 @@
 ;; -*- lexical-binding: t; -*-
 
+(when (and ns/enable-wsl-p ns/term?)
+  ;; C-i and tab are the same here, dwim
+  (evil-define-key 'normal org-mode-map (kbd "TAB")
+    (fn!! org-dwim-tab
+      (funcall-interactively
+        (if (s-starts-with-p "org-level" (ns/str (face-at-point)))
+          'org-cycle
+          'better-jumper-jump-forward)))))
+
+;; ...
+(when ns/enable-wsl-p
+  (load-file "/home/neeasade/code/term-keys/term-keys.el")
+
+  (load-file "/home/neeasade/code/term-keys/term-keys-alacritty.el")
+
+  (term-keys-mode t))
+
+;; broken here
+(setopt agent-shell-inhibit-system-sleep nil)
+
 (ns/use (dbc-mode :type git :host github :repo "leuven65/dbc-mode"))
 
 ;; lsp launches company-mode all over the place

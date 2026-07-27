@@ -167,8 +167,12 @@
 (--map (setenv it nil) '("SSH_ASKPASS" "SSH_CONNECTION" "SSH_TTY" "SSH_CLIENT"))
 
 (when ns/term?
-  (when (not ns/kitty?)
-    (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle))
+
+  ;; (when (not ns/kitty?)
+  ;;   (evil-define-key 'normal org-mode-map (kbd "TAB") #'org-cycle))
+
+  ;; (evil-define-key 'normal org-mode-map (kbd "<TAB>") #'org-cycle)
+  ;; (evil-define-key 'normal org-mode-map (kbd "TAB") nil)
 
   (xterm-mouse-mode 1)
 

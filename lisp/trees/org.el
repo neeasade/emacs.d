@@ -7,8 +7,6 @@
 
 (ns/use org-ml)
 
-(evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
-
 ;; org-element updates cache on every buffer change (slow)
 ;; having this early means we don't break on capture target setup
 ;; <2024-11-11 Mon 07:49> experiment with turning this back on
@@ -450,9 +448,7 @@
           (flyspell-mode 1)))
       (flyspell-correct-at-point))
 
-    (define-key flyspell-mode-map (kbd "<C-;>") 'ns/spellcheck-at-point)
-    (global-set-key (kbd "<C-;>") 'ns/spellcheck-at-point)
-
+    (global-set-key (kbd "C-;") 'ns/spellcheck-at-point)
     (general-nmap "gs" 'ns/spellcheck-at-point))
 
   ;; ensure dictionary

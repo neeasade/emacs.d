@@ -189,7 +189,9 @@ when called interactively."
 
 (ns/use evil-embrace
   (setq evil-embrace-show-help-p nil)
+
   (evil-embrace-enable-evil-surround-integration)
+
   (general-define-key
     :states 'visual
     ;; `evil-change' is not bound in `evil-visual-state-map' by default but
@@ -266,13 +268,11 @@ when called interactively."
 ;; (evil-ex-define-cmd "b" nil)
 
 (ns/use better-jumper
-  (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
-  (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
 
-  ;; term
-  ;; (if (and ns/term? (not ns/kitty?))
-  ;;   (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
-  ;;   (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward))
+  (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
+
+  ;; wsl2 - the world is bad
+  (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window

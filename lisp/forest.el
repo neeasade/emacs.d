@@ -395,7 +395,7 @@
   (general-define-key
     :states '(normal)
     :keymaps 'markdown-mode-map
-    (kbd "<tab>") 'markdown-cycle)
+    (kbd "<TAB>") 'markdown-cycle)
 
   (add-hook 'markdown-mode-hook 'markdown-toggle-fontify-code-blocks-natively))
 
@@ -763,7 +763,11 @@
     (setq-default chatgpt-shell-system-prompt 2)) ; the "programming" prompt
 
   (ns/use agent-shell
+    (setq agent-shell-preferred-agent-config 'omp)
     (setq agent-shell-preferred-agent-config 'copilot)
+
+    (when (which "sand")
+      (setq agent-shell-command-prefix '("sand")))
 
     (setq agent-shell-show-welcome-message nil)
     (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
