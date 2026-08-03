@@ -298,11 +298,12 @@ when called interactively."
 (ns/use undo-fu (evil-set-undo-system 'undo-fu))
 (ns/use vundo)
 
-;; can't clone?
-;; (ns/use undo-fu-session)
+(ns/use (undo-fu-session
+          :host github
+          :repo "emacsmirror/undo-fu-session")
+  (undo-fu-session-global-mode t))
 
 ;; evil-collection remap?
-
 (ns/bind
   ;; "nU" 'undo-tree-visualize
   "nU" 'vundo

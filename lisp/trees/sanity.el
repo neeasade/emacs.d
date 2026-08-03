@@ -216,7 +216,7 @@
   "ic" 'insert-char
   "ie" 'emoji-search
   "qp" (fn!! grab-file-path
-         (llet [c (if (eq major-mode 'dired-mode)
+         (llet [c (if (-contains? '(dired-mode shell-mode term-mode vterm-mode) major-mode)
                     default-directory
                     (buffer-file-name))]
            (kill-new c)

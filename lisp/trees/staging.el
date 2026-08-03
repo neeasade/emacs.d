@@ -4,6 +4,7 @@
   ;; C-i and tab are the same here, dwim
   (evil-define-key 'normal org-mode-map (kbd "TAB")
     (fn!! org-dwim-tab
+      (evil-ex-nohighlight)
       (funcall-interactively
         (if (s-starts-with-p "org-level" (ns/str (face-at-point)))
           'org-cycle
@@ -485,7 +486,8 @@
 (setq lsp-ui-doc-show-with-mouse nil)
 
 ;; stop popping up please
-(setq lsp-ui-doc-enable nil)
+(add-hook 'lsp-mode-hook
+  (lambda () (setq lsp-ui-doc-enable nil)))
 
 (add-hook 'ns/theme-hook
   (fn!
