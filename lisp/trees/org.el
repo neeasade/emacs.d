@@ -463,8 +463,11 @@
 (defun ns/org-mode-hook ()
   (interactive)
 
-  ;; (olivetti-mode)
+  (when-not (-contains? org-agenda-files (buffer-file-name))
+    (olivetti-mode t))
+
   (git-gutter-mode 0)
+
   (flyspell-mode 0)
 
   ;; torn - think the move is to stop autofill and start wrapping display-wise
