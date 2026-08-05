@@ -18,7 +18,7 @@
   (->> (~e "lisp/forest.el")
     f-read
     (s-match-strings-all "^(ns/defconfig [^ \(\)]+")
-    (mapcar (fn (->> (car <>) (s-chop-prefix "(ns/defconfig ") (s-chomp))))
+    (mapcar (fn (->> (car <>) (s-chop-prefix "(ns/defconfig ") (s-trim))))
     (append '("dirt" "init" "forest"))))
 
 (defun! ns/check-for-orphans ()
