@@ -139,7 +139,7 @@
                   (format "[[#%s][%s]]" id "#"))))))))))
 
 (defun ns/blog-next-map ()
-  "Return a plist of (post-url (prev next))"
+  "Return a ht of (post-url (prev next))"
   (llet [posts (->> (ns/blog-get-metas)
                  (--filter (string= (ht-get it :type) "post"))
                  (--remove (ht-get it :is-hidden))

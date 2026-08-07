@@ -161,7 +161,12 @@
         (auto-revert-buffers)
 
         ;; save everyone
-        (save-some-buffers t))))
+        (save-some-buffers t)
+
+        ;; rm buffers that haven't been viewed in awhile
+        ;; todo: I think this killed our clojure repl lmao
+        ;; (shut-up (clean-buffer-list))
+        )))
 
 ;; cf https://emacsredux.com/blog/2026/04/07/stealing-from-the-best-emacs-configs/
 (setq-default bidi-display-reordering 'left-to-right
@@ -218,7 +223,12 @@
   "qp" (fn!! grab-file-path
          (llet [c (if (-contains? '(dired-mode shell-mode term-mode vterm-mode) major-mode)
                     default-directory
-                    (buffer-file-name))]
+                    (buffer-file-name))
+                 c (if-not (region-active-p) c
+                     (ns/str c
+                       ":" (line-number-at-pos (region-beginning)) "-"
+                       (line-number-at-pos (region-end))))]
+
            (kill-new c)
            (message (ns/str "copied " c))))
   "qP" (fn!! grab-file-name
