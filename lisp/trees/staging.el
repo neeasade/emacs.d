@@ -1,5 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 
+;; todo: "qg" - copy github link without jumping
+
+(setq multiple-terminals-merge-keyboards t)
+
 (when (and ns/enable-wsl-p ns/term?)
   ;; C-i and tab are the same here, dwim
   (evil-define-key 'normal org-mode-map (kbd "TAB")
@@ -17,9 +21,6 @@
   (load-file "/home/neeasade/code/term-keys/term-keys-alacritty.el")
 
   (term-keys-mode t))
-
-;; broken here
-(setopt agent-shell-inhibit-system-sleep nil)
 
 (ns/use (dbc-mode :type git :host github :repo "leuven65/dbc-mode"))
 

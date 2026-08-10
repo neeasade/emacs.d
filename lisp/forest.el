@@ -769,6 +769,11 @@
     (when (which "sand")
       (setq agent-shell-command-prefix '("sand")))
 
+    (when ns/enable-wsl-p
+      (setopt agent-shell-inhibit-system-sleep nil))
+
+    ;; (setq agent-shell-command-prefix nil)
+
     (setq agent-shell-show-welcome-message nil)
     (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
     (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input))

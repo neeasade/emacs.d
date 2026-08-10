@@ -298,6 +298,11 @@ when called interactively."
 (ns/use undo-fu (evil-set-undo-system 'undo-fu))
 (ns/use vundo)
 
+;; cf emacs-undo-fu readme
+(setq undo-limit 67108864) ; 64mb.
+(setq undo-strong-limit 100663296) ; 96mb.
+(setq undo-outer-limit 1006632960) ; 960mb.
+
 (ns/use (undo-fu-session
           :host github
           :repo "emacsmirror/undo-fu-session")
