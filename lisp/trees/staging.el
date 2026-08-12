@@ -502,6 +502,11 @@
 (ns/use (qml-ts-mode :type git :host github :repo "xhcoding/qml-ts-mode"
           :files ("*.el")))
 
+(ns/use typit
+  (defun ns/display-buffer-at-top (b a)
+    (display-buffer-in-direction b (a-assoc a 'direction 'above)))
+  (setq typit-display-action 'ns/display-buffer-at-top))
+
 (comment
 
   (ns/use ethan-wspace)
