@@ -1,6 +1,10 @@
 ;; -*- lexical-binding: t; -*-
-
 ;; todo: "qg" - copy github link without jumping
+
+
+;; new keyboard stuff:
+(evil-define-key 'normal magit-section-mode-map (kbd "<down>") 'magit-section-forward)
+(evil-define-key 'normal magit-section-mode-map (kbd "<up>") 'magit-section-backward)
 
 (setq multiple-terminals-merge-keyboards t)
 

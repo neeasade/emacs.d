@@ -268,11 +268,12 @@ when called interactively."
 ;; (evil-ex-define-cmd "b" nil)
 
 (ns/use better-jumper
-
   (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
 
-  ;; wsl2 - the world is bad
-  (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)
+  ;; the world is bad
+  (when ns/enable-wsl-p
+    (define-key evil-motion-state-map (kbd "TAB") nil)
+    (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward))
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window
@@ -307,6 +308,11 @@ when called interactively."
           :host github
           :repo "emacsmirror/undo-fu-session")
   (undo-fu-session-global-mode t))
+
+;; rec by undo-fu
+(setq undo-limit 67108864) ; 64mb.
+(setq undo-strong-limit 100663296) ; 96mb.
+(setq undo-outer-limit 1006632960) ; 960mb.
 
 ;; evil-collection remap?
 (ns/bind

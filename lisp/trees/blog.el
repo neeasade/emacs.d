@@ -5,7 +5,9 @@
 (setq ns/blog-title "🜁↝🜃 ")
 
 (setq ns/blog-cache (-ht))
+
 (ns/persist ns/blog-build-cache (-ht))
+;; (setq ns/blog-build-cache (-ht))
 
 ;;* compat
 (defalias 'tarp/get 'myron-get)
@@ -340,7 +342,10 @@
                                                  (s-replace "'" "'\\''" (f-dirname path))
                                                  (s-replace "'" "'\\''" path)))))
                      (if (s-blank-p git-query-result) ""
-                       (substring git-query-result 0 10)))
+                       (let ((date (substring git-query-result 0 10)))
+                         (if (string= date "2019-02-19") ; org migration commit
+                           ""
+                           date))))
       :slug slug
       :orglink (format "[[./%s.org][%s]]" slug title)
       :csslinks (ns/blog-get-csslinks))))

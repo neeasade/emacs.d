@@ -42,6 +42,7 @@
 
 (ns/inmap
   'comint-mode-map
+  (kbd "RET") 'comint-send-input
   "<up>"      'comint-previous-input
   "<down>"    'comint-next-input
   (kbd "C-e") 'comint-previous-input
