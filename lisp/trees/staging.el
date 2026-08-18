@@ -1,6 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 ;; todo: "qg" - copy github link without jumping
 
+(add-hook 'window-size-change-functions
+  (fn! set-scroll-margin
+    (setq scroll-margin (/ (frame-height) 5))))
 
 ;; new keyboard stuff:
 (evil-define-key 'normal magit-section-mode-map (kbd "<down>") 'magit-section-forward)
