@@ -368,7 +368,7 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
                             (first body)
                             (md5 (ns/str body)))))
           (fnname (intern (ns/str "ip/" fnname)))) ; "in place"
-    `(defun! ,fnname ()
+    `(defun! ,fnname (&rest args)                  ; ignore args
        "docstring"
        ,@(if has-name?
            (-drop 1 body)
