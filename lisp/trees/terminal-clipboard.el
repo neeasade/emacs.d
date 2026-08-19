@@ -11,7 +11,10 @@
          (term    (getenv "TERM" (selected-frame)))
          (ssh-tty (getenv "SSH_TTY" (selected-frame))))
     ;; foot's osc52 limit is like 2gb
-    (if (or (string= term "foot") (<= (length string) clipetty--max-cut))
+    ;; alacritty - unsure, but the default is too low by far
+    (if (or (s-starts-with? "foot" term)
+          (s-starts-with? "alacritty" term)
+          (<= (length string) clipetty--max-cut))
       (write-region
         (clipetty--dcs-wrap string tmux term ssh-tty)
         nil

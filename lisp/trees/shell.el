@@ -260,6 +260,15 @@
               (not visible?))))))
     (-map 'kill-buffer)))
 
+(defun! ns/copy-comint-last-output ()
+  (kill-new
+    (buffer-substring-no-properties
+      comint-last-input-end
+      (process-mark (get-buffer-process (current-buffer)))))
+  (message "last output copied!"))
+
+(evil-define-key 'normal comint-mode-map (kbd "<leader>c") #'ns/copy-comint-last-output)
+
 (named-timer-run :maybe-cleanup-shells
   t                                     ; do not run initially
   ;; once a day I suppose?

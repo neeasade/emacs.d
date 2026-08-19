@@ -1,6 +1,22 @@
 ;; -*- lexical-binding: t; -*-
 ;; todo: "qg" - copy github link without jumping
 
+;; this is an okay default because we are sandboxing:
+(setq agent-shell-permission-responder-function 'agent-shell-permission-allow-always)
+
+(defun! ns/insert-from-kill-ring ()
+  (->> kill-ring
+    (ns/pick)
+    (insert)))
+
+(defun! ns/insert-from-comint-input-ring ()
+  (->> (ns/buffers-by-mode 'agent-shell-mode)
+    (--map (with-current-buffer it
+             (ring-elements comint-input-ring)))
+    (-flatten)
+    (ns/pick)
+    (insert)))
+
 (add-hook 'window-size-change-functions
   (fn! set-scroll-margin
     (setq scroll-margin (/ (frame-height) 5))))

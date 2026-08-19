@@ -58,7 +58,10 @@
 
 (llet [eight-gb 8000000000]
   (when (> gc-cons-threshold eight-gb)
-    (setq gc-cons-threshold eight-gb)))
+    (setq gc-cons-threshold eight-gb))
+
+  (when ns/enable-wsl-p
+    (setq gc-cons-threshold (/ eight-gb 4))))
 
 ;; trim gui
 (menu-bar-mode -1)
@@ -225,10 +228,9 @@
                     default-directory
                     (buffer-file-name))
                  c (if-not (region-active-p) c
-                     (ns/str c
-                       ":" (line-number-at-pos (region-beginning)) "-"
+                     (ns/str c ":"
+                       (line-number-at-pos (region-beginning)) "-"
                        (line-number-at-pos (region-end))))]
-
            (kill-new c)
            (message (ns/str "copied " c))))
   "qP" (fn!! grab-file-name

@@ -52,7 +52,8 @@
       ^^^^                       [_o_] keep other
       ^^^^                       [_c_] keep current
       ^^^^                       [_C_] combine with next"
-  ("n" smerge-next)
+  ;; ("n" smerge-next)
+  ("n" smerge-vc-next-conflict)
   ("e" smerge-prev)
   ("N" smerge-prev)
   ("j" evil-next-line)

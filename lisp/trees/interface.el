@@ -107,8 +107,10 @@
   "th" 'hl-line-mode
 
   ;; "/" (if (which "rg") 'consult-ripgrep 'consult-grep)
-  "/" (fn!! project-search
-        (let* ((proj-root (projectile-project-root))
+  "/" (defun ia/project-search (arg)
+        (interactive "P" )              ; when prefixed, prefill with thing at point
+        (let* ((initial-input (when arg (thing-at-point 'symbol t)))
+                (proj-root (projectile-project-root))
                 (spwr-dir (when proj-root (f-join proj-root "spwr")))
                 (search-dir (cond
                               (current-prefix-arg proj-root)
@@ -117,8 +119,7 @@
                                 spwr-dir)
                               (t proj-root))))
           (funcall (if (which "rg") 'consult-ripgrep 'consult-grep)
-            search-dir)))
-
+            search-dir initial-input)))
   "?" (fn!! grep-here
         (funcall (if (which "rg") 'consult-ripgrep 'consult-grep)
           default-directory))
