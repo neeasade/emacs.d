@@ -273,7 +273,7 @@ when called interactively."
   ;; the world is bad
   (when ns/enable-wsl-p
     (define-key evil-motion-state-map (kbd "TAB") nil)
-    (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward))
+    (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window

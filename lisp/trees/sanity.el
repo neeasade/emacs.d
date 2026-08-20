@@ -240,3 +240,8 @@
   "if" (fn!! insert-file-name (insert (buffer-file-name)))
   "id" (fn!! insert-time (org-time-stamp t))
   "iD" (fn!! insert-date (org-time-stamp nil)))
+
+;; calc
+(ns/bind "ac" 'calc)
+(add-hook 'calc-mode-hook (fn!! (evil-insert)))
+(setq calc-kill-line-numbering nil)
