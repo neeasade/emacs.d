@@ -109,6 +109,8 @@
 (defalias 'first 'car)
 (defalias 'second 'cadr)
 (defalias 'third 'caddr)
+(defalias 'fourth 'cadddr)
+
 (defalias 'when-not 'unless)
 (defalias 'which 'executable-find)
 
