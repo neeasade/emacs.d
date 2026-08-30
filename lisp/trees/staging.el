@@ -17,6 +17,15 @@
     (ns/pick)
     (insert)))
 
+(ns/use kirigami
+  ;; pretty slick. suggested binds taken from readme:
+  (define-key evil-normal-state-map "zo" 'kirigami-open-fold)
+  (define-key evil-normal-state-map "zO" 'kirigami-open-fold-rec)
+  (define-key evil-normal-state-map "zc" 'kirigami-close-fold)
+  (define-key evil-normal-state-map "za" 'kirigami-toggle-fold)
+  (define-key evil-normal-state-map "zr" 'kirigami-open-folds)
+  (define-key evil-normal-state-map "zm" 'kirigami-close-folds))
+
 (add-hook 'window-size-change-functions
   (fn! set-scroll-margin
     (setq scroll-margin (/ (frame-height) 5))))
