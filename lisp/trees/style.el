@@ -149,17 +149,15 @@
     evil-visual-state-cursor `(,color box)))
 
 (defun! ns/load-theme (&optional theme)
-  (ns/kill-buffers-no-file)
-
-  (-map 'disable-theme custom-enabled-themes)
-
-  (load-theme
-    (or theme
-      (->> (custom-available-themes)
-        (-filter (fn (s-starts-with-p "myron-" (pr-str <>))))
-        (ns/pick "theme")
-        (intern)))
-    t)
+  (let ((target-theme
+          (or theme
+            (->> (custom-available-themes)
+              (-filter (fn (s-starts-with-p "myron-" (pr-str <>))))
+              (ns/pick "theme")
+              (intern)))))
+    (ns/kill-buffers-no-file)
+    (-map 'disable-theme custom-enabled-themes)
+    (load-theme target-theme t))
 
   (setq ns/term? (not window-system))
 
