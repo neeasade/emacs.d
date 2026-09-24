@@ -62,7 +62,9 @@
     (message)))
 
 (defun! ia/surf-dirs (&optional remote?)
-  (llet [dir (ns/pick "directory" (ns/atuin-list-dirs remote?))]
+  ;;
+  (llet [dir (ns/pick "directory" (-concat (-map 'f-parent (ns/jump-file-candidates :project-files))
+                                    (ns/atuin-list-dirs remote?)))]
     (if-not (eq major-mode 'shell-mode)
       (dired dir)
       (progn

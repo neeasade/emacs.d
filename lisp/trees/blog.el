@@ -200,7 +200,7 @@
   "File path to html slug (basename)"
   (->> (--reduce-from (s-replace it "" acc)
          (f-base path)
-         (s-split "" ";/?:@&=+$,'"))
+         (s-split "" ";/?:@&=+$,'{}[]"))
     (s-replace " " "-")
     (s-replace-regexp (pcre-to-elisp/cached "[0-9]{4}-[0-9]{2}-[0-9]{2}-") "")
     (s-downcase)))

@@ -1,13 +1,17 @@
 ;; -*- lexical-binding: t; -*-
-;; todo: "qg" - copy github link without jumping
+
+
+;; a pox on microsoft
+(ns/file-mode "vcxproj" 'xml-mode)
 
 ;; this is an okay default because we are sandboxing:
 (setq agent-shell-permission-responder-function 'agent-shell-permission-allow-always)
 
-(defun! ns/insert-from-kill-ring ()
-  (->> kill-ring
-    (ns/pick)
-    (insert)))
+;; ~10x the default
+(setq kill-ring-max 1000)
+
+;; 2026 and I'm only just now noticing this setting.!
+(setq evil-kill-on-visual-paste nil)
 
 (defun! ns/insert-from-comint-input-ring ()
   (->> (ns/buffers-by-mode 'agent-shell-mode)
@@ -49,12 +53,9 @@
 ;; ...
 (when ns/enable-wsl-p
   (load-file "/home/neeasade/code/term-keys/term-keys.el")
-
   (load-file "/home/neeasade/code/term-keys/term-keys-alacritty.el")
 
   (term-keys-mode t))
-
-(ns/use (dbc-mode :type git :host github :repo "leuven65/dbc-mode"))
 
 ;; lsp launches company-mode all over the place
 (add-hook 'company-mode-hook
@@ -113,8 +114,8 @@
     (message "queued dcu run!")))
 
 (ns/use timeout)
+
 (ns/use dumb-jump)
-(ns/use cmake-mode)
 
 ;; for mx-compile
 (setq compilation-always-kill t)
@@ -367,108 +368,29 @@
 (when ns/enable-wsl-p
   (ns/file-mode "ts" 'xml-mode))
 
-(defun! ns/shell-show ()
-  ;; todo: split windows in some nice fashion
-  (ns/cleanup-shells)
-  (ns/buffers-by-mode 'shell-mode)
 
-  ;; (balance-windows)
-  )
+(defun my-display-buffers-equally (buffers)
+  "Display BUFFERS in approximately equal windows in the selected frame."
+  (unless buffers
+    (user-error "No buffers supplied"))
+  (delete-other-windows)
+  (switch-to-buffer (car buffers))
+  (dolist (buffer (cdr buffers))
+    (let ((window (split-window-sensibly (get-largest-window))))
+      (unless window
+        (user-error "Frame is too small to display all buffers"))
+      (set-window-buffer window buffer)))
+  (balance-windows-area))
 
-(defun! ns/term-refresh ()
-  (xterm-mouse-mode -1)
-  (xterm-mouse-mode 1)
-  (global-kkp-mode -1)
-  (global-kkp-mode 1))
+(defun! ns/shell-show () ;; todo: split windows in some nice fashion
+  (my-display-buffers-equally
+    (ns/buffers-by-mode 'shell-mode)))
 
-(comment
-
-  ;; as a reminder to try later (prettier)
-  ;; nb: for vue this seems aggressively wrong (or at least, disagrees with the vscode interpretation)
-  (ns/use apheleia)
-
-  ;; todo: try this w/ eglot
-  (add-to-list 'eglot-server-programs
-	  '(vue-ts-mode . ("vue-language-server" "--stdio" :initializationOptions '(:vue (:hybridMode :json-false)))))
-
-  (ns/use tree-sitter-langs)
-
-  (setq treesit-language-source-alist
-    '((cpp "https://github.com/tree-sitter/tree-sitter-cpp"
-        "v0.11.4"
-        )))
-
-
-  (treesit-install-language-grammar 'cpp)
-
-  ;; todo: checkout
-  ;; https://github.com/8uff3r/vue-ts-mode
-  (comment
-    (setq treesit-language-source-alist
-      '((vue "https://github.com/ikatyang/tree-sitter-vue")
-         (css "https://github.com/tree-sitter/tree-sitter-css")
-         (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
-           "master" "tsx/src"
-           )))
-
-    (treesit-install-language-grammar 'vue)
-
-    (treesit-install-language-grammar 'typescript)
-
-    (-map 'treesit-install-language-grammar '(vue css typescript))
-
-    (ns/use (vue-ts-mode :type git :host github :repo "8uff3r/vue-ts-mode" :files ("*.el")))
-    ))
 
 (ns/face 'mmm-default-submode-face :background nil)
 
 (setq scroll-error-top-bottom t)
 (setq scroll-preserve-screen-position t)
-
-;; (ns/inmap 'general-override-mode-map
-;;   (kbd "C-n") (fn!! scroll-up
-;;                 (cond
-;;                   ((minibufferp) (next-line))
-;;                   ((-non-nil (and (boundp 'corfu--candidates) corfu--candidates)) (corfu-next))
-;;                   ((derived-mode-p 'cide-repl-mode) (cider-repl-next-input))
-;;                   ((derived-mode-p 'comint-mode) (comint-next-input)
-;;                   ((derived-mode-p 'magit-section-mode) (magit-section-forward))
-;;                   ((derived-mode-p 'prog-mode) (scroll-up-command))
-;;                   (t (message "C-n: no action"))))
-;;   (kbd "C-e") (fn!! scroll-down
-;;                 (cond
-;;                   ((minibufferp) (previous-line))
-;;                   ((-non-nil (and (boundp 'corfu--candidates) corfu--candidates)) (corfu-previous))
-;;                   ((derived-mode-p 'cide-repl-mode) (cider-repl-previous-input))
-;;                   ((derived-mode-p 'comint-mode) (comint-previous-input))
-;;                   ((derived-mode-p 'magit-section-mode) (magit-section-backward))
-;;                   ((derived-mode-p 'prog-mode) (scroll-down-command))
-;;                   (t (message "C-e: no action")))))
-
-;; to turn off ^
-(comment
-  (ns/inmap 'general-override-mode-map
-    (kbd "C-n") nil
-    (kbd "C-e") nil)
-
-  ;; remove conflicts
-  (evil-define-key nil evil-motion-state-map (kbd "C-e") nil)
-  (evil-define-key nil evil-normal-state-map (kbd "C-n") nil)
-
-  (general-nmap (kbd "C-n") 'scroll-up-command)
-  (general-nmap (kbd "C-e") 'scroll-down-command)
-
-  (ns/inmap 'evil-motion-state-map
-    (kbd "C-n") nil
-    (kbd "C-e") nil)
-
-  (ns/inmap 'text-mode-map
-    (kbd "C-n") 'scroll-up-command
-    (kbd "C-e") 'scroll-down-command)
-
-  )
-
-;; (ns/use vlf)
 
 (ns/use activities
   (activities-mode)
@@ -539,7 +461,50 @@
     (display-buffer-in-direction b (a-assoc a 'direction 'above)))
   (setq typit-display-action 'ns/display-buffer-at-top))
 
+(defun! ns/fake-float ()
+  (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background :focused))))
+
+(when ns/enable-wsl-p
+  (add-hook 'ns/theme-hook 'ns/fake-float))
+
 (comment
+
+  ;; as a reminder to try later (prettier)
+  ;; nb: for vue this seems aggressively wrong (or at least, disagrees with the vscode interpretation)
+  (ns/use apheleia)
+
+  ;; todo: try this w/ eglot
+  (add-to-list 'eglot-server-programs
+	  '(vue-ts-mode . ("vue-language-server" "--stdio" :initializationOptions '(:vue (:hybridMode :json-false)))))
+
+  (ns/use tree-sitter-langs)
+
+  (setq treesit-language-source-alist
+    '((cpp "https://github.com/tree-sitter/tree-sitter-cpp"
+        "v0.11.4"
+        )))
+
+
+  (treesit-install-language-grammar 'cpp)
+
+  ;; todo: checkout
+  ;; https://github.com/8uff3r/vue-ts-mode
+  (comment
+    (setq treesit-language-source-alist
+      '((vue "https://github.com/ikatyang/tree-sitter-vue")
+         (css "https://github.com/tree-sitter/tree-sitter-css")
+         (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+           "master" "tsx/src"
+           )))
+
+    (treesit-install-language-grammar 'vue)
+
+    (treesit-install-language-grammar 'typescript)
+
+    (-map 'treesit-install-language-grammar '(vue css typescript))
+
+    (ns/use (vue-ts-mode :type git :host github :repo "8uff3r/vue-ts-mode" :files ("*.el")))
+    )
 
   (ns/use ethan-wspace)
 

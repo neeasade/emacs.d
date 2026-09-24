@@ -56,21 +56,22 @@
 
 (defun ns/shell-history-atuin ()
   (when (which "atuin")
-    (->> (sh "atuin history list --format {command} --print0" )
-      (s-split (char-to-string ?\0)))))
+    (-flatten
+      (ns/sqlite (~ "/.local/share/atuin/history.db")
+        "SELECT DISTINCT command FROM history WHERE exit != 127;"))))
 
 (defun ns/shell-history-shell ()
   (llet [shell-name (if (eq major-mode 'shell-mode)
                       (file-name-nondirectory (car (process-command (get-buffer-process (current-buffer)))))
-                      "bash")]
-    (->> (~ (format ".%s_history" shell-name))
-      (f-read)
-      (s-split "\n")
-      (reverse)
-      (-map (fn ;; shared history format: ': 1556747685:0;cmd'
-              (if (s-starts-with-p ":" <>)
-                (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
-                <>))))))
+                      "bash")
+          history-path (~ (format ".%s_history" shell-name))]
+    (when (file-readable-p history-path)
+      (let ((history (reverse (s-split "\n" (f-read history-path)))))
+        (-map (fn ;; shared history format: ': 1556747685:0;cmd'
+                (if (s-starts-with-p ":" <>)
+                  (s-replace-regexp (pcre-to-elisp "^:[^;]*;") "" <>)
+                  <>))
+          history)))))
 
 (defun ns/shell-history-comint (mode)
   (-mapcat
@@ -118,16 +119,14 @@
 (defun! ns/insert-qute-url-title ()
   (ns/insert-qute-url (sh "qb_active_url .title")))
 
-(defun! ns/insert-history-atuin-context ()
+(defun! ns/insert-history-atuin-current-project ()
   (when (which "atuin")
     (insert
       (ns/pick
-        (s-lines
-          (or (sh
-                (format
-                  "atuin history list --format \"{directory}/⁇{command}\" | uniq | grep \"^%s\" | sed 's/.*⁇//'"
-                  (or (projectile-project-root) default-directory)))
-            ""))))))
+        (-flatten
+          (ns/sqlite (~ "/.local/share/atuin/history.db")
+            "SELECT DISTINCT command FROM history WHERE exit != 127 AND cwd like ?;"
+            (ns/str (or (projectile-project-root) default-directory) "%")))))))
 
 (ns/bind
   "fE" 'crux-sudo-edit
@@ -136,4 +135,4 @@
   "iu" 'ns/insert-qute-url
   "iU" 'ns/insert-qute-url-title
   "ih" 'ns/insert-history
-  "iH" 'ns/insert-history-atuin-context)
+  "iH" 'ns/insert-history-atuin-current-project)

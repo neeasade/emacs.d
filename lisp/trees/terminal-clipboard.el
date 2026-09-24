@@ -71,4 +71,18 @@
 ;; (remove-function after-focus-change-function #'ns/sync-terminal-clipboard)
 
 ;; (ns/bind "ip" (fn!! paste-gui (insert (sh "wl-paste | dos2unix"))))
-(ns/bind "ip" (fn!! paste-gui (insert (ns/get-clipboard))))
+
+
+(defun! ns/insert-from-kill-ring ()
+  (->> kill-ring
+    (reverse)
+    (ns/pick)
+    (insert)))
+
+;; funny that this binding ended up in "terminal clipboard"
+(ns/bind "ip" (defun ia/paste-clipboard (arg)
+                (interactive "P")
+                (if arg (ns/insert-from-kill-ring)
+                  (-if-let (c (ns/get-clipboard))
+                    (insert c)
+                    (message "empty clipboard!")))))

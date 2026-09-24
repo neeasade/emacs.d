@@ -853,18 +853,18 @@
   (ns/bind "r" 'whisper-run))
 
 (ns/defconfig minor-langs
-  ;; pulling in these modes for syntax highlighting basically
-  ;; they get grouped in a defconfig b/c minor/stable
+  ;; "minor lang" mode is ambigious, but generally it means support for syntax/little-to-no config needed
+
   (ns/use nix-mode)
   (ns/use powershell)
   (ns/use terraform-mode)
   (ns/use yaml-mode)
   (ns/use ahk-mode)                     ; autohotkey
   (ns/use dockerfile-mode)
-  (ns/use yuck-mode)                    ; eww
-  (ns/use kdl-mode
-    (add-hook 'kdl-mode-hook (fn! (setq tab-width 2))))
-  )
+  (ns/use yuck-mode)                    ; https://github.com/elkowar/eww
+  (ns/use kdl-mode (add-hook 'kdl-mode-hook (fn! (setq tab-width 2))))
+  (ns/use (dbc-mode :type git :host github :repo "leuven65/dbc-mode"))
+  (ns/use cmake-mode))
 
 (ns/defconfig blog-syntax
   ;; modes for src block syntax, only used in blog ssg

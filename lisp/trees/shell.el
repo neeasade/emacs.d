@@ -261,11 +261,10 @@
     (-map 'kill-buffer)))
 
 (defun! ns/copy-comint-last-output ()
-  (kill-new
+  (ns/kill-loudly
     (buffer-substring-no-properties
       comint-last-input-end
-      (process-mark (get-buffer-process (current-buffer)))))
-  (message "last output copied!"))
+      (process-mark (get-buffer-process (current-buffer))))))
 
 (evil-define-key 'normal comint-mode-map (kbd "<leader>c") #'ns/copy-comint-last-output)
 

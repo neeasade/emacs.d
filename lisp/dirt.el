@@ -194,17 +194,20 @@ Given (CMD ARGS...), runs CMD with ARGS. Given string, runs via bash."
 (defun ns/path (&rest paths)
   "Make a path normal. Normal means:
 - call expand-file-name (~ to $HOME)
-- end in '/' if a directory
 - replace '//' ('/+') with '/'
+- end in '/' if a directory
+- if path doesn't exist, returns without trailing '/'"
 
-if path doesn't exist, returns without trailing '/'"
   ;; when (f-exists? path)
   (llet [p (s-join "/" paths)
           p (expand-file-name p)
           p (s-replace-regexp "/+" "/" p)
-          ;; todo: this probably has perf implications (esp if tramp)
+          slashed? (s-ends-with-p "/" p)
+          ;; this has perf implications, use ns/path when correctness is
+          ;; prio, not necessarily on a hot/interactive path
           dir? (when (f-exists? p) (f-directory? p))
-          slashed? (s-ends-with-p "/" p)]
+          ;; dir? slashed?
+          ]
     (if dir?
       (if slashed? p (concat p "/"))
       (if slashed? (substring p 0 (1- (length p))) p))))
@@ -468,24 +471,44 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
   (message (ns/str v))
   v)
 
-(setenv "ATUIN_SESSION" (sh "bash" "-ic" "echo $ATUIN_SESSION"))
+(defun ns/kill-loudly (string)
+  "kill a string and message it"
+  (interactive)
+  (if string
+    (progn
+      (kill-new string)
+      (message (s-truncate 200 (ns/str "copied: " string))))
+    (message "copy: nothing to copy!")))
+
+;; to consider: if the file doesn't exist, just return empty list?
+(defmacro ns/sqlite (sqlite-file query &rest args)
+  "Open sqlite file and run QUERY with `sqlite-select, return result"
+  `(llet [f ,sqlite-file
+           _ (when-not (f-exists? f)
+               (error (ns/str "ns/sqlite: not found! " f)))
+           db (sqlite-open f)]
+     (unwind-protect
+       (sqlite-select db ,query (list ,@args))
+       (sqlite-close db))))
+
+(setenv "ATUIN_SESSION" (-last-item (sh-lines "bash" "-ic" "echo $ATUIN_SESSION")))
 
 (defun ns/atuin-add-dir (cwd)
-  (when (and
-          (which "atuin")
-          (not (file-remote-p cwd)))
-    (sh-toss "atuin" "kv" "set" "-n" "dirs" "--key" (ns/path cwd) "_")))
+  (when (which "atuin")
+    (sh-toss "atuin" "kv" "set" "-n"
+      (if (file-remote-p cwd) "dirs_remote" "dirs")
+      "--key" (ns/path cwd) "_")))
 
 (defun ns/atuin-list-dirs (&optional remote?)
-  ;; get session
   (when (which "atuin")
     (->> (-concat
-           ;; (s-lines (or (sh "atuin history list --format {directory} | sort | uniq") ""))
-           (s-lines (sh "atuin kv list -n dirs")))
+           (ns/sqlite (~ "/.local/share/atuin/kv.db")
+             "SELECT DISTINCT key FROM kv where namespace = 'dirs';")
+           (ns/sqlite (~ "/.local/share/atuin/history.db")
+             "SELECT DISTINCT cwd || '/' FROM history;"))
+      (-flatten)
       (funcall (if remote? '-filter '-remove) 'file-remote-p)
       (-distinct)
-      (--remove (not (f-exists-p it)))
-      (-map 'ns/path)
-      (--map (if (file-remote-p it)
-               it
+      ;; (--remove (not (f-exists-p it)))  ; perf
+      (--map (if (file-remote-p it) it
                (consult--fast-abbreviate-file-name it))))))

@@ -231,12 +231,10 @@
                      (ns/str c ":"
                        (line-number-at-pos (region-beginning)) "-"
                        (line-number-at-pos (region-end))))]
-           (kill-new c)
-           (message (ns/str "copied " c))))
+           (ns/kill-loudly c)))
   "qP" (fn!! grab-file-name
-         (llet [c (f-filename (buffer-file-name))]
-           (kill-new c)
-           (message (ns/str "copied " c))))
+         (ns/kill-loudly (f-filename (buffer-file-name))))
+
   "if" (fn!! insert-file-name (insert (buffer-file-name)))
   "id" (fn!! insert-time (org-time-stamp t))
   "iD" (fn!! insert-date (org-time-stamp nil)))

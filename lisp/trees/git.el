@@ -105,7 +105,12 @@ command was called, go to its unstaged changes section."
 
 (ns/use git-link
   (setq git-link-open-in-browser t)
-  (ns/bind "ng" 'git-link))
+
+  (ns/bind
+    "ng" 'git-link
+    "qg" (fn! copy-git-link
+           (llet [git-link-open-in-browser nil]
+             (ns/kill-loudly (call-interactively 'git-link))))))
 
 (general-nmap
   "]g" 'git-gutter:next-hunk

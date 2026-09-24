@@ -232,6 +232,7 @@ when called interactively."
   "H" 'previous-buffer
   "L" 'next-buffer)
 
+;; one ism with this thing. it hides matches from winner-{undo,redo}?
 (defun ns/should-skip (&optional win buf _)
   (let ((buffername (buffer-name buf))
          (file-name (buffer-file-name buf)))

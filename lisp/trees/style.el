@@ -285,7 +285,7 @@
     (let ((match (or match 0)))
       (put-text-property
         (match-beginning match) (match-end match)
-        'face `((:foreground ,(or (when-not (ct-light-p color) "white") 'unspecified))
+        'face `((:foreground ,(if (ct-light-p color) 'unspecified "white"))
                  (:background ,color)))))
 
   (ns/bind "tc" 'rainbow-mode))
