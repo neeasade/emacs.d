@@ -221,10 +221,13 @@
   "ic" 'insert-char
   "ie" 'emoji-search
   "qp" (fn!! grab-file-path
-         (llet [c (if (-contains? '(dired-mode shell-mode term-mode vterm-mode) major-mode)
-                    default-directory
-                    (buffer-file-name))
-                 c (if-not (region-active-p) c
+         ;; todo: consider including the line number if there is no region selected
+         ;; <2026-09-24 Thu 12:24> adding this behavior for now
+         (llet [dir-mode? (-contains? '(dired-mode shell-mode term-mode vterm-mode) major-mode)
+                 c (if dir-mode? default-directory (buffer-file-name))
+                 c (if-not (region-active-p)
+                     (if dir-mode? c
+                       (ns/str c ":" (line-number-at-pos (region-beginning))))
                      (ns/str c ":"
                        (line-number-at-pos (region-beginning)) "-"
                        (line-number-at-pos (region-end))))]

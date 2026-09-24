@@ -112,16 +112,14 @@ when called interactively."
 
   (evil-collection-init))
 
-(defun ns/zz-scroll (&rest _)
-  (when-not (-contains-p '(circe-channel-mode circe-query-mode shell-mode) major-mode)
-    ;; lift the gaze a little
-    (when (> (line-number-at-pos) 6)
-      (condition-case nil
-        (scroll-up 6)
-        (error nil)))))
+(defun ns/recenter-higher (original &optional arg redisplay)
+  "Call ORIGINAL `recenter', placing point higher when ARG is nil."
+  (funcall original
+    (or arg
+      (floor (* (window-body-height) 0.3)))
+    redisplay))
 
-;; somehow this handles cursor stuff terribly
-(advice-add #'recenter :after #'ns/zz-scroll)
+(advice-add #'recenter :around #'ns/recenter-higher)
 
 ;; for reference, alteratively tried:
 ;; https://github.com/noctuid/general.el#mapping-under-non-prefix-keys
@@ -151,7 +149,6 @@ when called interactively."
 
 (set-in-navigation-evil-states "n" 'evil-next-line)
 (set-in-navigation-evil-states "e" 'evil-previous-line)
-
 
 (ns/use evil-lion
   (evil-define-key 'normal prog-mode-map
