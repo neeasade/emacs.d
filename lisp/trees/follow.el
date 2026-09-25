@@ -18,13 +18,7 @@
                           (symbol-name (symbol-at-point)))))]
         (deadgrep search))))
   (setq dumb-jump-force-searcher 'rg)
-  (smart-jump-setup-default-registers)
-  (ns/bind
-    "n" '(:ignore t :which-key "Jump")
-    ;; "ng" 'smart-jump-go
-    "nb" 'smart-jump-back
-    "nr" 'smart-jump-references
-    ))
+  (smart-jump-setup-default-registers))
 
 (defun ns/handle-potential-file-link (file)
   "Jump to a file with org if it exists - handles <filename>[:<row>][:<col>]
@@ -93,11 +87,11 @@
       (ns/follow-log "resolved with org-open-at-point")
       t)
 
-    (when (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
-      (ns/follow-log "resolved with org-open-at-point")
-      t)
+    ;; (when (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
+    ;;   (ns/follow-log "resolved with org-open-at-point")
+    ;;   t)
 
-    (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
+    ;; (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
 
     ;; note: ffap-string-at-point is region if one is selected
     (let* ((candidate (ffap-string-at-point))
@@ -177,9 +171,48 @@
     ;; fall back to definitions with smart jump
     (progn
       (ns/follow-log "resolving with smart-jump-go")
-      (shut-up (smart-jump-go))))
+      (funcall-interactively 'smart-jump-go)
+      ;; (funcall-interactively 'smart-jump-go)
+      ;; (shut-up (funcall-interactively 'smart-jump-go))
+      ))
 
-  (recenter)
+  (recenter))
+
+(ns/use hyperbole)
+
+;; thanks @noctuid
+(defun noct-open ()
+  "Open the thing at point.
+Try with lsp or smart jump (if in a prog-mode buffer) then with hyperbole."
+  (interactive)
+  (or (when (derived-mode-p 'prog-mode)
+        (cond ((bound-and-true-p lsp-mode)
+                (not (stringp (lsp-find-definition))))
+          ((fboundp 'smart-jump-go)
+            (when (call-interactively 'smart-jump-go)
+              (recenter)
+              t)
+            ;; (cl-letf (((symbol-function 'xref--prompt-p) #'ignore))
+            ;;   (smart-jump-go))
+            )))
+    ;; hyperbole
+    (action-key)))
+
+;; (ns/bind "nn" 'ns/follow)
+;; (ns/bind "nn" 'smart-jump-go)
+
+(ns/bind
+  "n" '(:ignore t :which-key "Jump")
+  ;; "ng" 'smart-jump-go
+  "nb" 'smart-jump-back
+  "nr" 'smart-jump-references
+  "nn" 'noct-open
+  ;; (kbd "M-<return>") 'noct-open
+  ;; (kbd "M-RET") 'noct-open
+
   )
 
-(ns/bind "nn" 'ns/follow)
+;; todo: :style paths for git root relative?
+;; bug: follow is not using smart-jump-go correctly
+
+;; (ns/bind "nn" (fn!! jump-feedback (smart-jump-go)))
