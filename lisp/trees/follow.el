@@ -2,9 +2,6 @@
 ;; follow <thing> at point
 ;; <thing> can be a file location, one of many kinds of emacs links, a code definition, whatever.
 
-;; handles many kinds of links
-(ns/use link-hint)
-
 ;; layer on top of dumb-jump
 (ns/use smart-jump
   (setq smart-jump-find-references-fallback-function
@@ -20,165 +17,115 @@
   (setq dumb-jump-force-searcher 'rg)
   (smart-jump-setup-default-registers))
 
-(defun ns/handle-potential-file-link (file)
-  "Jump to a file with org if it exists - handles <filename>[:<row>][:<col>]
-  return nil if FILE doesn't exist"
-  ;; untested on tramp wrt speed
+(ns/use hyperbole
+  (hyperbole-mode t))
 
-  (let ((file (->> file
-                (s-replace "$HOME" (getenv "HOME"))
-                (s-replace "~" (getenv "HOME")))))
-    (message (concat "trying file: " file))
-    (cond
-      ((s-blank-p file) nil)
-      ;; ((not (f-exists-p file)) nil)
-      ((s-matches-p (pcre-to-elisp ".*:[0-9]+:[0-9]+") file)
-        (let* ((parts (s-split ":" file))
-                (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 2) (- (length parts) 1)) parts))))
-          (when (f-exists-p filepath)
-            (org-link-open-from-string
-              (format "[[file:%s::%s]]" filepath (cadr (reverse parts))))
-            (move-to-column (string-to-number (-last-item parts)))
-            t)))
+(defun ns/hyperbole-file-location--parse (candidate)
+  "Parse CANDIDATE as an existing file with optional line and column."
+  (let ((home (file-name-as-directory (getenv "HOME"))))
+    (cl-labels
+      ((expand-path
+         (path)
+         (cond
+           ((string-prefix-p "$HOME/" path)
+             (concat home (substring path 6)))
+           ((string= path "$HOME") (directory-file-name home))
+           (t (expand-file-name path))))
+        (location
+          (path line column)
+          (let ((expanded (expand-path path)))
+            (when (file-exists-p expanded)
+              (list :file expanded :line line :column column)))))
+      (or
+        (when (string-match "\\`\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)\\'" candidate)
+          (location
+            (match-string-no-properties 1 candidate)
+            (string-to-number (match-string-no-properties 2 candidate))
+            (string-to-number (match-string-no-properties 3 candidate))))
+        (when (string-match "\\`\\(.*\\):\\([0-9]+\\)\\'" candidate)
+          (location
+            (match-string-no-properties 1 candidate)
+            (string-to-number (match-string-no-properties 2 candidate))
+            nil))
+        (location candidate nil nil)))))
 
-      ((s-matches-p (pcre-to-elisp ".*:[0-9]+") file)
-        (let* ((parts (s-split ":" file))
-                (filepath (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
-          (when (f-exists-p filepath)
-            (org-link-open-from-string
-              (format "[[file:%s::%s]]" filepath (car (last parts))))
-            t)))
+(defun ns/hyperbole-file-location-at-point ()
+  "bot: Return an existing file location on the current line at point.
+Unlike Hyperbole's standard pathname buttons, this recognizes unquoted
+pathnames containing spaces.  Locations may end in :LINE or :LINE:COLUMN,
+or use the form [at PATH, line LINE, column COLUMN]."
+  (let ((origin (point))
+         (line-end (line-end-position))
+         matches)
+    (save-excursion
+      (goto-char (line-beginning-position))
+      (while (re-search-forward
+               "\\[at \\(.+?\\), line \\([0-9]+\\), column \\([0-9]+\\)\\]"
+               line-end t)
+        (let ((start (match-beginning 0))
+               (end (match-end 0))
+               (label (match-string-no-properties 0))
+               (path (match-string-no-properties 1))
+               (line (match-string-no-properties 2))
+               (column (match-string-no-properties 3)))
+          (when (and (<= start origin) (< origin end))
+            (let ((location
+                    (ns/hyperbole-file-location--parse
+                      (format "%s:%s:%s"
+                        path line column))))
+              (when location
+                (push
+                  (append
+                    (list
+                      :label label
+                      :start start
+                      :end end)
+                    location)
+                  matches))))))
+      (goto-char (line-beginning-position))
+      (while (re-search-forward "\\(?:\\$HOME\\|~\\|/\\)" line-end t)
+        (let ((start (match-beginning 0)))
+          (when (<= start origin)
+            (let ((end line-end)
+                   location)
+              (while (and (> end origin) (not location))
+                (let* ((raw (buffer-substring-no-properties start end))
+                        (candidate (string-trim-right raw "[ \t\"'`’)=}>]+"))
+                        (candidate-end (+ start (length candidate))))
+                  (when (> candidate-end origin)
+                    (setq location
+                      (ns/hyperbole-file-location--parse candidate)))
+                  (if location
+                    (push
+                      (append
+                        (list :label candidate :start start :end candidate-end)
+                        location)
+                      matches)
+                    (setq end (1- end))))))))))
+    (car (sort matches
+           (lambda (left right)
+             (> (- (plist-get left :end) (plist-get left :start))
+               (- (plist-get right :end) (plist-get right :start))))))))
 
-      (t (when (f-exists-p file)
-           (org-link-open-from-string
-             (format "[[file:%s]]" file))
-           t)))))
+;; to delete a button:
+;; (ibtype:delete 'ns-file-location)
 
-(defun ns/follow-log (msg)
-  (message "ns/follow: %s" msg))
-
-(defun! ns/follow ()
-  "This is my home rolled DWIM at point function -- maybe it could be considered to be 'bad hyperbole'
-   Tries to integrate a few meta solutions
-   org link --> our own peek where we build an org file link --> jump to definition with smart-jump"
-
-  ;; examples of kinds handled:
-  ;; /home/neeasade/My Games/Skyrim/RendererInfo.txt:10:2
-  ;; /home/neeasade/.vimrc:50
-  ;; /home/neeasade/:10
-  ;; =~/.local/share/fonts/=
-  ;; org links (so you can use org link types here)
-  ;; [[file:/home/neeasade/.vimrc::50]]
-
-  ;; todo:
-  ;; could add the handling for this in handle-potential-file-link
-  ;; clojure.lang.ExceptionInfo: Cannot call  with 2 arguments [at /home/neeasade/.dotfiles/bin/bin/btags, line 134, column 3]
-
-  ;; todo: handle the bash/shell line number format:
-  ;; $HOME/.wm_theme: line 155:
-  ;; /Users/nathan/.wm_theme: line 155:
-
-  (or
-    ;; first try to open with org handling (includes urls)
-    (when (and (eq major-mode 'org-mode)
-            ;; todo it feels like we should be able to resolve org links from anywhere
-            ;; should we shovethis into a temp org-mode buffer or use hyperbole?
-            (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail)))))
-      (ns/follow-log "resolved with org-open-at-point")
-      t)
-
-    ;; (when (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
-    ;;   (ns/follow-log "resolved with org-open-at-point")
-    ;;   t)
-
-    ;; (not (eq 'fail (condition-case nil (org-open-at-point) (error 'fail))))
-
-    ;; note: ffap-string-at-point is region if one is selected
-    (let* ((candidate (ffap-string-at-point))
-            (fallback-candidates
-              (->>
-                ;; line to end
-                (buffer-substring
-                  (car ffap-string-at-point-region)
-                  (save-excursion
-                    (goto-char (car ffap-string-at-point-region))
-                    (end-of-line) (point)))
-
-                (s-clean)
-
-                ;; handle link type: /home/neeasade/.wm_theme: line 155:
-                ;; by converting cases to EG: '/home/neeasade/.wm_theme:155 '
-                ;; (in-progress)
-                ;; ((lambda (line-to-end)
-                ;;    (-if-let (matches (s-match (pcre-to-elisp ": line ([0-9]+):")
-                ;;                        line-to-end))
-                ;;      (seq-let (match line) matches
-                ;;        (s-replace match (format ":%s " line)
-                ;;          line-to-end))
-                ;;      line-to-end)))
-
-                ;; assemble potential spaced out file-names
-                ((lambda (line-to-end)
-                   (let ((parts (s-split " " line-to-end)))
-                     (reverse
-                       (-map
-                         (fn (s-join " "
-                               (-remove-at-indices
-                                 (-map (lambda (i) (- (length parts) i)) (-iota <>))
-                                 parts)))
-                         (-iota (length parts) 1))))))))
-
-            (candidates
-              (-concat
-                ;; regions get priority
-                (when (region-active-p) (list (buffer-substring (region-beginning) (region-end))))
-
-                (list
-                  ;; candidate
-
-                  ;; handling case: '/path/to/file:some content'
-                  ;; doesn't handle spaces
-                  (let ((parts (s-split ":" candidate)))
-                    (s-join ":" (-remove-at-indices (list (- (length parts) 1)) parts))))
-                fallback-candidates)))
-
-      (let ((match (-first 'ns/handle-potential-file-link candidates)))
-        (when match
-          (ns/follow-log (format "resolved with org link after building: %s" match))))
-
-      ;; fun, but let's not do this for now:
-      ;; (let* ((rg-initial-result (ns/shell-exec (format "rg --files -g '%s'" file-name)))
-      ;;         (rg-result (if (s-contains-p "\n" rg-initial-result)
-      ;;                      (ns/pick (s-split "\n" rg-initial-result))
-      ;;                      rg-initial-result)))
-      ;;   (when (and (not (s-blank-p rg-result))
-      ;;           (f-exists-p (or rg-result "nil doesn't exist don't  use me")))
-      ;;     (org-open-link-from-string
-      ;;       (format "file:%s%s" rg-result
-      ;;         (if file-line
-      ;;           ;; the string-to-number is done to coerce non-numbers (EG grep results with file name appended) to 0
-      ;;           (format "::%s" (string-to-number file-line)) "")))
-
-      ;;     (ns/follow-log "ns/follow: resolved with ripgrep")
-      ;;     t
-      ;;     ))
-      )
-
-    (when (not (string= (link-hint-open-link-at-point) "There is no link supporting the :open action at the point."))
-      (ns/follow-log "resolved with link-hint")
-      t)
-
-    ;; fall back to definitions with smart jump
-    (progn
-      (ns/follow-log "resolving with smart-jump-go")
-      (funcall-interactively 'smart-jump-go)
-      ;; (funcall-interactively 'smart-jump-go)
-      ;; (shut-up (funcall-interactively 'smart-jump-go))
-      ))
-
-  (recenter))
-
-(ns/use hyperbole)
+(defib ns-file-location ()
+  "bot: Open an existing path at point, optionally at its line and column.
+This extends Hyperbole pathname handling to unquoted paths containing spaces."
+  (let ((location (ns/hyperbole-file-location-at-point)))
+    (when location
+      (ibut:label-set
+        (plist-get location :label)
+        (plist-get location :start)
+        (plist-get location :end))
+      (let ((file (plist-get location :file))
+             (line (plist-get location :line))
+             (column (plist-get location :column)))
+        (cond
+          (column (hact 'link-to-file-line-and-column file line column))
+          (line (hact 'link-to-file-line file line))
+          (t (hact 'link-to-file file)))))))
 
 ;; thanks @noctuid
 (defun noct-open ()
@@ -189,17 +136,24 @@ Try with lsp or smart jump (if in a prog-mode buffer) then with hyperbole."
         (cond ((bound-and-true-p lsp-mode)
                 (not (stringp (lsp-find-definition))))
           ((fboundp 'smart-jump-go)
-            (when (call-interactively 'smart-jump-go)
+            (when
+              (cl-letf (((symbol-function 'xref--prompt-p) #'ignore))
+                (smart-jump-go))
               (recenter)
               t)
-            ;; (cl-letf (((symbol-function 'xref--prompt-p) #'ignore))
-            ;;   (smart-jump-go))
+
             )))
     ;; hyperbole
     (action-key)))
 
 ;; (ns/bind "nn" 'ns/follow)
 ;; (ns/bind "nn" 'smart-jump-go)
+
+
+;; handles many kinds of links
+(ns/use link-hint)
+;; todo: bind "S" in normal mode to link
+;; (link-hint-open-link)
 
 (ns/bind
   "n" '(:ignore t :which-key "Jump")

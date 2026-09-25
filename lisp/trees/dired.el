@@ -33,6 +33,10 @@
 (general-define-key
   :states '(normal)
   :keymaps 'dired-mode-map
+
+  "H" nil
+  "L" nil
+
   ;; the default 'r' only refreshes marked files. this gets everything
   "r" 'revert-buffer
   "h" 'dired-up-directory
