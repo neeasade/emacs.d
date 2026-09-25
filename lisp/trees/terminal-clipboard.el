@@ -48,10 +48,19 @@
       (base64-decode-region (point-min) (point-max))
       (decode-coding-region (point-min) (point-max) 'utf-8-unix t))))
 
+(defun my-frame-ssh-p (&optional frame)
+  "Return non-nil if FRAME (or the selected frame) was opened via an emacsclient over SSH."
+  (let ((env (frame-parameter (or frame (selected-frame)) 'environment)))
+    (and env
+      (seq-some (lambda (str)
+                  (string-match-p "^SSH_\\(CONNECTION\\|CLIENT\\|TTY\\)=" str))
+        env))))
+
 (defun ns/get-clipboard ()
   ;; nb: osc52-read not working on windows alacritty
   ;; if wslg is stuck, wl-paste just hangs forever
-  (llet [result (if ns/enable-wsl-p
+  (llet [result (if (and ns/enable-wsl-p
+                      (not (my-frame-ssh-p)))
                   (sh "timeout 1 wl-paste | dos2unix")
                   (ns/osc52-read))]
     (when-not (s-blank? result)

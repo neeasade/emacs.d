@@ -4,9 +4,6 @@
 (setq-default indicate-empty-lines nil)
 (setq tab-bar-separator " ")
 
-(ns/use nerd-icons)                     ; dep of doom-modeline?
-(ns/use doom-modeline)
-
 (ns/use (myron-themes :host github :repo "neeasade/myron-themes"
           :files ("*.el" "themes/*.el"))
   (setq base16-theme-256-color-source 'colors)

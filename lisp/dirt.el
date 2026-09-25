@@ -477,7 +477,8 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
   (if string
     (progn
       (kill-new string)
-      (message (s-truncate 200 (ns/str "copied: " string))))
+      (message (s-truncate 200 (ns/str "copied: "
+                                 (s-replace "%" "%%" string)))))
     (message "copy: nothing to copy!")))
 
 ;; to consider: if the file doesn't exist, just return empty list?

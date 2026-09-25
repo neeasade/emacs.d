@@ -133,27 +133,21 @@ This extends Hyperbole pathname handling to unquoted paths containing spaces."
 Try with lsp or smart jump (if in a prog-mode buffer) then with hyperbole."
   (interactive)
   (or (when (derived-mode-p 'prog-mode)
+        (ns/grab-current-position-marker)
         (cond ((bound-and-true-p lsp-mode)
                 (not (stringp (lsp-find-definition))))
           ((fboundp 'smart-jump-go)
-            (when
-              (cl-letf (((symbol-function 'xref--prompt-p) #'ignore))
-                (smart-jump-go))
+            (when (cl-letf (((symbol-function 'xref--prompt-p) #'ignore))
+                    (smart-jump-go))
               (recenter)
-              t)
-
-            )))
+              t))))
     ;; hyperbole
     (action-key)))
 
-;; (ns/bind "nn" 'ns/follow)
-;; (ns/bind "nn" 'smart-jump-go)
-
-
-;; handles many kinds of links
 (ns/use link-hint)
-;; todo: bind "S" in normal mode to link
-;; (link-hint-open-link)
+(general-nmap "S" 'link-hint-open-link)
+
+(setq hpath:display-where 'other-window)
 
 (ns/bind
   "n" '(:ignore t :which-key "Jump")

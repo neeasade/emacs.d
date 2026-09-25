@@ -123,6 +123,11 @@
   ;; allow "tn" pressing in lispy insert/special mode
   (define-key lispy-mode-map-special (kbd "t") nil)
 
+  (define-key lispy-mode-map-lispy
+    ;; m-ret
+    (kbd "ESC RET")
+    nil)
+
   ;; I don't like motion in insert mode that much
   (define-key lispy-mode-map-lispy "[" nil)
   (define-key lispy-mode-map-lispy "]" nil))

@@ -1,8 +1,19 @@
 ;; -*- lexical-binding: t; -*-
 
-
 ;; a pox on microsoft
 (ns/file-mode "vcxproj" 'xml-mode)
+
+
+(defun ns/window-back-split ()
+  "split window and go back"
+  (interactive)
+  (delete-other-windows)
+  (split-window-sensibly)
+  (other-window 1)
+  (ns/goto-marker ns/saved-marker)
+  (other-window 1))
+
+(ns/bind "W" 'ns/window-back-split)
 
 ;; this is an okay default because we are sandboxing:
 (setq agent-shell-permission-responder-function 'agent-shell-permission-allow-always)
@@ -161,7 +172,7 @@
   "toggle the modeline in the current buffer"
   (setq mode-line-format
     (if mode-line-format nil
-      '("%e" (:eval (doom-modeline-format--neeasade-doomline)))))
+      (copy-tree ns/mode-line-format)))
   (redraw-frame))
 
 (ns/bind "tm" 'ns/toggle-modeline)
