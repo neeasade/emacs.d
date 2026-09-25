@@ -1,208 +1,152 @@
 ;; -*- lexical-binding: t; -*-
+;; lisp is a ball of mud.
 
 (defface ns/mode-line-middle
-  `((t (:inherit (mode-line))))
-  "middle mode line color" :group 'doom-modeline-faces)
+  '((t (:inherit mode-line)))
+  "Face used for the space between the left and right mode line sections."
+  :group 'mode-line-faces)
 
-;; keep this out of the defface so ns/load-theme refreshes the face
+;; Keep these out of the face definitions so ns/load-theme refreshes them.
 (ns/face 'ns/mode-line-middle :background (myron-get :background :strong))
 
-(ns/face 'mode-line
+(ns/face '(mode-line mode-line-inactive
+            window-divider
+            window-divider-first-pixel
+            window-divider-last-pixel)
   :background (myron-get :background :weak)
   :foreground (myron-get :foreground :weak)
   :height (face-attribute 'default :height)
   :box nil)
 
-(ns/face 'mode-line-inactive
-  :foreground (myron-get :faded :weak)
-  :background (myron-get :background :weak))
 
-(ns/face '(window-divider
-            window-divider-first-pixel
-            window-divider-last-pixel)
-  :foreground (myron-get :background :weak))
+(ns/face 'mode-line-inactive :foreground (myron-get :faded))
 
-(ns/face '(doom-modeline-buffer-file doom-modeline-buffer-modified)
-  :foreground (myron-get :foreground :weak))
+;; (ns/face '(window-divider
+;;             window-divider-first-pixel
+;;             window-divider-last-pixel)
+;;   :foreground (myron-get :background :weak))
 
 (when (eq 'myron-kobo (first custom-enabled-themes))
-  ;; swap
   (ns/face 'ns/mode-line-middle :background (myron-get :background :weak))
   (ns/face 'mode-line
     :background (myron-get :background :strong)
     :foreground (myron-get :foreground :strong))
-
   (ns/face 'mode-line-inactive
     :foreground (myron-get :faded :strong)
     :background (myron-get :background :strong)))
 
-;; upstream is really spacey
-(doom-modeline-def-segment buffer-position
-  "The buffer position information."
-  (let* ((active (doom-modeline--active))
-          (lc '(line-number-mode
-                 (column-number-mode
-                   (doom-modeline-column-zero-based "%l:%c" "%l:%C")
-                   "%l")
-                 (column-number-mode (doom-modeline-column-zero-based ":%c" ":%C"))))
-          (face (if active 'mode-line 'mode-line-inactive))
-          (mouse-face 'mode-line-highlight)
-          (local-map mode-line-column-line-number-mode-map))
-    (concat
-      (doom-modeline-spc)
-      (propertize (format-mode-line lc)
-        'face face
-        'help-echo "Buffer position - mouse-1: Display Line and Column Mode Menu"
-        'mouse-face mouse-face
-        'local-map local-map)
-      (doom-modeline-spc))))
+(defun ns/mode-line-right-align ()
+  "Right-align the rest of the mode line and color the space it occupies."
+  (let ((fill (mode--line-format-right-align)))
+    (put-text-property
+      0 1 'face
+      (if (mode-line-window-selected-p)
+        'ns/mode-line-middle
+        'mode-line-inactive)
+      fill)
+    fill))
 
-(doom-modeline-def-segment buffer-info-neeasade
-  (concat
-    (doom-modeline-spc)
-    (doom-modeline--buffer-name)
-    ;; (doom-modeline--buffer-file-name)
-    (doom-modeline--buffer-state-icon)
-    (doom-modeline-spc)))
+(setq mode-line-format-right-align
+  '(:eval (ns/mode-line-right-align)))
 
-(doom-modeline-def-segment lispy-indicator
-  (if (lispyville--lispy-keybindings-active-p) "LISPY" ""))
+(defun ns/mode-line-selection-info ()
+  "Return a compact description of the active selection."
+  (let ((evil-visual-p
+          (and (bound-and-true-p evil-local-mode)
+            (eq evil-state 'visual))))
+    (when (and (mode-line-window-selected-p)
+            (or (use-region-p) evil-visual-p))
+      (let* ((beg (if evil-visual-p
+                    evil-visual-beginning
+                    (region-beginning)))
+              (end (if evil-visual-p
+                    evil-visual-end
+                    (region-end)))
+              (lines (count-lines beg (min end (point-max)))))
+        (format " %dC%s "
+          (abs (- end beg))
+          (if (> lines 1) (format " %dL" lines) ""))))))
 
-(doom-modeline-def-segment next-buffers
-  (when (doom-modeline--active)
-    ;; kinda gross
-    (cl-letf (((symbol-function 'set-window-buffer-start-and-point) (fn nil)))
-      (llet [next-buffer (buffer-name (switch-to-next-buffer))
-              prev-buffer (buffer-name (switch-to-prev-buffer))]
-        (propertize
-          (format "[%s:%s]" prev-buffer next-buffer)
-          'face 'mode-line)))))
+(defun ns/mode-line-matches ()
+  "Return the current Anzu match count."
+  (when (and (mode-line-window-selected-p)
+          (bound-and-true-p anzu--state)
+          (fboundp 'anzu--update-mode-line))
+    (concat "" (anzu--update-mode-line) " ")))
 
-(doom-modeline-def-segment sep
-  "Text style with whitespace."
-  (propertize " " 'face (if (doom-modeline--active)
-                          'ns/mode-line-middle
-                          'mode-line-inactive)))
+(defun ns/mode-line-lispy-indicator ()
+  "Return an indicator when Lispyville's structural bindings are active."
+  (when (and (fboundp 'lispyville--lispy-keybindings-active-p)
+          (lispyville--lispy-keybindings-active-p))
+    "LISPY "))
 
-(column-number-mode) ; give us column info in the modeline
+(defun ns/mode-line-checker ()
+  "Return the active syntax checker's native mode line construct."
+  (cond
+    ((bound-and-true-p flymake-mode) 'flymake-mode-line-format)
+    ((bound-and-true-p flycheck-mode) 'flycheck-mode-line)))
 
-;; setting these variables causes all the buffers to revert. only do so once
-(when doom-modeline-icon
-  (setq-ns doom-modeline
-    height (frame-char-height)
-    bar-width 3
-    percent-position nil
-    icon nil
-    ;; buffer-file-name-style 'truncate-with-project
-    buffer-file-name-style 'buffer-name
-    project-detection 'projectile
-    enable-word-count nil
-    buffer-encoding nil
-    indent-info t
-    vcs-max-length 12
-    lsp t
-    gnus-timer nil
-    irc t ;; circe notifications? no idea if this works
-    before-update-env-hook nil
-    after-update-env-hook nil
-    ))
+(defvar ns/mode-line-format nil
+  "The default mode line format.")
 
-;; removed upstream
-(defvar doom-modeline--font-width-cache nil)
-(defun doom-modeline--font-width ()
-  "Cache the font width for better performance."
-  (if (display-graphic-p)
-    (let ((attributes (face-all-attributes 'mode-line)))
-      (or (cdr (assoc attributes doom-modeline--font-width-cache))
-        (let ((width (window-font-width nil 'mode-line)))
-          (push (cons attributes width) doom-modeline--font-width-cache)
-          width)))
-    1))
+(defvar-local my-mode-line-padding ""
+  "Buffer-local string used for dynamic mode line left padding.")
 
-;; fork is to define a 'mode-line-middle face for the center of the modeline
-;; todo: review current upstream def
-(defun ns/doom-modeline-def-modeline (name lhs &optional rhs)
-  "Defines a modeline format and byte-compiles it.
-NAME is a symbol to identify it (used by `doom-modeline' for retrieval).
-LHS and RHS are lists of symbols of modeline segments defined with
-`doom-modeline-def-segment'.
+(defun my-update-mode-line-padding ()
+  "Update `my-mode-line-padding` based on window position."
+  (walk-windows
+    (lambda (w)
+      (with-current-buffer (window-buffer w)
+        (setq my-mode-line-padding
+          (if (= (car (window-pixel-edges w)) 0)
+            " "  ;; <- Your desired spacing
+            ""))))
+    nil 'visible))
 
-Example:
-  (doom-modeline-def-modeline 'minimal
-    '(bar matches \" \" buffer-info)
-    '(media-info major-mode))
-  (doom-modeline-set-modeline 'minimal t)"
-  (let ((sym (intern (format "doom-modeline-format--%s" name)))
-         (lhs-forms (doom-modeline--prepare-segments lhs))
-         (rhs-forms (doom-modeline--prepare-segments rhs)))
-    (defalias sym
-      (lambda ()
-        (list lhs-forms
-          (propertize
-            " "
-            'face (if (doom-modeline--active) 'ns/mode-line-middle 'mode-line-inactive)
-            'display `((space
-                         :align-to
-                         (- (+ right right-fringe right-margin)
-                           ,(* (let ((width (doom-modeline--font-width)))
-                                 (or (and (= width 1) 1)
-                                   (/ width (frame-char-width) 1.0)))
-                              (string-width
-                                (format-mode-line (cons "" rhs-forms))))))))
-          rhs-forms))
-      (concat "Modeline:\n"
-        (format "  %s\n  %s"
-          (prin1-to-string lhs)
-          (prin1-to-string rhs))))))
+(add-hook 'window-state-change-hook #'my-update-mode-line-padding)
 
-(ns/doom-modeline-def-modeline 'neeasade-doomline
-  '(
-     ;; sep
-     ;; remote-host
-     buffer-info-neeasade
-     sep
-     ;; bar
-     selection-info
-     matches
-     lispy-indicator
-     )
-  '(
+(setq ns/mode-line-format
+  '("%e"
+     ;; (:propertize " %b" face mode-line-buffer-id)
+     ;; (:propertize " %b" face default)
+     my-mode-line-padding
+     "%b"
+     (:eval (cond
+              ((buffer-modified-p) "* ")
+              (buffer-read-only "% ")
+              (t " ")))
+     (:eval (ns/mode-line-selection-info))
+     (:eval (ns/mode-line-matches))
+     (:eval (ns/mode-line-lispy-indicator))
+     mode-line-format-right-align
+     (:eval (ns/mode-line-checker))
+     ;; mode-line-process ; shows ":run" ?
+     mode-line-misc-info
+     " %l:%c "))
 
-     check
-     sep
+(put 'ns/mode-line-format 'risky-local-variable t)
 
-     next-buffers
-     sep
-     ;; vcs ;; somehow this one makes the spacing off
-     misc-info
-     ;; input-method
-     ;; buffer-encoding
-     ;; major-mode
-     ;; process
-     ;; sep
-     buffer-position
-     ;; battery
-     )
-  )
+(column-number-mode 1)
+(line-number-mode 1)
 
-(defun setup-custom-doom-modeline ()
-  (doom-modeline-set-modeline 'neeasade-doomline 'default))
-(add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
+(defun ns/mode-line-update-selection ()
+  "Update selection information after point moves."
+  (when (or mark-active
+          (and (bound-and-true-p evil-local-mode)
+            (eq evil-state 'visual)))
+    (force-mode-line-update)))
+(add-hook 'post-command-hook 'ns/mode-line-update-selection)
 
 (defun! ns/refresh-all-modeline (toggle)
   (ns/setq-local-all
     'mode-line-format
-    ;; (doom-modeline-format--neeasade-doomline)
-    (if toggle ''("%e" (:eval (doom-modeline-format--neeasade-doomline))) nil)
-    ;; '(shell-mode circe-chat-mode circe-channel-mode)
-    )
+    (if toggle (list 'quote ns/mode-line-format) nil))
 
   (ns/frame-set-parameter 'bottom-divider-width (if toggle 0 1))
 
-  ;; force redraw of all frames
+  ;; Force redraw of all frames.
   (ns/apply-frames (fn nil)))
 
-;; refesh all mode lines based on the value of the modeline in the current buffer
 (ns/bind "tM" (fn!! (ns/refresh-all-modeline (not mode-line-format))))
 
 (ns/refresh-all-modeline t)
