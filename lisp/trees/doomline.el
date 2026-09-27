@@ -112,6 +112,7 @@
      my-mode-line-padding
      "%b"
      (:eval (cond
+              ((not (buffer-file-name (current-buffer))) " ")
               ((buffer-modified-p) "* ")
               (buffer-read-only "% ")
               (t " ")))
