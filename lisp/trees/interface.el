@@ -61,9 +61,12 @@
     (s-join " ")
     (message)))
 
+(defun ns/f-parent (f)
+  ;; less checks, more performance
+  (format "/%s/" (s-join "/" (-drop-last 1 (s-split "/" f t)))))
+
 (defun! ia/surf-dirs (&optional remote?)
-  ;;
-  (llet [dir (ns/pick "directory" (-concat (-map 'f-parent (ns/jump-file-candidates :project-files))
+  (llet [dir (ns/pick "directory" (-concat (-map 'ns/f-parent (ns/jump-file-candidates :project-files))
                                     (ns/atuin-list-dirs remote?)))]
     (if-not (eq major-mode 'shell-mode)
       (dired dir)
