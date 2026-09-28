@@ -106,15 +106,6 @@
         (s-chop-suffix "shellshot" result)
         result))))
 
-;; cf http://trey-jackson.blogspot.com/2008/08/emacs-tip-25-shell-dirtrack-by-prompt.html
-(defun shell-sync-dir-with-prompt (string)
-  (if (string-match "\\+Pr0mPT\\+\\([^+]*\\)\\+" string)
-    (let ((cwd (match-string 1 string)))
-      (setq default-directory (ns/path cwd))
-      (ns/atuin-add-dir default-directory)
-      (replace-match "" t t string 0))
-    string))
-
 (defun ns/monitor-exit-sentinel (process change)
   "delete a frame if it only has a single window with no process"
   (when (equal change "finished\n")
@@ -124,13 +115,11 @@
 
 (defun ns/shell-mode-init ()
   (shell-dirtrack-mode -1)
-  (add-hook 'comint-preoutput-filter-functions 'shell-sync-dir-with-prompt nil t)
   (setq-local inhibit-field-text-motion nil)
   ;; weird colon highlighting thing
   (setq-local shell-font-lock-keywords
     (--remove (s-ends-with-p "]+:.*" (car it))
       shell-font-lock-keywords))
-
   (add-function :after
     (process-sentinel (get-buffer-process (current-buffer)))
     #'ns/monitor-exit-sentinel)
