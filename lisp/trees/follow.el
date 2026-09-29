@@ -20,6 +20,28 @@
 (ns/use hyperbole
   (hyperbole-mode t))
 
+(defib ns-polarion-work-item ()
+  "Open a bracketed Polarion work-item ID at point."
+  (let ((line-end (line-end-position))
+         (origin (point)))
+    (save-excursion
+      (beginning-of-line)
+      (catch 'found
+        (while (re-search-forward "\\[\\([A-Z]+-[0-9]+\\)\\]" line-end t)
+          (when (and (<= (match-beginning 0) origin)
+                  (< origin (match-end 0)))
+            (let ((work-item-id (match-string-no-properties 1)))
+              (ibut:label-set
+                (match-string-no-properties 0)
+                (match-beginning 0)
+                (match-end 0))
+              (throw 'found
+                (hact 'link-to-url
+                  (format
+                    ;; sub here for contextual button based on jira/polarion/whatever re: whereever you are
+                    "https://alm.agcocorp.com/polarion/#/project/MachineControl/workitem?id=%s"
+                    work-item-id))))))))))
+
 (defun ns/hyperbole-file-location--parse (candidate)
   "Parse CANDIDATE as an existing file with optional line and column."
   (let ((home (file-name-as-directory (getenv "HOME"))))
