@@ -227,7 +227,7 @@
                  c (if dir-mode? default-directory (buffer-file-name))
                  c (if-not (region-active-p)
                      (if dir-mode? c
-                       (ns/str c ":" (line-number-at-pos (region-beginning))))
+                       (ns/str c ":" (line-number-at-pos)))
                      (ns/str c ":"
                        (line-number-at-pos (region-beginning)) "-"
                        (line-number-at-pos (region-end))))]
