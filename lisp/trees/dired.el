@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 
 (defun ns/dired-init()
   (hl-line-mode)

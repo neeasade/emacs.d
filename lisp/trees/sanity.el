@@ -221,8 +221,8 @@
   "ic" 'insert-char
   "ie" 'emoji-search
   "qp" (fn!! grab-file-path
-         ;; todo: consider including the line number if there is no region selected
          ;; <2026-09-24 Thu 12:24> adding this behavior for now
+         ;; todo: if in dired and over a file, get the file under point?
          (llet [dir-mode? (-contains? '(dired-mode shell-mode term-mode vterm-mode) major-mode)
                  c (if dir-mode? default-directory (buffer-file-name))
                  c (if-not (region-active-p)

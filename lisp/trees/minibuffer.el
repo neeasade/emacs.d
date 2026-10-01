@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; config the minad stack
 
 (define-key minibuffer-local-map
@@ -10,7 +12,7 @@
       (consult--read
         (-uniq (-map #'consult--fast-abbreviate-file-name files))
         :prompt (format "%s: " prompt)
-        :sort nil
+        ;; :sort nil
         :require-match t
         :category 'file
         :state (consult--file-preview)

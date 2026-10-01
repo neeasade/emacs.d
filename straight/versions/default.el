@@ -26,7 +26,6 @@
  ("deadgrep" . "9da7183e60c75bacefd44025fc5e5335b7c5862a")
  ("dockerfile-mode" . "52c6c00da1d31c0b6c29c74335b3af63ed6bf06c")
  ("doct" . "69bfe30317c7fa7a5a51f2763515dfe9c989ebf1")
- ("doom-modeline" . "63eb9d3548c7d4be1774b50cdc2169262dd43100")
  ("dtrt-indent" . "d4fd1b4977eb0d534844fddf01c3c51c70c57205")
  ("editorconfig-emacs" . "ce5d4358394252f506fc789d46368621dbaaf064")
  ("el-get" . "ec5cba8d965980b2c47a8a11dce30dd5e845ed2a")

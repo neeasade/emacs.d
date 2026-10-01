@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 
 (defun ns/write-node-to-post (node)
   "Org headline node to blog post. assumes the presence of blog_slug."

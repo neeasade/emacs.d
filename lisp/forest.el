@@ -160,6 +160,10 @@
   (ns/inmap 'cider-repl-mode-map (kbd "C-e") 'cider-repl-previous-input)
   (ns/inmap 'cider-repl-mode-map (kbd "C-n") 'cider-repl-next-input)
 
+
+  (ns/inmap 'cider-repl-mode-map (kbd "<down>") 'cider-repl-next-input)
+  (ns/inmap 'cider-repl-mode-map (kbd "<up>") 'cider-repl-previous-input)
+
   ;; https://docs.cider.mx/cider/caveats.html#_injecting_dependencies_and_leiningen_pedantic_abort_mode
   ;; (setq cider-inject-dependencies-at-jack-in nil)
 
@@ -258,16 +262,10 @@
 
   (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
 
-  ;; still assuming git command, maybe lean on projectile for file listing
   (defun ns/get-project-files (project-root)
-    (llet (default-directory (expand-file-name project-root)
-            project-files-relative (s-split "\n"
-                                     (s-replace (char-to-string ?\0) "\n"
-                                       (shell-command-to-string
-                                         counsel-git-cmd
-                                         )) t))
-
-      (-map (fn (concat default-directory <>)) project-files-relative)))
+    ;; don't include untracked files (speed)
+    (let ((project-vc-include-untracked nil))
+      (project-files (project-current nil project-root))))
 
   (defun ns/all-project-files (open-buffers)
     (-flatten
@@ -308,8 +306,11 @@
               results (->> selected
                         (--mapcat (funcall (plist-get sources it)))
                         (-uniq)
-                        (-remove 'f-img?)
-                        (--remove (s-ends-with? "org_archive" (f-filename it)))
+
+                        ;; these removes can be expensive for performance on thick repositories
+                        ;; (-remove 'f-img?)
+                        ;; (--remove (s-ends-with? "org_archive" (f-filename it)))
+
                         ;; todo fix this later - strips all results from buffers-without-files
                         ;; (--filter
                         ;;   ;; if a file is not remote, ensure it exists
@@ -444,6 +445,8 @@
     (fn!
       ;; these should move to myron-themes
       (ns/face 'lsp-ui-doc-background :background (myron-get :background :strong))
+
+      ;; (ns/face 'lsp-flycheck-warning-unnecessary-face :foreground (myron-get :faded))
 
       (ns/face 'lsp-headerline-breadcrumb-symbols-face :inherit 'font-lock-type-face :weight 'normal)
       (ns/face 'lsp-headerline-breadcrumb-path-face :inherit 'font-lock-builtin-face)

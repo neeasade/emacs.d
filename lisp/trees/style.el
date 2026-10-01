@@ -231,7 +231,24 @@
   (run-hooks 'ns/theme-hook)
 
   (ns/face '(orderless-match-face-0 orderless-match-face-1 orderless-match-face-2 orderless-match-face-3)
-    :weight 'normal)
+    ;; :weight 'bold
+    :weight 'normal
+    ;; :foreground 'unspecified
+    )
+
+  (ns/face 'magit-diff-hunk-heading-highlight
+    :underline nil
+    :slant 'italic
+    :weight 'bold)
+
+  ;; idk man idk
+  (ns/face 'match
+    :inverse-video nil
+    ;; :foreground (myron-get :foreground :strong)
+    ;; :background (myron-get :background :strong)
+    )
+
+  (ns/face 'consult-highlight-match :inherit 'orderless-match-face-0)
 
   t)
 

@@ -3,6 +3,8 @@
 ;; a pox on microsoft
 (ns/file-mode "vcxproj" 'xml-mode)
 
+(setq magit-diff-refine-hunk 'all)
+(setq magit-diff-highlight-hunk-body nil)
 
 (defun ns/window-back-split ()
   "split window and go back"
@@ -86,11 +88,13 @@
 
 ;; ugh
 (ns/bind "qb" 'ns/grab-current-position-marker)
+
 ;; "buffer put"
+;; this should be something like "im" or "ib" (marker/buffer)
 (ns/bind "bp" (fn! buffer-put (ns/goto-marker ns/saved-marker)))
+
 ;; maybe this one makes more sense
 (ns/bind "qB" (fn! buffer-put (ns/goto-marker ns/saved-marker)))
-
 
 ;; hmmm
 (defun ns/fn-with-point-change (f)
@@ -334,12 +338,13 @@
 
 ;; (ns/inmap 'special-mode-map "q" 'evil-delete-buffer)
 
-(run-at-time "11:59pm" "11:59pm" (fn!! message-delimiter
-                                   (message "|")
-                                   (message "------------------- %s the %s -------------------"
-                                     (ts-day-name (ts-now))
-                                     (ts-day (ts-now)))
-                                   (message "|")))
+(run-at-time "11:59:00pm" (ns/t 24h)
+  (fn!! message-delimiter
+    (message "|")
+    (message "------------------- %s the %s -------------------"
+      (ts-day-name (ts-now))
+      (ts-day (ts-now)))
+    (message "|")))
 
 (named-timer-idle-run :splash-screen (ns/t 30m) t
   (lambda ()
@@ -443,10 +448,6 @@
 
 (defun! ns/dos2unix-current-file ()
   (sh "dos2unix" (buffer-file-name)))
-
-;; don't automigrate files from \r\n to \n
-;; this setting is bad because it also means your ^r's will spread everywhere
-(setq inhibit-eol-conversion nil)
 
 ;; there's a motion thing here that makes it easy to accidentally jump around
 (setq lsp-ui-doc-show-with-mouse nil)

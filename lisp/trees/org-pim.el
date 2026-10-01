@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (ns/use org-ql)
 
 (named-timer-run :auto-clock-out
