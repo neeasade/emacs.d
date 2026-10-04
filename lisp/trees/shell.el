@@ -69,13 +69,11 @@
 
   ;; interactive shell-pop bound to spc t index shell
   (defun ns/shell-pop (index)
-    (let ((old-shell-index shell-pop-last-shell-buffer-index)
-           (old-shell-buffer shell-pop-last-shell-buffer-name))
+    (let ((old-shell-index shell-pop-last-shell-buffer-index))
       (shell-pop index)
 
       (when (= index 9)
-        (setq shell-pop-last-shell-buffer-index old-shell-index
-          shell-pop-last-shell-buffer-buffer old-shell-buffer))))
+        (setq shell-pop-last-shell-buffer-index old-shell-index))))
 
   (-map (lambda (i) (ns/bind (concat "t" (number-to-string i))
                       (lambda () (interactive) (ns/shell-pop i))))

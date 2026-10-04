@@ -180,7 +180,7 @@
   ;; (evil-define-key 'normal org-mode-map (kbd "<TAB>") #'org-cycle)
   ;; (evil-define-key 'normal org-mode-map (kbd "TAB") nil)
 
-  (xterm-mouse-mode 1)
+  (xterm-mouse-mode t)
 
   (llet [s 5]
     (setq mouse-wheel-scroll-amount-horizontal s

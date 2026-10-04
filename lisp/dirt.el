@@ -491,6 +491,12 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
        (sqlite-select db ,query (list ,@args))
        (sqlite-close db))))
 
+(defun ns/det-pick (list seed-obj)
+  ;; deterministically pick item from list based on hash of seed-obj
+  (nth (mod (string-to-number (md5 seed-obj) 16)
+         (length list))
+    list))
+
 (setenv "ATUIN_SESSION" (-last-item (sh-lines "bash" "-ic" "echo $ATUIN_SESSION")))
 
 (defun ns/atuin-add-dir (cwd)

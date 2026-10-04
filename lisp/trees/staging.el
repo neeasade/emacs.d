@@ -15,7 +15,7 @@
   (ns/goto-marker ns/saved-marker)
   (other-window 1))
 
-(ns/bind "W" 'ns/window-back-split)
+(ns/bind "ww" 'ns/window-back-split)
 
 ;; this is an okay default because we are sandboxing:
 (setq agent-shell-permission-responder-function 'agent-shell-permission-allow-always)

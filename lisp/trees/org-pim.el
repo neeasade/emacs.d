@@ -115,7 +115,8 @@
         (if (= count 1)
           (format "on deck: %s" outdated-next)
           (format "[%s]on deck: %s"
-            (ns/tally count)
+            count
+            ;; (ns/tally count)
             ;; (make-string count ?@)
             outdated-next))))))
 
@@ -135,17 +136,46 @@
   (ns/switch-to-buffer-or-window (marker-buffer marker))
   (goto-char (marker-position marker)))
 
-
-
-(defun ns/org-rotate (headlines)
-  "Rotate through org headings by markers."
+(defun ns/org-rotate-peek (headlines)
+  "Return next intended headline to rotate too"
   (if-not headlines
-    (message "Nothing to jump to!")
+    (progn
+      (message "Nothing to jump to!")
+      nil)
     (llet [
             ;; not sorting because: https://github.com/ndwarshuis/org-ml/issues/46 (ns/headline-date slowness)
             ;; headlines (-sort 'ns/org-outdated-sort-node headlines)
             markers (-uniq (-map 'ns/headline-marker headlines))
             markers (-snoc markers (first markers))
+            ;; todo: should probably sort the markers by buffer -> point or something
+            target (-when-let (current-marker (and (eq major-mode 'org-mode)
+                                                (ns/headline-marker (ns/parse-headline-at-point))))
+                     ;; we're looking at a headline, is it in the list?
+                     (-if-let (index (-find-index (-partial '= current-marker) markers))
+                       (nth (+ 1 index) markers)
+                       ;; jump around
+                       ;; todo: maybe sort for current file marker first
+                       (--first (> it current-marker) (-sort '< markers))))]
+      (or target (first markers)))))
+
+(defun ns/org-rotate (headlines)
+  "Rotate through org headings by markers."
+  (-when-let (marker (ns/org-rotate-peek headlines))
+    (ns/goto-marker marker)
+    (ns/org-jump-to-element-content)))
+
+(defun ns/org-rotate (headlines)
+  "Return next intended headline to rotate too"
+  (if-not headlines
+    (progn
+      (message "Nothing to jump to!")
+      nil)
+    (llet [
+            ;; not sorting because: https://github.com/ndwarshuis/org-ml/issues/46 (ns/headline-date slowness)
+            ;; headlines (-sort 'ns/org-outdated-sort-node headlines)
+            markers (-uniq (-map 'ns/headline-marker headlines))
+            markers (-snoc markers (first markers))
+
             ;; todo: should probably sort the markers by buffer -> point or something
             target (-when-let (current-marker (and (eq major-mode 'org-mode)
                                                 (ns/headline-marker (ns/parse-headline-at-point))))
@@ -186,12 +216,23 @@
         (if (ts> d1 d2) t nil))
       (t (if (ts> d1 d2) nil t)))))
 
+(defun ns/org-outdated-headlines ()
+  "Return the candidates used by `ns/org-rotate-outdated'."
+  (->> (or (ns/get-notes-nodes '(and (not (todo "DONE"))
+                                  (scheduled :to today)))
+           (ns/get-notes-nodes '(and (not (scheduled))
+                                  (priority >= "C"))))
+    (-sort 'ns/org-outdated-sort-node)))
+
 (defun! ns/org-rotate-outdated ()
-  (ns/org-rotate
-    (or (ns/get-notes-nodes '(and (not (todo "DONE"))
-                               (scheduled :to today)))
-      ;; ?
-      (ns/get-notes-nodes (and (not (scheduled)) (priority '>= "C"))))))
+  (ns/org-rotate (ns/org-outdated-headlines)))
+
+(defun! ns/org-delay-one-day ()
+  "Schedule the headline at point for tomorrow and save its buffer."
+  (unless (org-at-heading-p)
+    (org-back-to-heading t))
+  (org-schedule nil "+1d")
+  (save-buffer))
 
 (defun! ns/org-rotate-captures ()
   (ns/find-or-open org-default-notes-file)
@@ -202,6 +243,14 @@
     ))
 
 (ns/bind "oq" 'ns/org-rotate-outdated)
+
+(ns/bind "od"
+  (lambda ()
+    (interactive)
+    (let ((next (ns/org-rotate-peek (ns/org-outdated-headlines))))
+      (ns/org-delay-one-day)
+      (when next
+        (ns/goto-marker next)))))
 
 (ns/comment
   (ns/bind "oq" 'ns/org-rotate-captures)
@@ -307,3 +356,75 @@
             (progress total) (-map (-compose 'float 'string-to-number)
                                (list progress total))]
       (floor (* 100 (/ progress total))))))
+
+;; -----
+;; vibed, using for an internal web interface:
+
+(defun ns/orglyfe-headline-data (headline)
+  "Serialize HEADLINE with the full Org path required by `ns/org-find-olp'."
+  (let* ((file (org-ml-headline-get-node-property "internal_filepath" headline))
+          (buffer (find-file-noselect file))
+          (marker (set-marker (make-marker)
+                    (org-ml-get-property :begin headline)
+                    buffer))
+          (path (with-current-buffer (marker-buffer marker)
+                  (save-restriction
+                    (widen)
+                    (save-excursion
+                      (goto-char marker)
+                      (org-get-outline-path t t))))))
+    `((file . ,file)
+       (relative_file . ,(file-relative-name file (file-name-as-directory org-directory)))
+       (path . ,path)
+       (title . ,(-last-item path))
+       (todo . ,(org-ml-get-property :todo-keyword headline))
+       (priority . ,(org-ml-get-property :priority headline))
+       (content . ,(with-current-buffer (marker-buffer marker)
+                     (save-restriction
+                       (widen)
+                       (save-excursion
+                         (goto-char marker)
+                         (buffer-substring-no-properties
+                           marker
+                           (org-end-of-subtree t t)))))))))
+
+(defun ns/orglyfe-headlines ()
+  "Return the current org-rotate-outdated candidates as web-safe data."
+  (-map 'ns/orglyfe-headline-data (ns/org-outdated-headlines)))
+
+(defun ns/orglyfe-terminal-headline-p (headline)
+  "Return non-nil when HEADLINE has a terminal TODO state."
+  (member (org-ml-get-property :todo-keyword headline) '("DONE" "CANCELLED")))
+
+(defun ns/orglyfe-search (query)
+  "Return headline nodes matching QUERY with `org-ql-find' semantics."
+  (let* ((files (->> org-agenda-files
+                  (-concat (when (and (buffer-live-p (current-buffer))
+                                   (eq 'org-mode major-mode)
+                                   (buffer-file-name (current-buffer)))
+                             (list (buffer-file-name (current-buffer)))))
+                  (-uniq)))
+          (headlines (->> (ns/get-notes-nodes
+                            (org-ql--query-string-to-sexp query)
+                            files)
+                       (-filter (lambda (node) (eq 'headline (org-ml-get-type node)))))))
+    (-map 'ns/orglyfe-headline-data
+      (cl-stable-sort
+        headlines
+        (lambda (a b)
+          (< (if (ns/orglyfe-terminal-headline-p a) 1 0)
+            (if (ns/orglyfe-terminal-headline-p b) 1 0)))))))
+
+(defun ns/orglyfe-done (file path)
+  "Mark the current headline identified by FILE and full Org PATH as done."
+  (prn "arst" file path)
+  (let ((marker (ns/org-find-olp (cons file path))))
+    (unless marker
+      (user-error "Orglyfe headline is no longer available"))
+    (with-current-buffer (marker-buffer marker)
+      (save-excursion
+        (goto-char marker)
+        (unless (org-at-heading-p)
+          (user-error "Orglyfe path did not resolve to a headline"))
+        (org-todo "DONE")
+        (save-buffer)))))

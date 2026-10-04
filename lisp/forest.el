@@ -264,8 +264,10 @@
 
   (defun ns/get-project-files (project-root)
     ;; don't include untracked files (speed)
-    (let ((project-vc-include-untracked nil))
-      (project-files (project-current nil project-root))))
+    (when ns/enable-wsl-p
+      (let ((project-vc-include-untracked nil))
+        (project-files (project-current nil project-root))))
+    (project-files (project-current nil project-root)))
 
   (defun ns/all-project-files (open-buffers)
     (-flatten

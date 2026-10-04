@@ -25,6 +25,8 @@ eln-cache
 .cask
 tutorial
 
+.agent-shell
+
 straight/*
 !straight/versions
 straight/versions/*

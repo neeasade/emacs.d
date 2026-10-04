@@ -23,6 +23,7 @@
 # #+html_head: <script src="../published/assets/js/linktext.js" defer></script>
 {{/is-doodle}}
 
+#+html_head: <style> :root { --post-bg-url: url("../posts/ca_dump3/{{background}}"); } </style>
 
 # #+html_head: <style> body { background-color: #767676 !important; } </style>
 # #+html_head: <style> body {background: url("./assets/posts/ca_dump3/{{background}}") repeat;} </style>
@@ -103,7 +104,7 @@
 {{#published-date}}
 <div class="meta-container">
 <span class=pubinfo>
-    Published {{published-date}}{{#is-edited}},
+    Revealed {{published-date}}{{#is-edited}},
     last edit <a href="{{page-history-link}}">{{edited-date}}</a>
     {{/is-edited}}
 </span>

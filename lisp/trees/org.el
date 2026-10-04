@@ -32,6 +32,8 @@
             (not (or
                    (s-contains? ".sync-conflict" f)
                    (s-contains? "pomodoro.org" f)
+                   ;; items in this file got imported into obsidian
+                   (s-contains? "todoist.org" f)
                    (s-starts-with-p (ns/path org-directory "anki") f)
                    (s-starts-with-p (ns/path org-directory "private") f)
                    (s-starts-with-p (ns/path org-directory "archive") f)))
