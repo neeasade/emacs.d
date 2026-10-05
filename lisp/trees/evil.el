@@ -232,19 +232,23 @@ when called interactively."
 ;; one ism with this thing. it hides matches from winner-{undo,redo}?
 (defun ns/should-skip (&optional win buf _)
   (let ((buffername (buffer-name buf))
-         (file-name (buffer-file-name buf)))
+         (file-name (buffer-file-name buf))
+         (visible-elsewhere?
+           (--any? (not (eq it win))
+             (get-buffer-window-list buf nil t))))
     (or
       (eq (current-buffer) buf)
+      visible-elsewhere?
       (s-starts-with? "*" buffername)
       (s-starts-with? " *" buffername)
       (s-starts-with? "acp-client-stderr" buffername)
       (s-ends-with? ".org_archive" file-name)
+      (s-ends-with? ".epub" file-name)
       (s-starts-with? "magit" buffername)
       (eq 'dired-mode (buffer-local-value 'major-mode buf)))))
 
-(setq ; why does no one use this feature? it's so great
-  switch-to-next-buffer-skip #'ns/should-skip
-  switch-to-prev-buffer-skip #'ns/should-skip)
+;; nb: this function affects both NEXT and PREV
+(setq switch-to-prev-buffer-skip #'ns/should-skip)
 
 (ns/use avy
   ;; (setq avy-keys '(?a ?r ?s ?t ?g ?k ?n ?e ?i ?o))

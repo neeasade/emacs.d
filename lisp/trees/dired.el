@@ -16,6 +16,11 @@
 
 (add-hook 'dired-initial-position-hook 'ns/dired-maybe-goto-file 'append)
 (add-hook 'dired-mode-hook 'ns/dired-init)
+(add-hook 'dired-mode-hook #'dired-hide-details-mode)
+
+(ns/use dired-git-info
+  (ns/bind-leader-mode 'dired
+    "g" #'dired-git-info-mode))
 
 ;; Dired listing switches
 ;;  -a : Do not ignore entries starting with .

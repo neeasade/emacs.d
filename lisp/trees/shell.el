@@ -163,6 +163,7 @@
              ;; file-remote-p returns the tramp connection info without the path
              (process-environment (cons (format "TRAMP_INFO=%s" (file-remote-p cwd)) process-environment)))
         (message (ns/str "handling this remote shell: " cwd))
+        ;; bug: path: if shell fails here (bad shell) it's stuck
         (save-window-excursion (shell "*spawn-shell-remote-temp*"))
         (switch-to-buffer (get-buffer "*spawn-shell-remote-temp*")))
       (switch-to-buffer (get-buffer "*spawn-shell-staged*")))

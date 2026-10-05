@@ -51,6 +51,10 @@
 (evil-define-key 'normal magit-section-mode-map (kbd "<down>") 'magit-section-forward)
 (evil-define-key 'normal magit-section-mode-map (kbd "<up>") 'magit-section-backward)
 
+;; doesn't work:
+;; (evil-define-key 'normal ghostel-mode-map (kbd "<down>") (lambda () (interactive) (ghostel-send-key "down")))
+;; (evil-define-key 'normal ghostel-mode-map (kbd "<up>") (lambda () (interactive) (ghostel-send-key "up")))
+
 (setq multiple-terminals-merge-keyboards t)
 
 (when (and ns/enable-wsl-p ns/term?)
@@ -478,6 +482,26 @@
 
 (when ns/enable-wsl-p
   (add-hook 'ns/theme-hook 'ns/fake-float))
+
+;; coworker said "wouldn't it be nice if this existed":
+(defun ns/relevant-hunk-view ()
+  (interactive)
+  (let ((point-line (line-number-at-pos))
+         (point-content (s-chomp (thing-at-point 'line)))
+         (point-column (1+ (current-column))))
+    (vc-diff)
+    (let* ((hunk-line (->> (s-lines (buffer-string))
+                        (reverse)
+                        (-first
+                          (lambda (line)
+                            (when (s-starts-with? "@@" line)
+                              ;; @@ -79,3 +78,7 @@ ....
+                              (-let (((_ _ _ minimum-line) (s-split "[, ]" line)))
+                                (< (read minimum-line) point-line))))))))
+      (search-forward hunk-line)
+      (diff-restrict-view)
+      (search-forward point-content)
+      (move-to-column point-column))))
 
 (comment
 
