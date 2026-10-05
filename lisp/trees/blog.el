@@ -181,6 +181,18 @@
           :host github
           :repo "emacsmirror/ox-rss"))
 
+(defun ns/blog-make-images (filenames)
+  (let ((filenames (--map (s-trim it) (s-split "|" filenames))))
+    (concat "#+begin_export html\n<div class=\"image-row\">\n"
+      (mapconcat
+        (lambda (filename)
+          (let ((path (concat "./assets/posts/" (url-hexify-string filename))))
+            (format "<a href=\"%s\"><img src=\"%s\" alt=\"%s\"></a>"
+              path path (org-html-encode-plain-text filename))))
+        (-remove 's-blank? filenames)
+        "\n")
+      "\n</div>\n#+end_export")))
+
 (defun ns/blog-path (&rest args)
   (apply 'ns/path (or (getenv "NS_BLOG_PATH")
                     (~ "code/neeasade.github.io/"))
