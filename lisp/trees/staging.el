@@ -1,5 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 
+(ns/use nov
+  (setq nov-text-width 60)
+  (ns/file-mode "epub" 'nov-mode))
+
 ;; a pox on microsoft
 (ns/file-mode "vcxproj" 'xml-mode)
 
@@ -502,6 +506,19 @@
       (diff-restrict-view)
       (search-forward point-content)
       (move-to-column point-column))))
+
+;; de-prior ctags vs lsp for definition jump via hyperbole
+(with-eval-after-load 'hui-mouse
+  (require 'cl-lib)
+  (let* ((cpp-rule
+           (cl-find-if
+             (lambda (entry)
+               (equal (cdr entry)
+                 '((smart-c++) . (smart-c++ nil 'next-tag))))
+             hkey-alist)))
+    (when cpp-rule
+      (setq hkey-alist (delq cpp-rule hkey-alist))
+      (setq hkey-alist (append hkey-alist (list cpp-rule))))))
 
 (comment
 

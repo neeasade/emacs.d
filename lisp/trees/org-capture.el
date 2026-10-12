@@ -139,7 +139,7 @@
       (insert link)
       (beginning-of-line)
       ;; (org-mode)
-      (ns/follow))))
+      (noct-open))))
 
 (ns/bind
   "nl" #'linkmark-select

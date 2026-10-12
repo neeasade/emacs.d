@@ -149,6 +149,9 @@ This extends Hyperbole pathname handling to unquoted paths containing spaces."
           (line (hact 'link-to-file-line file line))
           (t (hact 'link-to-file file)))))))
 
+;; noct-open idea: if prefix, execute in last buffer you were in (fix relative file path thing)
+;; usecase: you copy tool output to a text/temp buffer and are munging, would be nice to jump relative to it
+
 ;; thanks @noctuid
 (defun noct-open ()
   "Open the thing at point.

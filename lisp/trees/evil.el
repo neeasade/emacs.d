@@ -112,6 +112,14 @@ when called interactively."
 
   (evil-collection-init))
 
+;; this is next to f on my layout, better scrolling
+;; (define-key evil-normal-state-map "\C-p" 'evil-scroll-page-up)
+
+;; future me might regrep this one:
+;; (define-key evil-normal-state-map "\C-w" nil)
+(define-key evil-normal-state-map "\C-w" 'evil-scroll-page-up)
+
+
 (defun ns/recenter-higher (original &optional arg redisplay)
   "Call ORIGINAL `recenter', placing point higher when ARG is nil."
   (funcall original

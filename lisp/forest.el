@@ -262,12 +262,18 @@
 
   (ns/bind "nt" 'projectile-toggle-between-implementation-and-test)
 
+  ;; simple
   (defun ns/get-project-files (project-root)
-    ;; don't include untracked files (speed)
-    (when ns/enable-wsl-p
-      (let ((project-vc-include-untracked nil))
-        (project-files (project-current nil project-root))))
     (project-files (project-current nil project-root)))
+
+  ;; fast 😩
+  (defvar ns/project-files-cache (-ht))
+
+  (defun ns/get-project-files (project-root)
+    ;; (project-files (project-current nil project-root))
+    (let ((project-root (expand-file-name project-root)))
+      (ht-get-cache ns/project-files-cache project-root
+        (lambda () (project-files (project-current nil project-root))))))
 
   (defun ns/all-project-files (open-buffers)
     (-flatten
@@ -770,6 +776,7 @@
   (ns/use agent-shell
     (setq agent-shell-preferred-agent-config 'omp)
     (setq agent-shell-preferred-agent-config 'copilot)
+    (setq agent-shell-github-default-model-id "gpt-6.1-sol")
 
     (when (which "sand")
       (setq agent-shell-command-prefix '("sand")))

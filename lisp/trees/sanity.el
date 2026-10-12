@@ -239,6 +239,22 @@
   "id" (fn!! insert-time (org-time-stamp t))
   "iD" (fn!! insert-date (org-time-stamp nil)))
 
+;; I suppose these should go under a qp thing like
+;; qpd - directory
+;; qpp - full path
+;; qpf - name
+;; qpg - relative to git dir
+;; or something
+
+;; jump to opts in man pages:
+(defun ns/enable-man-opts ()
+  (message "I was hit")
+  (add-to-list 'imenu-generic-expression '(nil "^[ \t]*\\(-[a-zA-Z0-9-, ]+\\)" 0)))
+
+(add-hook 'woman-mode-hook 'ns/enable-man-opts)
+
+(add-hook 'Man-mode-hook 'ns/enable-man-opts)
+
 ;; calc
 (ns/bind "ac" 'calc)
 (add-hook 'calc-mode-hook (fn!! (evil-insert)))

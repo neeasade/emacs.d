@@ -16,7 +16,9 @@
 
 (add-hook 'dired-initial-position-hook 'ns/dired-maybe-goto-file 'append)
 (add-hook 'dired-mode-hook 'ns/dired-init)
-(add-hook 'dired-mode-hook #'dired-hide-details-mode)
+
+;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+(remove-hook 'dired-mode-hook #'dired-hide-details-mode)
 
 (ns/use dired-git-info
   (ns/bind-leader-mode 'dired

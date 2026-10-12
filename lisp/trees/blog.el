@@ -596,9 +596,21 @@
               (s-join "\n"))))
   (setq ns/blog-cache (-ht)))
 
+(defun ns/blog-find-post (&optional drafts-only)
+  "Pick and open a blog post, restricting to drafts when DRAFTS-ONLY is non-nil."
+  (llet [candidates (ht-keep (lambda (file title)
+                              (when (or (not drafts-only)
+                                      (llet [props (ns/blog-get-properties (slurp file))]
+                                        (or (ht-get props "draft") (ht-get props "hidden"))))
+                                (cons (format "%s (%s)" title
+                                        (file-relative-name file (ns/blog-path "")))
+                                  file))) (ns/get-blog-files))
+          candidate (ns/pick (mapcar #'car candidates))]
+    (find-file (cdr (assoc candidate candidates)))))
+
 (ns/bind
   "ob" 'ns/blog-generate-and-open-current-file
-  "ii" (fn!! insert-org-image   ;todo: this can maybe be a more general concept?
+  "ii" (fn!! insert-org-image   ; todo: this can maybe be a more general concept?
          (when-not (s-contains? (ns/blog-path "") default-directory)
            (error "not a blog file"))
          (llet [name (read-string "image slug (copying from shot.png): ")
@@ -612,16 +624,6 @@
          (insert (format "{{{bloglink(%s)}}}"
                    (ns/pick (--map (ht-get it :title) (ns/blog-get-metas-public))))))
   "nq" (fn!! surf-blog-posts
-         (llet [posts (ns/get-blog-files)
-                 title (ns/pick (ht-values posts))
-                 file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
-           (find-file file)))
+         (ns/blog-find-post))
   "nQ" (fn!! surf-blog-posts-draft
-         (llet [posts (ns/get-blog-files)
-                 title (ns/pick (ht-keep (lambda (file title)
-                                           (and
-                                             (llet [props (ns/blog-get-properties (slurp file))]
-                                               (or (ht-get props "draft") (ht-get props "hidden")))
-                                             title)) posts))
-                 file (first (ht-keep (lambda (k v) (and (string= title v) k)) posts))]
-           (find-file file))))
+         (ns/blog-find-post t)))

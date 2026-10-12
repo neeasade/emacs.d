@@ -7,10 +7,21 @@
 
 (defun ns/find-files (prompt files)
   "Light wrapper around consult read with file set (history based on prompt)"
-  (find-file
-    (s-replace "~" (getenv "HOME")
+  ;; it might be nice to check if the file existed first
+  (llet [home (getenv "HOME")]
+    (find-file
       (consult--read
-        (-uniq (-map #'consult--fast-abbreviate-file-name files))
+        (->> files
+          (-map
+            (lambda (it)
+              ;; "starts with" is a cheaper check than contains
+              (if (s-starts-with? "~" it)
+                (concat home (substring it 1))
+                it))))
+
+        ;; this iteration is expensive on large collections
+        ;; (-uniq (-map #'consult--fast-abbreviate-file-name files))
+        ;; files
         :prompt (format "%s: " prompt)
         ;; :sort nil
         :require-match t
