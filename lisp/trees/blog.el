@@ -99,10 +99,11 @@
     (error (format "broken blog link! '%s'" title))))
 
 (defun ns/blog-make-hsep ()
-  (s-join "\n"
-    '("#+BEGIN_EXPORT html"
-       "<div class=separator> ∗ ∗ ∗ </div>"
-       "#+END_EXPORT")))
+  (llet [sig (char-to-string (ns/random-list '(?🙢 ?🙣 ?🙤 ?🙥 ?🙦 ?🙧 ?🙠)))]
+    (s-join "\n"
+      `("#+BEGIN_EXPORT html"
+         ,(format "<div class=separator> ―― %s ―― </div>" sig)
+         "#+END_EXPORT"))))
 
 (defun ns/blog-get-csslinks ()
   (ht-get-cache ns/blog-cache :csslinks
@@ -376,16 +377,19 @@
 	                                      (llet [(f wh) (s-split "@" out)
                                                 (w h) (s-split "x" wh)]
 		                                      (list (f-filename f) w h)))))))
-              bg-info (nth (mod (apply '+ (string-to-list title))
-                             (1- (length backgrounds)))
-                        backgrounds))
+
+              bg-info (ns/det-pick backgrounds title))
         (-ht :taghtml (->> tags
                         (--filter (-contains? (-map 'first (ns/blog-get-tags)) it))
                         (--map (format "<a href='./tag-%s.html'>#%s</a>" it it))
                         (apply 'ns/str))
           ;; (--mapcat (format "<span class=posttag> </span>" it) tags)
+
           :background (first bg-info)
-          :background-width (third bg-info)
+          :background-width (second bg-info)
+          :background-height (third bg-info)
+          ;; :background-height (third bg-info)
+
           :blog-title ns/blog-title
           :up (llet [(dest label) (cond
                                     ((s-starts-with-p "index" (f-filename path)) '("https://neeasade.net" "splash"))

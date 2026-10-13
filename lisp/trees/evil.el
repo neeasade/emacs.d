@@ -277,13 +277,18 @@ when called interactively."
 ;; update: habit broken, but occasionally still a legit need for this
 ;; (evil-ex-define-cmd "b" nil)
 
+;; (when ns/term?
+;;   ;; we're gonna kkp or our own thing, debind here:
+;;   (define-key evil-motion-state-map (kbd "TAB") "nil"))
+
 (ns/use better-jumper
   (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
+  (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
 
   ;; the world is bad
   (when ns/enable-wsl-p
-    (define-key evil-motion-state-map (kbd "TAB") nil)
-    (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward))
+    ;; tab = c-i
+    (define-key evil-motion-state-map (kbd "TAB") 'better-jumper-jump-forward))
 
   (setq-ns better-jumper
     context 'buffer           ; buffer or window

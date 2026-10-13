@@ -208,7 +208,7 @@
   ;; "ts" 'ns/style
   "ts" (fn!! load-theme-and-apply-system
          (funcall-interactively 'ns/load-theme)
-         ;; (sh-toss "kitty ltheme wm qutebrowser rofi kitty")
+         ;; (sh-toss "kitty ltheme foot qutebrowser rofi kitty")
          )
   "tS" (fn!! reload-current-theme
          (when-let* ((theme (first custom-enabled-themes)))

@@ -128,6 +128,8 @@
             "SELECT DISTINCT command FROM history WHERE exit != 127 AND cwd like ?;"
             (ns/str (or (projectile-project-root) default-directory) "%")))))))
 
+;; todo: idea, atuin run, include cd to context dir and then run command
+
 (ns/bind
   "fE" 'crux-sudo-edit
   "tb" 'ns/toggle-bloat

@@ -275,6 +275,7 @@ Given (CMD ARGS...), runs CMD with ARGS. Given string, runs via bash."
 
 (defun pass (key)
   (cond
+    ;; todo: rbw doesn't play nice with tui pw request popup
     ((which "rbw") (sh "timeout" "20" "rbw" "get" key))
     ((which "passage") (sh "passage" key))))
 

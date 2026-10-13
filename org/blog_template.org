@@ -69,6 +69,21 @@
 
 {{csslinks}}
 
+{{#is-post}}
+# sorry to future me if this becomes maddening to find
+#+BEGIN_EXPORT html
+<style>
+p {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  text-wrap: pretty;
+}
+</style>
+#+END_EXPORT
+{{/is-post}}
+
 #+BEGIN_EXPORT html
 <header>
 <div style="float: left">
@@ -80,6 +95,7 @@
     {{^is-index}}{{#is-page}}<a href='{{page-history-link}}'>history</a>{{/is-page}}{{/is-index}}
     <a href="{{page-markup-link}}">source</a>
 </div>
+<br />
 <h1 class=title>
     <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
         <rect x="5" y="15" width="20" height="20" fill="#e9a4d1" stroke="#e9a4d1" stroke-width="4"/>

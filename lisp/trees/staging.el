@@ -61,21 +61,24 @@
 
 (setq multiple-terminals-merge-keyboards t)
 
-(when (and ns/enable-wsl-p ns/term?)
-  ;; C-i and tab are the same here, dwim
-  (evil-define-key 'normal org-mode-map (kbd "TAB")
-    (fn!! org-dwim-tab
-      (evil-ex-nohighlight)
-      (funcall-interactively
-        (if (s-starts-with-p "org-level" (ns/str (face-at-point)))
-          'org-cycle
-          'better-jumper-jump-forward)))))
+;; kkp not working?
+(evil-define-key 'normal org-mode-map (kbd "TAB")
+  (fn!! org-dwim-tab
+    (evil-ex-nohighlight)
+    (funcall-interactively
+      (if (or (s-starts-with-p "org-level" (ns/str (face-at-point)))
+            (s-starts-with-p "org-drawer" (ns/str (face-at-point))))
+        'org-cycle
+        'better-jumper-jump-forward))))
 
-;; ...
+;; (when (and ns/enable-wsl-p ns/term?)
+;;   ;; C-i and tab are the same here, dwim
+;;   ;; todo: undef tab?
+;;   )
+
 (when ns/enable-wsl-p
   (load-file "/home/neeasade/code/term-keys/term-keys.el")
   (load-file "/home/neeasade/code/term-keys/term-keys-alacritty.el")
-
   (term-keys-mode t))
 
 ;; lsp launches company-mode all over the place
@@ -271,7 +274,7 @@
 ;; this should really be in sanity lmao
 (ns/use symbol-overlay (add-hook 'prog-mode-hook 'symbol-overlay-mode))
 
-(ns/inmap 'debugger-mode-map "q" 'delete-window)
+;; (ns/inmap 'debugger-mode-map "q" 'delete-window)
 
 (ns/use org-anki)
 
@@ -345,14 +348,15 @@
 ;;                                   (winner-undo)))
 
 ;; (ns/inmap 'special-mode-map "q" 'evil-delete-buffer)
+;; (ns/inmap 'special-mode-map "q" 'previous-buffer)
 
-(run-at-time "11:59:00pm" (ns/t 24h)
-  (fn!! message-delimiter
-    (message "|")
-    (message "------------------- %s the %s -------------------"
-      (ts-day-name (ts-now))
-      (ts-day (ts-now)))
-    (message "|")))
+;; (run-at-time "11:59:00pm" (ns/t 24h)
+;;   (fn!! message-delimiter
+;;     (message "|")
+;;     (message "------------------- %s the %s -------------------"
+;;       (ts-day-name (ts-now))
+;;       (ts-day (ts-now)))
+;;     (message "|")))
 
 (named-timer-idle-run :splash-screen (ns/t 30m) t
   (lambda ()
@@ -569,4 +573,11 @@
     (add-hook 'qml-ts-mode-hook (lambda ()
                                   (setq-local electric-indent-chars '(?\n ?\( ?\) ?{ ?} ?\[ ?\] ?\; ?,))
                                   ;; (lsp-deferred)
-                                  ))))
+                                  )))
+  (ns/use (org-todoist
+            :host github
+            :repo "lillenne/org-todoist"
+            :branch "main"
+            :files ("org-todoist.el"))
+
+    (org-todoist-background-sync)))

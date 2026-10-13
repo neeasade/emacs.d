@@ -144,11 +144,8 @@
     (ns/pickup-shell cwd t))
 
   (when ns/term?
-    ;; cf https://sw.kovidgoyal.net/kitty/remote-control/#kitty-launch
-    ;; lags really bad after window creation
-    ;; (kitty-rc-posted-command "launch" `(("type" . "os-window")
-    ;;                                      ("args" . ("emacsclient" "-t"))))
-    (sh (format "kitty --detach emacsclient -t -e '%s'" (pr-str `(ns/pickup-shell ,cwd t)))))
+    ;; (sh (format "kitty --detach emacsclient -t -e '%s'" (pr-str `(ns/pickup-shell ,cwd t))))
+    )
 
   ;; return t so that elisp ns/spawn-terminal call is true
   t)
@@ -187,7 +184,6 @@
 
     ;; we don't care about how long it takes to stage the terminal
     (make-thread 'ns/stage-terminal)
-
     nil))
 
 (ns/bind

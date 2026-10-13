@@ -774,7 +774,7 @@
     (setq-default chatgpt-shell-system-prompt 2)) ; the "programming" prompt
 
   (ns/use agent-shell
-    (setq agent-shell-preferred-agent-config 'omp)
+    ;; (setq agent-shell-preferred-agent-config 'omp)
     (setq agent-shell-preferred-agent-config 'copilot)
     (setq agent-shell-github-default-model-id "gpt-6.1-sol")
 
