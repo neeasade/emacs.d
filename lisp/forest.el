@@ -109,10 +109,6 @@
 
   (advice-add 'corfu-complete :around #'corfu-safe-complete)
 
-  ;; can be removed with emacs 31
-  (when ns/term?
-    (ns/use corfu-terminal (corfu-terminal-mode)))
-
   ;; todo: check this out
   (ns/use cape))
 

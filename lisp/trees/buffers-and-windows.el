@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; buffers and windows
 
 (defun ns/buffers-by-mode (&rest modes)

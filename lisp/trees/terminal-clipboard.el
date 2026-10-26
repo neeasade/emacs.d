@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; terminal clipboard syncing
 
 ;; clipetty works one way (emacs -> clip, not clip -> emacs)
