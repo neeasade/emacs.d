@@ -244,6 +244,11 @@
 
 (ns/bind "oq" 'ns/org-rotate-outdated)
 
+(ns/comment
+  (ns/bind "oq" 'ns/org-rotate-captures)
+  )
+
+;; need this smae thing but for done
 (ns/bind "od"
   (lambda ()
     (interactive)
@@ -251,10 +256,6 @@
       (ns/org-delay-one-day)
       (when next
         (ns/goto-marker next)))))
-
-(ns/comment
-  (ns/bind "oq" 'ns/org-rotate-captures)
-  )
 
 (defun ns/org-get-current-clock-time ()
   "Return minutes on the current org clock."

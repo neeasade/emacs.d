@@ -7,7 +7,11 @@
 (setq ns/blog-cache (-ht))
 
 (ns/persist ns/blog-build-cache (-ht))
-;; (setq ns/blog-build-cache (-ht))
+
+(comment
+  ;; reset/sanity:
+  (setq ns/blog-build-cache (-ht))
+  )
 
 ;;* compat
 (defalias 'tarp/get 'myron-get)
@@ -182,16 +186,19 @@
           :host github
           :repo "emacsmirror/ox-rss"))
 
-(defun ns/blog-make-images (filenames)
-  (let ((filenames (--map (s-trim it) (s-split "|" filenames))))
+(defun ns/blog-make-images (&rest filename-groups)
+  (let ((filenames (->> filename-groups
+                     (-remove 'not)     ; nil
+                     (-remove #'s-blank?))))
     (concat "#+begin_export html\n<div class=\"image-row\">\n"
       (mapconcat
         (lambda (filename)
-          (let ((path (concat "./assets/posts/" (url-hexify-string filename))))
+          (let ((path
+                  ;; (ns/str "./assets/posts/" filename)
+                  (ns/str "https://meeb.app.neeasade.net/assets/posts/" filename)))
             (format "<a href=\"%s\"><img src=\"%s\" alt=\"%s\"></a>"
-              path path (org-html-encode-plain-text filename))))
-        (-remove 's-blank? filenames)
-        "\n")
+              path path filename)))
+        filenames "\n")
       "\n</div>\n#+end_export")))
 
 (defun ns/blog-path (&rest args)
@@ -600,15 +607,24 @@
               (s-join "\n"))))
   (setq ns/blog-cache (-ht)))
 
+(defun my-join-sides-s (left right width)
+  ;; generated
+  "Left-aligns LEFT and right-aligns RIGHT on opposite sides of WIDTH using s.el."
+  (let* ((right-width (string-width right))
+          (left-target (- width right-width)))
+    (concat (s-pad-right left-target " " left) right)))
+
 (defun ns/blog-find-post (&optional drafts-only)
   "Pick and open a blog post, restricting to drafts when DRAFTS-ONLY is non-nil."
   (llet [candidates (ht-keep (lambda (file title)
-                              (when (or (not drafts-only)
-                                      (llet [props (ns/blog-get-properties (slurp file))]
-                                        (or (ht-get props "draft") (ht-get props "hidden"))))
-                                (cons (format "%s (%s)" title
-                                        (file-relative-name file (ns/blog-path "")))
-                                  file))) (ns/get-blog-files))
+                               (when (or (not drafts-only)
+                                       (llet [props (ns/blog-get-properties (slurp file))]
+                                         (or (ht-get props "draft") (ht-get props "hidden"))))
+                                 (cons (my-join-sides-s title
+                                         (file-relative-name file (ns/blog-path ""))
+                                         (- (frame-width) 3))
+                                   file)))
+                      (ns/get-blog-files))
           candidate (ns/pick (mapcar #'car candidates))]
     (find-file (cdr (assoc candidate candidates)))))
 
