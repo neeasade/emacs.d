@@ -615,7 +615,8 @@
     (concat (s-pad-right left-target " " left) right)))
 
 (defun ns/blog-find-post (&optional drafts-only)
-  "Pick and open a blog post, restricting to drafts when DRAFTS-ONLY is non-nil."
+  "Pick, preview, and open a blog post.
+Restrict to drafts when DRAFTS-ONLY is non-nil."
   (llet [candidates (ht-keep (lambda (file title)
                                (when (or (not drafts-only)
                                        (llet [props (ns/blog-get-properties (slurp file))]
@@ -625,8 +626,12 @@
                                          (- (frame-width) 3))
                                    file)))
                       (ns/get-blog-files))
-          candidate (ns/pick (mapcar #'car candidates))]
-    (find-file (cdr (assoc candidate candidates)))))
+          file (consult--read candidates
+                 :prompt "Blog post: "
+                 :require-match t
+                 :lookup #'consult--lookup-cdr
+                 :state (consult--file-preview))]
+    (find-file file)))
 
 (ns/bind
   "ob" 'ns/blog-generate-and-open-current-file

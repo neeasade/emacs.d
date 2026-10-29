@@ -496,8 +496,6 @@
   ;; (remove-hook 'c++-mode-hook #'lsp-deferred)
   ;; (remove-hook 'c-mode-hook #'lsp-deferred)
 
-
-
   ;; eglot breaks everything anytime I touch it
   ;; (ns/use eglot)
 
@@ -787,6 +785,10 @@
     (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input))
 
   (ns/bind "nf" 'agent-shell)
+
+  (add-hook 'ns/theme-hook
+    (fn! (ns/face 'agent-shell-markdown-table-zebra
+           :background (myron-get :background :weak))))
 
   ;; (fn!! find-llm-shell
   ;;   (if-let (b (first (ns/buffers-by-mode 'agent-shell-mode 'chatgpt-shell-mode 'aidermacs-comint-mode)))

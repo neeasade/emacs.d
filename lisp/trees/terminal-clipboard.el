@@ -63,6 +63,7 @@
   ;; if wslg is stuck, wl-paste just hangs forever
   (llet [result (if (and ns/enable-wsl-p
                       (not (my-frame-ssh-p)))
+                  ;; todo: only do this if it's text - keep accidentally manging images
                   (sh "timeout 1 wl-paste | dos2unix")
                   (ns/osc52-read))]
     (when-not (s-blank? result)

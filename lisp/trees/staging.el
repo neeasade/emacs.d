@@ -1,5 +1,20 @@
 ;; -*- lexical-binding: t; -*-
 
+;; want: kill file buffers contained within folder
+;; fzf project folders?
+
+(ns/use buffer-terminator
+  ;; seeing if the default setup is OK
+  (buffer-terminator-mode t))
+
+(defun ns/remove-blank-lines ()
+  "Remove whitespace-only lines in the active region, or the whole buffer."
+  (interactive)
+  (let ((beg (if (use-region-p) (region-beginning) (point-min)))
+         (end (if (use-region-p) (region-end) (point-max))))
+    (save-excursion
+      (flush-lines "^[ \t]*$" beg end))))
+
 (ns/use nov
   (setq nov-text-width 60)
   (ns/file-mode "epub" 'nov-mode))
@@ -526,6 +541,10 @@
 
 (comment
 
+  (add-to-list 'treesit-language-source-alist
+    '(cpp "https://github.com/tree-sitter/tree-sitter-cpp"
+       "v0.23.4"))
+
   ;; as a reminder to try later (prettier)
   ;; nb: for vue this seems aggressively wrong (or at least, disagrees with the vscode interpretation)
   (ns/use apheleia)
@@ -535,12 +554,6 @@
 	  '(vue-ts-mode . ("vue-language-server" "--stdio" :initializationOptions '(:vue (:hybridMode :json-false)))))
 
   (ns/use tree-sitter-langs)
-
-  (setq treesit-language-source-alist
-    '((cpp "https://github.com/tree-sitter/tree-sitter-cpp"
-        "v0.11.4"
-        )))
-
 
   (treesit-install-language-grammar 'cpp)
 
