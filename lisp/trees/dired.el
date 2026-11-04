@@ -20,9 +20,17 @@
 ;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 (remove-hook 'dired-mode-hook #'dired-hide-details-mode)
 
+(defun ns/dired-project-root ()
+  "Open the current Git or project root in Dired."
+  (interactive)
+  (--if-let (projectile-project-root)
+    (dired it)
+    (user-error "No project root found")))
+
 (ns/use dired-git-info
   (ns/bind-leader-mode 'dired
-    "g" #'dired-git-info-mode))
+    "g" #'dired-git-info-mode
+    "G" #'ns/dired-project-root))
 
 ;; Dired listing switches
 ;;  -a : Do not ignore entries starting with .

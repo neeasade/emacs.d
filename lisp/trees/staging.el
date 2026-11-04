@@ -553,10 +553,10 @@
     (display-buffer-in-direction b (a-assoc a 'direction 'above)))
   (setq typit-display-action 'ns/display-buffer-at-top))
 
-(defun! ns/fake-float ()
-  (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background :focused))))
-
 (when ns/enable-wsl-p
+  (defun! ns/fake-float ()
+    (send-string-to-terminal (format "\e]11;%s\a" (myron-get :background :focused))))
+
   (add-hook 'ns/theme-hook 'ns/fake-float))
 
 ;; coworker said "wouldn't it be nice if this existed":
