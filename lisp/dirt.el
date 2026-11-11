@@ -494,7 +494,7 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
 
 (defun ns/det-pick (list seed-obj)
   ;; deterministically pick item from list based on hash of seed-obj
-  (nth (mod (string-to-number (md5 seed-obj) 16)
+  (nth (mod (string-to-number (md5 (ns/str seed-obj)) 16)
          (length list))
     list))
 
