@@ -16,8 +16,61 @@
       (flush-lines "^[ \t]*$" beg end))))
 
 (ns/use nov
-  (setq nov-text-width 60)
-  (ns/file-mode "epub" 'nov-mode))
+  (ns/file-mode "epub" 'nov-mode)
+
+  ;; todo: should we have a different prefix for generated fns
+  (defun ns/nov-render-p (dom)
+    (let* ((children (dom-children dom))
+            (text (and (= (length children) 1)
+                    (stringp (car children))
+                    (car children)))
+            ;; This book uses a paragraph containing only &nbsp; as a scene break.
+            (scene-break
+              (and text
+                (string-match-p
+                  "\\`[ \t\r\n\u00a0]*\u00a0[ \t\r\n\u00a0]*\\'"
+                  text)))
+            (classes (split-string (or (dom-attr dom 'class) "")
+                       "[ \t\r\n]+" t)))
+      (if scene-break
+        (shr-ensure-paragraph)
+        (shr-ensure-newline)
+        (when (--any (s-starts-with-p "indent" it)
+                classes)
+          (insert "  "))
+        ;; (when (member "indentx" classes)
+        ;;   (insert "  "))
+        (shr-generic dom)
+        (shr-ensure-newline))))
+
+  (setq nov-shr-rendering-functions
+    '((img . nov-render-img)
+       (svg . nov-render-svg)
+       (title . nov-render-title)
+       (p . ns/nov-render-p)))
+
+  (add-hook 'nov-mode-hook
+    (fn! nov-fill
+      (setq-local fill-column 60)
+      (olivetti-mode 1)
+
+      (setq mode-line-format nil)
+      (setq-local evil-normal-state-cursor 'hbar)
+      (setq-local header-line-format " ")
+      ;; fake top margin
+      (face-remap-set-base 'header-line 'default)))
+
+  ;; cw: borked an epub when an error was thrown in this zone
+  ;; might have been from a tweak to 'nov-shr-rendering-functions
+  (defun ns/epub-fix ()
+    (save-excursion
+      ;; rather important for a monospace font layout
+      (replace-string-in-region " . . ." "..."
+        (point-min) (point-max))))
+
+  (remove-hook 'nov-post-html-render-hook 'ns/epub-fix)
+
+  (add-hook 'nov-post-html-render-hook 'ns/epub-fix))
 
 ;; a pox on microsoft
 (ns/file-mode "vcxproj" 'xml-mode)
