@@ -183,6 +183,7 @@
   (when (and (called-interactively-p 'any)
           (not (getenv "NS_EMACS_BATCH")))
 
+    ;; todo: not load doomline in windows that don't havea a modeline loaded
     (ns/conf-doomline)
 
     (ns/face '(vertical-border window-divider window-divider-first-pixel window-divider-last-pixel)

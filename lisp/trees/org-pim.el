@@ -248,7 +248,8 @@
   (ns/bind "oq" 'ns/org-rotate-captures)
   )
 
-;; need this smae thing but for done
+;; need this same thing but for done
+;; od -> done, oD -> delay
 (ns/bind "od"
   (lambda ()
     (interactive)

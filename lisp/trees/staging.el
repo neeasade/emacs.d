@@ -32,6 +32,8 @@
       (flush-lines "^[ \t]*$" beg end))))
 
 (ns/use nov
+  (evil-define-key 'normal nov-mode-map "i" nil) ; annoying
+
   (ns/file-mode "epub" 'nov-mode)
 
   ;; todo: should we have a different prefix for generated fns
@@ -54,11 +56,10 @@
         (when (--any (s-starts-with-p "indent" it)
                 classes)
           (insert "  "))
-        ;; (when (member "indentx" classes)
-        ;;   (insert "  "))
         (shr-generic dom)
         (shr-ensure-newline))))
 
+  (setq nov-header-line-format " ")
   (setq nov-shr-rendering-functions
     '((img . nov-render-img)
        (svg . nov-render-svg)
@@ -69,13 +70,15 @@
 
   (add-hook 'nov-mode-hook
     (fn! nov-fill
-      (setq-local fill-column 60)
-      (olivetti-mode 1)
+      (setq-local evil-normal-state-cursor (list (myron-get :background) 'hbar))
 
       (setq mode-line-format nil)
       (setq-local evil-normal-state-cursor 'hbar)
       ;; fake top margin
-      (face-remap-set-base 'header-line 'default)))
+      (face-remap-set-base 'header-line 'default)
+
+      (setq-local fill-column 60)
+      (olivetti-mode 1)))
 
   ;; cw: borked an epub when an error was thrown in this zone
   ;; might have been from a tweak to 'nov-shr-rendering-functions

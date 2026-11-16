@@ -9,8 +9,11 @@
 (ns/persist ns/blog-build-cache (-ht))
 
 (comment
-  ;; reset/sanity:
+  ;; reset/sanity check:
   (setq ns/blog-build-cache (-ht))
+
+  (measure-time (ns/blog-generate-all-files))
+
   )
 
 ;;* compat
@@ -578,6 +581,7 @@
       (condition-case err
         (apply orig-func args)
         ;; dunno about this, no stacktrace popup. tbd
+        ;; todo: fix this
         (error (message "%s" (error-message-string err)))))))
 
 (advice-add 'ns/blog-publish-meta :around #'org-publish-ignore-mode-hooks)

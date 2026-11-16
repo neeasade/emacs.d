@@ -39,14 +39,15 @@
 
 #+MACRO: blog-title  (eval ns/blog-title)
 
+
 #+MACRO: index-navbar  (eval (ns/blog-index-navbar $1))
 
 #+MACRO:  redirect (eval (ns/blog-redirect-title $1))
 #+MACRO:  bloglink (eval (ns/blog-link-title $1))
 # #+MACRO:  image [[file:./assets/posts/$1][file:./assets/posts/$1]]
 
-#+MACRO:  image [[./assets/posts/$1][file:./assets/posts/$1]]
-#+MACRO:  images (eval (ns/blog-make-images $1))
+#+MACRO:  image (eval (ns/blog-make-images $1 $2 $3 $4 $5 $6 $7 $8 $9))
+#+MACRO:  images (eval (ns/blog-make-images $1 $2 $3 $4 $5 $6 $7 $8 $9))
 
 #+MACRO:  cite (eval (ns/blog-make-cite $1 $2 $3 $4 $5 $6 $7 $8 $9))
 
@@ -73,7 +74,7 @@
 # sorry to future me if this becomes maddening to find
 #+BEGIN_EXPORT html
 <style>
-p {
+p, details {
   text-align: justify;
   text-justify: inter-word;
   hyphens: auto;
