@@ -1,7 +1,23 @@
 ;; -*- lexical-binding: t; -*-
 
+;; defer font locking until a delay in typing:
+(setq jit-lock-defer-time 0.10)
+
+;; do 0 unless we get hurt:
+(setq jit-lock-defer-time 0)
+
+(comment
+  (setq jit-lock-defer-time nil))
+
+(setq etcc-use-color t)
+
 ;; want: kill file buffers contained within folder
 ;; fzf project folders?
+
+(ns/use jenkinsfile-mode
+  ;; todo: starts with:
+  ;; ("Jenkinsfile\\'" . jenkinsfile-mode)
+  )
 
 (ns/use buffer-terminator
   ;; seeing if the default setup is OK
@@ -49,6 +65,8 @@
        (title . nov-render-title)
        (p . ns/nov-render-p)))
 
+  (setq nov-header-line-format " ")
+
   (add-hook 'nov-mode-hook
     (fn! nov-fill
       (setq-local fill-column 60)
@@ -56,7 +74,6 @@
 
       (setq mode-line-format nil)
       (setq-local evil-normal-state-cursor 'hbar)
-      (setq-local header-line-format " ")
       ;; fake top margin
       (face-remap-set-base 'header-line 'default)))
 

@@ -17,16 +17,7 @@
 (defalias 'tarp/get 'myron-get)
 (defalias 'ns/shell-exec 'sh)
 
-(defun range (one &optional two step)
-  (let* ((start (if two one 0))
-          (end (if two two one))
-          (step (or step (if (> end start) 1 -1))))
-    (cond
-      ((= end start) (list start))
-      ((> end start)
-        (number-sequence start (- end 1) step))
-      ((< end start)
-        (number-sequence start (+ 1 end) step)))))
+
 
 ;;* macros/content
 

@@ -463,6 +463,18 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
   "pick random item from list"
   (first (-shuffle list)))
 
+;; more useful+intuitive than -iota
+(defun range (one &optional two step)
+  (let* ((start (if two one 0))
+          (end (if two two one))
+          (step (or step (if (> end start) 1 -1))))
+    (cond
+      ((= end start) (list start))
+      ((> end start)
+        (number-sequence start (- end 1) step))
+      ((< end start)
+        (number-sequence start (+ 1 end) step)))))
+
 ;; ugh
 (defun ns/plist-keys (plist) (-map 'first (-partition 2 plist)))
 (defun ns/plist-values (plist) (-map 'second (-partition 2 plist)))
@@ -505,6 +517,12 @@ NOTE: doesn't handle chars, because chars are ints (they get turned into numbers
     (sh-toss "atuin" "kv" "set" "-n"
       (if (file-remote-p cwd) "dirs_remote" "dirs")
       "--key" (ns/path cwd) "_")))
+
+;; it would be nice if sexp was an anaphoric template using 'it'
+(defun ns/apply-n (n sexp &rest inputs)
+  (->> (-partition n inputs)
+    (--map (-concat (-list sexp) it))
+    (--map (apply (first it) (-drop 1 it)) )))
 
 (defun ns/atuin-list-dirs (&optional remote?)
   (when (which "atuin")
